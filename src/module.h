@@ -9,16 +9,16 @@ public:
     this->name = name;
   }
 
-  void setup() {
-
+  virtual void setup() {
+    Serial.printf("setup %s ", name);
   }
 
-  void loop() {
-        Serial.printf("%s ", name);
+  virtual void loop() {
+    Serial.printf("%s ", name);
   }
 
-  void testManager() {}
-  void performanceManager() {}
-  void dataSizeManager() {}
-  void codeSizeManager() {}
+  virtual void testManager() {}
+  virtual void performanceManager() {}
+  virtual void dataSizeManager() {}
+  virtual void codeSizeManager() {}
 };

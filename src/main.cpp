@@ -1,18 +1,31 @@
-#include <Arduino.h>
+#include <vector>
 
-// put function declarations here:
-int myFunction(int, int);
+#include "module.h"
+
+std::vector<Module> modules; 
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  Serial.begin(115200);
+  modules.push_back(Module("Serial"));
+  modules.push_back(Module("Webserver"));
+  modules.push_back(Module("UI"));
+  modules.push_back(Module("Wifi"));
+  modules.push_back(Module("Busses"));
+  modules.push_back(Module("Effects"));
+  modules.push_back(Module("Audio"));
+  modules.push_back(Module("..."));
+
+  for (Module module:modules) module.setup();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  for (Module module:modules) {
+    module.loop();
+    module.testManager();
+    module.performanceManager();
+    module.dataSizeManager();
+    module.codeSizeManager();
+  }
+  Serial.println();
+  delay(1000);
 }

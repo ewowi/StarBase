@@ -1,20 +1,24 @@
 #include <Arduino.h>
 
+#pragma once
+
 class Module {
 
 public:
   const char *name;
+  bool success;
+  bool enabled;
 
   Module(const char *name) {
     this->name = name;
+    enabled = true;
   }
 
   virtual void setup() {
-    Serial.printf("setup %s ", name);
+    success = true;
   }
 
   virtual void loop() {
-    Serial.printf("%s ", name);
   }
 
   virtual void testManager() {}

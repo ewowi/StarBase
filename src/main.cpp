@@ -1,34 +1,41 @@
 #include <vector>
 
-#include "moduleWifi.h"
+#include "ModulePrint.h"
+#include "moduleFileServer.h"
+#include "ModuleWebServer.h"
+#include "moduleUI.h"
 
 std::vector<Module *> modules; 
 
+//setup all modules
 void setup() {
-  Serial.begin(115200);
-  delay(4000); //needed for the time being
 
-  modules.push_back(new Module("Serial"));
-  modules.push_back(new Module("Webserver"));
-  modules.push_back(new Module("UI"));
-  modules.push_back(new ModuleWifi());
+  print = new ModulePrint();
+  file = new ModuleFileServer();
+  web = new ModuleWebServer();
+  ui = new ModuleUI();
+
+  modules.push_back(print);
+  modules.push_back(file);
+  modules.push_back(web);
+  modules.push_back(ui);
   modules.push_back(new Module("Busses"));
   modules.push_back(new Module("Effects"));
   modules.push_back(new Module("Audio"));
   modules.push_back(new Module("..."));
 
   for (Module *module:modules) module->setup();
-  Serial.println();
 }
 
+//loop all modules
 void loop() {
   for (Module *module:modules) {
-    module->loop();
-    module->testManager();
-    module->performanceManager();
-    module->dataSizeManager();
-    module->codeSizeManager();
+    if (module->enabled && module->success) {
+      module->loop();
+      module->testManager();
+      module->performanceManager();
+      module->dataSizeManager();
+      module->codeSizeManager();
+    }
   }
-  Serial.println();
-  delay(1000);
 }

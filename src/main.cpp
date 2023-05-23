@@ -1,24 +1,27 @@
 #include <vector>
 
-#include "ModulePrint.h"
+#include "modulePrintServer.h"
 #include "moduleFileServer.h"
-#include "ModuleWebServer.h"
-#include "moduleUI.h"
+#include "moduleWebServer.h"
+#include "moduleUIServer.h"
+#include "moduleToggle.h"
 
 std::vector<Module *> modules; 
 
 //setup all modules
 void setup() {
 
-  print = new ModulePrint();
+  print = new ModulePrintServer();
   file = new ModuleFileServer();
   web = new ModuleWebServer();
-  ui = new ModuleUI();
+  ui = new ModuleUIServer();
+  toggle = new ModuleToggle();
 
   modules.push_back(print);
   modules.push_back(file);
   modules.push_back(web);
   modules.push_back(ui);
+  modules.push_back(toggle);
   modules.push_back(new Module("Busses"));
   modules.push_back(new Module("Effects"));
   modules.push_back(new Module("Audio"));

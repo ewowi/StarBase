@@ -2,8 +2,60 @@
 <html>
 <head>
     <title>Playground</title>
+    <script>
+      let ws;
+      function gId(c) {return document.getElementById(c);}
+
+      function onLoad() {
+        let url = (window.location.protocol == "https:"?"wss":"ws")+'://'+window.location.hostname+'/ws';
+        console.log("onLoad url", url);
+        ws = new WebSocket(url);
+        ws.binaryType = "arraybuffer";
+    	ws.onmessage = (e)=>{
+            let json = JSON.parse(e.data);
+            console.log("onmessage", json);
+            if (json.inclDef) generateHTML(json);
+            else updateHTML(json);
+	    }
+	    ws.onclose = (e)=>{
+            console.log("onclose", e);
+	    }
+	    ws.onopen = (e)=>{
+            console.log("onopen", e);
+        }
+      }
+
+      function requestJson(id, value) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", `/json?id=${id}&value=${value}`, true);
+        xhr.send();
+        //to be replaced by ws.send();
+      }
+
+      function generateHTML(json) {
+        console.log("generateHTML", json);
+        if (json.body) {
+          for (var element of json.body)
+            generateHTML(element);
+        }
+        if (json.type == "checkbox") {
+          gId('in').innerHTML += `${json.prompt}<input id=${json.prompt} type="checkbox" onchange="requestJson(this.id, this.checked)" ${json.value?"checked":""}>`;
+        }
+      }
+      function updateHTML(json) {
+        console.log("updateHTML", json);
+        if (json.body) {
+          for (var element of json.body)
+            updateHTML(element);
+        }
+        if (json.type == "checkbox") {
+          gId(json.prompt).checked = json.value;
+        }
+      }
+      </script>
 </head>
-<body>
+<body onload="onLoad()">
     <p>Hello world</p>
+    <div id="in"></div>
 </body>
 </html>

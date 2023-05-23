@@ -1,10 +1,12 @@
+#pragma once
+
 #include "module.h"
 
-class ModulePrint:public Module {
+class ModulePrintServer:public Module {
 
 public:
 
-  ModulePrint() :Module("PrintServer") {}; //constructor
+  ModulePrintServer() :Module("PrintServer") {}; //constructor
 
   //setup Serial
   void setup() {
@@ -32,4 +34,4 @@ public:
 
 };
 
-ModulePrint *print;
+static ModulePrintServer *print;

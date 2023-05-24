@@ -1,10 +1,5 @@
-
-#pragma once
-
 #include "module.h"
-// #include "modulePrintServer.h"
 
-#include <WiFi.h>
 #include "LittleFS.h"
 
 //https://randomnerdtutorials.com/esp32-vs-code-platformio-spiffs/

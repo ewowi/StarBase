@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#pragma once
+#pragma once //included by multiple files
 
 class Module {
 

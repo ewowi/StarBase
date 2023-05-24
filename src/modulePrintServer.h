@@ -1,5 +1,3 @@
-#pragma once
-
 #include "module.h"
 
 class ModulePrintServer:public Module {

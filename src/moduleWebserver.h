@@ -1,10 +1,11 @@
 #include "module.h"
 
-#include <WiFi.h>
+//WiFi.h already included in main
 #include <ESPAsyncWebServer.h>
 #include "ArduinoJson.h"
 
 //https://techtutorialsx.com/2018/08/24/esp32-web-server-serving-html-from-file-system/
+//https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);

@@ -1,7 +1,5 @@
 #include "module.h"
 
-//https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
-
 class ModuleToggle:public Module {
 
 public:

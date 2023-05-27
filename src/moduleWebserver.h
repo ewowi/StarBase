@@ -2,6 +2,7 @@
 
 //WiFi.h already included in main
 #include <ESPAsyncWebServer.h>
+#include "AsyncJson.h"
 #include "ArduinoJson.h"
 
 //https://techtutorialsx.com/2018/08/24/esp32-web-server-serving-html-from-file-system/
@@ -20,7 +21,7 @@ public:
   const char* ssid = "ssid";
   const char* pass = "pass";
 
-  unsigned long lastInterfaceUpdate = 0;
+  bool docUpdated = false;
 
   ModuleWebServer() :Module("WebServer") {}; //constructor
 
@@ -50,30 +51,27 @@ public:
 
   void loop() {
     // Module::loop();
-    if (millis() - lastInterfaceUpdate > 2000) {
-      sendDataWs(); //send new data
-      lastInterfaceUpdate = millis();
+    if (docUpdated) {
+      sendDataWs(nullptr, false); //send new data
+      docUpdated = false;
     }
   }
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
-
     if(type == WS_EVT_CONNECT){
-  
       Serial.println("Websocket client connection received");
       sendDataWs(client, true);
-  
     } else if(type == WS_EVT_DISCONNECT){
       Serial.println("Client disconnected");
     }
   }
 
-  static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false)
-  {
+  static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false) {
     if (!ws.count()) return;
+
     AsyncWebSocketMessageBuffer * buffer;
 
-    doc["inclDef"] = inclDef;
+    doc[0]["incldef"] = inclDef;
 
     size_t len = measureJson(doc);
     buffer = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
@@ -111,10 +109,19 @@ public:
     return true;
   }
 
+  //not used at the moment
   bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *)) {
     server.on(uri, HTTP_GET, [uri, func](AsyncWebServerRequest *request) {
       func(request);
     });
+    return true;
+  }
+
+  bool processJSONURL(const char * uri, void (*func)(AsyncWebServerRequest *, JsonVariant &)) {
+    AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [func](AsyncWebServerRequest *request, JsonVariant &json) {
+      func(request, json);
+    });
+    server.addHandler(handler);
     return true;
   }
 

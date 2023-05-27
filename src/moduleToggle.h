@@ -1,12 +1,10 @@
 #include "module.h"
 
+//try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
+
 class ModuleToggle:public Module {
 
 public:
-
-  bool p2 = false;
-  bool p4 = true;
-  bool p33 = false;
 
   ModuleToggle() :Module("UIServerToggle") {}; //constructor
 
@@ -15,16 +13,14 @@ public:
     print->print("%s Setup:", name);
 
     pinMode(2, OUTPUT);
-    digitalWrite(2, p2?HIGH:LOW);
+    digitalWrite(2, HIGH);
     pinMode(4, OUTPUT);
-    digitalWrite(4, LOW);
     pinMode(33, OUTPUT);
-    digitalWrite(33, LOW);
 
-  
-    ui->addCheckBox("Pin2", &p2, updateGPIO);
-    ui->addCheckBox("Pin4", &p4);
-    ui->addCheckBox("Pin33", &p33);
+    ui->addCheckBox("Pin2", true, updateGPIO);
+    ui->addCheckBox("Pin4", false);
+    ui->addCheckBox("Pin33", true);
+    ui->addInput("Tekst", "text");
 
     ui->finishUI();
       
@@ -33,16 +29,19 @@ public:
 
   void loop(){
     // Module::loop();
-    p2 = random(2);
-    p4 = random(2);
-    p33 = random(2);
   }
 
-  static void updateGPIO(String id, String value) {
-    print->print("updateGPIO %s:=%s\n", id, value);
-    if (id == "Pin2") digitalWrite(2, value=="true"?HIGH:LOW);
-    if (id == "Pin4") digitalWrite(4, value=="true"?HIGH:LOW);
-    if (id == "Pin33") digitalWrite(33, value=="true"?HIGH:LOW);
+  static void updateGPIO(JsonPair pair) {
+    if (pair.value().is<bool>()) {
+      bool value = pair.value().as<bool>();
+      const char * key = pair.key().c_str();
+
+      print->print("updateGPIO %s:=%d\n", key, value); 
+
+      if (strcmp(key, "Pin2") == 0) digitalWrite(2, value?HIGH:LOW);
+      if (strcmp(key, "Pin4") == 0) digitalWrite(4, value?HIGH:LOW);
+      if (strcmp(key, "Pin33") == 0) digitalWrite(33, value?HIGH:LOW);
+    }
   }
 
 };

@@ -14,7 +14,6 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-
     print->print(" %s\n", success?"success":"failed");
   }
 
@@ -22,7 +21,7 @@ public:
     // Module::loop();
     loopCounter++;
     if (millis() - lastMillis >= 10000) {
-      print->print("%lu / %lu = %lu lps\n", loopCounter, millis()/1000, 1000 * loopCounter / millis());
+      print->print("%lu lps\n", loopCounter/10);
       lastMillis = millis();
       loopCounter = 0;
     }

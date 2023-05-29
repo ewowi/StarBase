@@ -1,12 +1,12 @@
-#include "module.h"
+#include "Module.h"
 
 //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
 
-class ModuleToggle:public Module {
+class AppModPinManager:public Module {
 
 public:
 
-  ModuleToggle() :Module("UIServerToggle") {}; //constructor
+  AppModPinManager() :Module("Pin Manager") {}; //constructor
 
   void setup() {
     Module::setup();
@@ -17,13 +17,13 @@ public:
     pinMode(4, OUTPUT);
     pinMode(33, OUTPUT);
 
+    ui->addGroup(name);
     ui->addCheckBox("Pin2", true, updateGPIO);
     ui->addCheckBox("Pin4", false);
     ui->addCheckBox("Pin33", true);
-    ui->addInput("Tekst", "text");
 
     ui->finishUI();
-      
+  
     print->print(" %s\n", success?"success":"failed");
   }
 
@@ -36,7 +36,7 @@ public:
       bool value = pair.value().as<bool>();
       const char * key = pair.key().c_str();
 
-      print->print("updateGPIO %s:=%d\n", key, value); 
+      print->print("updateGPIO %s:=%d\n", key, value);
 
       if (strcmp(key, "Pin2") == 0) digitalWrite(2, value?HIGH:LOW);
       if (strcmp(key, "Pin4") == 0) digitalWrite(4, value?HIGH:LOW);
@@ -46,4 +46,4 @@ public:
 
 };
 
-static ModuleToggle *toggle;
+static AppModPinManager *pin;

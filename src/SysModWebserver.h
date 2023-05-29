@@ -1,6 +1,5 @@
-#include "module.h"
+#include "Module.h"
 
-//WiFi.h already included in main
 #include <ESPAsyncWebServer.h>
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
@@ -14,33 +13,21 @@ AsyncWebSocket ws("/ws");
 
 StaticJsonDocument<10240> doc;
 
-class ModuleWebServer:public Module {
+class SysModWebServer:public Module {
 
 public:
 
-  const char* ssid = "ssid";
-  const char* pass = "pass";
-
   bool docUpdated = false;
 
-  ModuleWebServer() :Module("WebServer") {}; //constructor
+  SysModWebServer() :Module("WebServer") {}; //constructor
 
   //setup wifi an async webserver
   void setup() {
     Module::setup();
     print->print("%s Setup:", name);
 
-    print->print(" Connecting to WiFi %s / ", ssid);
-    WiFi.begin(ssid, pass);
-    for (int i = 0; i < strlen(pass); i++) print->print("*");
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(1000);
-      print->print(".");
-    }
-    print->print("!");
-  
-    print->print(" IP %s", WiFi.localIP().toString().c_str());
-  
+    JsonArray root = doc.to<JsonArray>(); //create
+
     ws.onEvent(wsEvent);
     server.addHandler(&ws);
 
@@ -66,19 +53,18 @@ public:
     }
   }
 
-  static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false) {
+  //send json to client or all clients
+  static void sendDataWs(AsyncWebSocketClient * client = nullptr, JsonVariant json = JsonVariant()) {
     if (!ws.count()) return;
 
     AsyncWebSocketMessageBuffer * buffer;
 
-    doc[0]["incldef"] = inclDef;
-
-    size_t len = measureJson(doc);
+    size_t len = measureJson(json);
     buffer = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
 
     buffer->lock();
-    
-    serializeJson(doc, (char *)buffer->get(), len);
+   
+    serializeJson(json, (char *)buffer->get(), len);
     if (client) {
       client->text(buffer);
       // DEBUG_PRINTLN(F("to a single client."));
@@ -88,6 +74,17 @@ public:
     }
     buffer->unlock();
     ws._cleanBuffers();
+  }
+
+  //specific json data send to all clients
+  static void sendDataWs(JsonVariant json) {
+    sendDataWs(nullptr, json);
+  }
+
+  //complete document send to client or all clients
+  static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false) {
+    doc[0]["incldef"] = inclDef;
+    sendDataWs(client, doc);
   }
 
   //add an url to the webserver to listen to
@@ -117,9 +114,10 @@ public:
     return true;
   }
 
-  bool processJSONURL(const char * uri, void (*func)(AsyncWebServerRequest *, JsonVariant &)) {
+  bool processJSONURL(const char * uri, void (*func)(JsonVariant &)) {
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [func](AsyncWebServerRequest *request, JsonVariant &json) {
-      func(request, json);
+      func(json);
+      request->send(200, "text/plain", "OK");
     });
     server.addHandler(handler);
     return true;
@@ -127,4 +125,4 @@ public:
 
 };
 
-static ModuleWebServer *web;
+static SysModWebServer *web;

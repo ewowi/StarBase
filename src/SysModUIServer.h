@@ -1,12 +1,12 @@
-#include "module.h"
+#include "Module.h"
 
-static std::vector<void(*)(JsonPair)> functions; 
+static std::vector<void(*)(JsonPair)> functions;
 
-class ModuleUIServer:public Module {
+class SysModUIServer:public Module {
 
 public:
 
-  ModuleUIServer() :Module("UIServer") {}; //constructor
+  SysModUIServer() :Module("UI Server") {}; //constructor
 
   //serve index.htm
   void setup() {
@@ -17,8 +17,11 @@ public:
 
     success &= web->processJSONURL("/json", processJSONURL);
 
+    addGroup(name);
+    addInput("Network name", "text");
+    addInput("Password", "text");
+
     print->print(" %s\n", success?"success":"failed");
-    JsonArray root = doc.to<JsonArray>(); //create
   }
 
   void loop(){
@@ -31,7 +34,7 @@ public:
     JsonObject props = root.createNestedObject();
     props["prompt"] = prompt;
     props["type"] = type;
-    if (fun) { 
+    if (fun) {
       functions.push_back(fun);
       props["fun"] = functions.size()-1;
     }
@@ -39,19 +42,58 @@ public:
     return props;
   }
 
-  void addInput(const char *prompt, const char *value, void(*fun)(JsonPair) = nullptr) {
+  void addGroup(const char *prompt, void(*fun)(JsonPair) = nullptr) {
+    JsonObject props = addElement(prompt, "group", fun);
+    print->print("addGroup %s\n", prompt);
+  }
+
+  JsonObject addInput(const char *prompt, const char *value, void(*fun)(JsonPair) = nullptr) {
     JsonObject props = addElement(prompt, "input", fun);
     props["value"] = value;
     print->print("addInput %s value %s\n", prompt, value);
+    return props;
   }
 
-  void addCheckBox(const char *prompt, bool value, void(*fun)(JsonPair) = nullptr) {
+  JsonObject addDisplay(const char *prompt, const char *value, void(*fun)(JsonPair) = nullptr) {
+    JsonObject props = addElement(prompt, "display", fun);
+    props["value"] = value;
+    print->print("addDisplay %s value %s\n", prompt, value);
+    return props;
+  }
+
+  JsonObject addCheckBox(const char *prompt, bool value, void(*fun)(JsonPair) = nullptr) {
     JsonObject props = addElement(prompt, "checkbox", fun);
     props["value"] = value;
     print->print("addCheckbox %s value %d\n", prompt, value);
+    return props;
   }
 
-  static void processJSONURL(AsyncWebServerRequest *request, JsonVariant &json) {
+  static JsonObject findObject(const char *prompt) { //static for processJSONURL
+    JsonArray root = doc.as<JsonArray>();
+    for(JsonObject object : root) {
+      if (strcmp(object["prompt"], prompt) == 0)
+        return object;
+    }
+    return JsonObject(); //null object
+  }
+  void setInput(const char *prompt, const char * value, void(*fun)(JsonPair) = nullptr) {
+    JsonObject object = findObject(prompt);
+    if (!object) object = addInput(prompt, value, fun);
+
+    if (object) {
+      if (object["value"] != value) {
+        object["value"] = (char *)value; //copy
+        web->sendDataWs(object);
+        print->print("setInput %s = %s-> %s\n", prompt, object["value"].as<const char *>(), value);
+      }
+      else
+        print->print("setInput %s = %s unchanged\n", prompt, value);
+    }
+    else
+      print->print("could not create object %s with %s\n", prompt, value);
+  }
+
+  static void processJSONURL(JsonVariant &json) {
     if (json.is<JsonObject>()) //should be
     {
       for (JsonPair pair : json.as<JsonObject>()) { //iterate json elements
@@ -72,12 +114,13 @@ public:
               print->print("Object %s type %s unknown or value %s not matching type \n", key, object["type"].as<const char *>(), value.as<const char *>());
 
             //call post function...
-            if (!object["fun"].isNull()) {
+            if (!object["fun"].isNull()) {//isnull needed here!
               size_t funNr = object["fun"];
               functions[funNr](pair);
             }
 
-            web->docUpdated = true;
+            // web->docUpdated = true;
+            web->sendDataWs(object);
           }
         }
         else
@@ -86,17 +129,6 @@ public:
     }
     else
       print->print("Json not object???\n");
-
-    request->send(200, "text/plain", "OK");
-  }
-
-  static JsonObject findObject(const char *id) {
-    JsonArray root = doc.as<JsonArray>();
-    for(JsonObject object : root) {
-      if (strcmp(object["prompt"], id) == 0)
-        return object;
-    }
-    return JsonObject(); //null object
   }
 
   void finishUI() { //tbd: automatic?
@@ -104,4 +136,4 @@ public:
   }
 };
 
-static ModuleUIServer *ui;
+static SysModUIServer *ui;

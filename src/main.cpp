@@ -1,6 +1,13 @@
 #include <vector>
 #include <WiFi.h> //needed here instead of SysModWebServer as ESPAsyncWebServer.git requires it
 
+// remove latest commit
+// git reset --hard HEAD^
+// git push origin -f
+
+#include "Module.h"
+std::vector<Module *> modules;
+
 #include "SysModPrintServer.h"
 #include "SysModFileServer.h"
 #include "SysModNetwork.h"
@@ -8,8 +15,6 @@
 #include "SysModUIServer.h"
 #include "SysModSystemManager.h"
 #include "AppModPinManager.h"
-
-std::vector<Module *> modules;
 
 //setup all modules
 void setup() {

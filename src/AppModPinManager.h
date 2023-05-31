@@ -13,14 +13,13 @@ public:
     print->print("%s Setup:", name);
 
     pinMode(2, OUTPUT);
-    digitalWrite(2, HIGH);
     pinMode(4, OUTPUT);
     pinMode(33, OUTPUT);
 
-    ui->addGroup(name);
-    ui->addCheckBox("Pin2", true, updateGPIO);
-    ui->addCheckBox("Pin4", false);
-    ui->addCheckBox("Pin33", true);
+    ui->defGroup(name);
+    ui->defCheckBox("Pin2", true, updateGPIO);
+    ui->defCheckBox("Pin4", false);
+    ui->defCheckBox("Pin33", true);
 
     ui->finishUI();
   
@@ -31,16 +30,15 @@ public:
     // Module::loop();
   }
 
-  static void updateGPIO(JsonPair pair) {
-    if (pair.value().is<bool>()) {
-      bool value = pair.value().as<bool>();
-      const char * key = pair.key().c_str();
+  static void updateGPIO(const char *prompt, JsonVariant value) {
+    if (value.is<bool>()) {
+      bool pin = value.as<bool>();
 
-      print->print("updateGPIO %s:=%d\n", key, value);
+      print->print("updateGPIO %s:=%d\n", prompt, pin);
 
-      if (strcmp(key, "Pin2") == 0) digitalWrite(2, value?HIGH:LOW);
-      if (strcmp(key, "Pin4") == 0) digitalWrite(4, value?HIGH:LOW);
-      if (strcmp(key, "Pin33") == 0) digitalWrite(33, value?HIGH:LOW);
+      if (strcmp(prompt, "Pin2") == 0) digitalWrite(2, pin?HIGH:LOW);
+      if (strcmp(prompt, "Pin4") == 0) digitalWrite(4, pin?HIGH:LOW);
+      if (strcmp(prompt, "Pin33") == 0) digitalWrite(33, pin?HIGH:LOW);
     }
   }
 

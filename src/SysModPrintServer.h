@@ -26,6 +26,10 @@ public:
     return len;
   }
 
+  size_t println(const __FlashStringHelper * x) {
+    return Serial.println(x);
+  }
+
   void loop() {
     // Module::loop();
   }

@@ -11,13 +11,13 @@
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 
-StaticJsonDocument<10240> doc;
+StaticJsonDocument<10240> model;
 
 class SysModWebServer:public Module {
 
 public:
 
-  bool docUpdated = false;
+  bool modelUpdated = false;
 
   SysModWebServer() :Module("WebServer") {}; //constructor
 
@@ -26,30 +26,43 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    JsonArray root = doc.to<JsonArray>(); //create
-
-    ws.onEvent(wsEvent);
-    server.addHandler(&ws);
-
-    server.begin();
+    JsonArray root = model.to<JsonArray>(); //create
 
     print->print(" %s\n", success?"success":"failed");
   }
 
   void loop() {
     // Module::loop();
-    if (docUpdated) {
+
+    if (modelUpdated) {
       sendDataWs(nullptr, false); //send new data
-      docUpdated = false;
+      modelUpdated = false;
     }
+  }
+
+  void connected() {
+      ws.onEvent(wsEvent);
+      server.addHandler(&ws);
+
+      server.begin();
+
+      print->print("%s server (re)started\n", name);
   }
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
     if(type == WS_EVT_CONNECT){
-      Serial.println("Websocket client connection received");
+      print->println(F("WS client connected."));
       sendDataWs(client, true);
     } else if(type == WS_EVT_DISCONNECT){
-      Serial.println("Client disconnected");
+      print->print("WS Client disconnected\n");
+    } else if(type == WS_EVT_DATA){
+      print->println(F("WS event data."));
+    } else if(type == WS_EVT_ERROR){
+      //error was received from the other end
+      print->println(F("WS error."));
+    } else if(type == WS_EVT_PONG){
+      //pong message was received (in response to a ping request maybe)
+      print->println(F("WS pong."));
     }
   }
 
@@ -83,18 +96,18 @@ public:
 
   //complete document send to client or all clients
   static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false) {
-    doc[0]["incldef"] = inclDef;
-    sendDataWs(client, doc);
+    model[0]["incldef"] = inclDef;
+    sendDataWs(client, model);
   }
 
   //add an url to the webserver to listen to
   bool addURL(const char * uri, const String& path, const String& contentType) {
     File file = LittleFS.open(path, FILE_READ);
     if (!file) {
-      print->print(" AddURL There was an error opening the file %s", path);
+      print->print("addURL error opening file %s", path);
       return false;
     } else {
-      print->print(" File %s size %d", path, file.size());
+      print->print("addURL File %s size %d\n", path, file.size());
 
       server.on(uri, HTTP_GET, [uri, path, contentType](AsyncWebServerRequest *request) {
         print->print("Webserver: client request %s %s %s", uri, path, contentType);

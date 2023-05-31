@@ -21,6 +21,8 @@ public:
   virtual void loop() {
   }
 
+  virtual void connected() {}
+
   virtual void testManager() {}
   virtual void performanceManager() {}
   virtual void dataSizeManager() {}

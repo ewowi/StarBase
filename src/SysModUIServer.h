@@ -1,96 +1,187 @@
 #include "Module.h"
 
-static std::vector<void(*)(JsonPair)> functions;
+static std::vector<void(*)(const char *, JsonVariant)> functions;
 
 class SysModUIServer:public Module {
 
 public:
+
+  bool doWriteModel = false;
+  StaticJsonDocument<1024> valueDoc;
+  JsonVariant newValue;
 
   SysModUIServer() :Module("UI Server") {}; //constructor
 
   //serve index.htm
   void setup() {
     Module::setup();
+
+    newValue = valueDoc.to<JsonVariant>();
+
     print->print("%s Setup:\n", name);
 
     success &= web->addURL("/", "/index.htm", "text/html");
 
     success &= web->processJSONURL("/json", processJSONURL);
 
-    addGroup(name);
-    addInput("Network name", "text");
-    addInput("Password", "text");
+    // LittleFS.remove("/cfg.json");
+
+    print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
+    if (readObjectFromFile("/model.json", &model)) {//not part of success...
+      serializeJson(model, Serial);
+      web->sendDataWs(nullptr, false); //send new data
+    }
+
+    defGroup(name);
+    defInput("clientSSID", "ssid");
+    defInput("clientPass", "pass");
 
     print->print(" %s\n", success?"success":"failed");
   }
 
-  void loop(){
+  void loop() {
     // Module::loop();
+    if (doWriteModel) {
+      print->println(F("Writing model to /model.json... (serializeConfig)"));
+      writeObjectToFile("/model.json", &model);
+      serializeJson(model, Serial);
+      doWriteModel = false;
+    }
   }
 
-  JsonObject addElement(const char *prompt, const char *type, void(*fun)(JsonPair) = nullptr) {
-    JsonArray root = doc.as<JsonArray>();
+  void defGroup(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+    newValue.set(value);
+    defObject(prompt, "group", newValue, fun);
+  }
 
-    JsonObject props = root.createNestedObject();
-    props["prompt"] = prompt;
-    props["type"] = type;
-    if (fun) {
-      functions.push_back(fun);
-      props["fun"] = functions.size()-1;
+  void defInput(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+    newValue.set(value);
+    defObject(prompt, "input", newValue, fun);
+  }
+
+  void defDisplay(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+    newValue.set(value);
+    defObject(prompt, "display", newValue, fun);
+  }
+
+  void defCheckBox(const char *prompt, bool value, void(*fun)(const char *, JsonVariant) = nullptr) {
+    newValue.set(value);
+    defObject(prompt, "checkbox", newValue, fun);
+  }
+
+  void defButton(const char *prompt, const char *value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+    newValue.set(value);
+    defObject(prompt, "button", newValue, fun);
+  }
+
+
+  JsonObject defObject(const char *prompt, const char *type, JsonVariant value = JsonVariant(), void(*fun)(const char *, JsonVariant) = nullptr) {
+    JsonObject object = findObject(prompt);
+
+    //create new object
+    if (object.isNull()) {
+      print->print("setObject create new %s as %s\n", prompt, type);
+      JsonArray root = model.as<JsonArray>();
+      object = root.createNestedObject();
+      object["prompt"] = prompt;
+      object["value"] = value;
     }
 
-    return props;
+    if (!object.isNull()) {
+      //if existing also overwrite type and function
+      object["type"] = type;
+      if (fun) {
+        //if fun already in functions then reuse, otherwise add new fun in functions
+        std::vector<void(*)(const char *, JsonVariant)>::iterator itr = find(functions.begin(), functions.end(), fun);
+        if (itr!=functions.end()) //found
+          object["fun"] = distance(functions.begin(), itr); //assign found function
+        else { //not found
+          functions.push_back(fun); //add new function
+          object["fun"] = functions.size()-1;
+        }
+      }
+    }
+    else
+      print->print("setObject could not find or create object %s with %s\n", prompt, type);
+
+    return object;
   }
 
-  void addGroup(const char *prompt, void(*fun)(JsonPair) = nullptr) {
-    JsonObject props = addElement(prompt, "group", fun);
-    print->print("addGroup %s\n", prompt);
+  JsonObject setObject(const char *prompt, const char *type, JsonVariant value = JsonVariant()) {
+    JsonObject object = findObject(prompt);
+
+    //create new object
+    if (object.isNull()) {
+      print->print("setObject create new %s with %s\n", prompt, value.as<String>());
+      JsonArray root = model.as<JsonArray>();
+      object = root.createNestedObject();
+      object["prompt"] = prompt;
+      object["type"] = type;
+    }
+
+    if (!value.isNull()) compareAndAssign(object, value);
+
+    return object;
   }
 
-  JsonObject addInput(const char *prompt, const char *value, void(*fun)(JsonPair) = nullptr) {
-    JsonObject props = addElement(prompt, "input", fun);
-    props["value"] = value;
-    print->print("addInput %s value %s\n", prompt, value);
-    return props;
+
+  void setInput(const char *prompt, const char * value) {
+    newValue.set(value);
+    setObject(prompt, "input", newValue);
   }
 
-  JsonObject addDisplay(const char *prompt, const char *value, void(*fun)(JsonPair) = nullptr) {
-    JsonObject props = addElement(prompt, "display", fun);
-    props["value"] = value;
-    print->print("addDisplay %s value %s\n", prompt, value);
-    return props;
+  void setDisplay(const char *prompt, const char * value) {
+    newValue.set(value);
+    setObject(prompt, "display", newValue);
   }
 
-  JsonObject addCheckBox(const char *prompt, bool value, void(*fun)(JsonPair) = nullptr) {
-    JsonObject props = addElement(prompt, "checkbox", fun);
-    props["value"] = value;
-    print->print("addCheckbox %s value %d\n", prompt, value);
-    return props;
+  void setCheckBox(const char *prompt, bool value, void(*fun)(const char *, JsonVariant) = nullptr) {
+    newValue.set(value);
+    setObject(prompt, "checkbox", newValue);
+  }
+
+  void setButton(const char *prompt, bool value, void(*fun)(const char *, JsonVariant) = nullptr) {
+    newValue.set(value);
+    setObject(prompt, "button", newValue);
   }
 
   static JsonObject findObject(const char *prompt) { //static for processJSONURL
-    JsonArray root = doc.as<JsonArray>();
+    JsonArray root = model.as<JsonArray>();
     for(JsonObject object : root) {
       if (strcmp(object["prompt"], prompt) == 0)
         return object;
     }
     return JsonObject(); //null object
   }
-  void setInput(const char *prompt, const char * value, void(*fun)(JsonPair) = nullptr) {
-    JsonObject object = findObject(prompt);
-    if (!object) object = addInput(prompt, value, fun);
 
-    if (object) {
-      if (object["value"] != value) {
-        object["value"] = (char *)value; //copy
-        web->sendDataWs(object);
-        print->print("setInput %s = %s-> %s\n", prompt, object["value"].as<const char *>(), value);
+  static void compareAndAssign(JsonObject object, JsonVariant value, bool doFun = false) {
+    if (strcmp(object["type"], "button") == 0 || object["value"] != value) { // if changed
+      const char * key = object["prompt"];
+      // print->print("compareAndAssign %s %s->%s\n", key, object["value"].as<String>(), value.as<String>());
+
+      //assign new value
+      if (value.is<const char *>())
+        object["value"] = (char *)value.as<const char *>(); //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/)
+      else 
+        object["value"] = value;
+
+      //call post function...
+      if (doFun && !object["fun"].isNull()) {//isnull needed here!
+        size_t funNr = object["fun"];
+        functions[funNr](key, value);
       }
-      else
-        print->print("setInput %s = %s unchanged\n", prompt, value);
+
+      web->sendDataWs(object);
     }
+  }
+
+  //not used yet
+  JsonVariant getValue(const char *prompt) {
+    JsonObject object = findObject(prompt);
+    if (!object.isNull())
+      return object["value"];
     else
-      print->print("could not create object %s with %s\n", prompt, value);
+      return JsonVariant();
   }
 
   static void processJSONURL(JsonVariant &json) {
@@ -101,28 +192,8 @@ public:
         JsonVariant value = pair.value();
 
         JsonObject object = findObject(key);
-        if (object) {
-          if (object["value"] != value) { // if changed
-            print->print("processJSONURL %s value %s->%s\n", key, object["value"].as<String>(), value.as<String>());
-
-            //assign new value
-            if (strcmp(object["type"], "input") == 0 && value.is<const char *>())
-              object["value"] = (char *)value.as<const char *>(); //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/)
-            else if (strcmp(object["type"], "checkbox") == 0 && value.is<bool>())
-              object["value"] = value;
-            else
-              print->print("Object %s type %s unknown or value %s not matching type \n", key, object["type"].as<const char *>(), value.as<const char *>());
-
-            //call post function...
-            if (!object["fun"].isNull()) {//isnull needed here!
-              size_t funNr = object["fun"];
-              functions[funNr](pair);
-            }
-
-            // web->docUpdated = true;
-            web->sendDataWs(object);
-          }
-        }
+        if (!object.isNull())
+          compareAndAssign(object, value, true);
         else
           print->print("Object %s not found\n", key);
       }
@@ -134,6 +205,36 @@ public:
   void finishUI() { //tbd: automatic?
     web->sendDataWs(nullptr, true);
   }
+
+  bool readObjectFromFile(const char* file, JsonDocument* dest)
+  {
+    // if (doCloseFile) closeFile();
+    File f = LittleFS.open(file, "r");
+    if (!f) {
+      print->println(F("Reading settings from /cfg.json not successful"));
+      return false;
+    }
+    else { 
+      print->print(PSTR("FILE '%s' open to read, size %d bytes\n"), file, (int)f.size());
+      deserializeJson(*dest, f);
+      f.close();
+      return true;
+    }
+  }
+
+  bool writeObjectToFile(const char* file, JsonDocument* dest) {
+    File f = LittleFS.open(file, "w");
+    if (f) {
+      print->println(F("  success"));
+      serializeJson(*dest, f);
+      return true;
+    } else {
+      f.close();
+      print->println(F("  fail"));
+      return false;
+    }
+  }
+
 };
 
 static SysModUIServer *ui;

@@ -1,3 +1,4 @@
+// #pragma once
 #include "Module.h"
 
 #include "LittleFS.h"
@@ -28,11 +29,26 @@ public:
       success = false;
     }
 
-    print->print(" %s\n", success?"success":"failed");
+    print->print("%s %s\n", name, success?"success":"failed");
   }
 
   void loop(){
     // Module::loop();
+  }
+
+  bool remove(const char * path) {
+    return LittleFS.remove(path);
+  }
+
+  size_t usedBytes() {
+    return LittleFS.usedBytes();
+  }
+
+  size_t totalBytes() {
+    return LittleFS.totalBytes();
+  }
+  File open(const char * path, const char * mode, const bool create = false) {
+    return LittleFS.open(path, mode, create);
   }
 
 };

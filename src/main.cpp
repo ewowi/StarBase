@@ -1,5 +1,4 @@
 #include <vector>
-#include <WiFi.h> //needed here instead of SysModWebServer as ESPAsyncWebServer.git requires it
 
 // remove latest commit
 // git reset --hard HEAD^
@@ -10,33 +9,35 @@ std::vector<Module *> modules;
 
 #include "SysModPrintServer.h"
 #include "SysModFileServer.h"
+#include "SysModModel.h"
 #include "SysModNetwork.h"
 #include "SysModWebServer.h"
 #include "SysModUIServer.h"
 #include "SysModSystemManager.h"
 #include "AppModPinManager.h"
+#include "AppModLeds.h"
 
 //setup all modules
 void setup() {
   print = new SysModPrintServer();
   file = new SysModFileServer();
+  mdl = new SysModModel();
   net = new SysModNetwork();
   web = new SysModWebServer();
   ui = new SysModUIServer();
   sys = new SysModSystemManager();
   pin = new AppModPinManager();
+  lds = new AppModLeds();
 
   modules.push_back(print);
   modules.push_back(file); //90K lps (loops per second)
+  modules.push_back(mdl);
   modules.push_back(net);
   modules.push_back(web); //80K lps
   modules.push_back(ui);
   modules.push_back(sys);
   modules.push_back(pin); //70K lps -> 110K lps
-  // modules.push_back(new Module("Busses"));
-  // modules.push_back(new Module("Effects"));
-  // modules.push_back(new Module("Audio"));
-  // modules.push_back(new Module("..."));
+  modules.push_back(lds);
 
   for (Module *module:modules) module->setup();
 }

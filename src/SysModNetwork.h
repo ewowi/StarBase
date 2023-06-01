@@ -1,12 +1,13 @@
 #include "Module.h"
+
+#include "ArduinoJson.h"
 #include <DNSServer.h>
 
-//WiFi.h already included in main
+#include <WiFi.h>
 
 class SysModNetwork:public Module {
 
 public:
-
   const char* clientSSID = "ssid";
   const char* clientPass = "pass";
   bool apActive = false;
@@ -19,14 +20,18 @@ public:
   DNSServer dnsServer;
   bool noWifiSleep = true;
 
-  SysModNetwork() :Module("Network Manager") {}; //constructor
+  SysModNetwork() :Module("Network") {}; //constructor
 
   //setup wifi an async webserver
   void setup() {
     Module::setup();
     print->print("%s Setup:", name);
 
-    print->print(" %s\n", success?"success":"failed");
+    ui->defGroup(name);
+    ui->defInput("clientSSID", "ssid");
+    ui->defInput("clientPass", "pass");
+
+    print->print("%s %s\n", name, success?"success":"failed");
   }
 
   void loop() {
@@ -89,6 +94,7 @@ public:
     WiFi.setSleep(!noWifiSleep);
     WiFi.setHostname(hostname);
 
+    const char * test = ui->getValue("clientSSID");
     print->print("Connecting to WiFi %s / ", clientSSID);
     WiFi.begin(clientSSID, clientPass);
     for (int i = 0; i < strlen(clientPass); i++) print->print("*");

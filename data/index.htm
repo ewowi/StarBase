@@ -63,14 +63,21 @@
       function setInput(element) {
         var command = {};
         command[element.id] = element.value
-        console.log("setInput", command);
+        // console.log("setInput", command);
 
         requestJson(command);
       }
       function setCheckbox(element) {
         var command = {};
         command[element.id] = element.checked
-        console.log("setCheckbox", command);
+        // console.log("setCheckbox", command);
+
+        requestJson(command);
+      }
+      function setButton(element) {
+        var command = {};
+        command[element.id] = "push"
+        // console.log("setCheckbox", command);
 
         requestJson(command);
       }
@@ -79,14 +86,21 @@
         // console.log("generateHTML", json);
         if (json.length) for (var element of json)
           generateHTML(element);
-          if (json.type == "input") {
+
+        if (json.type == "input") {
           gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" oninput="setInput(this)" value="${json.value}"></p>`;
         }
-        if (json.type == "display") {
+        if (json.type == "number") {
+          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" oninput="setInput(this)" value="${json.value}"></p>`;
+        }
+        else if (json.type == "display") {
           gId('in').innerHTML += `<p>${json.prompt} <span id="${json.prompt}">${json.value}</span></p>`;
         }
         else if (json.type == "checkbox") {
           gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" type="checkbox" onchange="setCheckbox(this)" ${json.value?"checked":""}></p>`;
+        }
+        else if (json.type == "button") {
+          gId('in').innerHTML += `<p><button id="${json.prompt}" type="button" onclick="setButton(this)">${json.prompt}</button></p>`;
         }
         else if (json.type == "group") {
           gId('in').innerHTML += `<h2 id="${json.prompt}">${json.prompt}</h2>`;
@@ -96,10 +110,14 @@
         // console.log("updateHTML", json);
         if (json.length) for (var element of json)
           updateHTML(element);
+
         if (json.type == "input") {
           gId(json.prompt).value = json.value;
         }
-        if (json.type == "display") {
+        else if (json.type == "number") {
+          gId(json.prompt).value = json.value;
+        }
+        else if (json.type == "display") {
           gId(json.prompt).textContent = json.value;
         }
         else if (json.type == "checkbox") {

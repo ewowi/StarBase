@@ -11,7 +11,7 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    print->print(" %s\n", success?"success":"failed");
+    print->print("%s %s\n", name, success?"success":"failed");
   }
 
   void loop(){

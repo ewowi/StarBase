@@ -1,3 +1,4 @@
+#pragma once //as also included in ModModel
 #include "Module.h"
 
 #include <ESPAsyncWebServer.h>
@@ -8,10 +9,8 @@
 //https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
 
 // Create AsyncWebServer object on port 80
-AsyncWebServer server(80);
-AsyncWebSocket ws("/ws");
-
-StaticJsonDocument<10240> model;
+static AsyncWebServer server(80);
+static AsyncWebSocket ws("/ws");
 
 class SysModWebServer:public Module {
 
@@ -26,9 +25,7 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    JsonArray root = model.to<JsonArray>(); //create
-
-    print->print(" %s\n", success?"success":"failed");
+    print->print("%s %s\n", name, success?"success":"failed");
   }
 
   void loop() {
@@ -101,13 +98,13 @@ public:
   }
 
   //add an url to the webserver to listen to
-  bool addURL(const char * uri, const String& path, const String& contentType) {
-    File file = LittleFS.open(path, FILE_READ);
-    if (!file) {
+  bool addURL(const char * uri, const char * path, const char * contentType) {
+    File f = file->open(path, "r");
+    if (!f) {
       print->print("addURL error opening file %s", path);
       return false;
     } else {
-      print->print("addURL File %s size %d\n", path, file.size());
+      print->print("addURL File %s size %d\n", path, f.size());
 
       server.on(uri, HTTP_GET, [uri, path, contentType](AsyncWebServerRequest *request) {
         print->print("Webserver: client request %s %s %s", uri, path, contentType);
@@ -115,7 +112,7 @@ public:
         print->print("!\n");
       });
     }
-    file.close();
+    f.close();
     return true;
   }
 

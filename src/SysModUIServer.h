@@ -1,3 +1,4 @@
+#pragma once //as also included in ModModel
 #include "Module.h"
 
 static std::vector<void(*)(const char *, JsonVariant)> functions;
@@ -6,7 +7,6 @@ class SysModUIServer:public Module {
 
 public:
 
-  bool doWriteModel = false;
   StaticJsonDocument<1024> valueDoc;
   JsonVariant newValue;
 
@@ -24,29 +24,11 @@ public:
 
     success &= web->processJSONURL("/json", processJSONURL);
 
-    // LittleFS.remove("/cfg.json");
-
-    print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
-    if (readObjectFromFile("/model.json", &model)) {//not part of success...
-      serializeJson(model, Serial);
-      web->sendDataWs(nullptr, false); //send new data
-    }
-
-    defGroup(name);
-    defInput("clientSSID", "ssid");
-    defInput("clientPass", "pass");
-
-    print->print(" %s\n", success?"success":"failed");
+    print->print("%s %s\n", name, success?"success":"failed");
   }
 
   void loop() {
     // Module::loop();
-    if (doWriteModel) {
-      print->println(F("Writing model to /model.json... (serializeConfig)"));
-      writeObjectToFile("/model.json", &model);
-      serializeJson(model, Serial);
-      doWriteModel = false;
-    }
   }
 
   void defGroup(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
@@ -59,6 +41,11 @@ public:
     defObject(prompt, "input", newValue, fun);
   }
 
+  void defNumber(const char *prompt, int value, void(*fun)(const char *, JsonVariant) = nullptr) {
+    newValue.set(value);
+    defObject(prompt, "number", newValue, fun);
+  }
+
   void defDisplay(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
     newValue.set(value);
     defObject(prompt, "display", newValue, fun);
@@ -69,7 +56,7 @@ public:
     defObject(prompt, "checkbox", newValue, fun);
   }
 
-  void defButton(const char *prompt, const char *value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+  void defButton(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
     newValue.set(value);
     defObject(prompt, "button", newValue, fun);
   }
@@ -80,7 +67,7 @@ public:
 
     //create new object
     if (object.isNull()) {
-      print->print("setObject create new %s as %s\n", prompt, type);
+      print->print("setObject create new %s as %s = %s\n", prompt, type, value.as<String>());
       JsonArray root = model.as<JsonArray>();
       object = root.createNestedObject();
       object["prompt"] = prompt;
@@ -157,18 +144,23 @@ public:
   static void compareAndAssign(JsonObject object, JsonVariant value, bool doFun = false) {
     if (strcmp(object["type"], "button") == 0 || object["value"] != value) { // if changed
       const char * key = object["prompt"];
+      // if (strcmp(object["prompt"], "UpTime") == 0)
       // print->print("compareAndAssign %s %s->%s\n", key, object["value"].as<String>(), value.as<String>());
 
       //assign new value
       if (value.is<const char *>())
         object["value"] = (char *)value.as<const char *>(); //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/)
-      else 
-        object["value"] = value;
+      else if (value.is<bool>())
+        object["value"] = value.as<bool>();
+      else {
+        print->print("compareAndAssign %s %s->%s not a supported type yet\n", key, object["value"].as<String>(), value.as<String>());
+        // object["value"] = value;
+      }
 
       //call post function...
       if (doFun && !object["fun"].isNull()) {//isnull needed here!
         size_t funNr = object["fun"];
-        functions[funNr](key, value);
+        functions[funNr](key, object["value"]);
       }
 
       web->sendDataWs(object);
@@ -202,38 +194,9 @@ public:
       print->print("Json not object???\n");
   }
 
-  void finishUI() { //tbd: automatic?
-    web->sendDataWs(nullptr, true);
-  }
-
-  bool readObjectFromFile(const char* file, JsonDocument* dest)
-  {
-    // if (doCloseFile) closeFile();
-    File f = LittleFS.open(file, "r");
-    if (!f) {
-      print->println(F("Reading settings from /cfg.json not successful"));
-      return false;
-    }
-    else { 
-      print->print(PSTR("FILE '%s' open to read, size %d bytes\n"), file, (int)f.size());
-      deserializeJson(*dest, f);
-      f.close();
-      return true;
-    }
-  }
-
-  bool writeObjectToFile(const char* file, JsonDocument* dest) {
-    File f = LittleFS.open(file, "w");
-    if (f) {
-      print->println(F("  success"));
-      serializeJson(*dest, f);
-      return true;
-    } else {
-      f.close();
-      print->println(F("  fail"));
-      return false;
-    }
-  }
+  // void finishUI() { //tbd: automatic?
+  //   web->sendDataWs(nullptr, true);
+  // }
 
 };
 

@@ -1,7 +1,5 @@
 #include "Module.h"
 
-//try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
-
 class AppModPinManager:public Module {
 
 public:
@@ -21,9 +19,9 @@ public:
     ui->defCheckBox("Pin4", false);
     ui->defCheckBox("Pin33", true);
 
-    ui->finishUI();
+    // ui->finishUI();
   
-    print->print(" %s\n", success?"success":"failed");
+    print->print("%s %s\n", name, success?"success":"failed");
   }
 
   void loop(){

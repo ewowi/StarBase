@@ -23,7 +23,7 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    if (!LittleFS.begin()) {
+    if (!LittleFS.begin(true)) { //true: formatOnFail
       print->print(" An Error has occurred while mounting File system");
       print->print(" fail\n");
       success = false;

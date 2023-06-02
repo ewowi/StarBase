@@ -14,13 +14,11 @@ public:
     pinMode(4, OUTPUT);
     pinMode(33, OUTPUT);
 
-    ui->defGroup(name);
-    ui->defCheckBox("Pin2", true, updateGPIO);
-    ui->defCheckBox("Pin4", false);
-    ui->defCheckBox("Pin33", true);
+    ui->initGroup(name);
+    ui->initCheckBox("Pin2", true, updateGPIO);
+    ui->initCheckBox("Pin4", false);
+    ui->initCheckBox("Pin33", true);
 
-    // ui->finishUI();
-  
     print->print("%s %s\n", name, success?"success":"failed");
   }
 

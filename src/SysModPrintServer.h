@@ -12,6 +12,8 @@ public:
     print("%s Setup:", name);
 
     Serial.begin(115200);
+    delay(5000); //if (!Serial) doesn't seem to work, check with SoftHack007
+
     print(" %s\n", success?"success":"failed");
   }
 

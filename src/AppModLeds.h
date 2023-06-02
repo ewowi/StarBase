@@ -18,17 +18,17 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    ui->defGroup(name);
-    ui->defNumber("dataPin", dataPin, [](const char *prompt, JsonVariant value) {
+    ui->initGroup(name);
+    ui->initNumber("dataPin", dataPin, [](const char *prompt, JsonVariant value) {
       print->print("Set data pin\n");
     });
-    ui->defNumber("ledCount", ledCount, [](const char *prompt, JsonVariant value) {
+    ui->initNumber("ledCount", ledCount, [](const char *prompt, JsonVariant value) {
       print->print("Set ledCount\n");
     });
-    ui->defButton("Effect 1", "Effect 1", [](const char *prompt, JsonVariant value) {
+    ui->initButton("Effect 1", "Effect 1", [](const char *prompt, JsonVariant value) {
       print->print("Running effect 1\n");
     });
-    ui->defButton("Effect 2", "Effect 2", [](const char *prompt, JsonVariant value) {
+    ui->initButton("Effect 2", "Effect 2", [](const char *prompt, JsonVariant value) {
       print->print("Running effect 2\n");
     });
 

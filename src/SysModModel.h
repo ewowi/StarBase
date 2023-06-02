@@ -21,7 +21,6 @@ public:
 
   SysModModel() :Module("Model") {}; //constructor
 
-  //setup filesystem
   void setup() {
     Module::setup();
 
@@ -31,15 +30,15 @@ public:
 
     print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
     if (readObjectFromFile("/model.json", &model)) {//not part of success...
-      serializeJson(model, Serial);
+      // serializeJson(model, Serial);
       web->sendDataWs(nullptr, false); //send new data
     }
 
-    ui->defButton("DeleteModel", "DeleteModel", [](const char *prompt, JsonVariant value) {
+    ui->initButton("DeleteModel", "DeleteModel", [](const char *prompt, JsonVariant value) {
       print->print("delete model json\n");
       file->remove("/model.json");
     });
-    ui->defButton("SaveModel", "SaveModel", [](const char *prompt, JsonVariant value) {
+    ui->initButton("SaveModel", "SaveModel", [](const char *prompt, JsonVariant value) {
       doWriteModel = true;
     });
 
@@ -51,7 +50,7 @@ public:
     if (doWriteModel) {
       print->println(F("Writing model to /model.json... (serializeConfig)"));
       writeObjectToFile("/model.json", &model);
-      serializeJson(model, Serial);
+      // serializeJson(model, Serial);
 
       doWriteModel = false;
     }
@@ -59,7 +58,7 @@ public:
     if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
       char nS[32];
-      ui->defGroup(name);
+      ui->initGroup(name);
       ui->setDisplay("memoryUsage", itoa(model.memoryUsage(), nS, 10));
       ui->setDisplay("capacity", itoa(model.capacity(), nS, 10));
     }

@@ -16,7 +16,7 @@ public:
   char apPass[65] = "play1234";
   byte apChannel = 1; // 2.4GHz WiFi AP channel (1-13)
   byte apHide    = 0; // hidden AP SSID
-  bool interfacesInited = false;
+  bool isConnected = false; //aka interfacesInited
   DNSServer dnsServer;
   bool noWifiSleep = true;
 
@@ -27,9 +27,9 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    ui->defGroup(name);
-    ui->defInput("clientSSID", "ssid");
-    ui->defInput("clientPass", "pass");
+    ui->initGroup(name);
+    ui->initInput("clientSSID", "ssid");
+    ui->initInput("clientPass", "pass");
 
     print->print("%s %s\n", name, success?"success":"failed");
   }
@@ -40,16 +40,16 @@ public:
   }
 
   void handleConnection() {
-    if (lastReconnectAttempt == 0) {
+    if (lastReconnectAttempt == 0) { // do this only once
       print->print("lastReconnectAttempt == 0\n");
       initConnection();
       return;
     }
 
     if (!(WiFi.localIP()[0] != 0 && WiFi.status() == WL_CONNECTED)) { //!Network.isConnected()
-      if (interfacesInited) {
+      if (isConnected) {
         print->println(F("Disconnected!"));
-        interfacesInited = false;
+        isConnected = false;
         initConnection();
       }
 
@@ -57,17 +57,16 @@ public:
         print->print("Not connected AP.\n");
         initAP();
       }
-    } else if (!interfacesInited) { //newly connected
+    } else if (!isConnected) { //newly connected
       print->print("Connected! IP address: %s\n", WiFi.localIP().toString().c_str());
 
-      // initInterfaces();
-      interfacesInited = true;
+      isConnected = true;
 
       for (Module *module:modules) module->connected();
 
       // shut down AP
       if (apActive) { //apBehavior != AP_BEHAVIOR_ALWAYS
-        // dnsServer.stop();
+        dnsServer.stop();
         WiFi.softAPdisconnect(true);
         apActive = false;
         print->println(F("Access point disabled (handle)."));
@@ -89,13 +88,11 @@ public:
       WiFi.mode(WIFI_STA);
     }
 
-    char hostname[25] = "Playground";
-
     WiFi.setSleep(!noWifiSleep);
-    WiFi.setHostname(hostname);
+    WiFi.setHostname("Playground");
 
     const char * test = ui->getValue("clientSSID");
-    print->print("Connecting to WiFi %s / ", clientSSID);
+    print->print("Connecting to WiFi %s (%s) / ", clientSSID, test?test:"");
     WiFi.begin(clientSSID, clientPass);
     for (int i = 0; i < strlen(clientPass); i++) print->print("*");
     print->print("\n");
@@ -117,11 +114,6 @@ public:
     }
     apActive = true;
   }
-
-  // void initInterfaces() //this should move to seperate UserMods
-  // {
-  //   interfacesInited = true;
-  // }
 
 };
   

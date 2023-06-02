@@ -13,15 +13,15 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    // ui->defDisplay("LoopPerSecond");
-    // ui->defDisplay("UpTime");
-    // ui->defDisplay("TotalHeap");
-    // ui->defDisplay("FreeHeap");
-    // ui->defDisplay("usedBytes");
-    // ui->defDisplay("totalBytes");
+    // ui->initDisplay("LoopPerSecond");
+    // ui->initDisplay("UpTime");
+    // ui->initDisplay("TotalHeap");
+    // ui->initDisplay("FreeHeap");
+    // ui->initDisplay("usedBytes");
+    // ui->initDisplay("totalBytes");
 
-    ui->defGroup(name);
-    ui->defButton("Restart", "Restart", [](const char *prompt, JsonVariant value) {
+    ui->initGroup(name);
+    ui->initButton("Restart", "Restart", [](const char *prompt, JsonVariant value) {
       ws.closeAll(1012);
       ESP.restart();
     });

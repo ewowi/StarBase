@@ -1,21 +1,21 @@
-// #pragma once
 #include "Module.h"
 
 #include "ArduinoJson.h"
 
-DynamicJsonDocument model(10240); //not static as that blows up the stack
+DynamicJsonDocument model(10240); //not static as that blows up the stack. Use extern??
 
 //needed to set this here for classes mutually calling other classes (and don't want cpp files ;-)
+//they use model and SysModModel uses web and ui...
 #include "SysModWebServer.h"
 #include "SysModUIServer.h"
 
 //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
 
-static bool doWriteModel = false;
-
 class SysModModel:public Module {
 
 public:
+  static bool doWriteModel;
+
   unsigned long dumpMillis = 0;
   unsigned long secondMillis = 0;
 
@@ -28,18 +28,22 @@ public:
 
     JsonArray root = model.to<JsonArray>(); //create
 
+    parentObject = ui->initGroup(JsonObject(), name);
+
+    ui->initDisplay(parentObject, "memoryUsage");
+
     print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
     if (readObjectFromFile("/model.json", &model)) {//not part of success...
       // serializeJson(model, Serial);
       web->sendDataWs(nullptr, false); //send new data
     }
 
-    ui->initButton("DeleteModel", "DeleteModel", [](const char *prompt, JsonVariant value) {
-      print->print("delete model json\n");
-      file->remove("/model.json");
-    });
-    ui->initButton("SaveModel", "SaveModel", [](const char *prompt, JsonVariant value) {
+    ui->initButton(parentObject, "SaveModel", [](const char *prompt, JsonVariant value) {
       doWriteModel = true;
+    });
+    ui->initButton(parentObject, "DeleteModel", [](const char *prompt, JsonVariant value) {
+      print->print("delete model json\n");
+      files->remove("/model.json");
     });
 
     print->print("%s %s\n", name, success?"success":"failed");
@@ -50,17 +54,14 @@ public:
     if (doWriteModel) {
       print->println(F("Writing model to /model.json... (serializeConfig)"));
       writeObjectToFile("/model.json", &model);
-      // serializeJson(model, Serial);
+      serializeJson(model, Serial);
 
       doWriteModel = false;
     }
 
     if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
-      char nS[32];
-      ui->initGroup(name);
-      ui->setDisplay("memoryUsage", itoa(model.memoryUsage(), nS, 10));
-      ui->setDisplay("capacity", itoa(model.capacity(), nS, 10));
+      ui->setValueV("memoryUsage", "%u / %u KB", model.memoryUsage()/1000, model.capacity()/1000);
     }
 
     if (millis() - dumpMillis >= 60000 || !dumpMillis && model.capacity() / model.memoryUsage() < 2) {
@@ -76,9 +77,9 @@ public:
 
   bool readObjectFromFile(const char* path, JsonDocument* dest) {
     // if (doCloseFile) closeFile();
-    File f = file->open(path, "r");
+    File f = files->open(path, "r");
     if (!f) {
-      print->print("File %s open not successful %s", path);
+      print->print("File %s open not successful %s\n", path);
       return false;
     }
     else { 
@@ -90,7 +91,7 @@ public:
   }
 
   bool writeObjectToFile(const char* path, JsonDocument* dest) {
-    File f = file->open(path, "w");
+    File f = files->open(path, "w");
     if (f) {
       print->println(F("  success"));
       serializeJson(*dest, f);
@@ -105,3 +106,6 @@ public:
 };
 
 static SysModModel *mdl;
+
+//init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
+bool SysModModel::doWriteModel = false;

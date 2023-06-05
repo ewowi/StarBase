@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include "ArduinoJson.h"
+
 #pragma once //included by multiple files
 
 class Module {
@@ -8,6 +10,8 @@ public:
   const char *name;
   bool success;
   bool enabled;
+
+  JsonObject parentObject;
 
   Module(const char *name) {
     this->name = name;

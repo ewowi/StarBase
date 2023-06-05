@@ -8,15 +8,14 @@
 class SysModNetwork:public Module {
 
 public:
-  const char* clientSSID = "ssid";
-  const char* clientPass = "pass";
   bool apActive = false;
   uint32_t lastReconnectAttempt = 0;
   char apSSID[33] = "PlayGround AP";
   char apPass[65] = "play1234";
   byte apChannel = 1; // 2.4GHz WiFi AP channel (1-13)
   byte apHide    = 0; // hidden AP SSID
-  bool isConnected = false; //aka interfacesInited
+  bool interfacesInited = false;
+  static bool forceReconnect;
   DNSServer dnsServer;
   bool noWifiSleep = true;
 
@@ -27,9 +26,13 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    ui->initGroup(name);
-    ui->initInput("clientSSID", "ssid");
-    ui->initInput("clientPass", "pass");
+    parentObject = ui->initGroup(JsonObject(), name);
+    ui->initInput(parentObject, "SSID", "");
+    ui->initPassword(parentObject, "Password", "");
+    ui->initButton(parentObject, "Connect",  [](const char *prompt, JsonVariant value) {
+      forceReconnect = true;
+    });
+    ui->initDisplay(parentObject, "Status");
 
     print->print("%s %s\n", name, success?"success":"failed");
   }
@@ -46,10 +49,18 @@ public:
       return;
     }
 
-    if (!(WiFi.localIP()[0] != 0 && WiFi.status() == WL_CONNECTED)) { //!Network.isConnected()
-      if (isConnected) {
-        print->println(F("Disconnected!"));
-        isConnected = false;
+    if (forceReconnect) {
+      print->print("Forcing reconnect.");
+      initConnection();
+      interfacesInited = false;
+      forceReconnect = false;
+      // wasConnected = false;
+      return;
+    }
+    if (!(WiFi.localIP()[0] != 0 && WiFi.status() == WL_CONNECTED)) { //!Network.interfacesInited()
+      if (interfacesInited) {
+        print->print("Disconnected!\n");
+        interfacesInited = false;
         initConnection();
       }
 
@@ -57,10 +68,10 @@ public:
         print->print("Not connected AP.\n");
         initAP();
       }
-    } else if (!isConnected) { //newly connected
-      print->print("Connected! IP address: %s\n", WiFi.localIP().toString().c_str());
+    } else if (!interfacesInited) { //newly connected
+      ui->setValueP("Status", "Connected %s", WiFi.localIP().toString().c_str());
 
-      isConnected = true;
+      interfacesInited = true;
 
       for (Module *module:modules) module->connected();
 
@@ -83,7 +94,7 @@ public:
     lastReconnectAttempt = millis();
 
     if (!apActive) {
-      print->println(F("Access point disabled (init)."));
+      print->print("Access point disabled (init).\n");
       WiFi.softAPdisconnect(true);
       WiFi.mode(WIFI_STA);
     }
@@ -91,11 +102,16 @@ public:
     WiFi.setSleep(!noWifiSleep);
     WiFi.setHostname("Playground");
 
-    const char * test = ui->getValue("clientSSID");
-    print->print("Connecting to WiFi %s (%s) / ", clientSSID, test?test:"");
-    WiFi.begin(clientSSID, clientPass);
-    for (int i = 0; i < strlen(clientPass); i++) print->print("*");
-    print->print("\n");
+    const char* ssid = ui->getValue("SSID");
+    const char* password = ui->getValue("Password");
+    if (ssid && strlen(ssid)>0) {
+      char passXXX [20] = "";
+      for (int i = 0; i < strlen(password); i++) strcat(passXXX, "*");
+      print->print("Connecting to WiFi %s / %s", ssid, passXXX);
+      WiFi.begin(ssid, password);
+    }
+    else
+      print->print("No SSID");
   }
 
   void initAP() {
@@ -104,9 +120,9 @@ public:
     WiFi.softAP(apSSID, apPass, apChannel, apHide);
     if (!apActive) // start captive portal if AP active
     {
-      print->print("Init AP interfaces %s %s %s\n",apSSID, apPass, WiFi.softAPIP().toString().c_str());
+      ui->setValueP("Status", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
-      // server.begin();
+      // send all modules connect notification
       for (Module *module:modules) module->connected();
 
       dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
@@ -118,3 +134,6 @@ public:
 };
   
 static SysModNetwork *net;
+
+//init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
+bool SysModNetwork::forceReconnect = false;

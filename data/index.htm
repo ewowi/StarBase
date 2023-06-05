@@ -84,14 +84,17 @@
 
       function generateHTML(json) {
         // console.log("generateHTML", json);
-        if (json.length) for (var element of json)
+        if (json.length) for (var element of json) //objects of array
           generateHTML(element);
 
         if (json.type == "input") {
-          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" oninput="setInput(this)" value="${json.value}"></p>`;
+          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
+        }
+        if (json.type == "password") {
+          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" type="password" onfocusout="setInput(this)" value="${json.value}"></p>`;
         }
         if (json.type == "number") {
-          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" oninput="setInput(this)" value="${json.value}"></p>`;
+          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
         }
         else if (json.type == "display") {
           gId('in').innerHTML += `<p>${json.prompt} <span id="${json.prompt}">${json.value}</span></p>`;
@@ -105,13 +108,19 @@
         else if (json.type == "group") {
           gId('in').innerHTML += `<h2 id="${json.prompt}">${json.prompt}</h2>`;
         }
+        if (json.n)
+          generateHTML(json.n);
+
       }
       function updateHTML(json) {
         // console.log("updateHTML", json);
         if (json.length) for (var element of json)
           updateHTML(element);
 
-        if (json.type == "input") {
+          if (json.type == "input") {
+          gId(json.prompt).value = json.value;
+        }
+        if (json.type == "password") {
           gId(json.prompt).value = json.value;
         }
         else if (json.type == "number") {
@@ -127,7 +136,7 @@
       </script>
 </head>
 <body onload="onLoad()">
-    <p>Hello world</p>
+    <h1>Playground</h1>
     <div id="in"></div>
 </body>
 </html>

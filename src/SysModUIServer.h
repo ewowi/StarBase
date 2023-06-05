@@ -1,11 +1,10 @@
 #pragma once //as also included in ModModel
 #include "Module.h"
 
-static std::vector<void(*)(const char *, JsonVariant)> functions;
-
 class SysModUIServer:public Module {
 
 public:
+  static std::vector<void(*)(const char *, JsonVariant)> functions;
 
   SysModUIServer() :Module("UI Server") {}; //constructor
 
@@ -26,93 +25,67 @@ public:
     // Module::loop();
   }
 
-  JsonObject initGroup(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
-    JsonObject object = initObject(prompt, "group", fun);
+  JsonObject initGroup(JsonObject parent, const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "group", fun);
     if (object["value"].isNull() && value) object["value"] = value;
     return object;
   }
 
-  JsonObject initInput(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
-    JsonObject object = initObject(prompt, "input", fun);
+  JsonObject initInput(JsonObject parent, const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "input", fun);
     if (object["value"].isNull() && value) object["value"] = value;
     return object;
   }
 
-  JsonObject initNumber(const char *prompt, int value, void(*fun)(const char *, JsonVariant) = nullptr) {
-    JsonObject object = initObject(prompt, "number", fun);
-    if (object["value"].isNull()) object["value"] = value;
-    return object;
-  }
-
-  JsonObject initDisplay(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
-    JsonObject object = initObject(prompt, "display", fun);
+  JsonObject initPassword(JsonObject parent, const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "password", fun);
     if (object["value"].isNull() && value) object["value"] = value;
     return object;
   }
 
-  JsonObject initCheckBox(const char *prompt, bool value, void(*fun)(const char *, JsonVariant) = nullptr) {
-    JsonObject object = initObject(prompt, "checkbox", fun);
+  JsonObject initNumber(JsonObject parent, const char *prompt, int value, void(*fun)(const char *, JsonVariant) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "number", fun);
     if (object["value"].isNull()) object["value"] = value;
     return object;
   }
 
-  JsonObject initButton(const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
-    JsonObject object = initObject(prompt, "button", fun);
+  JsonObject initDisplay(JsonObject parent, const char *prompt, const char * value = nullptr, void(*fun)(const char *, JsonVariant) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "display", fun);
+    if (object["value"].isNull() && value) object["value"] = value;
+    return object;
+  }
+
+  JsonObject initCheckBox(JsonObject parent, const char *prompt, bool value, void(*fun)(const char *, JsonVariant) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "checkbox", fun);
     if (object["value"].isNull()) object["value"] = value;
     return object;
   }
 
-  JsonObject setInput(const char *prompt, const char * value) {
-    JsonObject object = initObject(prompt, "input");
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("  setInput changed %s %s\n", object["value"].as<String>(), value);
-      object["value"] = (char *)value; ////(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-      web->sendDataWs(object);
-    }
+  JsonObject initButton(JsonObject parent, const char *prompt, void(*fun)(const char *, JsonVariant) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "button", fun);
     return object;
   }
 
-  JsonObject setDisplay(const char *prompt, const char * value) {
-    JsonObject object = initObject(prompt, "display");
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("  setDisplay changed %s %s\n", object["value"].as<String>(), value);
-      object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-      web->sendDataWs(object);
-    }
-    return object;
-  }
-
-  JsonObject setCheckBox(const char *prompt, bool value) {
-    JsonObject object = initObject(prompt, "checkbox");
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("  setInput changed %s %s\n", object["value"].as<String>(), value);
-      object["value"] = value; ////(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-      web->sendDataWs(object);
-    }
-    return object;
-  }
-
-  JsonVariant getValue(const char *prompt) {
-    JsonObject object = findObject(prompt);
-    if (!object.isNull())
-      return object["value"];
-    else
-      return JsonVariant();
-  }
-
-  JsonObject initObject(const char *prompt, const char *type, void(*fun)(const char *, JsonVariant) = nullptr) {
+  JsonObject initObject(JsonObject parent, const char *prompt, const char *type, void(*fun)(const char *, JsonVariant) = nullptr) {
     JsonObject object = findObject(prompt);
 
     //create new object
     if (object.isNull()) {
       print->print("initObject create new %s: %s\n", type, prompt);
-      JsonArray root = model.as<JsonArray>();
-      object = root.createNestedObject();
+      if (parent.isNull()) {
+        JsonArray root = model.as<JsonArray>();
+        object = root.createNestedObject();
+      } else {
+        if (parent["n"].isNull()) parent.createNestedArray("n");
+        object = parent["n"].createNestedObject();
+        // serializeJson(model, Serial);print->print("\n");
+      }
       object["prompt"] = prompt;
     }
+    else
+      print->print("Object %s already defined", prompt);
 
     if (!object.isNull()) {
-      //if existing also overwrite type and function
       object["type"] = type;
       if (fun) {
         //if fun already in functions then reuse, otherwise add new fun in functions
@@ -131,13 +104,92 @@ public:
     return object;
   }
 
-  static JsonObject findObject(const char *prompt) { //static for processJSONURL
-    JsonArray root = model.as<JsonArray>();
-    for(JsonObject object : root) {
-      if (strcmp(object["prompt"], prompt) == 0)
-        return object;
+  JsonObject setValue(const char *prompt, const char * value) {
+    JsonObject object = findObject(prompt);
+    if (!object.isNull()) {
+      if (object["value"].isNull() || object["value"] != value) {
+        // print->print("  setValue changed %s %s\n", object["value"].as<String>(), value);
+        object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
+        web->sendDataWs(object);
+      }
     }
-    return JsonObject(); //null object
+    else
+      print->print("setValue Object %s not found\n", prompt);
+
+    return object;
+  }
+
+  JsonObject setValue(const char *prompt, bool value) {
+    JsonObject object = findObject(prompt);
+    if (!object.isNull()) {
+      if (object["value"].isNull() || object["value"] != value) {
+        // print->print("  setInput changed %s %s\n", object["value"].as<String>(), value);
+        object["value"] = value;
+        web->sendDataWs(object);
+      }
+    }
+    else
+      print->print("setValue Object %s not found\n", prompt);
+
+    return object;
+  }
+
+  //Argument list
+  JsonObject setValueV(const char *prompt, const char * format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    // size_t len = vprintf(format, args);
+    char value[100];
+    vsnprintf(value, sizeof(value), format, args);
+
+    va_end(args);
+
+    return setValue(prompt, value);
+  }
+
+  //Argument list and print
+  JsonObject setValueP(const char *prompt, const char * format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    // size_t len = vprintf(format, args);
+    char value[100];
+    vsnprintf(value, sizeof(value), format, args);
+    print->print("%s\n", value);
+
+    va_end(args);
+
+    return setValue(prompt, value);
+  }
+
+  const char * getValue(const char *prompt) {
+    JsonObject object = findObject(prompt);
+    if (!object.isNull())
+      return object["value"];
+    else
+      return nullptr;
+  }
+
+  static JsonObject findObject(const char *prompt, JsonArray parent = JsonArray()) { //static for processJSONURL
+    JsonArray root;
+    // print ->print("findObject %s %s\n", prompt, parent.isNull()?"root":"n");
+    if (parent.isNull()) {
+      root = model.as<JsonArray>();
+    }
+    else {
+      root = parent;
+    }
+    JsonObject foundObject;
+    for(JsonObject object : root) {
+      if (foundObject.isNull()) {
+        if (strcmp(object["prompt"], prompt) == 0)
+          foundObject = object;
+        else if (!object["n"].isNull())
+          foundObject = findObject(prompt, object["n"]);
+      }
+    }
+    return foundObject;
   }
 
   static void processJSONURL(JsonVariant &json) {
@@ -184,3 +236,6 @@ public:
 };
 
 static SysModUIServer *ui;
+
+//init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
+std::vector<void(*)(const char *, JsonVariant)> SysModUIServer::functions;

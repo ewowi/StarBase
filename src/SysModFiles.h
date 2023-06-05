@@ -1,4 +1,3 @@
-// #pragma once
 #include "Module.h"
 
 #include "LittleFS.h"
@@ -12,11 +11,11 @@
     // Finally, click Upload Filesystem Image.
 //https://www.tutorialspoint.com/esp32_for_iot/esp32_for_iot_spiffs_storage.htm
 
-class SysModFileServer:public Module {
+class SysModFiles:public Module {
 
 public:
 
-  SysModFileServer() :Module("FileServer") {}; //constructor
+  SysModFiles() :Module("Files") {}; //constructor
 
   //setup filesystem
   void setup() {
@@ -53,4 +52,4 @@ public:
 
 };
 
-static SysModFileServer *file;
+static SysModFiles *files;

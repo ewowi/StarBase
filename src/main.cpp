@@ -8,29 +8,29 @@
 std::vector<Module *> modules;
 
 #include "SysModPrintServer.h"
-#include "SysModFileServer.h"
+#include "SysModFiles.h"
 #include "SysModModel.h"
 #include "SysModNetwork.h"
 #include "SysModWebServer.h"
 #include "SysModUIServer.h"
-#include "SysModSystemManager.h"
+#include "SysModSystem.h"
 #include "AppModPinManager.h"
 #include "AppModLeds.h"
 
 //setup all modules
 void setup() {
   print = new SysModPrintServer();
-  file = new SysModFileServer();
+  files = new SysModFiles();
   mdl = new SysModModel();
   net = new SysModNetwork();
   web = new SysModWebServer();
   ui = new SysModUIServer();
-  sys = new SysModSystemManager();
+  sys = new SysModSystem();
   pin = new AppModPinManager();
   lds = new AppModLeds();
 
   modules.push_back(print);
-  modules.push_back(file); //90K lps (loops per second)
+  modules.push_back(files); //90K lps (loops per second)
   modules.push_back(mdl);
   modules.push_back(net);
   modules.push_back(web); //80K lps

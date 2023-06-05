@@ -99,7 +99,7 @@ public:
 
   //add an url to the webserver to listen to
   bool addURL(const char * uri, const char * path, const char * contentType) {
-    File f = file->open(path, "r");
+    File f = files->open(path, "r");
     if (!f) {
       print->print("addURL error opening file %s", path);
       return false;

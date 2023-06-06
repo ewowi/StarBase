@@ -19,7 +19,7 @@ public:
   DNSServer dnsServer;
   bool noWifiSleep = true;
 
-  SysModNetwork() :Module("Network") {}; //constructor
+  SysModNetwork() :Module("Network") {};
 
   //setup wifi an async webserver
   void setup() {
@@ -107,7 +107,7 @@ public:
     if (ssid && strlen(ssid)>0) {
       char passXXX [20] = "";
       for (int i = 0; i < strlen(password); i++) strcat(passXXX, "*");
-      print->print("Connecting to WiFi %s / %s", ssid, passXXX);
+      print->print("Connecting to WiFi %s / %s\n", ssid, passXXX);
       WiFi.begin(ssid, password);
     }
     else

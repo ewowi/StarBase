@@ -4,7 +4,7 @@ class SysModPrintServer:public Module {
 
 public:
 
-  SysModPrintServer() :Module("PrintServer") {}; //constructor
+  SysModPrintServer() :Module("PrintServer") {};
 
   //setup Serial
   void setup() {

@@ -18,7 +18,7 @@ public:
 
   bool modelUpdated = false;
 
-  SysModWebServer() :Module("WebServer") {}; //constructor
+  SysModWebServer() :Module("WebServer") {};
 
   //setup wifi an async webserver
   void setup() {

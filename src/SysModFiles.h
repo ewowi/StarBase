@@ -15,7 +15,7 @@ class SysModFiles:public Module {
 
 public:
 
-  SysModFiles() :Module("Files") {}; //constructor
+  SysModFiles() :Module("Files") {};
 
   //setup filesystem
   void setup() {

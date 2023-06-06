@@ -4,7 +4,7 @@ class UserModExample:public Module {
 
 public:
 
-  UserModExample() :Module("Usermod example") {}; //constructor
+  UserModExample() :Module("Usermod example") {};
 
   //setup filesystem
   void setup() {

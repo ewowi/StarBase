@@ -6,7 +6,7 @@ class SysModUIServer:public Module {
 public:
   static std::vector<void(*)(const char *, JsonVariant)> functions;
 
-  SysModUIServer() :Module("UI Server") {}; //constructor
+  SysModUIServer() :Module("UI Server") {};
 
   //serve index.htm
   void setup() {
@@ -83,7 +83,7 @@ public:
       object["prompt"] = prompt;
     }
     else
-      print->print("Object %s already defined", prompt);
+      print->print("Object %s already defined\n", prompt);
 
     if (!object.isNull()) {
       object["type"] = type;
@@ -110,6 +110,13 @@ public:
       if (object["value"].isNull() || object["value"] != value) {
         // print->print("  setValue changed %s %s\n", object["value"].as<String>(), value);
         object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
+
+        //call post function...
+        if (!object["fun"].isNull()) {//isnull needed here!
+          size_t funNr = object["fun"];
+          functions[funNr](prompt, object["value"]);
+        }
+
         web->sendDataWs(object);
       }
     }
@@ -203,13 +210,15 @@ public:
         if (!object.isNull())
         {
           if (strcmp(object["type"], "button") == 0 || object["value"] != value) { // if changed
-            // print->print("processJSONURL %s %s->%s\n", key, object["value"].as<String>(), value.as<String>());
+            print->print("processJSONURL %s %s->%s\n", key, object["value"].as<String>(), value.as<String>());
 
             //assign new value
             if (value.is<const char *>())
               object["value"] = (char *)value.as<const char *>(); //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/)
             else if (value.is<bool>())
               object["value"] = value.as<bool>();
+            else if (value.is<int>())
+              object["value"] = value.as<int>();
             else {
               print->print("processJSONURL %s %s->%s not a supported type yet\n", key, object["value"].as<String>(), value.as<String>());
               // object["value"] = value;

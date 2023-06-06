@@ -7,7 +7,7 @@ public:
   unsigned long lastMillis = 0;
   unsigned long loopCounter = 0;
 
-  SysModSystem() :Module("System") {}; //constructor
+  SysModSystem() :Module("System") {};
 
   void setup() {
     Module::setup();
@@ -16,7 +16,7 @@ public:
     parentObject = ui->initGroup(JsonObject(), name);
 
     ui->initDisplay(parentObject, "UpTime");
-    ui->initDisplay(parentObject, "LoopPerSecond");
+    ui->initDisplay(parentObject, "Loops");
     ui->initDisplay(parentObject, "Heap");
     ui->initDisplay(parentObject, "Stack");
 
@@ -40,12 +40,12 @@ public:
     if (millis() - lastMillis >= 1000 || !lastMillis) {
       lastMillis = millis();
       ui->setValueV("UpTime", "%u s", millis()/1000);
-      ui->setValueV("LoopPerSecond", "%lu", loopCounter);
-      ui->setValueV("Heap", "%d / %d (%d) KB", ESP.getFreeHeap()/1000, ESP.getHeapSize()/1000, ESP.getMaxAllocHeap()/1000);
-      ui->setValueV("Stack", "%d", uxTaskGetStackHighWaterMark(NULL));
+      ui->setValueV("Loops", "%lu /s", loopCounter);
+      ui->setValueV("Heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
+      ui->setValueV("Stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
 
       //should be in SysModFiles...
-      ui->setValueV("Size", "%d / %d KB", files->usedBytes()/1000, files->totalBytes()/1000);
+      ui->setValueV("Size", "%d / %d B", files->usedBytes(), files->totalBytes());
 
       loopCounter = 0;
     }

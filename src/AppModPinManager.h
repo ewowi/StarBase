@@ -4,7 +4,7 @@ class AppModPinManager:public Module {
 
 public:
 
-  AppModPinManager() :Module("Pin Manager") {}; //constructor
+  AppModPinManager() :Module("Pin Manager") {};
 
   void setup() {
     Module::setup();

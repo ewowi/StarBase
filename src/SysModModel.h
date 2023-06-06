@@ -19,7 +19,7 @@ public:
   unsigned long dumpMillis = 0;
   unsigned long secondMillis = 0;
 
-  SysModModel() :Module("Model") {}; //constructor
+  SysModModel() :Module("Model") {};
 
   void setup() {
     Module::setup();
@@ -61,7 +61,7 @@ public:
 
     if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
-      ui->setValueV("memoryUsage", "%u / %u KB", model.memoryUsage()/1000, model.capacity()/1000);
+      ui->setValueV("memoryUsage", "%u / %u B", model.memoryUsage(), model.capacity());
     }
 
     if (millis() - dumpMillis >= 60000 || !dumpMillis && model.capacity() / model.memoryUsage() < 2) {

@@ -17,7 +17,18 @@
             console.log("WS message updateHTML", json);
             updateHTML(json);
           }
-          else if (json[0].incldef) { //array of objects generate
+          else if (json.uiFun) {
+            console.log("WS message uiFun", json);
+            var index = 0;
+            for (var x of json.lov) {
+              let opt = document.createElement("option");
+              opt.value = index;
+              opt.text = x;
+              gId(json.uiFun).appendChild(opt);
+              index++;
+            }
+          }
+          else if (json[0] && json[0].incldef) { //array of objects generate
             console.log("WS message generateHTML", json);
             generateHTML(json);
           }
@@ -40,6 +51,10 @@
 
         console.log("requestJson", url, command);
 
+        ws.send(req?req:'{"v":true}');
+        return;
+
+        //not used at the moment as WebSockets only
         fetch(url, {
           method: 'post',
           headers: {
@@ -48,7 +63,7 @@
           body: req
         })
         .then(res => {
-          if (res) console.log("requestJson res", res);
+          if (res) console.log("requestJson res", res, res.json());
         })
         .then(json => {
           if (json) console.log("requestJson json", json);
@@ -56,28 +71,34 @@
         .catch((e)=>{
           console.log("requestJson catch", e);
         });
-
-        //to be replaced by ws.send();
       }
 
       function setInput(element) {
         var command = {};
-        command[element.id] = element.value
+        command[element.id] = element.value;
         // console.log("setInput", command);
 
         requestJson(command);
       }
       function setCheckbox(element) {
         var command = {};
-        command[element.id] = element.checked
+        command[element.id] = element.checked;
         // console.log("setCheckbox", command);
 
         requestJson(command);
       }
       function setButton(element) {
         var command = {};
-        command[element.id] = "push"
+        command[element.id] = "push";
         // console.log("setCheckbox", command);
+
+        requestJson(command);
+      }
+
+      function setDropdown(element) {
+        var command = {};
+        command[element.id] = element.value;
+        // console.log("setInput", command);
 
         requestJson(command);
       }
@@ -88,25 +109,31 @@
           generateHTML(element);
 
         if (json.type == "input") {
-          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}<label> <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
         }
         if (json.type == "password") {
-          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" type="password" onfocusout="setInput(this)" value="${json.value}"></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}<label> <input id="${json.prompt}" type="password" onfocusout="setInput(this)" value="${json.value}"></p>`;
         }
         if (json.type == "number") {
-          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}<label> <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
         }
         else if (json.type == "display") {
-          gId('in').innerHTML += `<p>${json.prompt} <span id="${json.prompt}">${json.value}</span></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}<label> <span id="${json.prompt}">${json.value}</span></p>`;
         }
         else if (json.type == "checkbox") {
-          gId('in').innerHTML += `<p>${json.prompt} <input id="${json.prompt}" type="checkbox" onchange="setCheckbox(this)" ${json.value?"checked":""}></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}<label> <input id="${json.prompt}" type="checkbox" onchange="setCheckbox(this)" ${json.value?"checked":""}></p>`;
         }
         else if (json.type == "button") {
           gId('in').innerHTML += `<p><button id="${json.prompt}" type="button" onclick="setButton(this)">${json.prompt}</button></p>`;
         }
         else if (json.type == "group") {
           gId('in').innerHTML += `<h2 id="${json.prompt}">${json.prompt}</h2>`;
+        }
+        else if (json.type == "dropdown") {
+          gId('in').innerHTML += `<p><label>${json.prompt}<label> <select id="${json.prompt}" onchange="setDropdown(this)"></select></p>`;
+          var command = {};
+          command["uiFun"] = json.prompt; //ask for uiFun (to add the options)
+          requestJson(command);
         }
         if (json.n)
           generateHTML(json.n);
@@ -117,10 +144,10 @@
         if (json.length) for (var element of json)
           updateHTML(element);
 
-          if (json.type == "input") {
+        if (json.type == "input") {
           gId(json.prompt).value = json.value;
         }
-        if (json.type == "password") {
+        else if (json.type == "password") {
           gId(json.prompt).value = json.value;
         }
         else if (json.type == "number") {
@@ -132,6 +159,11 @@
         else if (json.type == "checkbox") {
           gId(json.prompt).checked = json.value;
         }
+        else if (json.type == "dropdown") {
+          gId(json.prompt).value = json.value;
+        }
+        else
+          console.log("updateHTML no json.type", json);
       }
       </script>
 </head>

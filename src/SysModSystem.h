@@ -4,7 +4,7 @@ class SysModSystem:public Module {
 
 public:
 
-  unsigned long lastMillis = 0;
+  unsigned long secondMillis = 0;
   unsigned long loopCounter = 0;
 
   SysModSystem() :Module("System") {};
@@ -37,8 +37,8 @@ public:
     // Module::loop();
 
     loopCounter++;
-    if (millis() - lastMillis >= 1000 || !lastMillis) {
-      lastMillis = millis();
+    if (millis() - secondMillis >= 1000 || !secondMillis) {
+      secondMillis = millis();
       ui->setValueV("UpTime", "%u s", millis()/1000);
       ui->setValueV("Loops", "%lu /s", loopCounter);
       ui->setValueV("Heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());

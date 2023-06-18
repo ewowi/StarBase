@@ -11,6 +11,8 @@
 static CRGB leds[NUM_LEDS];
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 static uint16_t nrOfLeds = 64; 
+static uint16_t fps = 40;
+  
 
 class Effect {
 public:
@@ -126,36 +128,31 @@ public:
   unsigned long secondMillis = 0;
   unsigned long frameCounter = 0;
 
-  // List of patterns to cycle through.  Each is defined as a separate function below.
-
-  static uint8_t effectNr; // Index number of which pattern is current
-  
-  static uint8_t brightness;
-  static uint16_t fps;
-  static unsigned long realFps;
-
   AppModLeds() :Module("Leds") {};
 
   void setup() {
     Module::setup();
     print->print("%s Setup:", name);
 
-    parentObject = ui->initGroup(JsonObject(), name);
-    ui->initNumber(parentObject, "dataPin", dataPin, [](const char *prompt, JsonVariant value) {
-      print->print("Set data pin to %d\n", value.as<int>());
+    parentObject = ui->initGroup(parentObject, name);
+
+    ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) {
+      print->print("Set data pin to %d\n", object["value"].as<int>());
     });
-    ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](const char *prompt, JsonVariant value) {
+    ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) {
       fadeToBlackBy( leds, nrOfLeds, 100);
-      nrOfLeds = value;
+      nrOfLeds = object["value"];
       print->print("Set nrOfLeds to %d\n", nrOfLeds);
     });
-    ui->initNumber(parentObject, "Brightness", brightness, [](const char *prompt, JsonVariant value) {
-      brightness = value;
-      FastLED.setBrightness(brightness);
-      print->print("Set Brightness to %d\n", brightness);
+    ui->initNumber(parentObject, "bri", 5, [](JsonObject object) {
+      FastLED.setBrightness(object["value"]);
+      print->print("Set Brightness to %d\n", object["value"].as<int>());
+    }, [](JsonObject object) {
+      responseDoc["label"] = "Brightness";
+      return responseDoc.as<JsonVariant>();
     });
-    ui->initNumber(parentObject, "FPS", fps, [](const char *prompt, JsonVariant value) {
-      fps = value;
+    ui->initNumber(parentObject, "FPS", fps, [](JsonObject object) {
+      fps = object["value"];
       print->print("fps changed %d\n", fps);
     });
 
@@ -169,12 +166,11 @@ public:
     for (Effect *effect:effects) {
       print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
     }
-    ui->initDropdown(parentObject, "Effect", effectNr, [](const char *prompt, JsonVariant value) {
-      effectNr = value;
-      print->print("Running %s\n", prompt);
-    }, [](const char *prompt) {
-      responseDoc["label"] = prompt;
-      responseDoc["comment"] = "comment";
+    ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) {
+      print->print("Running %s\n", object["prompt"]);
+    }, [](JsonObject object) {
+      responseDoc["label"] = "Effect";
+      responseDoc["comment"] = "Effect to show";
       JsonArray lov = responseDoc.createNestedArray("lov");
       for (Effect *effect:effects) {
         lov.add(effect->name());
@@ -187,8 +183,6 @@ public:
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
 
-    FastLED.setBrightness(brightness);
-
     print->print("%s %s\n", name, success?"success":"failed");
   }
 
@@ -198,7 +192,7 @@ public:
     if(millis() - nowUp > 1000/fps) {
       nowUp = millis();
 
-      Effect* effect = effects[effectNr];
+      Effect* effect = effects[ui->getValue("fx")];
       effect->loop();
 
       yield();
@@ -221,13 +215,3 @@ public:
 };
 
 static AppModLeds *lds;
-
-// CRGB AppModLeds::leds[NUM_LEDS];
-uint8_t AppModLeds::brightness = 5;
-uint16_t AppModLeds::fps = 40;
-// uint16_t AppModLeds::nrOfLeds = 64;
-
-uint8_t AppModLeds::effectNr = 3; // Index number of which pattern is current
-// uint8_t AppModLeds::gHue = 0;
-
-unsigned long AppModLeds::realFps = 0;

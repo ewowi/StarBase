@@ -13,13 +13,13 @@ static AsyncWebServer server(80);
 static AsyncWebSocket ws("/ws");
 static JsonVariant(*processWSFunc)(JsonVariant &);
 
-class SysModWebServer:public Module {
+class SysModWeb:public Module {
 
 public:
 
   bool modelUpdated = false;
 
-  SysModWebServer() :Module("WebServer") {};
+  SysModWeb() :Module("Web") {};
 
   //setup wifi an async webserver
   void setup() {
@@ -154,8 +154,8 @@ public:
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
-  //curl -X POST "http://4.3.2.1/json" -d '{"Brightness":20}' -H "Content-Type: application/json"
-  //curl -X POST "http://4.3.2.1/json" -d '{"Effect":2}' -H "Content-Type: application/json"
+  //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
+  //curl -X POST "http://4.3.2.1/json" -d '{"fx":2}' -H "Content-Type: application/json"
 
   bool processJsonUrl(const char * uri, JsonVariant (*processFunc)(JsonVariant &)) {
     processWSFunc = processFunc; //for WebSocket requests
@@ -184,4 +184,4 @@ public:
 
 };
 
-static SysModWebServer *web;
+static SysModWeb *web;

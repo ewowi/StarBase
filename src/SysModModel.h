@@ -7,8 +7,8 @@ StaticJsonDocument<2048> responseDoc;
 
 //needed to set this here for classes mutually calling other classes (and don't want cpp files ;-)
 //they use model and SysModModel uses web and ui...
-#include "SysModWebServer.h"
-#include "SysModUIServer.h"
+#include "SysModWeb.h"
+#include "SysModUI.h"
 
 class SysModModel:public Module {
 
@@ -27,20 +27,20 @@ public:
 
     JsonArray root = model.to<JsonArray>(); //create
 
-    parentObject = ui->initGroup(JsonObject(), name);
+    parentObject = ui->initGroup(parentObject, name);
 
     ui->initDisplay(parentObject, "memoryUsage");
 
     print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
     if (readObjectFromFile("/model.json", &model)) {//not part of success...
-      // serializeJson(model, Serial);
+      serializeJson(model, Serial);
       web->sendDataWs(nullptr, false); //send new data: all clients, no def
     }
 
-    ui->initButton(parentObject, "SaveModel", [](const char *prompt, JsonVariant value) {
+    ui->initButton(parentObject, "SaveModel", [](JsonObject object) {
       doWriteModel = true;
     });
-    ui->initButton(parentObject, "DeleteModel", [](const char *prompt, JsonVariant value) {
+    ui->initButton(parentObject, "DeleteModel", [](JsonObject object) {
       print->print("delete model json\n");
       files->remove("/model.json");
     });

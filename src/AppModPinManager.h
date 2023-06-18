@@ -14,7 +14,7 @@ public:
     pinMode(4, OUTPUT);
     pinMode(33, OUTPUT);
 
-    parentObject = ui->initGroup(JsonObject(), name);
+    parentObject = ui->initGroup(parentObject, name);
     ui->initCheckBox(parentObject, "Pin2", true, updateGPIO);
     ui->initCheckBox(parentObject, "Pin4", false);
     ui->initCheckBox(parentObject, "Pin33", true);
@@ -26,15 +26,15 @@ public:
     // Module::loop();
   }
 
-  static void updateGPIO(const char *prompt, JsonVariant value) {
-    if (value.is<bool>()) {
-      bool pin = value.as<bool>();
+  static void updateGPIO(JsonObject object) {
+    if (object["value"].is<bool>()) {
+      bool pin = object["value"].as<bool>();
 
-      print->print("updateGPIO %s:=%d\n", prompt, pin);
+      print->print("updateGPIO %s:=%d\n", object["prompt"], pin);
 
-      if (strcmp(prompt, "Pin2") == 0) digitalWrite(2, pin?HIGH:LOW);
-      if (strcmp(prompt, "Pin4") == 0) digitalWrite(4, pin?HIGH:LOW);
-      if (strcmp(prompt, "Pin33") == 0) digitalWrite(33, pin?HIGH:LOW);
+      if (strcmp(object["prompt"], "Pin2") == 0) digitalWrite(2, pin?HIGH:LOW);
+      if (strcmp(object["prompt"], "Pin4") == 0) digitalWrite(4, pin?HIGH:LOW);
+      if (strcmp(object["prompt"], "Pin33") == 0) digitalWrite(33, pin?HIGH:LOW);
     }
   }
 

@@ -13,20 +13,28 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    parentObject = ui->initGroup(JsonObject(), name);
+    parentObject = ui->initGroup(parentObject, name);
 
-    ui->initDisplay(parentObject, "UpTime");
+    ui->initDisplay(parentObject, "UpTime", nullptr, nullptr, [](JsonObject object) {
+      responseDoc["label"] = "Uptime";
+      responseDoc["comment"] = "Uptime of board";
+      return responseDoc.as<JsonVariant>();
+    });
     ui->initDisplay(parentObject, "Loops");
-    ui->initDisplay(parentObject, "Heap");
+    ui->initDisplay(parentObject, "Heap", nullptr, nullptr, [](JsonObject object) {
+      responseDoc["label"] = object["prompt"];
+      responseDoc["comment"] = "Free / Total (largest free)";
+      return responseDoc.as<JsonVariant>();
+    });
     ui->initDisplay(parentObject, "Stack");
 
-    ui->initButton(parentObject, "Restart", [](const char *prompt, JsonVariant value) {
+    ui->initButton(parentObject, "Restart", [](JsonObject object) {
       ws.closeAll(1012);
       ESP.restart();
     });
 
     //should be in SysModFiles...
-    JsonObject filesObject = ui->initGroup(JsonObject(), "Files");
+    JsonObject filesObject = ui->initGroup(parentObject, "Files");
     ui->initDisplay(filesObject, "Size");
     // ui->initDisplay(filesObject, "Total");
 

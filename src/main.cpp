@@ -7,24 +7,24 @@
 #include "Module.h"
 std::vector<Module *> modules;
 
-#include "SysModPrintServer.h"
+#include "SysModPrint.h"
 #include "SysModFiles.h"
 #include "SysModModel.h"
 #include "SysModNetwork.h"
-#include "SysModWebServer.h"
-#include "SysModUIServer.h"
+#include "SysModWeb.h"
+#include "SysModUI.h"
 #include "SysModSystem.h"
 #include "AppModPinManager.h"
 #include "AppModLeds.h"
 
 //setup all modules
 void setup() {
-  print = new SysModPrintServer();
+  print = new SysModPrint();
   files = new SysModFiles();
   mdl = new SysModModel();
   net = new SysModNetwork();
-  web = new SysModWebServer();
-  ui = new SysModUIServer();
+  web = new SysModWeb();
+  ui = new SysModUI();
   sys = new SysModSystem();
   pin = new AppModPinManager();
   lds = new AppModLeds();

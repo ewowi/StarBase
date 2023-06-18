@@ -1,10 +1,10 @@
 #include "Module.h"
 
-class SysModPrintServer:public Module {
+class SysModPrint:public Module {
 
 public:
 
-  SysModPrintServer() :Module("PrintServer") {};
+  SysModPrint() :Module("PrintServer") {};
 
   //setup Serial
   void setup() {
@@ -38,4 +38,4 @@ public:
 
 };
 
-static SysModPrintServer *print;
+static SysModPrint *print;

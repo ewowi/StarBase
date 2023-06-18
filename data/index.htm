@@ -13,26 +13,19 @@
         ws.binaryType = "arraybuffer";
     	  ws.onmessage = (e)=>{
           let json = JSON.parse(e.data);
-          if (json.prompt) { //object
+          if (json.prompt) { //update object
             console.log("WS message updateHTML", json);
             updateHTML(json);
           }
-          else if (json.uiFun) {
+          else if (json.uiFun) { //receive uiFun (after request it in generateHTML)
             console.log("WS message uiFun", json);
-            var index = 0;
-            for (var x of json.lov) {
-              let opt = document.createElement("option");
-              opt.value = index;
-              opt.text = x;
-              gId(json.uiFun).appendChild(opt);
-              index++;
-            }
+            uiFun(json);
           }
-          else if (json[0] && json[0].incldef) { //array of objects generate
+          else if (json[0] && json[0].incldef) { //generate array of objects
             console.log("WS message generateHTML", json);
             generateHTML(json);
           }
-          else { //array of objects update
+          else { //update array of objects
             console.log("WS message updateHTML", json);
             updateHTML(json);
           }
@@ -109,19 +102,19 @@
           generateHTML(element);
 
         if (json.type == "input") {
-          gId('in').innerHTML += `<p><label>${json.prompt}<label> <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}</label> <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
         }
         if (json.type == "password") {
-          gId('in').innerHTML += `<p><label>${json.prompt}<label> <input id="${json.prompt}" type="password" onfocusout="setInput(this)" value="${json.value}"></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}</label> <input id="${json.prompt}" type="password" onfocusout="setInput(this)" value="${json.value}"></p>`;
         }
         if (json.type == "number") {
-          gId('in').innerHTML += `<p><label>${json.prompt}<label> <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}</label> <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
         }
         else if (json.type == "display") {
-          gId('in').innerHTML += `<p><label>${json.prompt}<label> <span id="${json.prompt}">${json.value}</span></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}</label> <span id="${json.prompt}">${json.value}</span></p>`;
         }
         else if (json.type == "checkbox") {
-          gId('in').innerHTML += `<p><label>${json.prompt}<label> <input id="${json.prompt}" type="checkbox" onchange="setCheckbox(this)" ${json.value?"checked":""}></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}</label> <input id="${json.prompt}" type="checkbox" onchange="setCheckbox(this)" ${json.value?"checked":""}></p>`;
         }
         else if (json.type == "button") {
           gId('in').innerHTML += `<p><button id="${json.prompt}" type="button" onclick="setButton(this)">${json.prompt}</button></p>`;
@@ -130,12 +123,17 @@
           gId('in').innerHTML += `<h2 id="${json.prompt}">${json.prompt}</h2>`;
         }
         else if (json.type == "dropdown") {
-          gId('in').innerHTML += `<p><label>${json.prompt}<label> <select id="${json.prompt}" onchange="setDropdown(this)"></select></p>`;
+          gId('in').innerHTML += `<p><label>${json.prompt}</label> <select id="${json.prompt}" onchange="setDropdown(this)"></select></p>`;
+          //(default) value will be set in uiFun
+        }
+
+        if (json.uiFun >= 0) { //>=0 as element in object
           var command = {};
           command["uiFun"] = json.prompt; //ask for uiFun (to add the options)
           requestJson(command);
         }
-        if (json.n)
+
+        if (json.n) //details (e.g. group)
           generateHTML(json.n);
 
       }
@@ -164,6 +162,32 @@
         }
         else
           console.log("updateHTML no json.type", json);
+      }
+      function uiFun(json) {
+        // console.log("uiFun", json);
+        if (json.lov) {
+          var index = 0;
+          for (var x of json.lov) {
+            let opt = document.createElement("option");
+            opt.value = index;
+            opt.text = x;
+            gId(json.uiFun).appendChild(opt);
+            index++;
+          }
+        }
+        if (json.label) {
+          console.log("uiFun ins label", json.uiFun, json.label);
+          // gId(json.uiFun).insertAdjacentHTML("beforebegin", `<label>${json.label}</label> `);
+          gId(json.uiFun).parentNode.firstChild.innerHTML = json.label; //the <label>
+        }
+        if (json.comment) {
+          console.log("uiFun ins comment", json.uiFun, json.comment);
+          gId(json.uiFun).insertAdjacentHTML("afterend", ` <i>${json.comment}</i>`);
+        }
+        if (json.default) {
+          console.log("uiFun ins default", json.uiFun, json.default);
+          gId(json.uiFun).value = json.default;
+        }
       }
       </script>
 </head>

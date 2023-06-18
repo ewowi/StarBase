@@ -26,10 +26,10 @@ public:
     Module::setup();
     print->print("%s Setup:", name);
 
-    parentObject = ui->initGroup(JsonObject(), name);
+    parentObject = ui->initGroup(parentObject, name);
     ui->initInput(parentObject, "SSID", "");
     ui->initPassword(parentObject, "Password", "");
-    ui->initButton(parentObject, "Connect",  [](const char *prompt, JsonVariant value) {
+    ui->initButton(parentObject, "Connect",  [](JsonObject object) {
       forceReconnect = true;
     });
     ui->initDisplay(parentObject, "Status");

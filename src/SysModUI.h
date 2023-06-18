@@ -1,13 +1,13 @@
 #pragma once //as also included in ModModel
 #include "Module.h"
 
-class SysModUIServer:public Module {
+class SysModUI:public Module {
 
 public:
-  static std::vector<void(*)(const char *, JsonVariant)> chFunctions;
-  static std::vector<JsonVariant(*)(const char *)> uiFunctions;
+  static std::vector<void(*)(JsonObject object)> chFunctions;
+  static std::vector<JsonVariant(*)(JsonObject object)> uiFunctions;
 
-  SysModUIServer() :Module("UI Server") {};
+  SysModUI() :Module("UI Server") {};
 
   //serve index.htm
   void setup() {
@@ -26,62 +26,62 @@ public:
     // Module::loop();
   }
 
-  JsonObject initGroup(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
-    JsonObject object = initObject(parent, prompt, "group", chFun);
+  JsonObject initGroup(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "group", chFun, uiFun);
     if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(prompt, object["value"]);
+    if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initInput(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
-    JsonObject object = initObject(parent, prompt, "input", chFun);
+  JsonObject initInput(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "input", chFun, uiFun);
     if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(prompt, object["value"]);
+    if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initPassword(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
-    JsonObject object = initObject(parent, prompt, "password", chFun);
+  JsonObject initPassword(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "password", chFun, uiFun);
     if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(prompt, object["value"]);
+    if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initNumber(JsonObject parent, const char *prompt, int value, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
-    JsonObject object = initObject(parent, prompt, "number", chFun);
+  JsonObject initNumber(JsonObject parent, const char *prompt, int value, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "number", chFun, uiFun);
     if (object["value"].isNull()) object["value"] = value;
-    if (chFun) chFun(prompt, object["value"]);
+    if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initDisplay(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
-    JsonObject object = initObject(parent, prompt, "display", chFun);
+  JsonObject initDisplay(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "display", chFun, uiFun);
     if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(prompt, object["value"]);
+    if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initCheckBox(JsonObject parent, const char *prompt, bool value, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
-    JsonObject object = initObject(parent, prompt, "checkbox", chFun);
+  JsonObject initCheckBox(JsonObject parent, const char *prompt, bool value, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "checkbox", chFun, uiFun);
     if (object["value"].isNull()) object["value"] = value;
-    if (chFun) chFun(prompt, object["value"]);
+    if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initButton(JsonObject parent, const char *prompt, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
-    JsonObject object = initObject(parent, prompt, "button", chFun);
+  JsonObject initButton(JsonObject parent, const char *prompt, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "button", chFun, uiFun);
     //no call of fun for buttons!!! 
     return object;
   }
 
-  JsonObject initDropdown(JsonObject parent, const char *prompt, uint8_t value, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
+  JsonObject initDropdown(JsonObject parent, const char *prompt, uint8_t value, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
     JsonObject object = initObject(parent, prompt, "dropdown", chFun, uiFun);
     if (object["value"].isNull()) object["value"] = value;
-    if (chFun) chFun(prompt, object["value"]);
+    if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initObject(JsonObject parent, const char *prompt, const char *type, void(*chFun)(const char *, JsonVariant) = nullptr, JsonVariant(*uiFun)(const char *) = nullptr) {
+  JsonObject initObject(JsonObject parent, const char *prompt, const char *type, void(*chFun)(JsonObject object) = nullptr, JsonVariant(*uiFun)(JsonObject) = nullptr) {
     JsonObject object = findObject(prompt);
 
     //create new object
@@ -104,7 +104,7 @@ public:
       object["type"] = type;
       if (chFun) {
         //if fun already in chFunctions then reuse, otherwise add new fun in chFunctions
-        std::vector<void(*)(const char *, JsonVariant)>::iterator itr = find(chFunctions.begin(), chFunctions.end(), chFun);
+        std::vector<void(*)(JsonObject object)>::iterator itr = find(chFunctions.begin(), chFunctions.end(), chFun);
         if (itr!=chFunctions.end()) //found
           object["chFun"] = distance(chFunctions.begin(), itr); //assign found function
         else { //not found
@@ -114,7 +114,7 @@ public:
       }
       if (uiFun) {
         //if fun already in uiFunctions then reuse, otherwise add new fun in uiFunctions
-        std::vector<JsonVariant(*)(const char *)>::iterator itr = find(uiFunctions.begin(), uiFunctions.end(), uiFun);
+        std::vector<JsonVariant(*)(JsonObject object)>::iterator itr = find(uiFunctions.begin(), uiFunctions.end(), uiFun);
         if (itr!=uiFunctions.end()) //found
           object["uiFun"] = distance(uiFunctions.begin(), itr); //assign found function
         else { //not found
@@ -129,35 +129,29 @@ public:
     return object;
   }
 
-  JsonObject setValue(const char *prompt, const char * value) {
+  //setValue char
+  static JsonObject setValue(const char *prompt, const char * value) {
     JsonObject object = findObject(prompt);
     if (!object.isNull()) {
       if (object["value"].isNull() || object["value"] != value) {
         // print->print("  setValue changed %s %s\n", object["value"].as<String>(), value);
         object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-
-        //call change function...
-        if (!object["chFun"].isNull()) {//isnull needed here!
-          size_t funNr = object["chFun"];
-          chFunctions[funNr](prompt, object["value"]);
-        }
-
-        web->sendDataWs(object);
+        setChFunAndWs(object);
       }
     }
     else
       print->print("setValue Object %s not found\n", prompt);
-
     return object;
   }
 
-  JsonObject setValue(const char *prompt, bool value) {
+  //setValue int
+  static JsonObject setValue(const char *prompt, int value) {
     JsonObject object = findObject(prompt);
     if (!object.isNull()) {
       if (object["value"].isNull() || object["value"] != value) {
         // print->print("  setInput changed %s %s\n", object["value"].as<String>(), value);
         object["value"] = value;
-        web->sendDataWs(object);
+        setChFunAndWs(object);
       }
     }
     else
@@ -166,7 +160,32 @@ public:
     return object;
   }
 
-  //Argument list
+  //setValue bool
+  static JsonObject setValue(const char *prompt, bool value) {
+    JsonObject object = findObject(prompt);
+    if (!object.isNull()) {
+      if (object["value"].isNull() || object["value"] != value) {
+        // print->print("  setInput changed %s %s\n", object["value"].as<String>(), value);
+        object["value"] = value;
+        setChFunAndWs(object);
+      }
+    }
+    else
+      print->print("setValue Object %s not found\n", prompt);
+    return object;
+  }
+
+  static void setChFunAndWs(JsonObject object) {
+
+    if (!object["chFun"].isNull()) {//isnull needed here!
+      size_t funNr = object["chFun"];
+      chFunctions[funNr](object);
+    }
+
+    web->sendDataWs(object);
+  }
+
+  //Set value with argument list
   JsonObject setValueV(const char *prompt, const char * format, ...) {
     va_list args;
     va_start(args, format);
@@ -180,7 +199,7 @@ public:
     return setValue(prompt, value);
   }
 
-  //Argument list and print
+  //Set value with argument list and print
   JsonObject setValueP(const char *prompt, const char * format, ...) {
     va_list args;
     va_start(args, format);
@@ -195,12 +214,12 @@ public:
     return setValue(prompt, value);
   }
 
-  const char * getValue(const char *prompt) {
+  JsonVariant getValue(const char *prompt) {
     JsonObject object = findObject(prompt);
     if (!object.isNull())
       return object["value"];
     else
-      return nullptr;
+      return JsonVariant();
   }
 
   static JsonObject findObject(const char *prompt, JsonArray parent = JsonArray()) { //static for processJson
@@ -239,7 +258,9 @@ public:
               //call ui function...
               if (!object["uiFun"].isNull()) {//isnull needed here!
                 size_t funNr = object["uiFun"];
-                JsonVariant uiStuff = uiFunctions[funNr](key);
+                JsonVariant uiStuff = uiFunctions[funNr](object);
+                if (object["type"] == "dropdown") 
+                  uiStuff["default"] = object["value"];
                 char resStr[50]; 
                 serializeJson(uiStuff, resStr);
                 serializeJson(uiStuff, Serial);
@@ -255,30 +276,22 @@ public:
           JsonObject object = findObject(key);
           if (!object.isNull())
           {
-            if (strcmp(object["type"], "button") == 0 || object["value"] != value) { // if changed
+            if (object["value"] != value) { // if changed
               print->print("processJson %s %s->%s\n", key, object["value"].as<String>(), value.as<String>());
 
-              //assign new value
+              //set new value
               if (value.is<const char *>())
-                object["value"] = (char *)value.as<const char *>(); //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/)
+                setValue(key, value.as<const char *>());
               else if (value.is<bool>())
-                object["value"] = value.as<bool>();
+                setValue(key, value.as<bool>());
               else if (value.is<int>())
-                object["value"] = value.as<int>();
+                setValue(key, value.as<int>());
               else {
                 print->print("processJson %s %s->%s not a supported type yet\n", key, object["value"].as<String>(), value.as<String>());
-                // object["value"] = value;
               }
-
-              //call change function...
-              if (!object["chFun"].isNull()) {//isnull needed here!
-                size_t funNr = object["chFun"];
-                chFunctions[funNr](key, object["value"]);
-              }
-
-              web->sendDataWs(object);
             }
-
+            else if (strcmp(object["type"], "button") == 0)
+              setChFunAndWs(object);
           }
           else
             print->print("Object %s not found\n", key);
@@ -292,8 +305,8 @@ public:
 
 };
 
-static SysModUIServer *ui;
+static SysModUI *ui;
 
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-std::vector<void(*)(const char *, JsonVariant)> SysModUIServer::chFunctions;
-std::vector<JsonVariant(*)(const char *)> SysModUIServer::uiFunctions;
+std::vector<void(*)(JsonObject object)> SysModUI::chFunctions;
+std::vector<JsonVariant(*)(JsonObject object)> SysModUI::uiFunctions;

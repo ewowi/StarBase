@@ -1,0 +1,75 @@
+Print Setup: success
+Files Setup:Files success
+Model Setup:initObject create new group: Model
+initObject create new display: memoryUsage
+Reading model from /model.json... (deserializeConfigFromFS)
+File /model.json open to read, size 1588 bytes
+[{"prompt":"Model","type":"group","n":[{"prompt":"memoryUsage","type":"display","value":"4044 / 10240 B"},{"prompt":"SaveModel","type":"button","chFun":0,"value":"push"},{"prompt":"DeleteModel","type":"button","chFun":1}],"incldef":true},{"prompt":"Network","type":"group","n":[{"prompt":"SSID","type":"input","value":"Ewoud's handy "},{"prompt":"Password","type":"password","value":"cyry-mi-pi"},{"prompt":"Connect","type":"button","chFun":2},{"prompt":"Status","type":"display","value":"AP PlayGround AP / play1234 @ 4.3.2.1"}]},{"prompt":"System","type":"group","n":[{"prompt":"UpTime","type":"display","uiFun":3,"value":"826 s"},{"prompt":"Loops","type":"display","value":"28196 /s"},{"prompt":"Heap","type":"display","uiFun":4,"value":"200324 / 320256 (110580) B"},{"prompt":"Stack","type":"display","value":"6004 B"},{"prompt":"Restart","type":"button","chFun":5},{"prompt":"Files","type":"group","n":[{"prompt":"Size","type":"display","value":"16384 / 1507328 B"}]}]},{"prompt":"Pin Manager","type":"group","n":[{"prompt":"Pin2","type":"checkbox","chFun":6,"value":true},{"prompt":"Pin4","type":"checkbox","value":false},{"prompt":"Pin33","type":"checkbox","value":true}]},{"prompt":"Leds","type":"group","n":[{"prompt":"dataPin","type":"number","chFun":7,"value":"16"},{"prompt":"nrOfLeds","type":"number","chFun":8,"value":64},{"prompt":"bri","type":"number","chFun":9,"uiFun":10,"value":5},{"prompt":"fps","type":"number","chFun":11,"uiFun":12,"value":40},{"prompt":"fx","type":"dropdown","chFun":13,"uiFun":14,"value":3},{"prompt":"realFps","type":"display","value":"39 /s"}]}]Object SaveModel already defined
+Object DeleteModel already defined
+Model success
+Network Setup:Object Network already defined
+Object SSID already defined
+Object Password already defined
+Object Connect already defined
+Object Status already defined
+Network success
+Web Setup:Web success
+UI Setup:
+addURL File /index.htm size 6450
+UI success
+System Setup:Object System already defined
+Object UpTime already defined
+Object Loops already defined
+Object Heap already defined
+Object Stack already defined
+Object Restart already defined
+Object Files already defined
+Object Size already defined
+System success
+Pin Manager Setup:Object Pin Manager already defined
+Object Pin2 already defined
+updateGPIO Pin2:=1
+Object Pin4 already defined
+Object Pin33 already defined
+Pin Manager success
+Leds Setup:Object Leds already defined
+Object dataPin already defined
+Set data pin to 16
+Object nrOfLeds already defined
+Set nrOfLeds to 64
+Object bri already defined
+Set Brightness to 5
+Object fps already defined
+fps changed 40
+Size of Rainbow is 4
+Size of Rainbow with glitter is 4
+Size of Sinelon is 4
+Size of Confetti is 4
+Size of Beats per minute is 4
+Size of Juggle is 4
+Object fx already defined
+Running fx
+Object realFps already defined
+Leds success
+lastReconnectAttempt == 0
+Access point disabled (init).
+Connecting to WiFi Ewoud's handy  / **********
+Connected 172.20.10.2
+Web server (re)started
+Webserver: client request / /index.htm text/html!
+WS client connected.
+WS event data.
+{"uiFun":"UpTime"}
+special command uiFun UpTime: {"uiFun":"UpTime","UpTime":{"label":"Uptime","comment":"Uptime of board"}}
+WS event data.
+{"uiFun":"Heap"}
+special command uiFun Heap: {"uiFun":"Heap","Heap":{"label":"Heap","comment":"Free / Total (largest free)"}}
+WS event data.
+{"uiFun":"bri"}
+special command uiFun bri: {"uiFun":"bri","bri":{"label":"Brightness"}}
+WS event data.
+{"uiFun":"fps"}
+special command uiFun fps: {"uiFun":"fps","fps":{"label":"FPS","comment":"Frames per second"}}
+WS event data.
+{"uiFun":"fx"}
+special command uiFun fx: {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Confetti","Beats per minute","Juggle"],"value":3}}

@@ -148,12 +148,14 @@ public:
       FastLED.setBrightness(object["value"]);
       print->print("Set Brightness to %d\n", object["value"].as<int>());
     }, [](JsonObject object) {
-      responseDoc["label"] = "Brightness";
-      return responseDoc.as<JsonVariant>();
+      web->addResponse(object, "label", "Brightness");
     });
-    ui->initNumber(parentObject, "FPS", fps, [](JsonObject object) {
+    ui->initNumber(parentObject, "fps", fps, [](JsonObject object) {
       fps = object["value"];
       print->print("fps changed %d\n", fps);
+    }, [](JsonObject object) {
+      web->addResponse(object, "label", "FPS");
+      web->addResponse(object, "comment", "Frames per second");
     });
 
     effects.push_back(new RainbowEffect);
@@ -167,15 +169,14 @@ public:
       print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
     }
     ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) {
-      print->print("Running %s\n", object["prompt"]);
+      print->print("Running %s\n", object["prompt"].as<const char *>());
     }, [](JsonObject object) {
-      responseDoc["label"] = "Effect";
-      responseDoc["comment"] = "Effect to show";
-      JsonArray lov = responseDoc.createNestedArray("lov");
+      web->addResponse(object, "label", "Effect");
+      web->addResponse(object, "comment", "Effect to show");
+      JsonArray lov = web->addResponseArray(object, "lov");
       for (Effect *effect:effects) {
         lov.add(effect->name());
       }
-      return responseDoc.as<JsonVariant>();
     });
 
     ui->initDisplay(parentObject, "realFps");

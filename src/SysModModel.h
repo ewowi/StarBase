@@ -3,7 +3,6 @@
 #include "ArduinoJson.h"
 
 DynamicJsonDocument model(10240); //not static as that blows up the stack. Use extern??
-StaticJsonDocument<2048> responseDoc;
 
 //needed to set this here for classes mutually calling other classes (and don't want cpp files ;-)
 //they use model and SysModModel uses web and ui...

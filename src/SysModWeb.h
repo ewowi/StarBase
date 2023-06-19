@@ -11,7 +11,8 @@
 // Create AsyncWebServer object on port 80
 static AsyncWebServer server(80);
 static AsyncWebSocket ws("/ws");
-static JsonVariant(*processWSFunc)(JsonVariant &);
+static const char *(*processWSFunc)(JsonVariant &) = nullptr;
+StaticJsonDocument<2048> responseDoc;
 
 class SysModWeb:public Module {
 
@@ -68,17 +69,21 @@ public:
             return;
           }
 
-          DeserializationError error = deserializeJson(responseDoc, data, len);
-          serializeJson(responseDoc, Serial);
-          JsonVariant json = responseDoc.as<JsonVariant>();
-          JsonVariant result = processWSFunc(json); //func?:nullptr; //processJson
+          if (processWSFunc) {
+            DeserializationError error = deserializeJson(responseDoc, data, len); //data to responseDoc
+            serializeJson(responseDoc, Serial);
+            Serial.println();
+            JsonVariant json = responseDoc.as<JsonVariant>();
+            const char *pErr = processWSFunc(json); //processJson, adds to responsedoc
 
-          if (result) {
-            char resStr[50]; 
-            serializeJson(result, resStr);
-            print->print("WS_EVT_DATA response %s\n", resStr);
-            sendDataWs(result);
+            if (responseDoc.size()) {
+              char resStr[200]; 
+              serializeJson(responseDoc, resStr);
+              // print->print("WS_EVT_DATA send response %s\n", resStr);
+              sendDataWs(responseDoc.as<JsonVariant>());
+            }
           }
+          else print->print("WS_EVT_DATA no processWSFunc\n");
         }
       }
     } else if(type == WS_EVT_ERROR){
@@ -157,14 +162,18 @@ public:
   //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"fx":2}' -H "Content-Type: application/json"
 
-  bool processJsonUrl(const char * uri, JsonVariant (*processFunc)(JsonVariant &)) {
+  bool setupJsonHandlers(const char * uri, const char *(*processFunc)(JsonVariant &)) {
     processWSFunc = processFunc; //for WebSocket requests
+
+    //URL handler
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
-      JsonVariant result = processFunc(json);
-      if (!result.isNull()) {
-        char resStr[50]; 
-        serializeJson(result, resStr);
-        print->print("processJsonUrl response %s (not implemented yet\n", resStr);
+      responseDoc.clear();
+      serializeJson(json, Serial);
+      const char * pErr = processFunc(json); //processJson
+      if (responseDoc.size()) {
+        char resStr[200]; 
+        serializeJson(responseDoc, resStr);
+        print->print("processJsonUrl response %s\n", resStr);
         // request->send(200, "application/json", result);
         // AsyncJsonResponse* response = new AsyncJsonResponse(&responseDoc, true);  // array document
         // JsonArray lDoc = response->getRoot();
@@ -180,6 +189,27 @@ public:
     });
     server.addHandler(handler);
     return true;
+  }
+
+  void addResponse(JsonObject object, const char * key, const char * value) {
+    const char * prompt = object["prompt"];
+    if (responseDoc[prompt].isNull()) responseDoc.createNestedObject(prompt);
+    responseDoc[prompt][key] = value;
+  }
+  void addResponseInt(JsonObject object, const char * key, int value) { //temporaty, use overloading
+    const char * prompt = object["prompt"];
+    if (responseDoc[prompt].isNull()) responseDoc.createNestedObject(prompt);
+    responseDoc[prompt][key] = value;
+  }
+  void addResponseBool(JsonObject object, const char * key, bool value) { //temporaty, use overloading
+    const char * prompt = object["prompt"];
+    if (responseDoc[prompt].isNull()) responseDoc.createNestedObject(prompt);
+    responseDoc[prompt][key] = value;
+  }
+  JsonArray addResponseArray(JsonObject object, const char * key) {
+    const char * prompt = object["prompt"];
+    if (responseDoc[prompt].isNull()) responseDoc.createNestedObject(prompt);
+    return responseDoc[prompt].createNestedArray(key);
   }
 
 };

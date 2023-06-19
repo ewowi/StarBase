@@ -16,15 +16,13 @@ public:
     parentObject = ui->initGroup(parentObject, name);
 
     ui->initDisplay(parentObject, "UpTime", nullptr, nullptr, [](JsonObject object) {
-      responseDoc["label"] = "Uptime";
-      responseDoc["comment"] = "Uptime of board";
-      return responseDoc.as<JsonVariant>();
+      web->addResponse(object, "label", "Uptime");
+      web->addResponse(object, "comment", "Uptime of board");
     });
     ui->initDisplay(parentObject, "Loops");
     ui->initDisplay(parentObject, "Heap", nullptr, nullptr, [](JsonObject object) {
-      responseDoc["label"] = object["prompt"];
-      responseDoc["comment"] = "Free / Total (largest free)";
-      return responseDoc.as<JsonVariant>();
+      web->addResponse(object, "label", object["prompt"]);
+      web->addResponse(object, "comment", "Free / Total (largest free)");
     });
     ui->initDisplay(parentObject, "Stack");
 

@@ -13,21 +13,13 @@
         ws.binaryType = "arraybuffer";
     	  ws.onmessage = (e)=>{
           let json = JSON.parse(e.data);
-          if (json.prompt) { //update object
-            console.log("WS message updateHTML", json);
-            updateHTML(json);
-          }
-          else if (json.uiFun) { //receive uiFun (after request it in generateHTML)
-            console.log("WS message uiFun", json);
-            uiFun(json);
-          }
-          else if (json[0] && json[0].incldef) { //generate array of objects
-            console.log("WS message generateHTML", json);
+          if (json[0] && json[0].incldef) { //generate array of objects
+            console.log("WS receive generateHTML", json);
             generateHTML(json);
           }
-          else { //update array of objects
-            console.log("WS message updateHTML", json);
-            updateHTML(json);
+          else { //update
+            // console.log("WS receive update", json);
+            processUpdate(json);
           }
         }
         ws.onclose = (e)=>{
@@ -124,7 +116,7 @@
         }
         else if (json.type == "dropdown") {
           gId('in').innerHTML += `<p><label>${json.prompt}</label> <select id="${json.prompt}" onchange="setDropdown(this)"></select></p>`;
-          //(default) value will be set in uiFun
+          //(default) value will be set in processUpdate
         }
 
         if (json.uiFun >= 0) { //>=0 as element in object
@@ -137,56 +129,44 @@
           generateHTML(json.n);
 
       }
-      function updateHTML(json) {
-        // console.log("updateHTML", json);
-        if (json.length) for (var element of json)
-          updateHTML(element);
 
-        if (json.type == "input") {
-          gId(json.prompt).value = json.value;
-        }
-        else if (json.type == "password") {
-          gId(json.prompt).value = json.value;
-        }
-        else if (json.type == "number") {
-          gId(json.prompt).value = json.value;
-        }
-        else if (json.type == "display") {
-          gId(json.prompt).textContent = json.value;
-        }
-        else if (json.type == "checkbox") {
-          gId(json.prompt).checked = json.value;
-        }
-        else if (json.type == "dropdown") {
-          gId(json.prompt).value = json.value;
-        }
-        else
-          console.log("updateHTML no json.type", json);
-      }
-      function uiFun(json) {
-        // console.log("uiFun", json);
-        if (json.lov) {
-          var index = 0;
-          for (var x of json.lov) {
-            let opt = document.createElement("option");
-            opt.value = index;
-            opt.text = x;
-            gId(json.uiFun).appendChild(opt);
-            index++;
+      function processUpdate(json) {
+        // console.log("processUpdate", json);
+        for (var key of Object.keys(json)) {
+          // console.log("processUpdate", key, json[key]);
+          if (key != "uiFun") { //was the request
+            // let id = gId(key);
+            if (json[key].label) {
+              console.log("processUpdate label", key, json[key].label);
+              // gId(json.uiFun).insertAdjacentHTML("beforebegin", `<label>${json.label}</label> `);
+              gId(key).parentNode.firstChild.innerHTML = json[key].label; //the <label>
+            }
+            if (json[key].comment) {
+              console.log("processUpdate comment", key, json[key].comment);
+              gId(key).insertAdjacentHTML("afterend", ` <i>${json[key].comment}</i>`);
+            }
+            if (json[key].lov) {
+              console.log("processUpdate lov", key, json[key].lov);
+              var index = 0;
+              for (var x of json[key].lov) {
+                let opt = document.createElement("option");
+                opt.value = index;
+                opt.text = x;
+                gId(key).appendChild(opt);
+                index++;
+              }
+            }
+            if (json[key].value) { //after lov, in case used
+              console.log("processUpdate value", key, json[key].value, gId(key));
+              // if (gId(key).textContent && !json[key].lov) //display (select element has also textContent)
+              if (gId(key).nodeName.toLocaleLowerCase() == "span") //display
+                gId(key).textContent = json[key].value;
+              else if (gId(key).type == "checkbox") //checkbox
+                gId(key).checked = json[key].value;
+              else //inputs
+                gId(key).value = json[key].value;
+            }
           }
-        }
-        if (json.label) {
-          console.log("uiFun ins label", json.uiFun, json.label);
-          // gId(json.uiFun).insertAdjacentHTML("beforebegin", `<label>${json.label}</label> `);
-          gId(json.uiFun).parentNode.firstChild.innerHTML = json.label; //the <label>
-        }
-        if (json.comment) {
-          console.log("uiFun ins comment", json.uiFun, json.comment);
-          gId(json.uiFun).insertAdjacentHTML("afterend", ` <i>${json.comment}</i>`);
-        }
-        if (json.default) {
-          console.log("uiFun ins default", json.uiFun, json.default);
-          gId(json.uiFun).value = json.default;
         }
       }
       </script>

@@ -24,7 +24,7 @@ public:
   //setup wifi an async webserver
   void setup() {
     Module::setup();
-    print->print("%s Setup:", name);
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
     ui->initInput(parentObject, "SSID", "");
@@ -34,7 +34,7 @@ public:
     });
     ui->initDisplay(parentObject, "Status");
 
-    print->print("%s %s\n", name, success?"success":"failed");
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {

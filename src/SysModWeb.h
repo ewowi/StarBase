@@ -12,7 +12,7 @@
 static AsyncWebServer server(80);
 static AsyncWebSocket ws("/ws");
 static const char *(*processWSFunc)(JsonVariant &) = nullptr;
-StaticJsonDocument<2048> responseDoc;
+static StaticJsonDocument<2048> responseDoc;
 
 class SysModWeb:public Module {
 
@@ -25,9 +25,6 @@ public:
   //setup wifi an async webserver
   void setup() {
     Module::setup();
-    print->print("%s Setup:", name);
-
-    print->print("%s %s\n", name, success?"success":"failed");
   }
 
   void loop() {
@@ -71,16 +68,19 @@ public:
 
           if (processWSFunc) {
             DeserializationError error = deserializeJson(responseDoc, data, len); //data to responseDoc
-            serializeJson(responseDoc, Serial);
-            Serial.println();
-            JsonVariant json = responseDoc.as<JsonVariant>();
-            const char *pErr = processWSFunc(json); //processJson, adds to responsedoc
+            if (error) {
+              print->print("deserializeJson() of definition failed with code %s\n", error.c_str());
+            } else {
+              serializeJson(responseDoc, Serial);Serial.println();
+              JsonVariant json = responseDoc.as<JsonVariant>();
+              const char *error = processWSFunc(json); //processJson, adds to responsedoc
 
-            if (responseDoc.size()) {
-              char resStr[200]; 
-              serializeJson(responseDoc, resStr);
-              // print->print("WS_EVT_DATA send response %s\n", resStr);
-              sendDataWs(responseDoc.as<JsonVariant>());
+              if (responseDoc.size()) {
+                char resStr[200]; 
+                serializeJson(responseDoc, resStr);
+                // print->print("WS_EVT_DATA send response %s\n", resStr);
+                sendDataWs(responseDoc.as<JsonVariant>());
+              }
             }
           }
           else print->print("WS_EVT_DATA no processWSFunc\n");
@@ -168,7 +168,7 @@ public:
     //URL handler
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
       responseDoc.clear();
-      serializeJson(json, Serial);
+      serializeJson(json, Serial);Serial.println();
       const char * pErr = processFunc(json); //processJson
       if (responseDoc.size()) {
         char resStr[200]; 

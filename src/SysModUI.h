@@ -1,24 +1,25 @@
 #pragma once //as also included in ModModel
 #include "Module.h"
+// #include "SysModWeb.h"
 
 class SysModUI:public Module {
 
 public:
   static std::vector<void(*)(JsonObject object)> uiFunctions;
 
-  SysModUI() :Module("UI") {};
-
-  //serve index.htm
-  void setup() {
-    Module::setup();
-
-    print->print("%s Setup:\n", name);
+  SysModUI() :Module("UI") {
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     success &= web->addURL("/", "/index.htm", "text/html");
 
     success &= web->setupJsonHandlers("/json", processJson);
 
-    print->print("%s %s\n", name, success?"success":"failed");
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  };
+
+  //serve index.htm
+  void setup() {
+    Module::setup();
   }
 
   void loop() {
@@ -92,7 +93,7 @@ public:
       } else {
         if (parent["n"].isNull()) parent.createNestedArray("n");
         object = parent["n"].createNestedObject();
-        // serializeJson(model, Serial);print->print("\n");
+        // serializeJson(model, Serial);Serial.println();
       }
       object["prompt"] = prompt;
     }
@@ -259,7 +260,7 @@ public:
         const char * key = pair.key().c_str();
         JsonVariant value = pair.value();
 
-        //special commands
+        // commands
         if (strcmp(key, "uiFun")==0) {
           //find the dropdown object and collect it's options...
           JsonObject object = findObject(value); //value is the prompt
@@ -273,11 +274,11 @@ public:
               char resStr[200]; 
               serializeJson(responseDoc, resStr);
 
-              print->print("special command %s %s: %s\n", key, object["prompt"].as<const char *>(), resStr);
+              print->print("command %s %s: %s\n", key, object["prompt"].as<const char *>(), resStr);
             }
           }
           else
-            print->print("special command %s object %s not found\n", key, value.as<String>());
+            print->print("command %s object %s not found\n", key, value.as<String>());
         } else {
           if (!value.is<JsonObject>()) { //no objects (inserted by uiFun responses)
             JsonObject object = findObject(key);

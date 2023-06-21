@@ -4,14 +4,13 @@ class SysModSystem:public Module {
 
 public:
 
-  unsigned long secondMillis = 0;
   unsigned long loopCounter = 0;
 
   SysModSystem() :Module("System") {};
 
   void setup() {
     Module::setup();
-    print->print("%s Setup:", name);
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
 
@@ -34,9 +33,8 @@ public:
     //should be in SysModFiles...
     JsonObject filesObject = ui->initGroup(parentObject, "Files");
     ui->initDisplay(filesObject, "Size");
-    // ui->initDisplay(filesObject, "Total");
 
-    print->print("%s %s\n", name, success?"success":"failed");
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {

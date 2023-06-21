@@ -125,14 +125,13 @@ class AppModLeds:public Module {
 public:
   uint8_t dataPin = 16; 
   unsigned long nowUp = 0;
-  unsigned long secondMillis = 0;
   unsigned long frameCounter = 0;
 
   AppModLeds() :Module("Leds") {};
 
   void setup() {
     Module::setup();
-    print->print("%s Setup:", name);
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
 
@@ -169,7 +168,7 @@ public:
       print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
     }
     ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) {
-      print->print("Running %s\n", object["prompt"].as<const char *>());
+      print->print("%s Running %s\n", __PRETTY_FUNCTION__, object["prompt"].as<const char *>());
     }, [](JsonObject object) {
       web->addResponse(object, "label", "Effect");
       web->addResponse(object, "comment", "Effect to show");
@@ -184,7 +183,7 @@ public:
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
 
-    print->print("%s %s\n", name, success?"success":"failed");
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {

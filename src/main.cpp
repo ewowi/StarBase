@@ -30,13 +30,13 @@ void setup() {
   lds = new AppModLeds();
 
   modules.push_back(print);
-  modules.push_back(files); //90K lps (loops per second)
+  modules.push_back(files);
   modules.push_back(mdl);
   modules.push_back(net);
-  modules.push_back(web); //80K lps
+  modules.push_back(web);
   modules.push_back(ui);
   modules.push_back(sys);
-  modules.push_back(pin); //70K lps -> 110K lps
+  modules.push_back(pin);
   modules.push_back(lds);
 
   for (Module *module:modules) module->setup();

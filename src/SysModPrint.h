@@ -4,17 +4,18 @@ class SysModPrint:public Module {
 
 public:
 
-  SysModPrint() :Module("Print") {};
-
-  //setup Serial
-  void setup() {
-    Module::setup();
-    print("%s Setup:", name);
+  SysModPrint() :Module("Print") {
+    print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     Serial.begin(115200);
     delay(5000); //if (!Serial) doesn't seem to work, check with SoftHack007
 
-    print(" %s\n", success?"success":"failed");
+    print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
+  };
+
+  //setup Serial
+  void setup() {
+    Module::setup();
   }
 
   //generic print function (based on printf)

@@ -15,12 +15,8 @@ class SysModFiles:public Module {
 
 public:
 
-  SysModFiles() :Module("Files") {};
-
-  //setup filesystem
-  void setup() {
-    Module::setup();
-    print->print("%s Setup:", name);
+  SysModFiles() :Module("Files") {
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     if (!LittleFS.begin(true)) { //true: formatOnFail
       print->print(" An Error has occurred while mounting File system");
@@ -28,11 +24,23 @@ public:
       success = false;
     }
 
-    print->print("%s %s\n", name, success?"success":"failed");
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  };
+
+  //setup filesystem
+  void setup() {
+    Module::setup();
+    // JsonObject filesObject = ui->initGroup(parentObject, "Files");
+    // ui->initDisplay(filesObject, "Size");
   }
 
   void loop(){
     // Module::loop();
+    if (millis() - secondMillis >= 1000 || !secondMillis) {
+      secondMillis = millis();
+
+      // ui->setValueV("Size", "%d / %d B", usedBytes(), totalBytes());
+    }
   }
 
   bool remove(const char * path) {

@@ -4,22 +4,26 @@ class AppModPinManager:public Module {
 
 public:
 
-  AppModPinManager() :Module("Pin Manager") {};
-
-  void setup() {
-    Module::setup();
-    print->print("%s Setup:", name);
+  AppModPinManager() :Module("Pin Manager") {
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     pinMode(2, OUTPUT);
     pinMode(4, OUTPUT);
     pinMode(33, OUTPUT);
+
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  };
+
+  void setup() {
+    Module::setup();
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
     ui->initCheckBox(parentObject, "Pin2", true, updateGPIO);
     ui->initCheckBox(parentObject, "Pin4", false);
     ui->initCheckBox(parentObject, "Pin33", true);
 
-    print->print("%s %s\n", name, success?"success":"failed");
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){

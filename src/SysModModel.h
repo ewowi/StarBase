@@ -2,7 +2,7 @@
 
 #include "ArduinoJson.h"
 
-DynamicJsonDocument model(10240); //not static as that blows up the stack. Use extern??
+static DynamicJsonDocument model(10240); //not static as that blows up the stack. Use extern??
 
 //needed to set this here for classes mutually calling other classes (and don't want cpp files ;-)
 //they use model and SysModModel uses web and ui...
@@ -15,26 +15,29 @@ public:
   static bool doWriteModel;
 
   unsigned long dumpMillis = 0;
-  unsigned long secondMillis = 0;
 
-  SysModModel() :Module("Model") {};
+  SysModModel() :Module("Model") {
+    JsonArray root = model.to<JsonArray>(); //create
+
+    Serial.printf("%s %s\n", __PRETTY_FUNCTION__, name);
+
+    print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
+    if (readObjectFromFile("/model.json", &model)) {//not part of success...
+      serializeJson(model, Serial);Serial.println();
+      web->sendDataWs(nullptr, false); //send new data: all clients, no def
+    }
+
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  };
 
   void setup() {
     Module::setup();
 
-    print->print("%s Setup:", name);
-
-    JsonArray root = model.to<JsonArray>(); //create
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
 
     ui->initDisplay(parentObject, "memoryUsage");
-
-    print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
-    if (readObjectFromFile("/model.json", &model)) {//not part of success...
-      serializeJson(model, Serial);
-      web->sendDataWs(nullptr, false); //send new data: all clients, no def
-    }
 
     ui->initButton(parentObject, "SaveModel", [](JsonObject object) {
       doWriteModel = true;
@@ -44,7 +47,7 @@ public:
       files->remove("/model.json");
     });
 
-    print->print("%s %s\n", name, success?"success":"failed");
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){
@@ -52,7 +55,7 @@ public:
     if (doWriteModel) {
       print->println(F("Writing model to /model.json... (serializeConfig)"));
       writeObjectToFile("/model.json", &model);
-      serializeJson(model, Serial);
+      serializeJson(model, Serial);Serial.println();
 
       doWriteModel = false;
     }
@@ -64,7 +67,7 @@ public:
 
     if (millis() - dumpMillis >= 60000 || !dumpMillis && model.capacity() / model.memoryUsage() < 2) {
       dumpMillis = millis();
-      // serializeJsonPretty(model, Serial);
+      // serializeJsonPretty(model, Serial);Serial.println();
       print->print("model  %u / %u (%u%%) (%u %u %u)\n", model.memoryUsage(), model.capacity(), 100 * model.memoryUsage() / model.capacity(), model.size(), model.overflowed(), model.nesting());
       size_t memBefore = model.memoryUsage();
       model.garbageCollect();
@@ -82,9 +85,15 @@ public:
     }
     else { 
       print->print(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
-      deserializeJson(*dest, f);
-      f.close();
-      return true;
+      DeserializationError error = deserializeJson(*dest, f);
+      if (error) {
+        print->print("deserializeJson() of definition failed with code %s\n", error.c_str());
+        f.close();
+        return false;
+      } else {
+        f.close();
+        return true;
+      }
     }
   }
 
@@ -92,7 +101,7 @@ public:
     File f = files->open(path, "w");
     if (f) {
       print->println(F("  success"));
-      serializeJson(*dest, f);
+      serializeJson(*dest, f);Serial.println();
       return true;
     } else {
       f.close();

@@ -10,8 +10,8 @@ class SysModNetwork:public Module {
 public:
   bool apActive = false;
   uint32_t lastReconnectAttempt = 0;
-  char apSSID[33] = "PlayGround AP";
-  char apPass[65] = "play1234";
+  char apSSID[33] = "StarMod AP";
+  char apPass[65] = "star1234";
   byte apChannel = 1; // 2.4GHz WiFi AP channel (1-13)
   byte apHide    = 0; // hidden AP SSID
   bool interfacesInited = false;
@@ -29,7 +29,7 @@ public:
     parentObject = ui->initGroup(parentObject, name);
     ui->initInput(parentObject, "SSID", "");
     ui->initPassword(parentObject, "Password", "");
-    ui->initButton(parentObject, "Connect",  [](JsonObject object) {
+    ui->initButton(parentObject, "connect", "Connect",  [](JsonObject object) {
       forceReconnect = true;
     });
     ui->initDisplay(parentObject, "Status");
@@ -100,7 +100,7 @@ public:
     }
 
     WiFi.setSleep(!noWifiSleep);
-    WiFi.setHostname("Playground");
+    WiFi.setHostname("StarMod");
 
     const char* ssid = ui->getValue("SSID");
     const char* password = ui->getValue("Password");

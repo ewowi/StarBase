@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Playground</title>
+    <title>StarMod by MoonModules</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
     <script>
       let ws;
-      function gId(c) {return document.getElementById(c);}
+      let d = document;
+      let columnNr = 0;
+      let nrOfColumns = 4;
+      function gId(c) {return d.getElementById(c);}
+      function cE(e) { return d.createElement(e); }
 
       function onLoad() {
         let url = (window.location.protocol == "https:"?"wss":"ws")+'://'+window.location.hostname+'/ws';
@@ -15,7 +21,7 @@
           let json = JSON.parse(e.data);
           if (json[0] && json[0].incldef) { //generate array of objects
             console.log("WS receive generateHTML", json);
-            generateHTML(json);
+            generateHTML(null, json);
           }
           else { //update
             // console.log("WS receive update", json);
@@ -88,46 +94,76 @@
         requestJson(command);
       }
 
-      function generateHTML(json) {
+      function generateHTML(parentNode, json) {
         // console.log("generateHTML", json);
-        if (json.length) for (var element of json) //objects of array
-          generateHTML(element);
+        if (Array.isArray(json)) for (var element of json) //if isArray then objects of array
+          generateHTML(parentNode, element);
+        else {
+          if (parentNode == null) {
+            parentNode = gId("column" + columnNr);
+            columnNr = (columnNr +1)%nrOfColumns;
+          }
+          var newNode = null;
+          let label = cE("label");
+          label.innerHTML = json.prompt;
 
-        if (json.type == "input") {
-          gId('in').innerHTML += `<p><label>${json.prompt}</label> <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
-        }
-        if (json.type == "password") {
-          gId('in').innerHTML += `<p><label>${json.prompt}</label> <input id="${json.prompt}" type="password" onfocusout="setInput(this)" value="${json.value}"></p>`;
-        }
-        if (json.type == "number") {
-          gId('in').innerHTML += `<p><label>${json.prompt}</label> <input id="${json.prompt}" onfocusout="setInput(this)" value="${json.value}"></p>`;
-        }
-        else if (json.type == "display") {
-          gId('in').innerHTML += `<p><label>${json.prompt}</label> <span id="${json.prompt}">${json.value}</span></p>`;
-        }
-        else if (json.type == "checkbox") {
-          gId('in').innerHTML += `<p><label>${json.prompt}</label> <input id="${json.prompt}" type="checkbox" onchange="setCheckbox(this)" ${json.value?"checked":""}></p>`;
-        }
-        else if (json.type == "button") {
-          gId('in').innerHTML += `<p><button id="${json.prompt}" type="button" onclick="setButton(this)">${json.prompt}</button></p>`;
-        }
-        else if (json.type == "group") {
-          gId('in').innerHTML += `<h2 id="${json.prompt}">${json.prompt}</h2>`;
-        }
-        else if (json.type == "dropdown") {
-          gId('in').innerHTML += `<p><label>${json.prompt}</label> <select id="${json.prompt}" onchange="setDropdown(this)"></select></p>`;
-          //(default) value will be set in processUpdate
-        }
+          if (json.type == "group") {
+            newNode = cE("div");
+            newNode.id = json.prompt
+            newNode.draggable = true;
+            newNode.className = "box";
+            let h2 = cE("h2");
+            h2.innerHTML = json.prompt;
+            newNode.appendChild(h2);
+            setupBox(newNode);
+          }
+          else if (json.type == "display") {
+            newNode = cE("p");
+            newNode.appendChild(label);
+            let field = cE("span");
+            field.id = json.prompt;
+            field.innerHTML = json.value;
+            newNode.appendChild(field);
+          }
+          else if (json.type == "dropdown") {
+            newNode = cE("p");
+            newNode.appendChild(label);
+            let field = cE("select");
+            field.id = json.prompt;
+            field.addEventListener('change', (event) => {console.log("dropdown change", event);setDropdown(event.target);});
+            newNode.appendChild(field);
+            //(default) value will be set in processUpdate
+          }
+          else {
+            newNode = cE("p");
+            if (json.type != "button") newNode.appendChild(label);
+            let field = cE("input");
+            field.id = json.prompt;
+            field.type = json.type;
+            if (json.type == "checkbox") {
+              field.checked = json.value;
+              field.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
+            } else if (json.type == "button") {
+              field.value = json.value;
+              field.addEventListener('click', (event) => {console.log(json.type + " change", event);setButton(event.target);});
+            } else {
+              field.value = json.value;
+              field.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
+            }
+            newNode.appendChild(field);
+          }
 
-        if (json.uiFun >= 0) { //>=0 as element in object
-          var command = {};
-          command["uiFun"] = json.prompt; //ask for uiFun (to add the options)
-          requestJson(command);
+          if (newNode) parentNode.appendChild(newNode); //add new node to parent
+
+          if (json.uiFun >= 0) { //>=0 as element in object
+            var command = {};
+            command["uiFun"] = json.prompt; //ask for uiFun (to add the options)
+            requestJson(command);
+          }
+
+          if (json.n) generateHTML(newNode, json.n); //details (e.g. group)
+
         }
-
-        if (json.n) //details (e.g. group)
-          generateHTML(json.n);
-
       }
 
       function processUpdate(json) {
@@ -143,7 +179,7 @@
             }
             if (json[key].comment) {
               console.log("processUpdate comment", key, json[key].comment);
-              gId(key).insertAdjacentHTML("afterend", ` <i>${json[key].comment}</i>`);
+              gId(key).insertAdjacentHTML("afterend", `<comment>${json[key].comment}</comment>`);
             }
             if (json[key].lov) {
               console.log("processUpdate lov", key, json[key].lov);
@@ -172,7 +208,16 @@
       </script>
 </head>
 <body onload="onLoad()">
-    <h1>Playground</h1>
-    <div id="in"></div>
-</body>
+    <h1>StarMod by MoonModules</h1>
+    <div class="container">
+      <div id="column0" class = "column">
+      </div>
+      <div id="column1" class = "column">
+      </div>
+      <div id="column2" class = "column">
+      </div>
+      <div id="column3" class = "column">
+      </div>
+    </div>
+  </body>
 </html>

@@ -25,14 +25,14 @@ public:
     });
     ui->initDisplay(parentObject, "Stack");
 
-    ui->initButton(parentObject, "Restart", [](JsonObject object) {
+    ui->initButton(parentObject, "restart", "Restart", [](JsonObject object) {
       ws.closeAll(1012);
       ESP.restart();
     });
 
     //should be in SysModFiles...
-    JsonObject filesObject = ui->initGroup(parentObject, "Files");
-    ui->initDisplay(filesObject, "Size");
+    files->parentObject = ui->initGroup(files->parentObject, "Files");
+    ui->initDisplay(files->parentObject, "Size");
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }

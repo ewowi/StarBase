@@ -1,0 +1,40 @@
+/* default nodes */
+label {
+  margin-right: 10px; /*space after*/
+}
+
+comment {
+  font-size: 10px;
+  font-style: italic;
+  margin-left: 10px; /*space before*/
+}
+
+/* drag and drop style */
+.container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+  
+.box {
+  border: 3px solid #666;
+  background-color: #ddd;
+  border-radius: .5em;
+  padding: 10px;
+  margin: 10px; /*space around boxes */
+  cursor: move;
+}
+
+.box:hover {
+  background-color: #00BFFF;
+}
+
+.column {
+  border: 3px solid #666;
+  border-radius: .5em;
+  padding: 10px;
+  cursor: move;
+}
+
+.box.over, .column.over {
+  border: 3px dotted #666;
+}

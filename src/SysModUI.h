@@ -11,6 +11,8 @@ public:
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     success &= web->addURL("/", "/index.htm", "text/html");
+    success &= web->addURL("/index.js", "/index.js", "text/javascript");
+    success &= web->addURL("/index.css", "/index.css", "text/css");
 
     success &= web->setupJsonHandlers("/json", processJson);
 
@@ -68,9 +70,11 @@ public:
     return object;
   }
 
-  JsonObject initButton(JsonObject parent, const char *prompt, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
+  JsonObject initButton(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
     JsonObject object = initObject(parent, prompt, "button", chFun, uiFun);
+    if (object["value"].isNull()) object["value"] = value;
     //no call of fun for buttons!!! 
+    // if (chFun) chFun(object);
     return object;
   }
 
@@ -134,7 +138,7 @@ public:
     JsonObject object = findObject(prompt);
     if (!object.isNull()) {
       if (object["value"].isNull() || object["value"] != value) {
-        // print->print("  setValue changed %s %s\n", object["value"].as<String>(), value);
+        // print->print("setValue changed %s %s->%s\n", prompt, object["value"].as<String>().c_str(), value);
         object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
         setChFunAndWs(object);
       }
@@ -149,7 +153,7 @@ public:
     JsonObject object = findObject(prompt);
     if (!object.isNull()) {
       if (object["value"].isNull() || object["value"] != value) {
-        // print->print("  setValue changed %s %s\n", object["value"].as<String>(), value);
+        // print->print("setValue changed %s %s->%s\n", prompt, object["value"].as<String>().c_str(), value);
         object["value"] = value;
         setChFunAndWs(object);
       }
@@ -165,7 +169,7 @@ public:
     JsonObject object = findObject(prompt);
     if (!object.isNull()) {
       if (object["value"].isNull() || object["value"] != value) {
-        print->print("  setValue changed %s %s\n", object["value"].as<String>(), value?"true":"false");
+        // print->print("setValue changed %s %s->%s\n", prompt, object["value"].as<String>().c_str(), value?"true":"false");
         object["value"] = value;
         setChFunAndWs(object);
       }
@@ -278,14 +282,14 @@ public:
             }
           }
           else
-            print->print("command %s object %s not found\n", key, value.as<String>());
+            print->print("command %s object %s not found\n", key, value.as<String>().c_str());
         } else {
           if (!value.is<JsonObject>()) { //no objects (inserted by uiFun responses)
             JsonObject object = findObject(key);
             if (!object.isNull())
             {
               if (object["value"] != value) { // if changed
-                print->print("processJson %s %s->%s\n", key, object["value"].as<String>(), value.as<String>());
+                print->print("processJson %s %s->%s\n", key, object["value"].as<String>().c_str(), value.as<String>().c_str());
 
                 //set new value
                 if (value.is<const char *>())
@@ -295,7 +299,7 @@ public:
                 else if (value.is<int>())
                   setValue(key, value.as<int>());
                 else {
-                  print->print("processJson %s %s->%s not a supported type yet\n", key, object["value"].as<String>(), value.as<String>());
+                  print->print("processJson %s %s->%s not a supported type yet\n", key, object["value"].as<String>().c_str(), value.as<String>().c_str());
                 }
               }
               else if (strcmp(object["type"], "button") == 0)

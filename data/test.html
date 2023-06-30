@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Hello!</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="./index.css">
+    <script src="./index.js"></script>
+  </head>  
+  <body>
+    <div class="container">
+      <div id="column1" draggable="true" class = "column">
+        <!-- <h1 id="cTitle1">Column1</h1> -->
+        <div id="Model" draggable="true" class = "box">
+          <h2>Model</h2>
+          <p><label>memoryUsage</label> <span id="memoryUsage">4136 / 10240 B</span><comment>kommentaar</comment></p>
+          <p><button id="SaveModel" type="button" onclick="setButton(this)">SaveModel</button></p>
+        </div>
+        <div id="Network" draggable="true" class = "box">
+          <h2 id="Network">Network</h2>
+          <p><label>SSID</label> <input id="SSID" onfocusout="setInput(this)" value="Wifi EW"></p>
+          <p><label>Password</label> <input id="Password" type="password" onfocusout="setInput(this)" value="test"></p>
+        </div>
+      </div>
+      <div id="column2"  class = "column">
+        <!-- <h1 id="cTitle2">Column2</h1> -->
+        <div id="Leds" draggable="true" class="box">Leds</div>
+        <div id="Files" draggable="true" class="box">Files</div>
+      </div>
+      <div id="column3" draggable="true" class = "column">
+        <!-- <h1 id="cTitle3">Column3</h1> -->
+      </div>
+      <div id="column4" draggable="true" class = "column">
+        <!-- <h1 id="cTitle4">Column4</h1> -->
+        <div id="Web" draggable="true" class="box">Web</div>
+        <div id="Pins" draggable="true" class="box">Pins</div>
+      </div>
+    </div>
+    <div id="Leds-page" class="page" hidden=true>
+      Hello, Leds
+    </div>
+    <div id="Files-page" class="page" hidden=true>
+      Hello, Files
+    </div>
+    <div id="Model-page"  class="page" hidden=true>
+      Hello, Model
+    </div>
+    <div id="Pins-page" class="page" hidden=true>
+      Hello, Pins
+    </div>
+    <div id="Web-page" class="page" hidden=true>
+      Hello, Web
+    </div>
+    <div id="Network-page"  class="page" hidden=true>
+      Hello, Network
+    </div>
+  </body>  
+</html>

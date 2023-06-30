@@ -1,38 +1,50 @@
-Print Setup: success
-Files Setup:Files success
-Model Setup:initObject create new group: Model
-initObject create new display: memoryUsage
+SysModPrint::SSysModPrint::SysModPrint() Print success
+SysModFiles::SysModFiles() Files
+SysModFiles::SysModFiles() Files success
+SysModModel::SysModModel() Model
 Reading model from /model.json... (deserializeConfigFromFS)
-File /model.json open to read, size 1588 bytes
-[{"prompt":"Model","type":"group","n":[{"prompt":"memoryUsage","type":"display","value":"4044 / 10240 B"},{"prompt":"SaveModel","type":"button","chFun":0,"value":"push"},{"prompt":"DeleteModel","type":"button","chFun":1}],"incldef":true},{"prompt":"Network","type":"group","n":[{"prompt":"SSID","type":"input","value":"Ewoud's handy "},{"prompt":"Password","type":"password","value":"cyry-mi-pi"},{"prompt":"Connect","type":"button","chFun":2},{"prompt":"Status","type":"display","value":"AP PlayGround AP / play1234 @ 4.3.2.1"}]},{"prompt":"System","type":"group","n":[{"prompt":"UpTime","type":"display","uiFun":3,"value":"826 s"},{"prompt":"Loops","type":"display","value":"28196 /s"},{"prompt":"Heap","type":"display","uiFun":4,"value":"200324 / 320256 (110580) B"},{"prompt":"Stack","type":"display","value":"6004 B"},{"prompt":"Restart","type":"button","chFun":5},{"prompt":"Files","type":"group","n":[{"prompt":"Size","type":"display","value":"16384 / 1507328 B"}]}]},{"prompt":"Pin Manager","type":"group","n":[{"prompt":"Pin2","type":"checkbox","chFun":6,"value":true},{"prompt":"Pin4","type":"checkbox","value":false},{"prompt":"Pin33","type":"checkbox","value":true}]},{"prompt":"Leds","type":"group","n":[{"prompt":"dataPin","type":"number","chFun":7,"value":"16"},{"prompt":"nrOfLeds","type":"number","chFun":8,"value":64},{"prompt":"bri","type":"number","chFun":9,"uiFun":10,"value":5},{"prompt":"fps","type":"number","chFun":11,"uiFun":12,"value":40},{"prompt":"fx","type":"dropdown","chFun":13,"uiFun":14,"value":3},{"prompt":"realFps","type":"display","value":"39 /s"}]}]Object SaveModel already defined
-Object DeleteModel already defined
-Model success
-Network Setup:Object Network already defined
+File /model.json open to read, size 1643 bytes
+[{"prompt":"Model","type":"group","n":[{"prompt":"memoryUsage","type":"display","value":"2463 / 10240 B"},{"prompt":"saveModel","type":"button","chFun":0,"value":"push"},{"prompt":"deleteModel","type":"button","chFun":1,"value":"DeleteModel"}],"incldef":true},{"prompt":"Network","type":"group","n":[{"prompt":"SSID","type":"input","value":"Wifi EW"},{"prompt":"Password","type":"password","value":"kanochistrandkracht"},{"prompt":"connect","type":"button","chFun":2,"value":"Connect"},{"prompt":"Status","type":"display","value":"AP StarMod AP / star1234 @ 4.3.2.1"}]},{"prompt":"System","type":"group","n":[{"prompt":"UpTime","type":"display","uiFun":3,"value":"126 s"},{"prompt":"Loops","type":"display","value":"13445 /s"},{"prompt":"Heap","type":"display","uiFun":4,"value":"199932 / 320176 (110580) B"},{"prompt":"Stack","type":"display","value":"6004 B"},{"prompt":"restart","type":"button","chFun":5,"value":"Restart"}]},{"prompt":"Files","type":"group","n":[{"prompt":"Size","type":"display","value":"32768 / 1507328 B"}]},{"prompt":"Pin Manager","type":"group","n":[{"prompt":"Pin2","type":"checkbox","chFun":6,"value":true},{"prompt":"Pin4","type":"checkbox","value":false},{"prompt":"Pin33","type":"checkbox","value":true}]},{"prompt":"Leds","type":"group","n":[{"prompt":"dataPin","type":"number","chFun":7,"value":16},{"prompt":"nrOfLeds","type":"number","chFun":8,"value":64},{"prompt":"bri","type":"number","chFun":9,"uiFun":10,"value":5},{"prompt":"fps","type":"number","chFun":11,"uiFun":12,"value":40},{"prompt":"fx","type":"dropdown","chFun":13,"uiFun":14,"value":3},{"prompt":"realFps","type":"display","value":"38 /s"}]}]
+SysModModel::SysModModel() Model success
+SysModUI::SysModUI() UI
+addURL File /index.htm size 9295
+addURL File /index.css size 660
+addURL File /index.js size 2708
+SysModUI::SysModUI() UI success
+AppModPinManager::AppModPinManager() Pin Manager
+AppModPinManager::AppModPinManager() Pin Manager success
+virtual void SysModModel::setup() Model
+Object Model already defined
+Object memoryUsage already defined
+Object saveModel already defined
+Object deleteModel already defined
+virtual void SysModModel::setup() Model success
+virtual void SysModNetwork::setup() Network
+Object Network already defined
 Object SSID already defined
 Object Password already defined
-Object Connect already defined
+Object connect already defined
 Object Status already defined
-Network success
-Web Setup:Web success
-UI Setup:
-addURL File /index.htm size 6450
-UI success
-System Setup:Object System already defined
+virtual void SysModNetwork::setup() Network success
+virtual void SysModSystem::setup() System
+Object System already defined
 Object UpTime already defined
 Object Loops already defined
 Object Heap already defined
 Object Stack already defined
-Object Restart already defined
+Object restart already defined
 Object Files already defined
 Object Size already defined
-System success
-Pin Manager Setup:Object Pin Manager already defined
+virtual void SysModSystem::setup() System success
+virtual void AppModPinManager::setup() Pin Manager
+Object Pin Manager already defined
 Object Pin2 already defined
 updateGPIO Pin2:=1
 Object Pin4 already defined
 Object Pin33 already defined
-Pin Manager success
-Leds Setup:Object Leds already defined
+virtual void AppModPinManager::setup() Pin Manager success
+virtual void AppModLeds::setup() Leds
+Object Leds already defined
 Object dataPin already defined
 Set data pin to 16
 Object nrOfLeds already defined
@@ -48,28 +60,87 @@ Size of Confetti is 4
 Size of Beats per minute is 4
 Size of Juggle is 4
 Object fx already defined
-Running fx
+AppModLeds::setup()::<lambda(ArduinoJson::V6212PB::JsonObject)> Running fx
 Object realFps already defined
-Leds success
+virtual void AppModLeds::setup() Leds success
+setValue changed memoryUsage 2463 / 10240 B->2529 / 10240 B
 lastReconnectAttempt == 0
 Access point disabled (init).
-Connecting to WiFi Ewoud's handy  / **********
-Connected 172.20.10.2
+Connecting to WiFi Wifi EW / *******************
+setValue changed UpTime 126 s->5 s
+setValue changed Loops 13445 /s->1 /s
+setValue changed Heap 199932 / 320176 (110580) B->235900 / 321608 (110580) B
+setValue changed Stack 6004 B->5716 B
+setValue changed Size 32768 / 1507328 B->36864 / 1507328 B
+setValue changed realFps 38 /s->1 /s
+Connected 192.168.121.196
+setValue changed Status AP StarMod AP / star1234 @ 4.3.2.1->Connected 192.168.121.196
 Web server (re)started
+setValue changed memoryUsage 2529 / 10240 B->2631 / 10240 B
+setValue changed UpTime 5 s->6 s
+setValue changed Loops 1 /s->15028 /s
+setValue changed Heap 235900 / 321608 (110580) B->219332 / 321328 (110580) B
+setValue changed realFps 1 /s->38 /s
+setValue changed memoryUsage 2631 / 10240 B->2686 / 10240 B
+setValue changed UpTime 6 s->7 s
+setValue changed Loops 15028 /s->15393 /s
+setValue changed Heap 219332 / 321328 (110580) B->219108 / 321288 (110580) B
+setValue changed memoryUsage 2686 / 10240 B->2741 / 10240 B
+setValue changed UpTime 7 s->8 s
+setValue changed Loops 15393 /s->15434 /s
+setValue changed memoryUsage 2741 / 10240 B->2769 / 10240 B
 Webserver: client request / /index.htm text/html!
+Webserver: client request /index.css /index.css text/csssetValue changed UpTime 8 s->9 s
+setValue changed Loops 15434 /s->14014 /s
+setValue changed Heap 219108 / 321288 (110580) B->206352 / 320424 (110580) B
+!
+Webserver: client request /index.js /index.js text/javascript!
+setValue changed realFps 38 /s->37 /s
 WS client connected.
 WS event data.
 {"uiFun":"UpTime"}
-special command uiFun UpTime: {"uiFun":"UpTime","UpTime":{"label":"Uptime","comment":"Uptime of board"}}
+command uiFun UpTime: {"uiFun":"UpTime","UpTime":{"label":"Uptime","comment":"Uptime of board"}}
 WS event data.
 {"uiFun":"Heap"}
-special command uiFun Heap: {"uiFun":"Heap","Heap":{"label":"Heap","comment":"Free / Total (largest free)"}}
+command uiFun Heap: {"uiFun":"Heap","Heap":{"label":"Heap","comment":"Free / Total (largest free)"}}
 WS event data.
 {"uiFun":"bri"}
-special command uiFun bri: {"uiFun":"bri","bri":{"label":"Brightness"}}
+command uiFun bri: {"uiFun":"bri","bri":{"label":"Brightness"}}
 WS event data.
 {"uiFun":"fps"}
-special command uiFun fps: {"uiFun":"fps","fps":{"label":"FPS","comment":"Frames per second"}}
+command uiFun fps: {"uiFun":"fps","fps":{"label":"FPS","comment":"Frames per second"}}
 WS event data.
 {"uiFun":"fx"}
-special command uiFun fx: {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Confetti","Beats per minute","Juggle"],"value":3}}
+command uiFun fx: {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Confetti","Beats per minute","Juggle"],"value":3}}
+setValue changed memoryUsage 2769 / 10240 B->2830 / 10240 B
+setValue changed UpTime 9 s->10 s
+setValue changed Loops 14014 /s->11642 /s
+setValue changed Heap 206352 / 320424 (110580) B->215900 / 320936 (110580) B
+setValue changed realFps 37 /s->38 /s
+setValue changed memoryUsage 2830 / 10240 B->2886 / 10240 B
+setValue changed UpTime 10 s->11 s
+setValue changed Loops 11642 /s->13261 /s
+setValue changed memoryUsage 2886 / 10240 B->2915 / 10240 B
+setValue changed UpTime 11 s->12 s
+setValue changed Loops 13261 /s->13395 /s
+setValue changed Heap 215900 / 320936 (110580) B->215656 / 320936 (110580) B
+setValue changed memoryUsage 2915 / 10240 B->2971 / 10240 B
+setValue changed UpTime 12 s->13 s
+setValue changed Loops 13395 /s->13352 /s
+setValue changed Heap 215656 / 320936 (110580) B->215908 / 320936 (110580) B
+setValue changed memoryUsage 2971 / 10240 B->3027 / 10240 B
+setValue changed UpTime 13 s->14 s
+setValue changed Loops 13352 /s->13375 /s
+setValue changed Heap 215908 / 320936 (110580) B->215896 / 320936 (110580) B
+setValue changed memoryUsage 3027 / 10240 B->3083 / 10240 B
+setValue changed UpTime 14 s->15 s
+setValue changed Loops 13375 /s->13366 /s
+setValue changed Heap 215896 / 320936 (110580) B->215904 / 320936 (110580) B
+setValue changed memoryUsage 3083 / 10240 B->3139 / 10240 B
+setValue changed UpTime 15 s->16 s
+setValue changed Loops 13366 /s->13356 /s
+setValue changed Heap 215904 / 320936 (110580) B->215676 / 320936 (110580) B
+setValue changed memoryUsage 3139 / 10240 B->3195 / 10240 B
+setValue changed UpTime 16 s->17 s
+setValue changed Loops 13356 /s->13381 /s
+setValue changed Heap 215676 / 320936 (110580) B->215676 / 320920 (110580) B

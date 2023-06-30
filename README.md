@@ -1,2 +1,2 @@
-# playground
+# StarMod
 Try things out

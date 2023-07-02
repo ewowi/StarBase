@@ -1,12 +1,12 @@
 /* default nodes */
 label {
-  margin-right: 10px; /*space after*/
+  margin-right: 6px; /*space after*/
 }
 
 comment {
   font-size: 10px;
   font-style: italic;
-  margin-left: 10px; /*space before*/
+  margin-left: 6px; /*space before*/
 }
 
 /*table layout */

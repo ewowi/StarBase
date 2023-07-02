@@ -11,8 +11,8 @@ public:
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     success &= web->addURL("/", "/index.htm", "text/html");
-    success &= web->addURL("/index.js", "/index.js", "text/javascript");
-    success &= web->addURL("/index.css", "/index.css", "text/css");
+    // success &= web->addURL("/index.js", "/index.js", "text/javascript");
+    // success &= web->addURL("/index.css", "/index.css", "text/css");
 
     success &= web->setupJsonHandlers("/json", processJson);
 

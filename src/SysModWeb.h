@@ -1,6 +1,8 @@
 #pragma once //as also included in ModModel
 #include "Module.h"
 
+#include "html_ui.h"
+
 #include <ESPAsyncWebServer.h>
 #include "AsyncJson.h"
 #include "ArduinoJson.h"
@@ -131,20 +133,31 @@ public:
 
   //add an url to the webserver to listen to
   bool addURL(const char * uri, const char * path, const char * contentType) {
-    File f = files->open(path, "r");
-    if (!f) {
-      print->print("addURL error opening file %s", path);
-      return false;
-    } else {
-      print->print("addURL File %s size %d\n", path, f.size());
+    // File f = files->open(path, "r");
+    // if (!f) {
+    //   print->print("addURL error opening file %s", path);
+    //   return false;
+    // } else {
+      // print->print("addURL File %s size %d\n", path, f.size());
 
-      server.on(uri, HTTP_GET, [uri, path, contentType](AsyncWebServerRequest *request) {
-        print->print("Webserver: client request %s %s %s", uri, path, contentType);
+    server.on(uri, HTTP_GET, [uri, path, contentType](AsyncWebServerRequest *request) {
+      print->print("Webserver: client request %s %s %s", uri, path, contentType);
+
+      if (strcmp(path, "/index.htm") == 0) {
+        AsyncWebServerResponse *response;
+        response = request->beginResponse_P(200, "text/html", PAGE_index, PAGE_index_L);
+
+        response->addHeader(FPSTR("Content-Encoding"),"gzip");
+        // setStaticContentCacheHeaders(response);
+        request->send(response);
+      } else {
         request->send(LittleFS, path, contentType);
-        print->print("!\n");
-      });
-    }
-    f.close();
+      }
+
+      print->print("!\n");
+    });
+    // }
+    // f.close();
     return true;
   }
 

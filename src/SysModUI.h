@@ -239,8 +239,10 @@ public:
     JsonObject object = findObject(id);
     if (!object.isNull())
       return object["value"];
-    else
+    else {
+      print->print("Value of %s does not exist!!\n", id);
       return JsonVariant();
+    }
   }
 
   static JsonObject findObject(const char *id, JsonArray parent = JsonArray()) { //static for processJson

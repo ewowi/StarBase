@@ -12,7 +12,6 @@ static CRGB leds[NUM_LEDS];
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 static uint16_t nrOfLeds = 64; 
 static uint16_t fps = 40;
-  
 
 class Effect {
 public:
@@ -157,23 +156,12 @@ public:
     });
 
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) {
-      web->addResponse(object, "label", "FPS");
       web->addResponse(object, "comment", "Frames per second");
     }, [](JsonObject object) {
       fps = object["value"];
       print->print("fps changed %d\n", fps);
     });
 
-    effects.push_back(new RainbowEffect);
-    effects.push_back(new RainbowWithGlitterEffect);
-    effects.push_back(new SinelonEffect);
-    effects.push_back(new ConfettiEffect);
-    effects.push_back(new BPMEffect);
-    effects.push_back(new JuggleEffect);
-
-    for (Effect *effect:effects) {
-      print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
-    }
     ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) {
       web->addResponse(object, "label", "Effect");
       web->addResponse(object, "comment", "Effect to show");
@@ -190,6 +178,17 @@ public:
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
 
+    effects.push_back(new RainbowEffect);
+    effects.push_back(new RainbowWithGlitterEffect);
+    effects.push_back(new SinelonEffect);
+    effects.push_back(new ConfettiEffect);
+    effects.push_back(new BPMEffect);
+    effects.push_back(new JuggleEffect);
+
+    for (Effect *effect:effects) {
+      print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
+    }
+
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
@@ -202,10 +201,9 @@ public:
       Effect* effect = effects[ui->getValue("fx")];
       effect->loop();
 
-      yield();
+      // yield();
       FastLED.show();  
-      // insert a delay to keep the framerate modest
-      // FastLED.delay(1000/fps); 
+
       frameCounter++;
     }
     if (millis() - secondMillis >= 1000 || !secondMillis) {

@@ -2,7 +2,7 @@
 
 #include "ArduinoJson.h"
 
-static DynamicJsonDocument model(10240); //not static as that blows up the stack. Use extern??
+static DynamicJsonDocument model(24576); //not static as that blows up the stack. Use extern??
 
 //needed to set this here for classes mutually calling other classes (and don't want cpp files ;-)
 //they use model and SysModModel uses web and ui...
@@ -37,7 +37,9 @@ public:
 
     parentObject = ui->initGroup(parentObject, name);
 
-    ui->initDisplay(parentObject, "memoryUsage");
+    ui->initDisplay(parentObject, "mSize", nullptr, [](JsonObject object) {
+      web->addResponse(object, "label", "Size");
+    });
 
     ui->initButton(parentObject, "saveModel", "SaveModel", nullptr, [](JsonObject object) {
       doWriteModel = true;
@@ -62,7 +64,7 @@ public:
 
     if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
-      ui->setValueV("memoryUsage", "%u / %u B", model.memoryUsage(), model.capacity());
+      ui->setValueV("mSize", "%u / %u B", model.memoryUsage(), model.capacity());
     }
 
     if (millis() - dumpMillis >= 60000 || !dumpMillis && model.capacity() / model.memoryUsage() < 2) {

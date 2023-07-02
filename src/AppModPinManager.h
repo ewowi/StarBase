@@ -19,9 +19,9 @@ public:
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
-    ui->initCheckBox(parentObject, "Pin2", true, nullptr, updateGPIO);
-    ui->initCheckBox(parentObject, "Pin4", false);
-    ui->initCheckBox(parentObject, "Pin33", true);
+    ui->initCheckBox(parentObject, "pin2", true, nullptr, updateGPIO);
+    ui->initCheckBox(parentObject, "pin4", false);
+    ui->initCheckBox(parentObject, "pin33", true);
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -37,9 +37,9 @@ public:
 
       print->print("updateGPIO %s:=%d\n", id, pin);
 
-      if (strcmp(id, "Pin2") == 0) digitalWrite(2, pin?HIGH:LOW);
-      if (strcmp(id, "Pin4") == 0) digitalWrite(4, pin?HIGH:LOW);
-      if (strcmp(id, "Pin33") == 0) digitalWrite(33, pin?HIGH:LOW);
+      if (strcmp(id, "pin2") == 0) digitalWrite(2, pin?HIGH:LOW);
+      if (strcmp(id, "pin4") == 0) digitalWrite(4, pin?HIGH:LOW);
+      if (strcmp(id, "pin33") == 0) digitalWrite(33, pin?HIGH:LOW);
     }
   }
 

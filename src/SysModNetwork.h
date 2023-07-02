@@ -27,12 +27,14 @@ public:
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
-    ui->initInput(parentObject, "SSID", "");
-    ui->initPassword(parentObject, "Password", "");
+    ui->initInput(parentObject, "ssid", "");
+    ui->initPassword(parentObject, "pw", "", [](JsonObject object) {
+      web->addResponse(object, "label", "Password");
+    });
     ui->initButton(parentObject, "connect", "Connect", nullptr, [](JsonObject object) {
       forceReconnect = true;
     });
-    ui->initDisplay(parentObject, "Status");
+    ui->initDisplay(parentObject, "status");
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -69,7 +71,7 @@ public:
         initAP();
       }
     } else if (!interfacesInited) { //newly connected
-      ui->setValueP("Status", "Connected %s", WiFi.localIP().toString().c_str());
+      ui->setValueP("status", "Connected %s", WiFi.localIP().toString().c_str());
 
       interfacesInited = true;
 
@@ -102,8 +104,8 @@ public:
     WiFi.setSleep(!noWifiSleep);
     WiFi.setHostname("StarMod");
 
-    const char* ssid = ui->getValue("SSID");
-    const char* password = ui->getValue("Password");
+    const char* ssid = ui->getValue("ssid");
+    const char* password = ui->getValue("pw");
     if (ssid && strlen(ssid)>0) {
       char passXXX [20] = "";
       for (int i = 0; i < strlen(password); i++) strcat(passXXX, "*");
@@ -120,7 +122,7 @@ public:
     WiFi.softAP(apSSID, apPass, apChannel, apHide);
     if (!apActive) // start captive portal if AP active
     {
-      ui->setValueP("Status", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
+      ui->setValueP("status", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
       // send all modules connect notification
       for (Module *module:modules) module->connected();

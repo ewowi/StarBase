@@ -31,17 +31,10 @@ public:
   //setup filesystem
   void setup() {
     Module::setup();
-    // JsonObject filesObject = ui->initGroup(parentObject, "Files");
-    // ui->initDisplay(filesObject, "Size");
   }
 
   void loop(){
     // Module::loop();
-    if (millis() - secondMillis >= 1000 || !secondMillis) {
-      secondMillis = millis();
-
-      // ui->setValueV("Size", "%d / %d B", usedBytes(), totalBytes());
-    }
   }
 
   bool remove(const char * path) {

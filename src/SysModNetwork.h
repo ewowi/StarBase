@@ -29,7 +29,7 @@ public:
     parentObject = ui->initGroup(parentObject, name);
     ui->initInput(parentObject, "SSID", "");
     ui->initPassword(parentObject, "Password", "");
-    ui->initButton(parentObject, "connect", "Connect",  [](JsonObject object) {
+    ui->initButton(parentObject, "connect", "Connect", nullptr, [](JsonObject object) {
       forceReconnect = true;
     });
     ui->initDisplay(parentObject, "Status");

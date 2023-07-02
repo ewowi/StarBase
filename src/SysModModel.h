@@ -39,10 +39,10 @@ public:
 
     ui->initDisplay(parentObject, "memoryUsage");
 
-    ui->initButton(parentObject, "saveModel", "SaveModel", [](JsonObject object) {
+    ui->initButton(parentObject, "saveModel", "SaveModel", nullptr, [](JsonObject object) {
       doWriteModel = true;
     });
-    ui->initButton(parentObject, "deleteModel", "DeleteModel", [](JsonObject object) {
+    ui->initButton(parentObject, "deleteModel", "DeleteModel", nullptr, [](JsonObject object) {
       print->print("delete model json\n");
       files->remove("/model.json");
     });

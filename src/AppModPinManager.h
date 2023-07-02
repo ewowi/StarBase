@@ -19,7 +19,7 @@ public:
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
-    ui->initCheckBox(parentObject, "Pin2", true, updateGPIO);
+    ui->initCheckBox(parentObject, "Pin2", true, nullptr, updateGPIO);
     ui->initCheckBox(parentObject, "Pin4", false);
     ui->initCheckBox(parentObject, "Pin33", true);
 

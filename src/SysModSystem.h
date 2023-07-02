@@ -14,18 +14,18 @@ public:
 
     parentObject = ui->initGroup(parentObject, name);
 
-    ui->initDisplay(parentObject, "UpTime", nullptr, nullptr, [](JsonObject object) {
+    ui->initDisplay(parentObject, "UpTime", nullptr, [](JsonObject object) {
       web->addResponse(object, "label", "Uptime");
       web->addResponse(object, "comment", "Uptime of board");
     });
     ui->initDisplay(parentObject, "Loops");
-    ui->initDisplay(parentObject, "Heap", nullptr, nullptr, [](JsonObject object) {
+    ui->initDisplay(parentObject, "Heap", nullptr, [](JsonObject object) {
       web->addResponse(object, "label", object["id"]);
       web->addResponse(object, "comment", "Free / Total (largest free)");
     });
     ui->initDisplay(parentObject, "Stack");
 
-    ui->initButton(parentObject, "restart", "Restart", [](JsonObject object) {
+    ui->initButton(parentObject, "restart", "Restart", nullptr, [](JsonObject object) {
       ws.closeAll(1012);
       ESP.restart();
     });
@@ -33,20 +33,20 @@ public:
     //should be in SysModFiles...
     files->parentObject = ui->initGroup(files->parentObject, "files");
 
-    JsonObject dirObject = ui->initMany(files->parentObject, "flist", nullptr, nullptr, [](JsonObject object) {
+    JsonObject dirObject = ui->initMany(files->parentObject, "flist", nullptr, [](JsonObject object) {
       web->addResponse(object, "label", "Files");
       web->addResponse(object, "comment", "List of files");
       JsonArray rows = web->addResponseArray(object, "many");
       files->dirToJson(rows);
     });
-    ui->initDisplay(dirObject, "fName", nullptr, nullptr, [](JsonObject object) {
+    ui->initDisplay(dirObject, "fName", nullptr, [](JsonObject object) {
       web->addResponse(object, "label", "Name");
     });
-    ui->initDisplay(dirObject, "fSize", nullptr, nullptr, [](JsonObject object) {
+    ui->initDisplay(dirObject, "fSize", nullptr, [](JsonObject object) {
       web->addResponse(object, "label", "Size (B)");
     });
 
-    ui->initDisplay(files->parentObject, "dsize", nullptr, nullptr, [](JsonObject object) {
+    ui->initDisplay(files->parentObject, "dsize", nullptr, [](JsonObject object) {
       web->addResponse(object, "label", "Total FS size");
     });
 

@@ -136,32 +136,32 @@ public:
     parentObject = ui->initGroup(parentObject, name);
 
     ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) {
-      print->print("Set data pin to %d\n", object["value"].as<int>());
-    }, [](JsonObject object) {
       web->addResponse(object, "comment", "Not implemented yet (fixed to 16)");
+    }, [](JsonObject object) {
+      print->print("Set data pin to %d\n", object["value"].as<int>());
     });
 
     ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) {
+      web->addResponse(object, "comment", "Currenntly max 256");
+    }, [](JsonObject object) {
       fadeToBlackBy( leds, nrOfLeds, 100);
       nrOfLeds = object["value"];
       print->print("Set nrOfLeds to %d\n", nrOfLeds);
-    }, [](JsonObject object) {
-      web->addResponse(object, "comment", "Currenntly max 256");
     });
 
     ui->initNumber(parentObject, "bri", 5, [](JsonObject object) {
+      web->addResponse(object, "label", "Brightness");
+    }, [](JsonObject object) {
       FastLED.setBrightness(object["value"]);
       print->print("Set Brightness to %d\n", object["value"].as<int>());
-    }, [](JsonObject object) {
-      web->addResponse(object, "label", "Brightness");
     });
 
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) {
-      fps = object["value"];
-      print->print("fps changed %d\n", fps);
-    }, [](JsonObject object) {
       web->addResponse(object, "label", "FPS");
       web->addResponse(object, "comment", "Frames per second");
+    }, [](JsonObject object) {
+      fps = object["value"];
+      print->print("fps changed %d\n", fps);
     });
 
     effects.push_back(new RainbowEffect);
@@ -175,14 +175,14 @@ public:
       print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
     }
     ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) {
-      print->print("%s Running %s\n", __PRETTY_FUNCTION__, object["id"].as<const char *>());
-    }, [](JsonObject object) {
       web->addResponse(object, "label", "Effect");
       web->addResponse(object, "comment", "Effect to show");
       JsonArray lov = web->addResponseArray(object, "lov");
       for (Effect *effect:effects) {
         lov.add(effect->name());
       }
+    }, [](JsonObject object) {
+      print->print("%s Running %s\n", __PRETTY_FUNCTION__, object["id"].as<const char *>());
     });
 
     ui->initDisplay(parentObject, "realFps");

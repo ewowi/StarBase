@@ -28,71 +28,71 @@ public:
     // Module::loop();
   }
 
-  JsonObject initGroup(JsonObject parent, const char *id, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "group", chFun, uiFun);
+  JsonObject initGroup(JsonObject parent, const char *id, const char * value = nullptr, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "group", uiFun, chFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initMany(JsonObject parent, const char *id, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "many", chFun, uiFun);
+  JsonObject initMany(JsonObject parent, const char *id, const char * value = nullptr, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "many", uiFun, chFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initInput(JsonObject parent, const char *id, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "input", chFun, uiFun);
+  JsonObject initInput(JsonObject parent, const char *id, const char * value = nullptr, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "input", uiFun, chFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initPassword(JsonObject parent, const char *id, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "password", chFun, uiFun);
+  JsonObject initPassword(JsonObject parent, const char *id, const char * value = nullptr, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "password", uiFun, chFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initNumber(JsonObject parent, const char *id, int value, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "number", chFun, uiFun);
+  JsonObject initNumber(JsonObject parent, const char *id, int value, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "number", uiFun, chFun);
     if (object["value"].isNull()) object["value"] = value;
     if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initDisplay(JsonObject parent, const char *id, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "display", chFun, uiFun);
+  JsonObject initDisplay(JsonObject parent, const char *id, const char * value = nullptr, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "display", uiFun, chFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initCheckBox(JsonObject parent, const char *id, bool value, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "checkbox", chFun, uiFun);
+  JsonObject initCheckBox(JsonObject parent, const char *id, bool value, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "checkbox", uiFun, chFun);
     if (object["value"].isNull()) object["value"] = value;
     if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initButton(JsonObject parent, const char *id, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "button", chFun, uiFun);
+  JsonObject initButton(JsonObject parent, const char *id, const char * value = nullptr, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "button", uiFun, chFun);
     if (object["value"].isNull()) object["value"] = value;
     //no call of fun for buttons!!! 
     // if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initDropdown(JsonObject parent, const char *id, uint8_t value, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
-    JsonObject object = initObject(parent, id, "dropdown", chFun, uiFun);
+  JsonObject initDropdown(JsonObject parent, const char *id, uint8_t value, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
+    JsonObject object = initObject(parent, id, "dropdown", uiFun, chFun);
     if (object["value"].isNull()) object["value"] = value;
     if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initObject(JsonObject parent, const char *id, const char *type, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
+  JsonObject initObject(JsonObject parent, const char *id, const char *type, void(*uiFun)(JsonObject) = nullptr, void(*chFun)(JsonObject object) = nullptr) {
     JsonObject object = findObject(id);
 
     //create new object
@@ -113,16 +113,6 @@ public:
 
     if (!object.isNull()) {
       object["type"] = type;
-      if (chFun) {
-        //if fun already in uiFunctions then reuse, otherwise add new fun in uiFunctions
-        std::vector<void(*)(JsonObject object)>::iterator itr = find(uiFunctions.begin(), uiFunctions.end(), chFun);
-        if (itr!=uiFunctions.end()) //found
-          object["chFun"] = distance(uiFunctions.begin(), itr); //assign found function
-        else { //not found
-          uiFunctions.push_back(chFun); //add new function
-          object["chFun"] = uiFunctions.size()-1;
-        }
-      }
       if (uiFun) {
         //if fun already in uiFunctions then reuse, otherwise add new fun in uiFunctions
         std::vector<void(*)(JsonObject object)>::iterator itr = find(uiFunctions.begin(), uiFunctions.end(), uiFun);
@@ -131,6 +121,16 @@ public:
         else { //not found
           uiFunctions.push_back(uiFun); //add new function
           object["uiFun"] = uiFunctions.size()-1;
+        }
+      }
+      if (chFun) {
+        //if fun already in uiFunctions then reuse, otherwise add new fun in uiFunctions
+        std::vector<void(*)(JsonObject object)>::iterator itr = find(uiFunctions.begin(), uiFunctions.end(), chFun);
+        if (itr!=uiFunctions.end()) //found
+          object["chFun"] = distance(uiFunctions.begin(), itr); //assign found function
+        else { //not found
+          uiFunctions.push_back(chFun); //add new function
+          object["chFun"] = uiFunctions.size()-1;
         }
       }
     }

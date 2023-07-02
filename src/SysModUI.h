@@ -35,6 +35,13 @@ public:
     return object;
   }
 
+  JsonObject initMany(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
+    JsonObject object = initObject(parent, prompt, "many", chFun, uiFun);
+    if (object["value"].isNull() && value) object["value"] = value;
+    if (chFun && value) chFun(object);
+    return object;
+  }
+
   JsonObject initInput(JsonObject parent, const char *prompt, const char * value = nullptr, void(*chFun)(JsonObject object) = nullptr, void(*uiFun)(JsonObject) = nullptr) {
     JsonObject object = initObject(parent, prompt, "input", chFun, uiFun);
     if (object["value"].isNull() && value) object["value"] = value;
@@ -95,7 +102,7 @@ public:
         JsonArray root = model.as<JsonArray>();
         object = root.createNestedObject();
       } else {
-        if (parent["n"].isNull()) parent.createNestedArray("n");
+        if (parent["n"].isNull()) parent.createNestedArray("n"); //if parent exist and no "n" array, create it
         object = parent["n"].createNestedObject();
         // serializeJson(model, Serial);Serial.println();
       }

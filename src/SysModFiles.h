@@ -1,6 +1,7 @@
 #include "Module.h"
 
 #include "LittleFS.h"
+// #include <FS.h>
 
 //https://randomnerdtutorials.com/esp32-vs-code-platformio-spiffs/
   // upload under the data folder:
@@ -54,8 +55,27 @@ public:
   size_t totalBytes() {
     return LittleFS.totalBytes();
   }
+
   File open(const char * path, const char * mode, const bool create = false) {
     return LittleFS.open(path, mode, create);
+  }
+
+  // https://techtutorialsx.com/2019/02/24/esp32-arduino-listing-files-in-a-spiffs-file-system-specific-path/
+  void dirToJson(JsonArray array) {
+    File root = LittleFS.open("/");
+
+    File file = root.openNextFile();
+  
+    while(file){
+
+      JsonArray row = array.createNestedArray();
+      row.add((char *)file.name());  //create a copy!
+      row.add(file.size());
+  
+      Serial.printf("FILE: %s %d\n", file.name(), file.size());
+
+      file = root.openNextFile();
+    }
   }
 
 };

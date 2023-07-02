@@ -137,18 +137,25 @@ public:
 
     ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) {
       print->print("Set data pin to %d\n", object["value"].as<int>());
+    }, [](JsonObject object) {
+      web->addResponse(object, "comment", "Not implemented yet (fixed to 16)");
     });
+
     ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) {
       fadeToBlackBy( leds, nrOfLeds, 100);
       nrOfLeds = object["value"];
       print->print("Set nrOfLeds to %d\n", nrOfLeds);
+    }, [](JsonObject object) {
+      web->addResponse(object, "comment", "Currenntly max 256");
     });
+
     ui->initNumber(parentObject, "bri", 5, [](JsonObject object) {
       FastLED.setBrightness(object["value"]);
       print->print("Set Brightness to %d\n", object["value"].as<int>());
     }, [](JsonObject object) {
       web->addResponse(object, "label", "Brightness");
     });
+
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) {
       fps = object["value"];
       print->print("fps changed %d\n", fps);

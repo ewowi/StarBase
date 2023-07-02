@@ -31,8 +31,24 @@ public:
     });
 
     //should be in SysModFiles...
-    files->parentObject = ui->initGroup(files->parentObject, "Files");
-    ui->initDisplay(files->parentObject, "Size");
+    files->parentObject = ui->initGroup(files->parentObject, "files");
+
+    JsonObject dirObject = ui->initMany(files->parentObject, "flist", nullptr, nullptr, [](JsonObject object) {
+      web->addResponse(object, "label", "Files");
+      web->addResponse(object, "comment", "List of files");
+      JsonArray rows = web->addResponseArray(object, "many");
+      files->dirToJson(rows);
+    });
+    ui->initDisplay(dirObject, "fName", nullptr, nullptr, [](JsonObject object) {
+      web->addResponse(object, "label", "Name");
+    });
+    ui->initDisplay(dirObject, "fSize", nullptr, nullptr, [](JsonObject object) {
+      web->addResponse(object, "label", "Size (B)");
+    });
+
+    ui->initDisplay(files->parentObject, "dsize", nullptr, nullptr, [](JsonObject object) {
+      web->addResponse(object, "label", "Total FS size");
+    });
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -49,7 +65,7 @@ public:
       ui->setValueV("Stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
 
       //should be in SysModFiles...
-      ui->setValueV("Size", "%d / %d B", files->usedBytes(), files->totalBytes());
+      ui->setValueV("dsize", "%d / %d B", files->usedBytes(), files->totalBytes());
 
       loopCounter = 0;
     }

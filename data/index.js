@@ -42,46 +42,46 @@ function generateHTML(parentNode, json) {
     }
     var newNode = null;
     let labelNode = cE("label");
-    labelNode.innerHTML = initCap(json.prompt);
+    labelNode.innerHTML = initCap(json.id);
 
     if (json.type == "group") {
       newNode = cE("div");
-      newNode.id = json.prompt
+      newNode.id = json.id
       newNode.draggable = true;
       newNode.className = "box";
       let h2 = cE("h2");
-      h2.innerHTML = initCap(json.prompt);
+      h2.innerHTML = initCap(json.id);
       newNode.appendChild(h2);
       setupBox(newNode);
     }
     else if (json.type == "many") {
       //add many label
       var node = cE("p");
-      labelNode.id = json.prompt;
+      labelNode.id = json.id;
       node.appendChild(labelNode);
       parentNode.appendChild(node); //add the many label to the parent
 
       //add many detail table
       newNode = cE("table");
-      newNode.id = json.prompt + "-n"; //to distinguish from label id
+      newNode.id = json.id + "-n"; //to distinguish from label id
       newNode.className = "table-style"
 
       let thNode = cE("tr");
       newNode.appendChild(thNode);
     }
     else if (json.type == "display") {
-      if (parentNode.nodeName.toLocaleLowerCase() == "table") { //1:Many: add the prompt in the header
+      if (parentNode.nodeName.toLocaleLowerCase() == "table") { //1:Many: add the id in the header
         console.log("files parent", parentNode);
         let tdNode = cE("th");
-        tdNode.id = json.prompt;
-        tdNode.innerHTML = initCap(json.prompt); //label uiFun response can change it
+        tdNode.id = json.id;
+        tdNode.innerHTML = initCap(json.id); //label uiFun response can change it
         parentNode.firstChild.appendChild(tdNode);
       }
       else {
         newNode = cE("p");
         newNode.appendChild(labelNode);
         let fieldNode = cE("span");
-        fieldNode.id = json.prompt;
+        fieldNode.id = json.id;
         fieldNode.innerHTML = json.value;
         newNode.appendChild(fieldNode);
       }
@@ -90,7 +90,7 @@ function generateHTML(parentNode, json) {
       newNode = cE("p");
       newNode.appendChild(labelNode);
       let fieldNode = cE("select");
-      fieldNode.id = json.prompt;
+      fieldNode.id = json.id;
       fieldNode.addEventListener('change', (event) => {console.log("dropdown change", event);setDropdown(event.target);});
       newNode.appendChild(fieldNode);
       //(default) value will be set in processUpdate
@@ -99,7 +99,7 @@ function generateHTML(parentNode, json) {
       newNode = cE("p");
       if (json.type != "button") newNode.appendChild(labelNode);
       let fieldNode = cE("input");
-      fieldNode.id = json.prompt;
+      fieldNode.id = json.id;
       fieldNode.type = json.type;
       if (json.type == "checkbox") {
         fieldNode.checked = json.value;
@@ -119,7 +119,7 @@ function generateHTML(parentNode, json) {
     //call ui Functionality, if defined (to set label, comment, lov etc)
     if (json.uiFun >= 0) { //>=0 as element in object
       var command = {};
-      command["uiFun"] = json.prompt; //ask for uiFun (to add the options)
+      command["uiFun"] = json.id; //ask for uiFun (to add the options)
       requestJson(command);
     }
 

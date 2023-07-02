@@ -175,7 +175,7 @@ public:
       print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
     }
     ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) {
-      print->print("%s Running %s\n", __PRETTY_FUNCTION__, object["prompt"].as<const char *>());
+      print->print("%s Running %s\n", __PRETTY_FUNCTION__, object["id"].as<const char *>());
     }, [](JsonObject object) {
       web->addResponse(object, "label", "Effect");
       web->addResponse(object, "comment", "Effect to show");

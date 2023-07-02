@@ -20,7 +20,7 @@ public:
     });
     ui->initDisplay(parentObject, "Loops");
     ui->initDisplay(parentObject, "Heap", nullptr, nullptr, [](JsonObject object) {
-      web->addResponse(object, "label", object["prompt"]);
+      web->addResponse(object, "label", object["id"]);
       web->addResponse(object, "comment", "Free / Total (largest free)");
     });
     ui->initDisplay(parentObject, "Stack");

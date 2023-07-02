@@ -192,24 +192,24 @@ public:
   }
 
   void addResponse(JsonObject object, const char * key, const char * value) {
-    const char * prompt = object["prompt"];
-    if (responseDoc[prompt].isNull()) responseDoc.createNestedObject(prompt);
-    responseDoc[prompt][key] = value;
+    const char * id = object["id"];
+    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
+    responseDoc[id][key] = value;
   }
   void addResponseInt(JsonObject object, const char * key, int value) { //temporaty, use overloading
-    const char * prompt = object["prompt"];
-    if (responseDoc[prompt].isNull()) responseDoc.createNestedObject(prompt);
-    responseDoc[prompt][key] = value;
+    const char * id = object["id"];
+    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
+    responseDoc[id][key] = value;
   }
   void addResponseBool(JsonObject object, const char * key, bool value) { //temporaty, use overloading
-    const char * prompt = object["prompt"];
-    if (responseDoc[prompt].isNull()) responseDoc.createNestedObject(prompt);
-    responseDoc[prompt][key] = value;
+    const char * id = object["id"];
+    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
+    responseDoc[id][key] = value;
   }
   JsonArray addResponseArray(JsonObject object, const char * key) {
-    const char * prompt = object["prompt"];
-    if (responseDoc[prompt].isNull()) responseDoc.createNestedObject(prompt);
-    return responseDoc[prompt].createNestedArray(key);
+    const char * id = object["id"];
+    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
+    return responseDoc[id].createNestedArray(key);
   }
 
 };

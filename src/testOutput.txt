@@ -3,13 +3,13 @@ SysModFiles::SysModFiles() Files
 SysModFiles::SysModFiles() Files success
 SysModModel::SysModModel() Model
 Reading model from /model.json... (deserializeConfigFromFS)
-File /model.json open to read, size 1643 bytes
-[{"prompt":"Model","type":"group","n":[{"prompt":"memoryUsage","type":"display","value":"2463 / 10240 B"},{"prompt":"saveModel","type":"button","chFun":0,"value":"push"},{"prompt":"deleteModel","type":"button","chFun":1,"value":"DeleteModel"}],"incldef":true},{"prompt":"Network","type":"group","n":[{"prompt":"SSID","type":"input","value":"Wifi EW"},{"prompt":"Password","type":"password","value":"kanochistrandkracht"},{"prompt":"connect","type":"button","chFun":2,"value":"Connect"},{"prompt":"Status","type":"display","value":"AP StarMod AP / star1234 @ 4.3.2.1"}]},{"prompt":"System","type":"group","n":[{"prompt":"UpTime","type":"display","uiFun":3,"value":"126 s"},{"prompt":"Loops","type":"display","value":"13445 /s"},{"prompt":"Heap","type":"display","uiFun":4,"value":"199932 / 320176 (110580) B"},{"prompt":"Stack","type":"display","value":"6004 B"},{"prompt":"restart","type":"button","chFun":5,"value":"Restart"}]},{"prompt":"Files","type":"group","n":[{"prompt":"Size","type":"display","value":"32768 / 1507328 B"}]},{"prompt":"Pin Manager","type":"group","n":[{"prompt":"Pin2","type":"checkbox","chFun":6,"value":true},{"prompt":"Pin4","type":"checkbox","value":false},{"prompt":"Pin33","type":"checkbox","value":true}]},{"prompt":"Leds","type":"group","n":[{"prompt":"dataPin","type":"number","chFun":7,"value":16},{"prompt":"nrOfLeds","type":"number","chFun":8,"value":64},{"prompt":"bri","type":"number","chFun":9,"uiFun":10,"value":5},{"prompt":"fps","type":"number","chFun":11,"uiFun":12,"value":40},{"prompt":"fx","type":"dropdown","chFun":13,"uiFun":14,"value":3},{"prompt":"realFps","type":"display","value":"38 /s"}]}]
+File /model.json open to read, size 1702 bytes
+[{"id":"Model","type":"group","n":[{"id":"memoryUsage","type":"display","value":"4295 / 10240 B"},{"id":"saveModel","type":"button","chFun":0,"value":"SaveModel"},{"id":"deleteModel","type":"button","chFun":1,"value":"DeleteModel"}],"incldef":true},{"id":"Network","type":"group","n":[{"id":"SSID","type":"input","value":"Wifi EW"},{"id":"Password","type":"password","value":"kanochistrandkracht"},{"id":"connect","type":"button","chFun":2,"value":"Connect"},{"id":"Status","type":"display","value":"AP StarMod AP / star1234 @ 4.3.2.1"}]},{"id":"System","type":"group","n":[{"id":"UpTime","type":"display","uiFun":3,"value":"114 s"},{"id":"Loops","type":"display","value":"26576 /s"},{"id":"Heap","type":"display","uiFun":4,"value":"199832 / 320160 (110580) B"},{"id":"Stack","type":"display","value":"6004 B"},{"id":"restart","type":"button","chFun":5,"value":"Restart"}]},{"id":"files","type":"group","n":[{"id":"flist","type":"many","uiFun":6,"n":[{"id":"fName","type":"display","uiFun":7},{"id":"fSize","type":"display","uiFun":8}]},{"id":"dsize","type":"display","uiFun":9,"value":"32768 / 1507328 B"}]},{"id":"Pin Manager","type":"group","n":[{"id":"Pin2","type":"checkbox","chFun":10,"value":true},{"id":"Pin4","type":"checkbox","value":false},{"id":"Pin33","type":"checkbox","value":true}]},{"id":"Leds","type":"group","n":[{"id":"dataPin","type":"number","chFun":11,"uiFun":12,"value":16},{"id":"nrOfLeds","type":"number","chFun":13,"uiFun":14,"value":64},{"id":"bri","type":"number","chFun":15,"uiFun":16,"value":5},{"id":"fps","type":"number","chFun":17,"uiFun":18,"value":40},{"id":"fx","type":"dropdown","chFun":19,"uiFun":20,"value":3},{"id":"realFps","type":"display","value":"38 /s"}]}]
 SysModModel::SysModModel() Model success
 SysModUI::SysModUI() UI
-addURL File /index.htm size 9295
-addURL File /index.css size 660
-addURL File /index.js size 2708
+addURL File /index.htm size 499
+addURL File /index.js size 10673
+addURL File /index.css size 1125
 SysModUI::SysModUI() UI success
 AppModPinManager::AppModPinManager() Pin Manager
 AppModPinManager::AppModPinManager() Pin Manager success
@@ -33,8 +33,11 @@ Object Loops already defined
 Object Heap already defined
 Object Stack already defined
 Object restart already defined
-Object Files already defined
-Object Size already defined
+Object files already defined
+Object flist already defined
+Object fName already defined
+Object fSize already defined
+Object dsize already defined
 virtual void SysModSystem::setup() System success
 virtual void AppModPinManager::setup() Pin Manager
 Object Pin Manager already defined
@@ -63,39 +66,14 @@ Object fx already defined
 AppModLeds::setup()::<lambda(ArduinoJson::V6212PB::JsonObject)> Running fx
 Object realFps already defined
 virtual void AppModLeds::setup() Leds success
-setValue changed memoryUsage 2463 / 10240 B->2529 / 10240 B
 lastReconnectAttempt == 0
 Access point disabled (init).
 Connecting to WiFi Wifi EW / *******************
-setValue changed UpTime 126 s->5 s
-setValue changed Loops 13445 /s->1 /s
-setValue changed Heap 199932 / 320176 (110580) B->235900 / 321608 (110580) B
-setValue changed Stack 6004 B->5716 B
-setValue changed Size 32768 / 1507328 B->36864 / 1507328 B
-setValue changed realFps 38 /s->1 /s
 Connected 192.168.121.196
-setValue changed Status AP StarMod AP / star1234 @ 4.3.2.1->Connected 192.168.121.196
 Web server (re)started
-setValue changed memoryUsage 2529 / 10240 B->2631 / 10240 B
-setValue changed UpTime 5 s->6 s
-setValue changed Loops 1 /s->15028 /s
-setValue changed Heap 235900 / 321608 (110580) B->219332 / 321328 (110580) B
-setValue changed realFps 1 /s->38 /s
-setValue changed memoryUsage 2631 / 10240 B->2686 / 10240 B
-setValue changed UpTime 6 s->7 s
-setValue changed Loops 15028 /s->15393 /s
-setValue changed Heap 219332 / 321328 (110580) B->219108 / 321288 (110580) B
-setValue changed memoryUsage 2686 / 10240 B->2741 / 10240 B
-setValue changed UpTime 7 s->8 s
-setValue changed Loops 15393 /s->15434 /s
-setValue changed memoryUsage 2741 / 10240 B->2769 / 10240 B
 Webserver: client request / /index.htm text/html!
-Webserver: client request /index.css /index.css text/csssetValue changed UpTime 8 s->9 s
-setValue changed Loops 15434 /s->14014 /s
-setValue changed Heap 219108 / 321288 (110580) B->206352 / 320424 (110580) B
-!
+Webserver: client request /index.css /index.css text/css!
 Webserver: client request /index.js /index.js text/javascript!
-setValue changed realFps 38 /s->37 /s
 WS client connected.
 WS event data.
 {"uiFun":"UpTime"}
@@ -103,6 +81,29 @@ command uiFun UpTime: {"uiFun":"UpTime","UpTime":{"label":"Uptime","comment":"Up
 WS event data.
 {"uiFun":"Heap"}
 command uiFun Heap: {"uiFun":"Heap","Heap":{"label":"Heap","comment":"Free / Total (largest free)"}}
+WS event data.
+{"uiFun":"flist"}
+FILE: index.css 1125
+FILE: index.htm 499
+FILE: index.js 10673
+FILE: model.json 1702
+FILE: test.html 2233
+command uiFun flist: {"uiFun":"flist","flist":{"label":"Files","comment":"List of files","many":[["index.css",1125],["index.htm",499],["index.js",10673],["model.json",1702],["test.html",2233]]}}
+WS event data.
+{"uiFun":"fName"}
+command uiFun fName: {"uiFun":"fName","fName":{"label":"Name"}}
+WS event data.
+{"uiFun":"fSize"}
+command uiFun fSize: {"uiFun":"fSize","fSize":{"label":"Size (B)"}}
+WS event data.
+{"uiFun":"dsize"}
+command uiFun dsize: {"uiFun":"dsize","dsize":{"label":"Total FS size"}}
+WS event data.
+{"uiFun":"dataPin"}
+command uiFun dataPin: {"uiFun":"dataPin","dataPin":{"comment":"Not implemented yet (fixed to 16)"}}
+WS event data.
+{"uiFun":"nrOfLeds"}
+command uiFun nrOfLeds: {"uiFun":"nrOfLeds","nrOfLeds":{"comment":"Currenntly max 256"}}
 WS event data.
 {"uiFun":"bri"}
 command uiFun bri: {"uiFun":"bri","bri":{"label":"Brightness"}}
@@ -112,35 +113,45 @@ command uiFun fps: {"uiFun":"fps","fps":{"label":"FPS","comment":"Frames per sec
 WS event data.
 {"uiFun":"fx"}
 command uiFun fx: {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Confetti","Beats per minute","Juggle"],"value":3}}
-setValue changed memoryUsage 2769 / 10240 B->2830 / 10240 B
-setValue changed UpTime 9 s->10 s
-setValue changed Loops 14014 /s->11642 /s
-setValue changed Heap 206352 / 320424 (110580) B->215900 / 320936 (110580) B
-setValue changed realFps 37 /s->38 /s
-setValue changed memoryUsage 2830 / 10240 B->2886 / 10240 B
-setValue changed UpTime 10 s->11 s
-setValue changed Loops 11642 /s->13261 /s
-setValue changed memoryUsage 2886 / 10240 B->2915 / 10240 B
-setValue changed UpTime 11 s->12 s
-setValue changed Loops 13261 /s->13395 /s
-setValue changed Heap 215900 / 320936 (110580) B->215656 / 320936 (110580) B
-setValue changed memoryUsage 2915 / 10240 B->2971 / 10240 B
-setValue changed UpTime 12 s->13 s
-setValue changed Loops 13395 /s->13352 /s
-setValue changed Heap 215656 / 320936 (110580) B->215908 / 320936 (110580) B
-setValue changed memoryUsage 2971 / 10240 B->3027 / 10240 B
-setValue changed UpTime 13 s->14 s
-setValue changed Loops 13352 /s->13375 /s
-setValue changed Heap 215908 / 320936 (110580) B->215896 / 320936 (110580) B
-setValue changed memoryUsage 3027 / 10240 B->3083 / 10240 B
-setValue changed UpTime 14 s->15 s
-setValue changed Loops 13375 /s->13366 /s
-setValue changed Heap 215896 / 320936 (110580) B->215904 / 320936 (110580) B
-setValue changed memoryUsage 3083 / 10240 B->3139 / 10240 B
-setValue changed UpTime 15 s->16 s
-setValue changed Loops 13366 /s->13356 /s
-setValue changed Heap 215904 / 320936 (110580) B->215676 / 320936 (110580) B
-setValue changed memoryUsage 3139 / 10240 B->3195 / 10240 B
-setValue changed UpTime 16 s->17 s
-setValue changed Loops 13356 /s->13381 /s
-setValue changed Heap 215676 / 320936 (110580) B->215676 / 320920 (110580) B
+Webserver: client request / /index.htm text/html!
+WS Client disconnected
+Webserver: client request /index.css /index.css text/css!
+Webserver: client request /index.js /index.js text/javascript!
+WS client connected.
+WS event data.
+{"uiFun":"UpTime"}
+command uiFun UpTime: {"uiFun":"UpTime","UpTime":{"label":"Uptime","comment":"Uptime of board"}}
+WS event data.
+{"uiFun":"Heap"}
+command uiFun Heap: {"uiFun":"Heap","Heap":{"label":"Heap","comment":"Free / Total (largest free)"}}
+WS event data.
+{"uiFun":"flist"}
+FILE: index.css 1125
+FILE: index.htm 499
+FILE: index.js 10673
+FILE: model.json 1702
+FILE: test.html 2233
+command uiFun flist: {"uiFun":"flist","flist":{"label":"Files","comment":"List of files","many":[["index.css",1125],["index.htm",499],["index.js",10673],["model.json",1702],["test.html",2233]]}}
+WS event data.
+{"uiFun":"fName"}
+command uiFun fName: {"uiFun":"fName","fName":{"label":"Name"}}
+WS event data.
+{"uiFun":"fSize"}
+command uiFun fSize: {"uiFun":"fSize","fSize":{"label":"Size (B)"}}
+WS event data.
+{"uiFun":"dsize"}
+command uiFun dsize: {"uiFun":"dsize","dsize":{"label":"Total FS size"}}
+WS event data.
+{"uiFun":"dataPin"}
+command uiFun dataPin: {"uiFun":"dataPin","dataPin":{"comment":"Not implemented yet (fixed to 16)"}}
+WS event data.
+{"uiFun":"nrOfLeds"}
+command uiFun nrOfLeds: {"uiFun":"nrOfLeds","nrOfLeds":{"comment":"Currenntly max 256"}}
+WS event data.
+{"uiFun":"bri"}
+command uiFun bri: {"uiFun":"bri","bri":{"label":"Brightness"}}
+WS event data.
+{"uiFun":"fps"}
+command uiFun fps: {"uiFun":"fps","fps":{"label":"FPS","comment":"Frames per second"}}
+WS event data.
+{"uiFun":{"value":"3422 / 10240 B"}}

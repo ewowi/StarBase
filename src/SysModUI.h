@@ -5,7 +5,7 @@
 
 class SysModUI:public Module {
 
-  StaticJsonDocument<2048> responseDoc;
+ static StaticJsonDocument<2048> responseDoc;
 
 public:
   static std::vector<void(*)(JsonObject object)> uiFunctions;

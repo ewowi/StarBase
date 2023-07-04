@@ -1,6 +1,6 @@
 #pragma once //as also included in ModModel
 #include "Module.h"
-// #include "SysModWeb.h"
+#include "SysModWeb.h"
 
 class SysModUI:public Module {
 

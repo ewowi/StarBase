@@ -1,5 +1,6 @@
 #pragma once //as also included in ModModel
 #include "Module.h"
+#include "SysModModel.h"
 
 #include "html_ui.h"
 

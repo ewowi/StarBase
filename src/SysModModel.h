@@ -1,3 +1,4 @@
+#pragma once
 #include "Module.h"
 
 #include "ArduinoJson.h"
@@ -8,6 +9,7 @@ static DynamicJsonDocument model(24576); //not static as that blows up the stack
 //they use model and SysModModel uses web and ui...
 #include "SysModWeb.h"
 #include "SysModUI.h"
+#include "SysModFiles.h"
 
 class SysModModel:public Module {
 

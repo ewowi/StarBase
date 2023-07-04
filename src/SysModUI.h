@@ -2,14 +2,16 @@
 #include "Module.h"
 #include "SysModWeb.h"
 
+
 class SysModUI:public Module {
+
+  StaticJsonDocument<2048> responseDoc;
 
 public:
   static std::vector<void(*)(JsonObject object)> uiFunctions;
 
   SysModUI() :Module("UI") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
-
     success &= web->addURL("/", "/index.htm", "text/html");
     // success &= web->addURL("/index.js", "/index.js", "text/javascript");
     // success &= web->addURL("/index.css", "/index.css", "text/css");

@@ -19,11 +19,13 @@ public:
   SysModModel() :Module("Model") {
     JsonArray root = model.to<JsonArray>(); //create
 
-    Serial.printf("%s %s\n", __PRETTY_FUNCTION__, name);
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
     if (readObjectFromFile("/model.json", &model)) {//not part of success...
-      serializeJson(model, Serial);Serial.println();
+      char resStr[200]; 
+      serializeJson(model, resStr);
+      print->print("Read model %s\n", resStr);
       web->sendDataWs(nullptr, false); //send new data: all clients, no def
     }
 
@@ -57,7 +59,9 @@ public:
     if (doWriteModel) {
       print->println(F("Writing model to /model.json... (serializeConfig)"));
       writeObjectToFile("/model.json", &model);
-      serializeJson(model, Serial);Serial.println();
+      char resStr[200]; 
+      serializeJson(model, resStr);
+      print->print("write model %s\n", resStr);
 
       doWriteModel = false;
     }
@@ -69,7 +73,6 @@ public:
 
     if (millis() - dumpMillis >= 60000 || !dumpMillis && model.capacity() / model.memoryUsage() < 2) {
       dumpMillis = millis();
-      // serializeJsonPretty(model, Serial);Serial.println();
       print->print("model  %u / %u (%u%%) (%u %u %u)\n", model.memoryUsage(), model.capacity(), 100 * model.memoryUsage() / model.capacity(), model.size(), model.overflowed(), model.nesting());
       size_t memBefore = model.memoryUsage();
       model.garbageCollect();
@@ -103,7 +106,7 @@ public:
     File f = files->open(path, "w");
     if (f) {
       print->println(F("  success"));
-      serializeJson(*dest, f);Serial.println();
+      serializeJson(*dest, f);
       return true;
     } else {
       f.close();

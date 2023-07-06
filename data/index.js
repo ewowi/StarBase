@@ -2,6 +2,8 @@ let ws;
 let d = document;
 let columnNr = 0;
 let nrOfColumns = 4;
+let userFunId = "";
+
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
 
@@ -11,14 +13,23 @@ function onLoad() {
   ws = new WebSocket(url);
   ws.binaryType = "arraybuffer";
   ws.onmessage = (e)=>{
-    let json = JSON.parse(e.data);
-    if (json[0] && json[0].incldef) { //generate array of objects
-      console.log("WS receive generateHTML", json);
-      generateHTML(null, json);
-    }
-    else { //update
-      // console.log("WS receive update", json);
-      processUpdate(json);
+    if (e.data instanceof ArrayBuffer) { // preview packet
+      //userFun
+      if (userFunId == "pview") {
+        preview2D(gId(userFunId), e.data); //app specific code!
+        userFunId = "";
+      }
+    } 
+    else {
+      let json = JSON.parse(e.data);
+      if (json[0] && json[0].incldef) { //generate array of objects
+        console.log("WS receive generateHTML", json);
+        generateHTML(null, json);
+      }
+      else { //update
+        // console.log("WS receive update", json);
+        processUpdate(json);
+      }
     }
   }
   ws.onclose = (e)=>{
@@ -57,13 +68,12 @@ function generateHTML(parentNode, json) {
     else if (json.type == "many") {
       //add many label
       var node = cE("p");
-      labelNode.id = json.id;
       node.appendChild(labelNode);
       parentNode.appendChild(node); //add the many label to the parent
 
       //add many detail table
       newNode = cE("table");
-      newNode.id = json.id + "-n"; //to distinguish from label id
+      newNode.id = json.id;
       newNode.className = "table-style"
 
       let thNode = cE("tr");
@@ -94,6 +104,14 @@ function generateHTML(parentNode, json) {
       fieldNode.addEventListener('change', (event) => {console.log("dropdown change", event);setDropdown(event.target);});
       newNode.appendChild(fieldNode);
       //(default) value will be set in processUpdate
+    }
+    else if (json.type == "canvas") {
+      var node = cE("p");
+      node.appendChild(labelNode);
+      parentNode.appendChild(node); //add the many label to the parent
+
+      newNode = cE("canvas");
+      newNode.id = json.id;
     }
     else { //input
       newNode = cE("p");
@@ -136,15 +154,23 @@ function processUpdate(json) {
       // let id = gId(key);
       if (json[key].label) {
         console.log("processUpdate label", key, json[key].label);
-        // gId(json.uiFun).insertAdjacentHTML("beforebegin", `<label>${json.label}</label> `);
-        if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
-          gId(key).innerHTML = json[key].label; //the <th>
+        let node;
+        if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
+          node = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
+        else if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
+          node = gId(key); //the <th>
         else
-          gId(key).parentNode.firstChild.innerHTML = json[key].label; //the <label>
+          node = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
+        node.innerHTML = json[key].label;
       }
       if (json[key].comment) {
         console.log("processUpdate comment", key, json[key].comment);
-        gId(key).insertAdjacentHTML("afterend", `<comment>${json[key].comment}</comment>`);
+        let node;
+        if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
+          node = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
+        else
+          node = gId(key);
+        node.insertAdjacentHTML("afterend", `<comment>${json[key].comment}</comment>`);
       }
       if (json[key].lov) {
         console.log("processUpdate lov", key, json[key].lov);
@@ -166,14 +192,16 @@ function processUpdate(json) {
             tdNode.innerHTML = columnRow;
             trNode.appendChild(tdNode);
           }
-          gId(key+"-n").appendChild(trNode); //the table element
+          gId(key).appendChild(trNode); //the table node
         }
       }
       if (json[key].value) { //after lov, in case used
         // console.log("processUpdate value", key, json[key].value, gId(key));
         if (gId(key).nodeName.toLocaleLowerCase() == "span") //display
           gId(key).textContent = json[key].value;
-        else if (gId(key).type == "checkbox") //checkbox
+        else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
+          userFunId = key; //prepare for websocket data
+        } else if (gId(key).type == "checkbox") //checkbox
           gId(key).checked = json[key].value;
         else //inputs
           gId(key).value = json[key].value;

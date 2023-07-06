@@ -13,8 +13,10 @@ static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 static uint16_t nrOfLeds = 64; 
 static uint16_t fps = 40;
 
+//should not contain bytes to keep mem as small as possible
 class Effect {
 public:
+  unsigned long call = 0;
   virtual const char * name() { return nullptr;}
   virtual void setup() {} //not implemented yet
   virtual void loop() {}
@@ -63,6 +65,23 @@ public:
     fadeToBlackBy( leds, nrOfLeds, 20);
     int pos = beatsin16( 13, 0, nrOfLeds-1 );
     leds[pos] += CHSV( gHue, 255, 192);
+  }
+};
+
+class RunningEffect:public Effect {
+public:
+  const char *name() {
+    return "Running";
+  }
+  void setup() {} //not implemented yet
+  void loop() {
+    // a colored dot sweeping back and forth, with fading trails
+    fadeToBlackBy( leds, nrOfLeds, 70);
+    // int pos0 = (call-1)%nrOfLeds;
+    // leds[pos0] = CHSV( 0,0,0);
+    int pos = call%nrOfLeds;
+    leds[pos] = CHSV( gHue, 255, 192);
+    call++;
   }
 };
 
@@ -134,43 +153,75 @@ public:
 
     parentObject = ui->initGroup(parentObject, name);
 
-    ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) {
-      web->addResponse(object, "comment", "Not implemented yet (fixed to 16)");
-    }, [](JsonObject object) {
+    ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
+      web->addResponseV(object, "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
+    }, [](JsonObject object) { //chFun
       print->print("Set data pin to %d\n", object["value"].as<int>());
     });
 
-    ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) {
-      web->addResponse(object, "comment", "Currenntly max 256");
-    }, [](JsonObject object) {
+    ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) { //uiFun
+      web->addResponseV(object, "comment", "Currenntly max %d", NUM_LEDS);
+    }, [](JsonObject object) { //chFun
       fadeToBlackBy( leds, nrOfLeds, 100);
       nrOfLeds = object["value"];
+      if (nrOfLeds>NUM_LEDS) {nrOfLeds = NUM_LEDS;ui->setValue("nrOfLeds", NUM_LEDS);};
       print->print("Set nrOfLeds to %d\n", nrOfLeds);
     });
 
-    ui->initNumber(parentObject, "bri", 5, [](JsonObject object) {
+    ui->initSlider(parentObject, "bri", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Brightness");
-    }, [](JsonObject object) {
-      FastLED.setBrightness(object["value"]);
-      print->print("Set Brightness to %d\n", object["value"].as<int>());
+    }, [](JsonObject object) { //chFun
+      uint8_t bri = map(object["value"], 0, 100, 0, 255);
+      FastLED.setBrightness(bri);
+      print->print("Set Brightness to %d -> %d\n", object["value"].as<int>(), bri);
     });
 
-    ui->initNumber(parentObject, "fps", fps, [](JsonObject object) {
+    ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Preview");
+      web->addResponse(object, "comment", "Preview in 2D");
+    }, nullptr, [](JsonObject object) { //loopFun
+      // send leds preview to clients
+
+      //send object to notify client data coming is for object (client then knows it is canvas and expects data for it)
+      object["value"] = true;
+      ui->setChFunAndWs(object);
+
+      //send leds info in binary data format
+      ws.cleanupClients();
+      AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(nrOfLeds*3 + 3);
+      if (wsBuf) {//out of memory
+        uint8_t* buffer = wsBuf->get();
+        buffer[0] = 16;
+        buffer[1] = 16;
+        buffer[2] = 1;
+        for (size_t i = 0; i < nrOfLeds; i++)
+        {
+          buffer[i*3+3] = leds[i].red;
+          buffer[i*3+3+1] = leds[i].green;
+          buffer[i*3+3+2] = leds[i].blue;
+        }
+        ws.binaryAll(wsBuf);
+        wsBuf->unlock();
+        ws._cleanBuffers();
+      }
+    }, max((int)(nrOfLeds * ws.count() / 20), 160)); //loop interval not too fast (should change if nrofLeds change...)
+
+    ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
       web->addResponse(object, "comment", "Frames per second");
-    }, [](JsonObject object) {
+    }, [](JsonObject object) { //chFun
       fps = object["value"];
       print->print("fps changed %d\n", fps);
     });
 
-    ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) {
+    ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Effect");
       web->addResponse(object, "comment", "Effect to show");
       JsonArray lov = web->addResponseArray(object, "lov");
       for (Effect *effect:effects) {
         lov.add(effect->name());
       }
-    }, [](JsonObject object) {
-      print->print("%s Running %s\n", __PRETTY_FUNCTION__, object["id"].as<const char *>());
+    }, [](JsonObject object) { //chFun
+      print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
     });
 
     ui->initDisplay(parentObject, "realFps");
@@ -181,6 +232,7 @@ public:
     effects.push_back(new RainbowEffect);
     effects.push_back(new RainbowWithGlitterEffect);
     effects.push_back(new SinelonEffect);
+    effects.push_back(new RunningEffect);
     effects.push_back(new ConfettiEffect);
     effects.push_back(new BPMEffect);
     effects.push_back(new JuggleEffect);

@@ -5,10 +5,41 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="./index.css">
-    <script src="./index.js"></script>
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      function onLoad() {
+        let mW = 20;
+        let mH = 20;
+        let mD = 20;
+
+        let leds = [0,0,0,mW,mH,mD];
+        // for (let i=0;i<mW*mH*mD*3; i++) {
+        let firstLed = 6;
+        for (var x = 0; x < mW; x++) 
+          for (var y = 0; y < mH; y++) 
+            for (var z = 0; z < mD; z++) {
+              if (x%(mW-1)==0 || y%(mH-1)==0 || z==0) {
+              // if (x==0 || x == mW-1) {
+              // if (x%(mW-1)==0) {
+                leds[(x+mW*y+mW*mH*z)*3+firstLed] = Math.random() * 255;
+                leds[(x+mW*y+mW*mH*z)*3+firstLed+1] = Math.random() * 255;
+                leds[(x+mW*y+mW*mH*z)*3+firstLed+2] = Math.random() * 255;
+              }
+              else {
+                leds[(x+mW*y+mW*mH*z)*3+firstLed] = 0;
+                leds[(x+mW*y+mW*mH*z)*3+firstLed+1] = 0;
+                leds[(x+mW*y+mW*mH*z)*3+firstLed+2] = 0;
+              }
+            }
+        var intervalId = window.setInterval(function(){
+          updatePreview( document.getElementById("canvasElement"), leds);//d.getElementById("ddd")
+        }, 100);
+      }
+    </script>
   </head>  
-  <body>
+  <body onload="onLoad()">
     <div class="container">
       <div id="column1" draggable="true" class = "column">
         <!-- <h1 id="cTitle1">Column1</h1> -->
@@ -55,5 +86,20 @@
     <div id="Network-page"  class="page" hidden=true>
       Hello, Network
     </div>
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <input type="range" orient="vertical" />
+    <canvas id="canvasElement"></canvas>
   </body>  
 </html>

@@ -27,6 +27,9 @@ public:
   //setup wifi an async webserver
   void setup() {
     Module::setup();
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {
@@ -49,10 +52,10 @@ public:
   }
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
-    if(type == WS_EVT_CONNECT){
+    if(type == WS_EVT_CONNECT) {
       print->println(F("WS client connected."));
       sendDataWs(client, true); //send definition to client
-    } else if(type == WS_EVT_DISCONNECT){
+    } else if(type == WS_EVT_DISCONNECT) {
       print->print("WS Client disconnected\n");
     } else if(type == WS_EVT_DATA){
       print->println(F("WS event data."));
@@ -73,15 +76,19 @@ public:
             if (error) {
               print->print("deserializeJson() of definition failed with code %s\n", error.c_str());
             } else {
-              serializeJson(responseDoc, Serial);Serial.println();
               JsonVariant json = responseDoc.as<JsonVariant>();
               const char *error = processWSFunc(json); //processJson, adds to responsedoc
 
               if (responseDoc.size()) {
-                char resStr[200]; 
-                serializeJson(responseDoc, resStr);
+                // char resStr[200]; 
+                // serializeJson(responseDoc, resStr);
                 // print->print("WS_EVT_DATA send response %s\n", resStr);
-                sendDataWs(responseDoc.as<JsonVariant>());
+
+                //uiFun only send to requesting client
+                if (responseDoc["uiFun"].isNull())
+                  sendDataWs(responseDoc.as<JsonVariant>());
+                else
+                  sendDataWs(client, responseDoc.as<JsonVariant>());
               }
             }
           }
@@ -90,10 +97,10 @@ public:
       }
     } else if(type == WS_EVT_ERROR){
       //error was received from the other end
-      print->println(F("WS error."));
+      print->print("WS error. %s\n", client->remoteIP().toString().c_str());
     } else if(type == WS_EVT_PONG){
       //pong message was received (in response to a ping request maybe)
-      print->println(F("WS pong."));
+      print->print("WS pong. %s\n", client->remoteIP().toString().c_str());
     }
   }
 
@@ -174,6 +181,7 @@ public:
   //curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"fx":2}' -H "Content-Type: application/json"
+  //curl -X POST "http://192.168.121.196/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
 
   bool setupJsonHandlers(const char * uri, const char *(*processFunc)(JsonVariant &)) {
     processWSFunc = processFunc; //for WebSocket requests
@@ -181,10 +189,11 @@ public:
     //URL handler
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
       responseDoc.clear();
-      serializeJson(json, Serial);Serial.println();
+      char resStr[200]; 
+      serializeJson(json, resStr);
+      print->print("AsyncCallbackJsonWebHandler json %s\n", resStr);
       const char * pErr = processFunc(json); //processJson
       if (responseDoc.size()) {
-        char resStr[200]; 
         serializeJson(responseDoc, resStr);
         print->print("processJsonUrl response %s\n", resStr);
         // request->send(200, "application/json", result);
@@ -209,6 +218,21 @@ public:
     if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
     responseDoc[id][key] = value;
   }
+  void addResponseV(JsonObject object, const char * key, const char * format, ...) {
+    const char * id = object["id"];
+    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
+    va_list args;
+    va_start(args, format);
+
+    // size_t len = vprintf(format, args);
+    char value[100];
+    vsnprintf(value, sizeof(value), format, args);
+
+    va_end(args);
+
+    responseDoc[id][key] = value;
+  }
+
   void addResponseInt(JsonObject object, const char * key, int value) { //temporaty, use overloading
     const char * id = object["id"];
     if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);

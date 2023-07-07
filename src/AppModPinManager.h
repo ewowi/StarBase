@@ -1,5 +1,3 @@
-#include "Module.h"
-
 class AppModPinManager:public Module {
 
 public:

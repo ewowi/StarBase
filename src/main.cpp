@@ -8,12 +8,12 @@
 std::vector<Module *> modules;
 
 #include "SysModPrint.h"
-#include "SysModFiles.h"
-#include "SysModModel.h"
-#include "SysModNetwork.h"
 #include "SysModWeb.h"
 #include "SysModUI.h"
 #include "SysModSystem.h"
+#include "SysModFiles.h"
+#include "SysModModel.h"
+#include "SysModNetwork.h"
 #include "AppModPinManager.h"
 #include "AppModLeds.h"
 

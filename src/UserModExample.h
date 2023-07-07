@@ -1,5 +1,3 @@
-#include "Module.h"
-
 class UserModExample:public Module {
 
 public:

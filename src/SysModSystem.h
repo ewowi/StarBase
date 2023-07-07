@@ -1,5 +1,3 @@
-#include "Module.h"
-
 class SysModSystem:public Module {
 
 public:
@@ -28,26 +26,6 @@ public:
       ESP.restart();
     });
 
-    //should be in SysModFiles...
-    files->parentObject = ui->initGroup(files->parentObject, files->name);
-
-    JsonObject dirObject = ui->initMany(files->parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
-      web->addResponse(object, "label", "Files");
-      web->addResponse(object, "comment", "List of files");
-      JsonArray rows = web->addResponseArray(object, "many");
-      files->dirToJson(rows);
-    });
-    ui->initDisplay(dirObject, "fName", nullptr, [](JsonObject object) { //uiFun
-      web->addResponse(object, "label", "Name");
-    });
-    ui->initDisplay(dirObject, "fSize", nullptr, [](JsonObject object) { //uiFun
-      web->addResponse(object, "label", "Size (B)");
-    });
-
-    ui->initDisplay(files->parentObject, "dsize", nullptr, [](JsonObject object) { //uiFun
-      web->addResponse(object, "label", "Total FS size");
-    });
-
     //should be in SysModWeb...
     web->parentObject = ui->initGroup(web->parentObject, web->name);
     ui->initDisplay(web->parentObject, "nrOfC", nullptr, [](JsonObject object) { //uiFun
@@ -67,9 +45,6 @@ public:
       ui->setValueV("loops", "%lu /s", loopCounter);
       ui->setValueV("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
       ui->setValueV("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
-
-      //should be in SysModFiles...
-      ui->setValueV("dsize", "%d / %d B", files->usedBytes(), files->totalBytes());
 
       //should be in SysModWeb...
       ui->setValueV("nrOfC", "%u", ws.count());

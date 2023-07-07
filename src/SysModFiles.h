@@ -1,5 +1,3 @@
-#include "Module.h"
-
 #include "LittleFS.h"
 // #include <FS.h>
 
@@ -31,10 +29,38 @@ public:
   //setup filesystem
   void setup() {
     Module::setup();
+    //should be in SysModFiles...
+    parentObject = ui->initGroup(parentObject, name);
+
+    JsonObject dirObject = ui->initMany(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Files");
+      web->addResponse(object, "comment", "List of files");
+      JsonArray rows = web->addResponseArray(object, "many");
+      dirToJson(rows);
+    });
+    ui->initDisplay(dirObject, "fName", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Name");
+    });
+    ui->initDisplay(dirObject, "fSize", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Size (B)");
+    });
+
+    ui->initDisplay(parentObject, "dsize", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Total FS size");
+    });
+
   }
 
   void loop(){
     // Module::loop();
+
+    if (millis() - secondMillis >= 1000 || !secondMillis) {
+      secondMillis = millis();
+
+      //should be in SysModFiles...
+      ui->setValueV("dsize", "%d / %d B", usedBytes(), totalBytes());
+    }
+
   }
 
   bool remove(const char * path) {
@@ -54,7 +80,7 @@ public:
   }
 
   // https://techtutorialsx.com/2019/02/24/esp32-arduino-listing-files-in-a-spiffs-file-system-specific-path/
-  void dirToJson(JsonArray array) {
+  static void dirToJson(JsonArray array) {
     File root = LittleFS.open("/");
 
     File file = root.openNextFile();

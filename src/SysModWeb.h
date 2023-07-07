@@ -1,11 +1,7 @@
-#pragma once //as also included in ModModel
-#include "Module.h"
-
 #include "html_ui.h"
 
 #include <ESPAsyncWebServer.h>
 #include "AsyncJson.h"
-#include "ArduinoJson.h"
 
 //https://techtutorialsx.com/2018/08/24/esp32-web-server-serving-html-from-file-system/
 //https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
@@ -159,9 +155,11 @@ public:
         response->addHeader(FPSTR("Content-Encoding"),"gzip");
         // setStaticContentCacheHeaders(response);
         request->send(response);
-      } else {
-        request->send(LittleFS, path, contentType);
-      }
+      } 
+      // temporary removed!!!
+      // else {
+      //   request->send(LittleFS, path, contentType);
+      // }
 
       print->print("!\n");
     });

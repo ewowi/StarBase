@@ -1,8 +1,4 @@
-#include "Module.h"
-
-#include "ArduinoJson.h"
 #include <DNSServer.h>
-
 #include <WiFi.h>
 
 class SysModNetwork:public Module {

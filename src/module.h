@@ -2,7 +2,8 @@
 
 #include "ArduinoJson.h"
 
-#pragma once //included by multiple files
+static DynamicJsonDocument model(24576); //not static as that blows up the stack. Use extern??
+
 
 class Module {
 

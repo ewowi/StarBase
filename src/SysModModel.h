@@ -1,14 +1,3 @@
-#include "Module.h"
-
-#include "ArduinoJson.h"
-
-static DynamicJsonDocument model(24576); //not static as that blows up the stack. Use extern??
-
-//needed to set this here for classes mutually calling other classes (and don't want cpp files ;-)
-//they use model and SysModModel uses web and ui...
-#include "SysModWeb.h"
-#include "SysModUI.h"
-
 class SysModModel:public Module {
 
 public:
@@ -28,7 +17,7 @@ public:
     }
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
-  };
+  }
 
   void setup() {
     Module::setup();
@@ -115,5 +104,4 @@ public:
 
 static SysModModel *mdl;
 
-//init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 bool SysModModel::doWriteModel = false;

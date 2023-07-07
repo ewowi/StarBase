@@ -1,7 +1,3 @@
-#pragma once //as also included in ModModel
-#include "Module.h"
-// #include "SysModWeb.h"
-
 typedef void(*USFun)(JsonObject);
 typedef void(*LoopFun)(JsonObject, uint8_t*);
 
@@ -68,7 +64,7 @@ public:
           //send leds info in binary data format
           ws.cleanupClients();
           AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(it->bufSize*3 + 3);
-          
+
           wsBuf->lock();
           if (wsBuf) {//out of memory
             uint8_t* buffer = wsBuf->get();
@@ -92,7 +88,7 @@ public:
       setValueV("uloops", "%lu /s", loopFunctions[loopFunctions.size()-1].counter);
       loopFunctions[loopFunctions.size()-1].counter = 0;
     }
-}
+  }
 
   JsonObject initGroup(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
     JsonObject object = initObject(parent, id, "group", uiFun, chFun, loopFun, bufSize, interval);

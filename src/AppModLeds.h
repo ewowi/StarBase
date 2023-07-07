@@ -1,5 +1,3 @@
-#include "Module.h"
-
 #include "FastLED.h"
 
 #define DATA_PIN 16

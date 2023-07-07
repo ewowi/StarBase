@@ -16,8 +16,6 @@ public:
 
     ui->initDisplay(parentObject, "upTime", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "comment", "Uptime of board");
-    }, nullptr, [](JsonObject object) { //loopFun
-      ui->setValueV("upTime", "%u s", millis()/1000); //tbd: check if all loop functions should go to loopFun
     });
     ui->initDisplay(parentObject, "loops");
     ui->initDisplay(parentObject, "heap", nullptr, [](JsonObject object) { //uiFun

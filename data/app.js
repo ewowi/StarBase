@@ -1,3 +1,11 @@
+function userFun(userFunId, data) {
+  if (userFunId == "pview") {
+    preview2D(gId(userFunId), data);
+    return true;
+  }
+  return false;
+}
+
 function preview2D(node, data) {
   let leds = new Uint8Array(data);
   // console.log(c,leds);

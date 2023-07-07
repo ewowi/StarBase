@@ -37,6 +37,16 @@ public:
     // Module::loop();
   }
 
+  void printObject(JsonObject object) {
+    char sep[3] = "";
+    for (JsonPair pair: object) {
+      const char * key = pair.key().c_str();
+      JsonVariant value = pair.value();
+      print("%s%s: %s", sep, key, value.as<String>().c_str());
+      strcpy(sep, ", ");
+    }
+  }
+
 };
 
 static SysModPrint *print;

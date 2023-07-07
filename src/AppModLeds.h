@@ -162,10 +162,22 @@ public:
     ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Currenntly max %d", NUM_LEDS);
     }, [](JsonObject object) { //chFun
+
       fadeToBlackBy( leds, nrOfLeds, 100);
       nrOfLeds = object["value"];
       if (nrOfLeds>NUM_LEDS) {nrOfLeds = NUM_LEDS;ui->setValue("nrOfLeds", NUM_LEDS);};
+
+      //change nrOfLeds in pview
+      JsonObject pvObject = ui->findObject("pview");
+      if (!pvObject.isNull() && !pvObject["loopFun"].isNull()) {
+        size_t index = pvObject["loopFun"];
+        ui->loopFunctions[index].bufSize = nrOfLeds;
+        ui->loopFunctions[index].interval = max((int)(nrOfLeds * ws.count() / 20), 40);
+      }
+      else print->print("pview not found\n");
+
       print->print("Set nrOfLeds to %d\n", nrOfLeds);
+
     });
 
     ui->initSlider(parentObject, "bri", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
@@ -179,20 +191,10 @@ public:
     ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Preview");
       web->addResponse(object, "comment", "Preview in 2D");
-    }, nullptr, [](JsonObject object) { //loopFun
+    }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
       // send leds preview to clients
-
-      //send object to notify client data coming is for object (client then knows it is canvas and expects data for it)
-      object["value"] = true;
-      ui->setChFunAndWs(object);
-
-      //send leds info in binary data format
-      ws.cleanupClients();
-      AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(nrOfLeds*3 + 3);
-      if (wsBuf) {//out of memory
-        uint8_t* buffer = wsBuf->get();
-        buffer[0] = 16;
-        buffer[1] = 16;
+        buffer[0] = sqrt(nrOfLeds);
+        buffer[1] = nrOfLeds / buffer[0];
         buffer[2] = 1;
         for (size_t i = 0; i < nrOfLeds; i++)
         {
@@ -200,11 +202,7 @@ public:
           buffer[i*3+3+1] = leds[i].green;
           buffer[i*3+3+2] = leds[i].blue;
         }
-        ws.binaryAll(wsBuf);
-        wsBuf->unlock();
-        ws._cleanBuffers();
-      }
-    }, max((int)(nrOfLeds * ws.count() / 20), 160)); //loop interval not too fast (should change if nrofLeds change...)
+    }, nrOfLeds, max((int)(nrOfLeds * ws.count() / 20), 40)); //bufSize and loop interval: not too fast (changed when nrofLeds change) publish subscribe mechanism?
 
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
       web->addResponse(object, "comment", "Frames per second");

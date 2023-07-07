@@ -81,7 +81,7 @@ public:
 
               if (responseDoc.size()) {
                 // char resStr[200]; 
-                // serializeJson(responseDoc, resStr);
+                // serializeJson(responseDoc, resStr, 200);
                 // print->print("WS_EVT_DATA send response %s\n", resStr);
 
                 //uiFun only send to requesting client
@@ -190,19 +190,12 @@ public:
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
       responseDoc.clear();
       char resStr[200]; 
-      serializeJson(json, resStr);
+      serializeJson(json, resStr, 200);
       print->print("AsyncCallbackJsonWebHandler json %s\n", resStr);
       const char * pErr = processFunc(json); //processJson
       if (responseDoc.size()) {
-        serializeJson(responseDoc, resStr);
+        serializeJson(responseDoc, resStr, 200);
         print->print("processJsonUrl response %s\n", resStr);
-        // request->send(200, "application/json", result);
-        // AsyncJsonResponse* response = new AsyncJsonResponse(&responseDoc, true);  // array document
-        // JsonArray lDoc = response->getRoot();
-        // lDoc[0] = "een";
-        // lDoc[1] = "twee";
-        // response->setLength();
-        // request->send(response);
         request->send(200, "text/plain", resStr);
       }
       else
@@ -218,6 +211,7 @@ public:
     if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
     responseDoc[id][key] = value;
   }
+
   void addResponseV(JsonObject object, const char * key, const char * format, ...) {
     const char * id = object["id"];
     if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);

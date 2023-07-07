@@ -14,11 +14,8 @@ function onLoad() {
   ws.binaryType = "arraybuffer";
   ws.onmessage = (e)=>{
     if (e.data instanceof ArrayBuffer) { // preview packet
-      //userFun
-      if (userFunId == "pview") {
-        preview2D(gId(userFunId), e.data); //app specific code!
+      if (userFun(userFunId, e.data))
         userFunId = "";
-      }
     } 
     else {
       let json = JSON.parse(e.data);

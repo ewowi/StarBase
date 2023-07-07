@@ -14,8 +14,6 @@ class SysModModel:public Module {
 public:
   static bool doWriteModel;
 
-  unsigned long dumpMillis = 0;
-
   SysModModel() :Module("Model") {
     JsonArray root = model.to<JsonArray>(); //create
 
@@ -24,7 +22,7 @@ public:
     print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
     if (readObjectFromFile("/model.json", &model)) {//not part of success...
       char resStr[200]; 
-      serializeJson(model, resStr);
+      serializeJson(model, resStr, 200);
       print->print("Read model %s\n", resStr);
       web->sendDataWs(nullptr, false); //send new data: all clients, no def
     }
@@ -60,7 +58,7 @@ public:
       print->println(F("Writing model to /model.json... (serializeConfig)"));
       writeObjectToFile("/model.json", &model);
       char resStr[200]; 
-      serializeJson(model, resStr);
+      serializeJson(model, resStr, 200);
       print->print("write model %s\n", resStr);
 
       doWriteModel = false;
@@ -71,13 +69,11 @@ public:
       ui->setValueV("mSize", "%u / %u B", model.memoryUsage(), model.capacity());
     }
 
-    if (millis() - dumpMillis >= 60000 || !dumpMillis && model.capacity() / model.memoryUsage() < 2) {
-      dumpMillis = millis();
+    if (model.memoryUsage() / model.capacity() > 0.95) {
       print->print("model  %u / %u (%u%%) (%u %u %u)\n", model.memoryUsage(), model.capacity(), 100 * model.memoryUsage() / model.capacity(), model.size(), model.overflowed(), model.nesting());
       size_t memBefore = model.memoryUsage();
       model.garbageCollect();
       print->print("garbageCollect %u / %u%% -> %u / %u%%\n", memBefore, 100 * memBefore / model.capacity(), model.memoryUsage(), 100 * model.memoryUsage() / model.capacity());
-
     }
   }
 

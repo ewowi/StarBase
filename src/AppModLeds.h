@@ -160,7 +160,7 @@ public:
     });
 
     ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) { //uiFun
-      web->addResponseV(object, "comment", "Currenntly max %d", NUM_LEDS);
+      web->addResponseV(object, "comment", "Max %d", NUM_LEDS);
     }, [](JsonObject object) { //chFun
 
       fadeToBlackBy( leds, nrOfLeds, 100);
@@ -171,10 +171,17 @@ public:
       JsonObject pvObject = ui->findObject("pview");
       if (!pvObject.isNull() && !pvObject["loopFun"].isNull()) {
         size_t index = pvObject["loopFun"];
-        ui->loopFunctions[index].bufSize = nrOfLeds;
-        ui->loopFunctions[index].interval = max((int)(nrOfLeds * ws.count() / 20), 40);
+        if (index >= 0 && index < ui->loopFunctions.size()) {
+          ui->loopFunctions[index].bufSize = nrOfLeds;
+          ui->loopFunctions[index].interval = max((int)(nrOfLeds * ws.count() / 20), 80);
+        }
+        else {
+          print->print("pview not right loopFun Index %d\n", index);
+        }
       }
-      else print->print("pview not found\n");
+      else {
+        print->print("pview not found\n");
+      }
 
       print->print("Set nrOfLeds to %d\n", nrOfLeds);
 
@@ -202,7 +209,7 @@ public:
           buffer[i*3+3+1] = leds[i].green;
           buffer[i*3+3+2] = leds[i].blue;
         }
-    }, nrOfLeds, max((int)(nrOfLeds * ws.count() / 20), 40)); //bufSize and loop interval: not too fast (changed when nrofLeds change) publish subscribe mechanism?
+    }, nrOfLeds, max((int)(nrOfLeds * ws.count() / 20), 80)); //bufSize and loop interval: not too fast (changed when nrofLeds change) publish subscribe mechanism?
 
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
       web->addResponse(object, "comment", "Frames per second");

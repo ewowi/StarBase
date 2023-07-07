@@ -106,25 +106,27 @@ public:
 
   //send json to client or all clients
   static void sendDataWs(AsyncWebSocketClient * client = nullptr, JsonVariant json = JsonVariant()) {
-    if (!ws.count()) return;
+    if (ws.count()) {
+      AsyncWebSocketMessageBuffer * wsBuf;
 
-    AsyncWebSocketMessageBuffer * buffer;
+      size_t len = measureJson(json);
+      wsBuf = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
 
-    size_t len = measureJson(json);
-    buffer = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
-
-    buffer->lock();
+      wsBuf->lock();
+      if (wsBuf) {
+        serializeJson(json, (char *)wsBuf->get(), len);
+        if (client) {
+          client->text(wsBuf);
+          // DEBUG_PRINTLN(F("to a single client."));
+        } else {
+          ws.textAll(wsBuf);
+          // DEBUG_PRINTLN(F("to multiple clients."));
+        }
+      }
    
-    serializeJson(json, (char *)buffer->get(), len);
-    if (client) {
-      client->text(buffer);
-      // DEBUG_PRINTLN(F("to a single client."));
-    } else {
-      ws.textAll(buffer);
-      // DEBUG_PRINTLN(F("to multiple clients."));
+      wsBuf->unlock();
+      ws._cleanBuffers();
     }
-    buffer->unlock();
-    ws._cleanBuffers();
   }
 
   //specific json data send to all clients

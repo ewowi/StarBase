@@ -64,17 +64,22 @@ public:
 
         // print->print("bufSize %d", it->bufSize);
 
-        //send leds info in binary data format
-        ws.cleanupClients();
-        AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(it->bufSize*3 + 3);
-        if (wsBuf) {//out of memory
-          uint8_t* buffer = wsBuf->get();
+        if (ws.count()) {
+          //send leds info in binary data format
+          ws.cleanupClients();
+          AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(it->bufSize*3 + 3);
+          
+          wsBuf->lock();
+          if (wsBuf) {//out of memory
+            uint8_t* buffer = wsBuf->get();
 
-          it->fun(it->object, buffer); //call the function and fill the buffer
+            it->fun(it->object, buffer); //call the function and fill the buffer
 
-          ws.binaryAll(wsBuf);
+            ws.binaryAll(wsBuf);
+            ws._cleanBuffers();
+          }
           wsBuf->unlock();
-          ws._cleanBuffers();
+
         }
 
         it->counter++;

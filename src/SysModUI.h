@@ -3,13 +3,12 @@ typedef void(*LoopFun)(JsonObject, uint8_t*);
 
 struct UserLoop {
   JsonObject object;
-  uint32_t interval = 1000; //1 second default
+  LoopFun loopFun;
+  size_t bufSize = 100;
+  uint16_t interval = 160; //160ms default
   unsigned long lastMillis = 0;
-  unsigned long counter = 10;
-  size_t bufSize = 0;
-  LoopFun fun;
+  unsigned long counter = 0;
 };
-
 
 class SysModUI:public Module {
 
@@ -49,33 +48,42 @@ public:
       if (millis() - it->lastMillis >= it->interval) {
         it->lastMillis = millis();
 
-        //send object to notify client data coming is for object (client then knows it is canvas and expects data for it)
-        // print->printObject(object); print->print("\n");
-        responseDoc.clear(); //needed for deserializeJson?
-        const char * id = it->object["id"];
-        if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
-        responseDoc[id]["value"] = true;
-        // web->addResponse(object, "value", object["value"]);
-        web->sendDataWs(responseDoc.as<JsonVariant>());
-
-        // print->print("bufSize %d", it->bufSize);
-
+        ws.cleanupClients();
         if (ws.count()) {
+          //send object to notify client data coming is for object (client then knows it is canvas and expects data for it)
+          // print->printObject(object); print->print("\n");
+          responseDoc.clear(); //needed for deserializeJson?
+          const char * id = it->object["id"];
+          if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
+          responseDoc[id]["value"] = true;
+          // web->addResponse(object, "value", object["value"]);
+          web->sendDataWs(responseDoc.as<JsonVariant>());
+
+          // print->print("bufSize %d", it->bufSize);
+
           //send leds info in binary data format
-          ws.cleanupClients();
-          AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(it->bufSize*3 + 3);
+
+          AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(it->bufSize * 3 + 4);
 
           wsBuf->lock();
           if (wsBuf) {//out of memory
             uint8_t* buffer = wsBuf->get();
 
-            it->fun(it->object, buffer); //call the function and fill the buffer
+            //to loop over old size
+            buffer[0] = it->bufSize / 256;
+            buffer[1] = it->bufSize % 256;
+            // print->print("interval1 %u %d %d %d %d %d %d\n", millis(), it->interval, it->bufSize, buffer[0], buffer[1]);
+
+            it->loopFun(it->object, buffer); //call the function and fill the buffer
+
+            it->bufSize = buffer[0] * buffer[1] * buffer[2];
+            it->interval = buffer[3]*10; //from cs to ms
+            // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), it->interval, it->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
             ws.binaryAll(wsBuf);
             ws._cleanBuffers();
           }
           wsBuf->unlock();
-
         }
 
         it->counter++;
@@ -90,85 +98,85 @@ public:
     }
   }
 
-  JsonObject initGroup(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "group", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initGroup(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "group", uiFun, chFun, loopFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initMany(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "many", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initMany(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "many", uiFun, chFun, loopFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initInput(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "input", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initInput(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "input", uiFun, chFun, loopFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initPassword(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "password", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initPassword(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "password", uiFun, chFun, loopFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initNumber(JsonObject parent, const char *id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "number", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initNumber(JsonObject parent, const char *id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "number", uiFun, chFun, loopFun);
     if (object["value"].isNull()) object["value"] = value;
     if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initSlider(JsonObject parent, const char *id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "range", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initSlider(JsonObject parent, const char *id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "range", uiFun, chFun, loopFun);
     if (object["value"].isNull()) object["value"] = value;
     if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initCanvas(JsonObject parent, const char *id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "canvas", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initCanvas(JsonObject parent, const char *id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "canvas", uiFun, chFun, loopFun);
     if (object["value"].isNull()) object["value"] = value;
     if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initDisplay(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "display", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initDisplay(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "display", uiFun, chFun, loopFun);
     if (object["value"].isNull() && value) object["value"] = value;
     if (chFun && value) chFun(object);
     return object;
   }
 
-  JsonObject initCheckBox(JsonObject parent, const char *id, bool value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "checkbox", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initCheckBox(JsonObject parent, const char *id, bool value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "checkbox", uiFun, chFun, loopFun);
     if (object["value"].isNull()) object["value"] = value;
     if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initButton(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "button", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initButton(JsonObject parent, const char *id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "button", uiFun, chFun, loopFun);
     if (object["value"].isNull()) object["value"] = value;
     //no call of fun for buttons!!! 
     // if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initDropdown(JsonObject parent, const char *id, uint8_t value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
-    JsonObject object = initObject(parent, id, "dropdown", uiFun, chFun, loopFun, bufSize, interval);
+  JsonObject initDropdown(JsonObject parent, const char *id, uint8_t value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    JsonObject object = initObject(parent, id, "dropdown", uiFun, chFun, loopFun);
     if (object["value"].isNull()) object["value"] = value;
     if (chFun) chFun(object);
     return object;
   }
 
-  JsonObject initObject(JsonObject parent, const char *id, const char *type, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr, size_t bufSize = 100, uint32_t interval = 1000) {
+  JsonObject initObject(JsonObject parent, const char *id, const char *type, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
     JsonObject object = findObject(id);
 
     //create new object
@@ -211,13 +219,12 @@ public:
       }
       if (loopFun) {
         UserLoop loop;
-        loop.fun = loopFun;
-        loop.interval = interval;
-        loop.bufSize = bufSize;
+        loop.loopFun = loopFun;
         loop.object = object;
 
         loopFunctions.push_back(loop);
         object["loopFun"] = loopFunctions.size()-1;
+        // print->print("iObject loopFun %s %u %u %d %d\n", object["id"].as<const char *>());
       }
     }
     else

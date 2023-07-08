@@ -1,7 +1,7 @@
 #include "FastLED.h"
 
 #define DATA_PIN 16
-#define NUM_LEDS 256
+#define NUM_LEDS 2000
 
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
@@ -160,29 +160,10 @@ public:
     ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Max %d", NUM_LEDS);
     }, [](JsonObject object) { //chFun
-
       fadeToBlackBy( leds, nrOfLeds, 100);
       nrOfLeds = object["value"];
       if (nrOfLeds>NUM_LEDS) {nrOfLeds = NUM_LEDS;ui->setValue("nrOfLeds", NUM_LEDS);};
-
-      //change nrOfLeds in pview
-      JsonObject pvObject = ui->findObject("pview");
-      if (!pvObject.isNull() && !pvObject["loopFun"].isNull()) {
-        size_t index = pvObject["loopFun"];
-        if (index >= 0 && index < ui->loopFunctions.size()) {
-          ui->loopFunctions[index].bufSize = nrOfLeds;
-          ui->loopFunctions[index].interval = max((int)(nrOfLeds * ws.count() / 20), 80);
-        }
-        else {
-          print->print("pview not right loopFun Index %d\n", index);
-        }
-      }
-      else {
-        print->print("pview not found\n");
-      }
-
       print->print("Set nrOfLeds to %d\n", nrOfLeds);
-
     });
 
     ui->initSlider(parentObject, "bri", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
@@ -198,16 +179,18 @@ public:
       web->addResponse(object, "comment", "Preview in 2D");
     }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
       // send leds preview to clients
-        buffer[0] = sqrt(nrOfLeds);
-        buffer[1] = nrOfLeds / buffer[0];
-        buffer[2] = 1;
-        for (size_t i = 0; i < nrOfLeds; i++)
-        {
-          buffer[i*3+3] = leds[i].red;
-          buffer[i*3+3+1] = leds[i].green;
-          buffer[i*3+3+2] = leds[i].blue;
-        }
-    }, nrOfLeds, max((int)(nrOfLeds * ws.count() / 20), 80)); //bufSize and loop interval: not too fast (changed when nrofLeds change) publish subscribe mechanism?
+      for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
+      {
+        buffer[i*3+4] = leds[i].red;
+        buffer[i*3+4+1] = leds[i].green;
+        buffer[i*3+4+2] = leds[i].blue;
+      }
+      //new values
+      buffer[0] = sqrt(nrOfLeds); //width
+      buffer[1] = nrOfLeds / buffer[0]; //height
+      buffer[2] = 1; //depth
+      buffer[3] = max(nrOfLeds * ws.count()/200, 16U); //interval in ms * 10, not too fast
+    });
 
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
       web->addResponse(object, "comment", "Frames per second");

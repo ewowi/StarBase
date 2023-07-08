@@ -15,7 +15,6 @@ static StaticJsonDocument<2048> responseDoc;
 class SysModWeb:public Module {
 
 public:
-
   bool modelUpdated = false;
 
   SysModWeb() :Module("Web") {};
@@ -49,16 +48,16 @@ public:
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
     if(type == WS_EVT_CONNECT) {
-      print->println(F("WS client connected."));
+      print->print("WS client connected %d", ws.count());
       sendDataWs(client, true); //send definition to client
     } else if(type == WS_EVT_DISCONNECT) {
-      print->print("WS Client disconnected\n");
+      print->print("WS Client disconnected %d\n", ws.count());
     } else if(type == WS_EVT_DATA){
-      print->println(F("WS event data."));
       AwsFrameInfo * info = (AwsFrameInfo*)arg;
-      if(info->final && info->index == 0 && info->len == len){
+      print->print("WS event data %d %d %d %d\n", ws.count(), info->final, info->index, info->len);
+      if (info->final && info->index == 0 && info->len == len){
         // the whole message is in a single frame and we got all of its data (max. 1450 bytes)
-        if(info->opcode == WS_TEXT)
+        if (info->opcode == WS_TEXT)
         {
           if (len > 0 && len < 10 && data[0] == 'p') {
             // application layer ping/pong heartbeat.
@@ -67,7 +66,7 @@ public:
             return;
           }
 
-          if (processWSFunc) {
+          if (processWSFunc) { //processJson defined
             DeserializationError error = deserializeJson(responseDoc, data, len); //data to responseDoc
             if (error) {
               print->print("deserializeJson() of definition failed with code %s\n", error.c_str());
@@ -93,20 +92,20 @@ public:
       }
     } else if(type == WS_EVT_ERROR){
       //error was received from the other end
-      print->print("WS error. %s\n", client->remoteIP().toString().c_str());
+      print->print("WS error %d\n", ws.count());
     } else if(type == WS_EVT_PONG){
       //pong message was received (in response to a ping request maybe)
-      print->print("WS pong. %s\n", client->remoteIP().toString().c_str());
+      print->print("WS pong %d\n", ws.count());
     }
   }
 
   //send json to client or all clients
   static void sendDataWs(AsyncWebSocketClient * client = nullptr, JsonVariant json = JsonVariant()) {
-    if (ws.count()) {
-      AsyncWebSocketMessageBuffer * wsBuf;
+    ws.cleanupClients();
 
+    if (ws.count()) {
       size_t len = measureJson(json);
-      wsBuf = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
+      AsyncWebSocketMessageBuffer *wsBuf = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
 
       wsBuf->lock();
       if (wsBuf) {

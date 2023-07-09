@@ -44,6 +44,7 @@ public:
 
   void loop() {
     // Module::loop();
+
     for (auto it = begin (loopFunctions); it != end (loopFunctions); ++it) {
       if (millis() - it->lastMillis >= it->interval) {
         it->lastMillis = millis();
@@ -80,7 +81,18 @@ public:
             it->interval = buffer[3]*10; //from cs to ms
             // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), it->interval, it->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
-            ws.binaryAll(wsBuf);
+            try {
+              for (auto client:ws.getClients()) {
+                if (!client->queueIsFull()) 
+                  client->binary(wsBuf);
+                else 
+                  print->print("loopFun client %s full\n", client->remoteIP().toString().c_str());
+              }
+              // throw (1); // Throw an exception when a problem arise
+            }
+            catch (...) {
+              Serial.printf("BINARY ALL EXCEPTION\n");
+            }
             ws._cleanBuffers();
           }
           wsBuf->unlock();
@@ -399,11 +411,11 @@ public:
 
               char resStr[200]; 
               serializeJson(responseDoc, resStr, 200);
-              print->print("command %s %s: %s\n", key, object["id"].as<const char *>(), resStr);
+              print->print("PJ Command %s %s: %s\n", key, object["id"].as<const char *>(), resStr);
             }
           }
           else
-            print->print("command %s object %s not found\n", key, value.as<String>().c_str());
+            print->print("PJ Command %s object %s not found\n", key, value.as<String>().c_str());
         } 
         else { //normal change
           if (!value.is<JsonObject>()) { //no objects (inserted by uiFun responses)

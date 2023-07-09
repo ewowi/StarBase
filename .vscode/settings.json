@@ -60,5 +60,6 @@
         "mutex": "cpp",
         "thread": "cpp",
         "variant": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }

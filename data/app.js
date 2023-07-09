@@ -1,13 +1,36 @@
+var renderer = null;
+var scene = null;
+var camera = null;
+var previousFunction;
+
 function userFun(userFunId, data) {
   if (userFunId == "pview") {
-    preview2D(gId(userFunId), data);
+    let leds = new Uint8Array(data);
+    let pviewNode = gId("pview");
+    let pview3DNode = pviewNode.parentNode.querySelector('#pview3D');
+
+    if (leds[2] == 1) {
+      if (pview3DNode) pview3DNode.hidden = true;
+      pviewNode.hidden = false;
+      preview2D(pviewNode, leds);
+    }
+    else {
+      pviewNode.hidden = true;
+      //create en extra canvas for 3D view
+      if (!pview3DNode) {
+        pview3DNode = cE("canvas");
+        pview3DNode.id = "pview3D";
+        pviewNode.parentNode.insertBefore(pview3DNode, pviewNode.nextSibling); //create pView3D after pview
+      }
+      if (pview3DNode) pview3DNode.hidden = false;
+      preview3D(pview3DNode, leds);
+    }
     return true;
   }
   return false;
 }
 
-function preview2D(node, data) {
-  let leds = new Uint8Array(data);
+function preview2D(node, leds) {
   // console.log(node,leds);
   let ctx = node.getContext('2d');
   let mW = leds[0]; // matrix width
@@ -25,6 +48,66 @@ function preview2D(node, data) {
     }
     i+=3;
   }
+
+}
+
+function preview3D(node, leds) {
+  //3D vars
+  let mW = leds[0];
+  let mH = leds[1];
+  let mD = leds[2];
+
+  if (!renderer) { //init 3D
+    // node.width  = 0;
+    // node.height = 0;
+    renderer = new THREE.WebGLRenderer({canvas: node, antialias: true, alpha: true });
+    renderer.setClearAlpha(0)
+    renderer.setClearColor( 0x000000, 0 );
+    renderer.setSize( 300, 150);
+    // node.parentNode.appendChild( renderer.domElement );
+
+    camera = new THREE.PerspectiveCamera( 45, 300/150, 1, 500 );
+    // const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
+    camera.position.set( 0, 0, 75 );
+    camera.lookAt( 0, 0, 0 );
+
+    scene = new THREE.Scene();
+    scene.background = null; //new THREE.Color( 0xff0000 );
+
+    var d = 5; //distanceLED;
+    var offset_x = -d*(mW-1)/2;
+    var offset_y = -d*(mH-1)/2;
+    var offset_z = -d*(mD-1)/2;
+
+    for (var x = 0; x < mW; x++) {
+        for (var y = 0; y < mH; y++) {
+            for (var z = 0; z < mD; z++) {
+                const geometry = new THREE.SphereGeometry( 1, 32, 16 );
+                const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5});
+                // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
+                const sphere = new THREE.Mesh( geometry, material );
+                sphere.position.set(offset_x + d*x, offset_y + d*y, offset_z + d*z);
+                scene.add( sphere );
+            }
+        }
+    }
+  } //new
+
+  let firstLed = 4;
+  var i = 1;
+  for (var x = 0; x < mW; x++) {
+      for (var y = 0; y < mH; y++) {
+          for (var z = 0; z < mD; z++) {
+              if (i < scene.children.length)
+                if (leds[i*3 + firstLed] + leds[i*3 + firstLed + 1] + leds[i*3 + firstLed+2] != 0) //do not show blacks
+                  scene.children[i].material.color = new THREE.Color(`${leds[i*3 + firstLed]/255}`, `${leds[i*3 + firstLed + 1]/255}`, `${leds[i*3 + firstLed + 2]/255}`);
+              i++;
+          }
+      }
+  }
+  scene.rotation.x += 0.01;
+  scene.rotation.y += 0.01;
+  renderer.render( scene, camera );
 
 }
 

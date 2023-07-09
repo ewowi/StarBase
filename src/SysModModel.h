@@ -77,7 +77,7 @@ public:
       print->print(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
       DeserializationError error = deserializeJson(*dest, f);
       if (error) {
-        print->print("deserializeJson() of definition failed with code %s\n", error.c_str());
+        print->print("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
         f.close();
         return false;
       } else {

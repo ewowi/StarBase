@@ -3,6 +3,7 @@ class SysModSystem:public Module {
 public:
 
   unsigned long loopCounter = 0;
+  JsonObject clientListObject;
 
   SysModSystem() :Module("System") {};
 
@@ -28,9 +29,33 @@ public:
 
     //should be in SysModWeb...
     web->parentObject = ui->initGroup(web->parentObject, web->name);
-    ui->initDisplay(web->parentObject, "nrOfC", nullptr, [](JsonObject object) { //uiFun
-      web->addResponse(object, "label", "Nr of clients");
+    // ui->initDisplay(web->parentObject, "nrOfC", nullptr, [](JsonObject object) { //uiFun
+    //   web->addResponse(object, "label", "Nr of clients");
+    // });
+
+    clientListObject = ui->initMany(web->parentObject, "clist", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Clients");
+      web->addResponse(object, "comment", "List of clients");
+      JsonArray rows = web->addResponseArray(object, "many");
+      for (auto client:ws.getClients()) {
+        // print->print("Client %d %d %s\n", client->id(), client->queueIsFull(), client->remoteIP().toString().c_str());
+        JsonArray row = rows.createNestedArray();
+        row.add(client->id());
+        row.add((char *)client->remoteIP().toString().c_str()); //create a copy!
+        row.add(client->queueIsFull());
+      }
     });
+    ui->initDisplay(clientListObject, "cNr", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Nr");
+    });
+    ui->initDisplay(clientListObject, "cIp", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "IP");
+    });
+    ui->initDisplay(clientListObject, "cIsFull", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Is full");
+    });
+
+
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -47,7 +72,19 @@ public:
       ui->setValueV("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
 
       //should be in SysModWeb...
-      ui->setValueV("nrOfC", "%u", ws.count());
+
+      //if something changed in clist
+      if (web->clientsChanged) {
+        web->clientsChanged = false;
+        // ui->setValueV("nrOfC", "%u", ws.count());
+
+        //replace clist table
+        responseDoc.clear(); //needed for deserializeJson?
+        responseDoc["uiFun"] = "clist";
+        JsonVariant responseVariant = responseDoc.as<JsonVariant>();
+        ui->processJson(responseVariant);
+        web->sendDataWs(responseVariant);
+      }
 
       loopCounter = 0;
     }

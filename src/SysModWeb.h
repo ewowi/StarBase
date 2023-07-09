@@ -16,6 +16,7 @@ class SysModWeb:public Module {
 
 public:
   bool modelUpdated = false;
+  static bool clientsChanged;
 
   SysModWeb() :Module("Web") {};
 
@@ -50,8 +51,10 @@ public:
     if(type == WS_EVT_CONNECT) {
       print->print("WS client connected %d", ws.count());
       sendDataWs(client, true); //send definition to client
+      clientsChanged = true;
     } else if(type == WS_EVT_DISCONNECT) {
       print->print("WS Client disconnected %d\n", ws.count());
+      clientsChanged = true;
     } else if(type == WS_EVT_DATA){
       AwsFrameInfo * info = (AwsFrameInfo*)arg;
       print->print("WS event data %d %d %d %d\n", ws.count(), info->final, info->index, info->len);
@@ -69,10 +72,10 @@ public:
           if (processWSFunc) { //processJson defined
             DeserializationError error = deserializeJson(responseDoc, data, len); //data to responseDoc
             if (error) {
-              print->print("deserializeJson() of definition failed with code %s\n", error.c_str());
+              print->print("wsEvent deserializeJson failed with code %s %s\n", error.c_str(), data);
             } else {
-              JsonVariant json = responseDoc.as<JsonVariant>();
-              const char *error = processWSFunc(json); //processJson, adds to responsedoc
+              JsonVariant responseVariant = responseDoc.as<JsonVariant>();
+              const char *error = processWSFunc(responseVariant); //processJson, adds to responsedoc
 
               if (responseDoc.size()) {
                 // char resStr[200]; 
@@ -81,9 +84,9 @@ public:
 
                 //uiFun only send to requesting client
                 if (responseDoc["uiFun"].isNull())
-                  sendDataWs(responseDoc.as<JsonVariant>());
+                  sendDataWs(responseVariant);
                 else
-                  sendDataWs(client, responseDoc.as<JsonVariant>());
+                  sendDataWs(client, responseVariant);
               }
             }
           }
@@ -114,13 +117,22 @@ public:
           client->text(wsBuf);
           // DEBUG_PRINTLN(F("to a single client."));
         } else {
-          ws.textAll(wsBuf);
-          // DEBUG_PRINTLN(F("to multiple clients."));
+          try { 
+            for (auto client:ws.getClients()) {
+              if (!client->queueIsFull()) 
+                client->text(wsBuf);
+              else 
+                print->print("sendDataWs client %s full\n", client->remoteIP().toString().c_str());
+            }
+            // DEBUG_PRINTLN(F("to multiple clients."));
+          }
+          catch (...) {
+            Serial.printf("TEXT ALL EXCEPTION\n");
+          }
+          ws._cleanBuffers();
         }
       }
-   
       wsBuf->unlock();
-      ws._cleanBuffers();
     }
   }
 
@@ -245,3 +257,5 @@ public:
 };
 
 static SysModWeb *web;
+
+bool SysModWeb::clientsChanged = false;

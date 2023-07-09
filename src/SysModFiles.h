@@ -32,16 +32,16 @@ public:
     //should be in SysModFiles...
     parentObject = ui->initGroup(parentObject, name);
 
-    JsonObject dirObject = ui->initMany(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
+    JsonObject manyObject = ui->initMany(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Files");
       web->addResponse(object, "comment", "List of files");
       JsonArray rows = web->addResponseArray(object, "many");
       dirToJson(rows);
     });
-    ui->initDisplay(dirObject, "fName", nullptr, [](JsonObject object) { //uiFun
+    ui->initDisplay(manyObject, "fName", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Name");
     });
-    ui->initDisplay(dirObject, "fSize", nullptr, [](JsonObject object) { //uiFun
+    ui->initDisplay(manyObject, "fSize", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Size (B)");
     });
 

@@ -64,7 +64,7 @@ function generateHTML(parentNode, json) {
     }
     else if (json.type == "many") {
       //add many label
-      var node = cE("p");
+      let node = cE("p");
       node.appendChild(labelNode);
       parentNode.appendChild(node); //add the many label to the parent
 
@@ -73,16 +73,20 @@ function generateHTML(parentNode, json) {
       newNode.id = json.id;
       newNode.className = "table-style"
 
-      let thNode = cE("tr");
-      newNode.appendChild(thNode);
+      let theadNode = cE("thead");
+      let trNode = cE("tr");
+      theadNode.appendChild(trNode);
+      newNode.appendChild(theadNode); //row for header
+
+      newNode.appendChild(cE("tbody"));
     }
     else if (json.type == "display") {
       if (parentNode.nodeName.toLocaleLowerCase() == "table") { //1:Many: add the id in the header
-        console.log("files parent", parentNode);
+        // console.log("display table", parentNode);
         let tdNode = cE("th");
         tdNode.id = json.id;
         tdNode.innerHTML = initCap(json.id); //label uiFun response can change it
-        parentNode.firstChild.appendChild(tdNode);
+        parentNode.firstChild.firstChild.appendChild(tdNode); //<thead><tr>
       }
       else {
         newNode = cE("p");
@@ -162,18 +166,32 @@ function processUpdate(json) {
       }
       if (json[key].comment) {
         console.log("processUpdate comment", key, json[key].comment);
-        let node;
+        // normal: <p><label><input id><comment></p>
+        // table or canvas <p><label><comment></p><canvas id>
+        // 1) if exist then replace else add
+        let parentNode;
         if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
-          node = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
+          parentNode = gId(key).previousSibling; //<p><label> before <canvas>/<table>
         else
-          node = gId(key);
-        node.insertAdjacentHTML("afterend", `<comment>${json[key].comment}</comment>`);
+          parentNode = gId(key).parentNode;
+        let commentNode = parentNode.querySelector('comment');
+        // console.log("commentNode", commentNode);
+        if (!commentNode) {
+          commentNode = cE("comment");
+          parentNode.appendChild(commentNode);
+        }
+        commentNode.innerHTML = json[key].comment;
+        
+        // node.insertAdjacentHTML("afterend", `<comment>${json[key].comment}</comment>`);
+
+        // gId(key).parentNode.lastChild.innerHTML = json[key].comment;
+
       }
       if (json[key].lov) {
         console.log("processUpdate lov", key, json[key].lov);
         var index = 0;
         for (var value of json[key].lov) {
-          let optNode = document.createElement("option");
+          let optNode = cE("option");
           optNode.value = index;
           optNode.text = value;
           gId(key).appendChild(optNode);
@@ -182,15 +200,19 @@ function processUpdate(json) {
       }
       if (json[key].many) {
         console.log("processUpdate many", key, json[key].many);
+        //remove table rows
+        let tbodyNode = cE('tbody');
+
         for (var row of json[key].many) {
-          let trNode = document.createElement("tr");
+          let trNode = cE("tr");
           for (var columnRow of row) {
-            let tdNode = document.createElement("td");
+            let tdNode = cE("td");
             tdNode.innerHTML = columnRow;
             trNode.appendChild(tdNode);
           }
-          gId(key).appendChild(trNode); //the table node
+          tbodyNode.appendChild(trNode);
         }
+        gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
       }
       if (json[key].value) { //after lov, in case used
         // console.log("processUpdate value", key, json[key].value, gId(key));

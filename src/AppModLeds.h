@@ -6,15 +6,18 @@
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
-static CRGB leds[NUM_LEDS];
+CRGB *leds = nullptr;
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-static uint16_t nrOfLeds = 64; 
+static uint16_t nrOfLeds = 8; 
+static uint16_t width = 8; 
+static uint16_t height = 8; 
+static uint16_t depth = 1; 
 static uint16_t fps = 40;
+static unsigned long call = 0;
 
 //should not contain bytes to keep mem as small as possible
 class Effect {
 public:
-  unsigned long call = 0;
   virtual const char * name() { return nullptr;}
   virtual void setup() {} //not implemented yet
   virtual void loop() {}
@@ -140,7 +143,7 @@ class AppModLeds:public Module {
 
 public:
   uint8_t dataPin = 16; 
-  unsigned long nowUp = 0;
+  unsigned long frameMillis = 0;
   unsigned long frameCounter = 0;
 
   AppModLeds() :Module("Leds") {};
@@ -151,52 +154,12 @@ public:
 
     parentObject = ui->initGroup(parentObject, name);
 
-    ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
-      web->addResponseV(object, "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
-    }, [](JsonObject object) { //chFun
-      print->print("Set data pin to %d\n", object["value"].as<int>());
-    });
-
-    ui->initNumber(parentObject, "nrOfLeds", nrOfLeds, [](JsonObject object) { //uiFun
-      web->addResponseV(object, "comment", "Max %d", NUM_LEDS);
-    }, [](JsonObject object) { //chFun
-      fadeToBlackBy( leds, nrOfLeds, 100);
-      nrOfLeds = object["value"];
-      if (nrOfLeds>NUM_LEDS) {nrOfLeds = NUM_LEDS;ui->setValue("nrOfLeds", NUM_LEDS);};
-      print->print("Set nrOfLeds to %d\n", nrOfLeds);
-    });
-
     ui->initSlider(parentObject, "bri", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Brightness");
     }, [](JsonObject object) { //chFun
       uint8_t bri = map(object["value"], 0, 100, 0, 255);
       FastLED.setBrightness(bri);
       print->print("Set Brightness to %d -> %d\n", object["value"].as<int>(), bri);
-    });
-
-    ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
-      web->addResponse(object, "label", "Preview");
-      web->addResponse(object, "comment", "Preview in 2D");
-    }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
-      // send leds preview to clients
-      for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
-      {
-        buffer[i*3+4] = leds[i].red;
-        buffer[i*3+4+1] = leds[i].green;
-        buffer[i*3+4+2] = leds[i].blue;
-      }
-      //new values
-      buffer[0] = sqrt(nrOfLeds); //width
-      buffer[1] = nrOfLeds / buffer[0]; //height
-      buffer[2] = 1; //depth
-      buffer[3] = max(nrOfLeds * ws.count()/200, 16U); //interval in ms * 10, not too fast
-    });
-
-    ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
-      web->addResponse(object, "comment", "Frames per second");
-    }, [](JsonObject object) { //chFun
-      fps = object["value"];
-      print->print("fps changed %d\n", fps);
     });
 
     ui->initDropdown(parentObject, "fx", 3, [](JsonObject object) { //uiFun
@@ -210,7 +173,67 @@ public:
       print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
     });
 
+    ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Preview");
+    }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
+      // send leds preview to clients
+      for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
+      {
+        buffer[i*3+4] = leds[i].red;
+        buffer[i*3+4+1] = leds[i].green;
+        buffer[i*3+4+2] = leds[i].blue;
+      }
+      //new values
+      buffer[0] = width;
+      buffer[1] = height;
+      buffer[2] = depth;
+      buffer[3] = max(nrOfLeds * ws.count()/200, 16U); //interval in ms * 10, not too fast
+    });
+
+    ui->initNumber(parentObject, "width", width, [](JsonObject object) { //uiFun
+      web->addResponseV(object, "comment", "Max %d", 256);
+    }, [](JsonObject object) { //chFun
+      width = object["value"];
+      changeDimensions();
+      fadeToBlackBy( leds, nrOfLeds, 100);
+      if (width>256) {width = 256;ui->setValue("width", 256);};
+      print->print("Set width to %d\n", width);
+    });
+
+    ui->initNumber(parentObject, "height", height, [](JsonObject object) { //uiFun
+      web->addResponseV(object, "comment", "Max %d", 64);
+    }, [](JsonObject object) { //chFun
+      height = object["value"];
+      changeDimensions();
+      fadeToBlackBy( leds, nrOfLeds, 100);
+      if (height>64) {height = 64;ui->setValue("height", 64);};
+      print->print("Set height to %d\n", height);
+    });
+
+    ui->initNumber(parentObject, "depth", depth, [](JsonObject object) { //uiFun
+      web->addResponseV(object, "comment", "Max %d", 16);
+    }, [](JsonObject object) { //chFun
+      depth = object["value"];
+      changeDimensions();
+      fadeToBlackBy( leds, nrOfLeds, 100);
+      if (depth>16) {depth = 16;ui->setValue("depth", 16);};
+      print->print("Set depth to %d\n", depth);
+    });
+
+    ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
+      web->addResponse(object, "comment", "Frames per second");
+    }, [](JsonObject object) { //chFun
+      fps = object["value"];
+      print->print("fps changed %d\n", fps);
+    });
+
     ui->initDisplay(parentObject, "realFps");
+
+    ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
+      web->addResponseV(object, "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
+    }, [](JsonObject object) { //chFun
+      print->print("Set data pin to %d\n", object["value"].as<int>());
+    });
 
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
@@ -233,8 +256,8 @@ public:
   void loop() {
     // Module::loop();
 
-    if(millis() - nowUp > 1000/fps) {
-      nowUp = millis();
+    if(millis() - frameMillis >= 1000.0/fps) {
+      frameMillis = millis();
 
       Effect* effect = effects[ui->getValue("fx")];
       effect->loop();
@@ -252,7 +275,13 @@ public:
 
     // do some periodic updates
     EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
+  }
 
+  static void changeDimensions() { //static because of lambda functions
+    nrOfLeds = min(width * height * depth, 4096); //not highter then 4K leds
+    print->print("changeDimensions %d x %d x %d = %d\n", width, height, depth, nrOfLeds);
+    if (leds) free(leds);
+    leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
   }
 
 };

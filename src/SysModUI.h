@@ -66,8 +66,8 @@ public:
 
           AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(it->bufSize * 3 + 4);
 
-          wsBuf->lock();
           if (wsBuf) {//out of memory
+            wsBuf->lock();
             uint8_t* buffer = wsBuf->get();
 
             //to loop over old size
@@ -83,19 +83,19 @@ public:
 
             try {
               for (auto client:ws.getClients()) {
-                if (!client->queueIsFull()) 
+                if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
                   client->binary(wsBuf);
                 else 
-                  print->print("loopFun client %s full\n", client->remoteIP().toString().c_str());
+                  print->print("loopFun client %s full or not connected\n", client->remoteIP().toString().c_str());
               }
               // throw (1); // Throw an exception when a problem arise
             }
             catch (...) {
               Serial.printf("BINARY ALL EXCEPTION\n");
             }
-            ws._cleanBuffers();
+            wsBuf->unlock();
           }
-          wsBuf->unlock();
+          ws._cleanBuffers();
         }
 
         it->counter++;

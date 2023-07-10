@@ -8,10 +8,10 @@
 
 CRGB *leds = nullptr;
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-static uint16_t nrOfLeds = 8; 
+static uint16_t nrOfLeds = 0; 
 static uint16_t width = 8; 
-static uint16_t height = 8; 
-static uint16_t depth = 1; 
+static uint8_t height = 8; 
+static uint8_t depth = 1; 
 static uint16_t fps = 40;
 static unsigned long call = 0;
 
@@ -194,30 +194,27 @@ public:
       web->addResponseV(object, "comment", "Max %d", 256);
     }, [](JsonObject object) { //chFun
       width = object["value"];
+      if (width>256) {width = 256;ui->setValue("width", 256);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
-      if (width>256) {width = 256;ui->setValue("width", 256);};
-      print->print("Set width to %d\n", width);
     });
 
     ui->initNumber(parentObject, "height", height, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Max %d", 64);
     }, [](JsonObject object) { //chFun
       height = object["value"];
+      if (height>64) {height = 64;ui->setValue("height", 64);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
-      if (height>64) {height = 64;ui->setValue("height", 64);};
-      print->print("Set height to %d\n", height);
     });
 
     ui->initNumber(parentObject, "depth", depth, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Max %d", 16);
     }, [](JsonObject object) { //chFun
       depth = object["value"];
+      if (depth>16) {depth = 16;ui->setValue("depth", 16);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
-      if (depth>16) {depth = 16;ui->setValue("depth", 16);};
-      print->print("Set depth to %d\n", depth);
     });
 
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
@@ -234,9 +231,6 @@ public:
     }, [](JsonObject object) { //chFun
       print->print("Set data pin to %d\n", object["value"].as<int>());
     });
-
-    // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
 
     effects.push_back(new RainbowEffect);
     effects.push_back(new RainbowWithGlitterEffect);
@@ -282,6 +276,8 @@ public:
     print->print("changeDimensions %d x %d x %d = %d\n", width, height, depth, nrOfLeds);
     if (leds) free(leds);
     leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
+    // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
+    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
   }
 
 };

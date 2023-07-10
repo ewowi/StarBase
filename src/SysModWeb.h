@@ -110,29 +110,32 @@ public:
       size_t len = measureJson(json);
       AsyncWebSocketMessageBuffer *wsBuf = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
 
-      wsBuf->lock();
       if (wsBuf) {
+        wsBuf->lock();
         serializeJson(json, (char *)wsBuf->get(), len);
         if (client) {
-          client->text(wsBuf);
+          if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
+            client->text(wsBuf);
+          else 
+            print->print("sendDataWs client %s full or not connected\n", client->remoteIP().toString().c_str());
           // DEBUG_PRINTLN(F("to a single client."));
         } else {
           try { 
             for (auto client:ws.getClients()) {
-              if (!client->queueIsFull()) 
+              if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
                 client->text(wsBuf);
               else 
-                print->print("sendDataWs client %s full\n", client->remoteIP().toString().c_str());
+                print->print("sendDataWs client %s full or not connected\n", client->remoteIP().toString().c_str());
             }
             // DEBUG_PRINTLN(F("to multiple clients."));
           }
           catch (...) {
             Serial.printf("TEXT ALL EXCEPTION\n");
           }
-          ws._cleanBuffers();
         }
+        wsBuf->unlock();
       }
-      wsBuf->unlock();
+      ws._cleanBuffers();
     }
   }
 

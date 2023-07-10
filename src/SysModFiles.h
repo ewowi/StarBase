@@ -32,20 +32,20 @@ public:
     //should be in SysModFiles...
     parentObject = ui->initGroup(parentObject, name);
 
-    JsonObject manyObject = ui->initMany(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
+    JsonObject fileListObject = ui->initMany(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Files");
       web->addResponse(object, "comment", "List of files");
       JsonArray rows = web->addResponseArray(object, "many");
       dirToJson(rows);
     });
-    ui->initDisplay(manyObject, "fName", nullptr, [](JsonObject object) { //uiFun
+    ui->initDisplay(fileListObject, "flName", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Name");
     });
-    ui->initDisplay(manyObject, "fSize", nullptr, [](JsonObject object) { //uiFun
+    ui->initDisplay(fileListObject, "flSize", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Size (B)");
     });
 
-    ui->initDisplay(parentObject, "dsize", nullptr, [](JsonObject object) { //uiFun
+    ui->initDisplay(parentObject, "drsize", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Total FS size");
     });
 
@@ -58,7 +58,7 @@ public:
       secondMillis = millis();
 
       //should be in SysModFiles...
-      ui->setValueV("dsize", "%d / %d B", usedBytes(), totalBytes());
+      ui->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
     }
 
   }

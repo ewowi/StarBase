@@ -78,9 +78,7 @@ public:
               const char *error = processWSFunc(responseVariant); //processJson, adds to responsedoc
 
               if (responseDoc.size()) {
-                // char resStr[200]; 
-                // serializeJson(responseDoc, resStr, 200);
-                // print->print("WS_EVT_DATA send response %s\n", resStr);
+                // print->printJson("WS_EVT_DATA send response", responseDoc);
 
                 //uiFun only send to requesting client
                 if (responseDoc["uiFun"].isNull())
@@ -203,11 +201,10 @@ public:
     //URL handler
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
       responseDoc.clear();
-      char resStr[200]; 
-      serializeJson(json, resStr, 200);
-      print->print("AsyncCallbackJsonWebHandler json %s\n", resStr);
+      print->printJson("AsyncCallbackJsonWebHandler", json);
       const char * pErr = processFunc(json); //processJson
       if (responseDoc.size()) {
+        char resStr[200]; 
         serializeJson(responseDoc, resStr, 200);
         print->print("processJsonUrl response %s\n", resStr);
         request->send(200, "text/plain", resStr);

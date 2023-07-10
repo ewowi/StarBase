@@ -2,6 +2,7 @@ class SysModModel:public Module {
 
 public:
   static bool doWriteModel;
+  static bool doShowObsolete;
 
   SysModModel() :Module("Model") {
     JsonArray root = model.to<JsonArray>(); //create
@@ -10,9 +11,7 @@ public:
 
     print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
     if (readObjectFromFile("/model.json", &model)) {//not part of success...
-      char resStr[200]; 
-      serializeJson(model, resStr, 200);
-      print->print("Read model %s\n", resStr);
+      print->printJson("Read model", model);
       web->sendDataWs(nullptr, false); //send new data: all clients, no def
     }
 
@@ -30,8 +29,19 @@ public:
       web->addResponse(object, "label", "Size");
     });
 
+    ui->initCheckBox(parentObject, "showObsolete", false, [](JsonObject object) {
+      web->addResponse(object, "comment", "Show in UI (refresh)");
+    }, [](JsonObject object) {
+      doShowObsolete = object["value"];
+    });
+
     ui->initButton(parentObject, "saveModel", "SaveModel", nullptr, [](JsonObject object) {
       doWriteModel = true;
+    });
+    ui->initButton(parentObject, "deleteObsolete", "DeleteObsolete", [](JsonObject object) {
+      web->addResponse(object, "label", "Delete obsolete objects");
+    }, [](JsonObject object) {
+
     });
     ui->initButton(parentObject, "deleteModel", "DeleteModel", nullptr, [](JsonObject object) {
       print->print("delete model json\n");
@@ -44,11 +54,11 @@ public:
   void loop(){
     // Module::loop();
     if (doWriteModel) {
+      //clean up model
+      cleanUpModel(model.as<JsonArray>());
       print->println(F("Writing model to /model.json... (serializeConfig)"));
       writeObjectToFile("/model.json", &model);
-      char resStr[200]; 
-      serializeJson(model, resStr, 200);
-      print->print("write model %s\n", resStr);
+      print->printJson("Write model", model);
 
       doWriteModel = false;
     }
@@ -63,6 +73,29 @@ public:
       size_t memBefore = model.memoryUsage();
       model.garbageCollect();
       print->print("garbageCollect %u / %u%% -> %u / %u%%\n", memBefore, 100 * memBefore / model.capacity(), model.memoryUsage(), 100 * model.memoryUsage() / model.capacity());
+    }
+  }
+
+  void cleanUpModel(JsonArray objects) {
+    for (JsonArray::iterator objectV=objects.begin(); objectV!=objects.end(); ++objectV) {
+    // for (JsonVariant objectV : objects) {
+      if (objectV->is<JsonObject>()) {
+
+        JsonObject object = objectV->as<JsonObject>();
+
+        if ((object)["type"] == "display") 
+          objects.remove(objectV);
+        else {
+          for (JsonPair pair : object) { //iterate json elements
+            JsonVariant value = pair.value();
+          }
+
+          object.remove("s");
+
+          if (!object["n"].isNull() && object["n"].is<JsonArray>())
+            cleanUpModel(object["n"]);
+        }
+      } 
     }
   }
 
@@ -105,3 +138,4 @@ public:
 static SysModModel *mdl;
 
 bool SysModModel::doWriteModel = false;
+bool SysModModel::doShowObsolete = false;

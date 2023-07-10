@@ -24,13 +24,15 @@ public:
 
     parentObject = ui->initGroup(parentObject, name);
     ui->initInput(parentObject, "ssid", "");
-    ui->initPassword(parentObject, "pw", "", [](JsonObject object) {
+    ui->initPassword(parentObject, "pw", "", [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Password");
     });
     ui->initButton(parentObject, "connect", "Connect", nullptr, [](JsonObject object) {
       forceReconnect = true;
     });
-    ui->initDisplay(parentObject, "status");
+    ui->initDisplay(parentObject, "nwstatus", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Status");
+    });
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -66,8 +68,10 @@ public:
         print->print("Not connected AP.\n");
         initAP();
       }
+      else
+        ui->setValueP("nwstatus", "not initAP %s", WiFi.localIP().toString().c_str());
     } else if (!interfacesInited) { //newly connected
-      ui->setValueP("status", "Connected %s", WiFi.localIP().toString().c_str());
+      ui->setValueP("nwstatus", "Connected %s", WiFi.localIP().toString().c_str());
 
       interfacesInited = true;
 
@@ -118,7 +122,7 @@ public:
     WiFi.softAP(apSSID, apPass, apChannel, apHide);
     if (!apActive) // start captive portal if AP active
     {
-      ui->setValueP("status", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
+      ui->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
       // send all modules connect notification
       for (Module *module:modules) module->connected();
@@ -126,6 +130,9 @@ public:
       dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
       dnsServer.start(53, "*", WiFi.softAPIP());
     }
+    else
+      ui->setValueP("nwstatus", "AP active %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
+
     apActive = true;
   }
 

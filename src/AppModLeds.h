@@ -1,7 +1,7 @@
 #include "FastLED.h"
 
 #define DATA_PIN 16
-#define NUM_LEDS 2000
+#define NUM_LEDS 1024
 
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html

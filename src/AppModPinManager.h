@@ -31,13 +31,13 @@ public:
   static void updateGPIO(JsonObject object) {
     if (object["value"].is<bool>()) {
       bool pin = object["value"];
-      const char *id = object["id"];
+      JsonString id = object["id"];
 
-      print->print("updateGPIO %s:=%d\n", id, pin);
+      print->print("updateGPIO %s:=%d\n", id.c_str(), pin);
 
-      if (strcmp(id, "pin2") == 0) digitalWrite(2, pin?HIGH:LOW);
-      if (strcmp(id, "pin4") == 0) digitalWrite(4, pin?HIGH:LOW);
-      if (strcmp(id, "pin33") == 0) digitalWrite(33, pin?HIGH:LOW);
+      if (id == "pin2") digitalWrite(2, pin?HIGH:LOW);
+      if (id == "pin4") digitalWrite(4, pin?HIGH:LOW);
+      if (id == "pin33") digitalWrite(33, pin?HIGH:LOW);
     }
   }
 

@@ -45,13 +45,13 @@ public:
         row.add(client->queueIsFull());
       }
     });
-    ui->initDisplay(clientListObject, "cNr", nullptr, [](JsonObject object) { //uiFun
+    ui->initDisplay(clientListObject, "clNr", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Nr");
     });
-    ui->initDisplay(clientListObject, "cIp", nullptr, [](JsonObject object) { //uiFun
+    ui->initDisplay(clientListObject, "clIp", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "IP");
     });
-    ui->initDisplay(clientListObject, "cIsFull", nullptr, [](JsonObject object) { //uiFun
+    ui->initDisplay(clientListObject, "clIsFull", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Is full");
     });
 
@@ -76,13 +76,12 @@ public:
       //if something changed in clist
       if (web->clientsChanged) {
         web->clientsChanged = false;
-        // ui->setValueV("nrOfC", "%u", ws.count());
 
         //replace clist table
         responseDoc.clear(); //needed for deserializeJson?
         responseDoc["uiFun"] = "clist";
         JsonVariant responseVariant = responseDoc.as<JsonVariant>();
-        ui->processJson(responseVariant);
+        ui->processJson(responseVariant); //this calls uiFun command
         web->sendDataWs(responseVariant);
       }
 

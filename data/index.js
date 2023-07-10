@@ -43,7 +43,7 @@ function generateHTML(parentNode, json) {
   // console.log("generateHTML", json);
   if (Array.isArray(json)) for (var element of json) //if isArray then objects of array
     generateHTML(parentNode, element);
-  else {
+  else if (json.s) {
     if (parentNode == null) {
       parentNode = gId("column" + columnNr);
       columnNr = (columnNr +1)%nrOfColumns;

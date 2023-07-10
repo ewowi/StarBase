@@ -38,11 +38,16 @@ public:
   void printObject(JsonObject object) {
     char sep[3] = "";
     for (JsonPair pair: object) {
-      const char * key = pair.key().c_str();
-      JsonVariant value = pair.value();
-      print("%s%s: %s", sep, key, value.as<String>().c_str());
+      print("%s%s: %s", sep, pair.key(), pair.value().as<String>().c_str());
       strcpy(sep, ", ");
     }
+  }
+
+  size_t printJson(const char * text, JsonVariantConst source) {
+    Serial.printf("%s ", text);
+    size_t size = serializeJson(source, Serial); //for the time being
+    Serial.println();
+    return size;
   }
 
 };

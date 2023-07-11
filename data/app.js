@@ -9,6 +9,8 @@ function userFun(userFunId, data) {
     let pviewNode = gId("pview");
     let pview3DNode = pviewNode.parentNode.querySelector('#pview3D');
 
+    // console.log("userFun", leds);
+
     if (leds[2] == 1) {
       if (pview3DNode) pview3DNode.hidden = true;
       pviewNode.hidden = false;
@@ -31,7 +33,6 @@ function userFun(userFunId, data) {
 }
 
 function preview2D(node, leds) {
-  // console.log(node,leds);
   let ctx = node.getContext('2d');
   let mW = leds[0]; // matrix width
   let mH = leds[1]; // matrix height
@@ -40,7 +41,7 @@ function preview2D(node, leds) {
   let i = 4;
   ctx.clearRect(0, 0, node.width, node.height);
   for (y=0.5;y<mH;y++) for (x=0.5; x<mW; x++) {
-    if (leds[i] + leds[i+1] + leds[i+2] != 0) { //do not show blacks
+    if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
       ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
       ctx.beginPath();
       ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
@@ -98,9 +99,11 @@ function preview3D(node, leds) {
   for (var x = 0; x < mW; x++) {
       for (var y = 0; y < mH; y++) {
           for (var z = 0; z < mD; z++) {
-              if (i < scene.children.length)
-                if (leds[i*3 + firstLed] + leds[i*3 + firstLed + 1] + leds[i*3 + firstLed+2] != 0) //do not show blacks
+              if (i < scene.children.length) {
+                scene.children[i].visible = leds[i*3 + firstLed] + leds[i*3 + firstLed + 1] + leds[i*3 + firstLed+2] > 10; //do not show blacks
+                if (scene.children[i].visible) 
                   scene.children[i].material.color = new THREE.Color(`${leds[i*3 + firstLed]/255}`, `${leds[i*3 + firstLed + 1]/255}`, `${leds[i*3 + firstLed + 2]/255}`);
+              }
               i++;
           }
       }

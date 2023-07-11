@@ -82,6 +82,7 @@ public:
         responseDoc["uiFun"] = "clist";
         JsonVariant responseVariant = responseDoc.as<JsonVariant>();
         ui->processJson(responseVariant); //this calls uiFun command
+        print->printJson("clist change response", responseDoc);
         web->sendDataWs(responseVariant);
       }
 

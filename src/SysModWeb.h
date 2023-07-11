@@ -9,8 +9,13 @@
 // Create AsyncWebServer object on port 80
 static AsyncWebServer server(80);
 static AsyncWebSocket ws("/ws");
-static const char *(*processWSFunc)(JsonVariant &) = nullptr;
+static const char * (*processWSFunc)(JsonVariant &) = nullptr;
 static StaticJsonDocument<2048> responseDoc;
+
+SemaphoreHandle_t drawMux = xSemaphoreCreateBinary();
+const TickType_t maxWait =     300 * portTICK_PERIOD_MS;   // wait max. 300ms 
+#define FLD_SemaphoreTake(x,t)  xSemaphoreTake((x),(t))
+#define FLD_SemaphoreGive(x)    xSemaphoreGive(x)
 
 class SysModWeb:public Module {
 
@@ -24,6 +29,8 @@ public:
   void setup() {
     Module::setup();
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+
+    FLD_SemaphoreGive(drawMux);
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -57,7 +64,7 @@ public:
       clientsChanged = true;
     } else if(type == WS_EVT_DATA){
       AwsFrameInfo * info = (AwsFrameInfo*)arg;
-      print->print("WS event data %d %d %d %d\n", ws.count(), info->final, info->index, info->len);
+      print->print("WS event data %d %d %d %d=%d? %d %d\n", ws.count(), info->final, info->index, info->len, len, info->opcode, data[0]);
       if (info->final && info->index == 0 && info->len == len){
         // the whole message is in a single frame and we got all of its data (max. 1450 bytes)
         if (info->opcode == WS_TEXT)
@@ -71,14 +78,14 @@ public:
 
           if (processWSFunc) { //processJson defined
             DeserializationError error = deserializeJson(responseDoc, data, len); //data to responseDoc
-            if (error) {
+            if (error || responseDoc.isNull()) {
               print->print("wsEvent deserializeJson failed with code %s %s\n", error.c_str(), data);
             } else {
               JsonVariant responseVariant = responseDoc.as<JsonVariant>();
-              const char *error = processWSFunc(responseVariant); //processJson, adds to responsedoc
+              const char * error = processWSFunc(responseVariant); //processJson, adds to responsedoc
 
               if (responseDoc.size()) {
-                // print->printJson("WS_EVT_DATA send response", responseDoc);
+                print->printJson("WS_EVT_DATA send response", responseDoc);
 
                 //uiFun only send to requesting client
                 if (responseDoc["uiFun"].isNull())
@@ -105,6 +112,8 @@ public:
     ws.cleanupClients();
 
     if (ws.count()) {
+      if (FLD_SemaphoreTake(drawMux, maxWait ) != pdTRUE) return; // WLEDMM acquire draw mutex - clear() can take very long in software I2C mode
+
       size_t len = measureJson(json);
       AsyncWebSocketMessageBuffer *wsBuf = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
 
@@ -132,8 +141,16 @@ public:
           }
         }
         wsBuf->unlock();
+        ws._cleanBuffers();
       }
-      ws._cleanBuffers();
+      else {
+        print->print("sendDataWs WS buffer allocation failed\n");
+        ws.closeAll(1013); //code 1013 = temporary overload, try again later
+        ws.cleanupClients(0); //disconnect all clients to release memory
+        ws._cleanBuffers();
+      }
+
+      FLD_SemaphoreGive(drawMux);                                     // WLEDMM release draw mutex
     }
   }
 
@@ -195,7 +212,7 @@ public:
   //curl -X POST "http://4.3.2.1/json" -d '{"fx":2}' -H "Content-Type: application/json"
   //curl -X POST "http://192.168.121.196/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
 
-  bool setupJsonHandlers(const char * uri, const char *(*processFunc)(JsonVariant &)) {
+  bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &)) {
     processWSFunc = processFunc; //for WebSocket requests
 
     //URL handler

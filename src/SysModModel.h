@@ -83,8 +83,9 @@ public:
 
         JsonObject object = objectV->as<JsonObject>();
 
-        if ((object)["type"] == "display") 
-          objects.remove(objectV);
+        if ((object)["type"] == "display")  {
+          // objects.remove(objectV); //not for now as app needs it (rebuild needed?)
+        }
         else {
           for (JsonPair pair : object) { //iterate json elements
             JsonVariant value = pair.value();

@@ -8,14 +8,14 @@ static DynamicJsonDocument model(24576); //not static as that blows up the stack
 class Module {
 
 public:
-  const char *name;
+  const char * name;
   bool success;
   bool enabled;
   unsigned long secondMillis = 0;
 
   JsonObject parentObject;
 
-  Module(const char *name) {
+  Module(const char * name) {
     this->name = name;
     success = true;
     enabled = true;

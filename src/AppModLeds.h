@@ -14,6 +14,7 @@ static uint8_t height = 8;
 static uint8_t depth = 1; 
 static uint16_t fps = 40;
 static unsigned long call = 0;
+uint8_t bri = 10;
 
 //should not contain bytes to keep mem as small as possible
 class Effect {
@@ -21,12 +22,12 @@ public:
   virtual const char * name() { return nullptr;}
   virtual void setup() {} //not implemented yet
   virtual void loop() {}
-  virtual const char *parameters() {return nullptr;}
+  virtual const char * parameters() {return nullptr;}
 };
 
 class RainbowEffect:public Effect {
 public:
-  const char *name() {
+  const char * name() {
     return "Rainbow";
   }
   void setup() {} //not implemented yet
@@ -38,7 +39,7 @@ public:
 
 class RainbowWithGlitterEffect:public RainbowEffect {
 public:
-  const char *name() {
+  const char * name() {
     return "Rainbow with glitter";
   }
   void setup() {} //not implemented yet
@@ -57,7 +58,7 @@ public:
 
 class SinelonEffect:public Effect {
 public:
-  const char *name() {
+  const char * name() {
     return "Sinelon";
   }
   void setup() {} //not implemented yet
@@ -71,7 +72,7 @@ public:
 
 class RunningEffect:public Effect {
 public:
-  const char *name() {
+  const char * name() {
     return "Running";
   }
   void setup() {} //not implemented yet
@@ -82,13 +83,12 @@ public:
     // leds[pos0] = CHSV( 0,0,0);
     int pos = call%nrOfLeds;
     leds[pos] = CHSV( gHue, 255, 192);
-    call++;
   }
 };
 
 class ConfettiEffect:public Effect {
 public:
-  const char *name() {
+  const char * name() {
     return "Confetti";
   }
   void setup() {} //not implemented yet
@@ -102,7 +102,7 @@ public:
 
 class BPMEffect:public Effect {
 public:
-  const char *name() {
+  const char * name() {
     return "Beats per minute";
   }
   void setup() {} //not implemented yet
@@ -115,14 +115,14 @@ public:
       leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
     }
   }
-  const char *parameters() {
+  const char * parameters() {
     return "BeatsPerMinute";
   }
 };
 
 class JuggleEffect:public Effect {
 public:
-  const char *name() {
+  const char * name() {
     return "Juggle";
   }
   void setup() {} //not implemented yet
@@ -136,6 +136,81 @@ public:
     }
   }
 };
+
+float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16_t y2, uint16_t z2) {
+    return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+}
+
+class Ripples3DEffect:public Effect {
+public:
+  const char * name() {
+    return "Ripples 3D";
+  }
+  void setup() {} //not implemented yet
+  void loop() {
+    float ripple_interval = 1.3;// * (SEGMENT.intensity/128.0);
+
+    fill_solid(leds, nrOfLeds, CRGB::Black);
+    // fill(CRGB::Black);
+
+    uint16_t mW = width;
+    uint16_t mH = height;
+    uint16_t mD = depth;
+
+    for (int z=0; z<mD; z++) {
+        for (int x=0; x<mW; x++) {
+            float d = distance(3.5, 3.5, 0, x, z, 0)/9.899495*mH;
+            uint16_t height = floor(mH/2.0+sinf(d/ripple_interval + call/((256.0-128.0)/20.0))*mH/2.0); //between 0 and 8
+
+            // CRGBPalette256 pal;
+            // ColorFromPalette(pal,call, ui->getValue("bri").as<uint8_t>(), LINEARBLEND);
+            leds[x + height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+        }
+    }
+  }
+};
+
+class SphereMove3DEffect:public Effect {
+public:
+  const char * name() {
+    return "SphereMove 3D";
+  }
+  void setup() {} //not implemented yet
+  void loop() {
+    uint16_t origin_x, origin_y, origin_z, d;
+    float diameter;
+
+    fill_solid(leds, nrOfLeds, CRGB::Black);
+    // fill(CRGB::Black);
+
+    uint32_t interval = call/((256.0-128.0)/20.0);
+
+    uint16_t mW = width;
+    uint16_t mH = height;
+    uint16_t mD = depth;
+
+    origin_x = 3.5+sinf(interval)*2.5;
+    origin_y = 3.5+cosf(interval)*2.5;
+    origin_z = 3.5+cosf(interval)*2.0;
+
+    diameter = 2.0+sinf(interval/3.0);
+
+                    // CRGBPalette256 pal;
+    for (int x=0; x<mW; x++) {
+        for (int y=0; y<mH; y++) {
+            for (int z=0; z<mD; z++) {
+                d = distance(x, y, z, origin_x, origin_y, origin_z);
+
+                if (d>diameter && d<diameter+1) {
+                    // setPixelColor(x + y*mW + z*mW*mH, color_from_palette(SEGENV.call, true, PALETTE_SOLID_WRAP, 0));
+                    leds[x + height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+                }
+            }
+        }
+    }
+  }
+}; // 3DSphereMove
+
 
 static std::vector<Effect *> effects;
 
@@ -157,7 +232,7 @@ public:
     ui->initSlider(parentObject, "bri", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Brightness");
     }, [](JsonObject object) { //chFun
-      uint8_t bri = map(object["value"], 0, 100, 0, 255);
+      bri = map(object["value"], 0, 100, 0, 255);
       FastLED.setBrightness(bri);
       print->print("Set Brightness to %d -> %d\n", object["value"].as<int>(), bri);
     });
@@ -226,6 +301,11 @@ public:
 
     ui->initDisplay(parentObject, "realFps");
 
+    ui->initDisplay(parentObject, "nrOfLeds", nullptr, [](JsonObject object) { //uiFun
+      web->addResponseV(object, "comment", "Max %d", NUM_LEDS);
+    });
+    ui->setValue("nrOfLeds", nrOfLeds); //set here as changeDimensions already called for width/height/depth
+
     ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
     }, [](JsonObject object) { //chFun
@@ -239,6 +319,8 @@ public:
     effects.push_back(new ConfettiEffect);
     effects.push_back(new BPMEffect);
     effects.push_back(new JuggleEffect);
+    effects.push_back(new Ripples3DEffect);
+    effects.push_back(new SphereMove3DEffect);
 
     for (Effect *effect:effects) {
       print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
@@ -260,6 +342,7 @@ public:
       FastLED.show();  
 
       frameCounter++;
+      call++;
     }
     if (millis() - secondMillis >= 1000 || !secondMillis) {
       secondMillis = millis();
@@ -273,6 +356,7 @@ public:
 
   static void changeDimensions() { //static because of lambda functions
     nrOfLeds = min(width * height * depth, 4096); //not highter then 4K leds
+    ui->setValue("nrOfLeds", nrOfLeds);
     print->print("changeDimensions %d x %d x %d = %d\n", width, height, depth, nrOfLeds);
     if (leds) free(leds);
     leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));

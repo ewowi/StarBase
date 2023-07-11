@@ -8,8 +8,15 @@ function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
 
 function onLoad() {
+  makeWS();
+
+  initColumns();
+}
+
+function makeWS() {
+  if (ws) return;
   let url = (window.location.protocol == "https:"?"wss":"ws")+'://'+window.location.hostname+'/ws';
-  console.log("onLoad url", url);
+  console.log("makeWS url", url);
   ws = new WebSocket(url);
   ws.binaryType = "arraybuffer";
   ws.onmessage = (e)=>{
@@ -31,12 +38,12 @@ function onLoad() {
   }
   ws.onclose = (e)=>{
     console.log("WS close", e);
+    setTimeout(makeWS,1500); // retry WS connection
+		ws = null;
   }
   ws.onopen = (e)=>{
     console.log("WS open", e);
   }
-
-  initColumns();
 }
 
 function generateHTML(parentNode, json) {

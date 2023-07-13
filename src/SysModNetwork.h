@@ -68,8 +68,6 @@ public:
         print->print("Not connected AP.\n");
         initAP();
       }
-      else
-        ui->setValueP("nwstatus", "not initAP %s", WiFi.localIP().toString().c_str());
     } else if (!interfacesInited) { //newly connected
       ui->setValueP("nwstatus", "Connected %s", WiFi.localIP().toString().c_str());
 
@@ -130,8 +128,6 @@ public:
       dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
       dnsServer.start(53, "*", WiFi.softAPIP());
     }
-    else
-      ui->setValueP("nwstatus", "AP active %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
     apActive = true;
   }

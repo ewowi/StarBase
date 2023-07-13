@@ -10,12 +10,8 @@
 static AsyncWebServer server(80);
 static AsyncWebSocket ws("/ws");
 static const char * (*processWSFunc)(JsonVariant &) = nullptr;
-static StaticJsonDocument<2048> responseDoc;
-
-SemaphoreHandle_t drawMux = xSemaphoreCreateBinary();
-const TickType_t maxWait =     300 * portTICK_PERIOD_MS;   // wait max. 300ms 
-#define FLD_SemaphoreTake(x,t)  xSemaphoreTake((x),(t))
-#define FLD_SemaphoreGive(x)    xSemaphoreGive(x)
+static StaticJsonDocument<2048> responseDoc0;
+static StaticJsonDocument<2048> responseDoc1;
 
 class SysModWeb:public Module {
 
@@ -29,8 +25,6 @@ public:
   void setup() {
     Module::setup();
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    FLD_SemaphoreGive(drawMux);
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -54,17 +48,30 @@ public:
       print->print("%s server (re)started\n", name);
   }
 
+  //WebSocket connection to 'ws://192.168.8.152/ws' failed: The operation couldn’t be completed. Protocol error
+  //WS error 192.168.8.126 9 (2)
+  //WS event data 0.0.0.0 (1) 0 0 0=0? 34 0
+  //WS pong 0.0.0.0 9 (1)
+  //wsEvent deserializeJson failed with code EmptyInput
+
+  // https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
+
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+    if (!ws.count()) {
+      print->print("wsEvent no clients\n");
+      return;
+    }
     if(type == WS_EVT_CONNECT) {
-      print->print("WS client connected %d", ws.count());
+      printClient("WS client connected", client);
       sendDataWs(client, true); //send definition to client
       clientsChanged = true;
     } else if(type == WS_EVT_DISCONNECT) {
-      print->print("WS Client disconnected %d\n", ws.count());
+      printClient("WS Client disconnected", client);
       clientsChanged = true;
     } else if(type == WS_EVT_DATA){
       AwsFrameInfo * info = (AwsFrameInfo*)arg;
-      print->print("WS event data %d %d %d %d=%d? %d %d\n", ws.count(), info->final, info->index, info->len, len, info->opcode, data[0]);
+      printClient("WS event data", client);
+      print->print("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
       if (info->final && info->index == 0 && info->len == len){
         // the whole message is in a single frame and we got all of its data (max. 1450 bytes)
         if (info->opcode == WS_TEXT)
@@ -72,39 +79,76 @@ public:
           if (len > 0 && len < 10 && data[0] == 'p') {
             // application layer ping/pong heartbeat.
             // client-side socket layer ping packets are unresponded (investigate)
+            printClient("WS client pong", client);
             client->text(F("pong"));
             return;
           }
 
           if (processWSFunc) { //processJson defined
-            DeserializationError error = deserializeJson(responseDoc, data, len); //data to responseDoc
-            if (error || responseDoc.isNull()) {
+            DeserializationError error = deserializeJson(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1, data, len); //data to responseDoc
+            JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+            print->print("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
+
+            if (error || responseVariant.isNull()) {
               print->print("wsEvent deserializeJson failed with code %s %s\n", error.c_str(), data);
+              client->text(F("{\"success\":true}")); // we have to send something back otherwise WS connection closes
             } else {
-              JsonVariant responseVariant = responseDoc.as<JsonVariant>();
               const char * error = processWSFunc(responseVariant); //processJson, adds to responsedoc
 
-              if (responseDoc.size()) {
-                print->printJson("WS_EVT_DATA send response", responseDoc);
+              if (responseVariant.size()) {
+                print->printJson("WS_EVT_DATA send response", responseVariant);
 
                 //uiFun only send to requesting client
-                if (responseDoc["uiFun"].isNull())
+                if (responseVariant["uiFun"].isNull())
                   sendDataWs(responseVariant);
                 else
                   sendDataWs(client, responseVariant);
               }
+              else {
+                print->print("WS_EVT_DATA no responseDoc\n");
+                client->text(F("{\"success\":true}")); // we have to send something back otherwise WS connection closes
+              }
             }
           }
-          else print->print("WS_EVT_DATA no processWSFunc\n");
+          else {
+            print->print("WS_EVT_DATA no processWSFunc\n");
+            client->text(F("{\"success\":true}")); // we have to send something back otherwise WS connection closes
+          }
+         }
+      } else {
+        //message is comprised of multiple frames or the frame is split into multiple packets
+        //if(info->index == 0){
+          //if (!wsFrameBuffer && len < 4096) wsFrameBuffer = new uint8_t[4096];
+        //}
+
+        //if (wsFrameBuffer && len < 4096 && info->index + info->)
+        //{
+
+        //}
+
+        if((info->index + len) == info->len){
+          if(info->final){
+            if(info->message_opcode == WS_TEXT) {
+              client->text(F("{\"error\":9}")); //we do not handle split packets right now
+            }
+          }
         }
+        print->print("WS multipart message.\n");
       }
-    } else if(type == WS_EVT_ERROR){
+    } else if (type == WS_EVT_ERROR){
       //error was received from the other end
-      print->print("WS error %d\n", ws.count());
-    } else if(type == WS_EVT_PONG){
+      printClient("WS error", client);
+      Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+
+    } else if (type == WS_EVT_PONG){
       //pong message was received (in response to a ping request maybe)
-      print->print("WS pong %d\n", ws.count());
+      printClient("WS pong", client);
+      Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
     }
+  }
+
+  static void printClient(const char * text, AsyncWebSocketClient * client) {
+    print->print("%s client: %d %s (%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", ws.count());
   }
 
   //send json to client or all clients
@@ -112,8 +156,6 @@ public:
     ws.cleanupClients();
 
     if (ws.count()) {
-      if (FLD_SemaphoreTake(drawMux, maxWait ) != pdTRUE) return; // WLEDMM acquire draw mutex - clear() can take very long in software I2C mode
-
       size_t len = measureJson(json);
       AsyncWebSocketMessageBuffer *wsBuf = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
 
@@ -127,18 +169,13 @@ public:
             print->print("sendDataWs client %s full or not connected\n", client->remoteIP().toString().c_str());
           // DEBUG_PRINTLN(F("to a single client."));
         } else {
-          try { 
-            for (auto client:ws.getClients()) {
-              if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
-                client->text(wsBuf);
-              else 
-                print->print("sendDataWs client %s full or not connected\n", client->remoteIP().toString().c_str());
-            }
-            // DEBUG_PRINTLN(F("to multiple clients."));
+          for (auto client:ws.getClients()) {
+            if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
+              client->text(wsBuf);
+            else 
+              print->print("sendDataWs client %s full or not connected\n", client->remoteIP().toString().c_str());
           }
-          catch (...) {
-            Serial.printf("TEXT ALL EXCEPTION\n");
-          }
+          // DEBUG_PRINTLN(F("to multiple clients."));
         }
         wsBuf->unlock();
         ws._cleanBuffers();
@@ -150,7 +187,6 @@ public:
         ws._cleanBuffers();
       }
 
-      FLD_SemaphoreGive(drawMux);                                     // WLEDMM release draw mutex
     }
   }
 
@@ -209,20 +245,22 @@ public:
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
-  //curl -X POST "http://4.3.2.1/json" -d '{"fx":2}' -H "Content-Type: application/json"
-  //curl -X POST "http://192.168.121.196/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
+  //curl -X POST "http://192.168.8.152/json" -d '{"fx":2}' -H "Content-Type: application/json"
+  //curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
 
   bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &)) {
     processWSFunc = processFunc; //for WebSocket requests
 
     //URL handler
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
-      responseDoc.clear();
+      JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+      (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).clear();
+      
       print->printJson("AsyncCallbackJsonWebHandler", json);
       const char * pErr = processFunc(json); //processJson
-      if (responseDoc.size()) {
+      if (responseVariant.size()) {
         char resStr[200]; 
-        serializeJson(responseDoc, resStr, 200);
+        serializeJson(responseVariant, resStr, 200);
         print->print("processJsonUrl response %s\n", resStr);
         request->send(200, "text/plain", resStr);
       }
@@ -236,13 +274,15 @@ public:
 
   void addResponse(JsonObject object, const char * key, const char * value) {
     const char * id = object["id"];
-    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
-    responseDoc[id][key] = value;
+    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
+    responseVariant[id][key] = value;
   }
 
   void addResponseV(JsonObject object, const char * key, const char * format, ...) {
     const char * id = object["id"];
-    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
+    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
     va_list args;
     va_start(args, format);
 
@@ -252,23 +292,26 @@ public:
 
     va_end(args);
 
-    responseDoc[id][key] = value;
+    responseVariant[id][key] = value;
   }
 
-  void addResponseInt(JsonObject object, const char * key, int value) { //temporaty, use overloading
+  void addResponseInt(JsonObject object, const char * key, int value) { //temporary, use overloading
     const char * id = object["id"];
-    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
-    responseDoc[id][key] = value;
+    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
+    responseVariant[id][key] = value;
   }
-  void addResponseBool(JsonObject object, const char * key, bool value) { //temporaty, use overloading
+  void addResponseBool(JsonObject object, const char * key, bool value) { //temporary, use overloading
     const char * id = object["id"];
-    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
-    responseDoc[id][key] = value;
+    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
+    responseVariant[id][key] = value;
   }
   JsonArray addResponseArray(JsonObject object, const char * key) {
     const char * id = object["id"];
-    if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
-    return responseDoc[id].createNestedArray(key);
+    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
+    return responseVariant[id].createNestedArray(key);
   }
 
 };

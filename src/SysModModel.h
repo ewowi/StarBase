@@ -29,20 +29,21 @@ public:
       web->addResponse(object, "label", "Size");
     });
 
+    ui->initButton(parentObject, "saveModel", "SaveModel", nullptr, [](JsonObject object) {
+      doWriteModel = true;
+    });
+
     ui->initCheckBox(parentObject, "showObsolete", false, [](JsonObject object) {
       web->addResponse(object, "comment", "Show in UI (refresh)");
     }, [](JsonObject object) {
       doShowObsolete = object["value"];
     });
 
-    ui->initButton(parentObject, "saveModel", "SaveModel", nullptr, [](JsonObject object) {
-      doWriteModel = true;
-    });
     ui->initButton(parentObject, "deleteObsolete", "DeleteObsolete", [](JsonObject object) {
       web->addResponse(object, "label", "Delete obsolete objects");
     }, [](JsonObject object) {
-
     });
+
     ui->initButton(parentObject, "deleteModel", "DeleteModel", nullptr, [](JsonObject object) {
       print->print("delete model json\n");
       files->remove("/model.json");

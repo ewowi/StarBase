@@ -1,5 +1,6 @@
-let ws;
 let d = document;
+let ws = null;
+
 let columnNr = 0;
 let nrOfColumns = 4;
 let userFunId = "";
@@ -7,10 +8,16 @@ let userFunId = "";
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
 
+function handleVisibilityChange() {
+  console.log("handleVisibilityChange");
+}
+
 function onLoad() {
   makeWS();
 
   initColumns();
+
+  d.addEventListener("visibilitychange", handleVisibilityChange, false);
 }
 
 function makeWS() {
@@ -25,6 +32,7 @@ function makeWS() {
         userFunId = "";
     } 
     else {
+      gId('connind').style.backgroundColor = "var(--c-l)";
       let json = JSON.parse(e.data);
       if (json[0] && json[0].incldef) { //generate array of objects
         console.log("WS receive generateHTML", json);
@@ -37,7 +45,8 @@ function makeWS() {
     }
   }
   ws.onclose = (e)=>{
-    console.log("WS close", e);
+    console.log("WS close and retry", e);
+		gId('connind').style.backgroundColor = "var(--c-r)";
     setTimeout(makeWS,1500); // retry WS connection
 		ws = null;
   }
@@ -100,7 +109,7 @@ function generateHTML(parentNode, json) {
         newNode.appendChild(labelNode);
         let fieldNode = cE("span");
         fieldNode.id = json.id;
-        fieldNode.innerHTML = json.value;
+        if (json.value) fieldNode.innerHTML = json.value;
         newNode.appendChild(fieldNode);
       }
     }
@@ -128,13 +137,13 @@ function generateHTML(parentNode, json) {
       fieldNode.id = json.id;
       fieldNode.type = json.type;
       if (json.type == "checkbox") {
-        fieldNode.checked = json.value;
+        if (json.value) fieldNode.checked = json.value;
         fieldNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
       } else if (json.type == "button") {
-        fieldNode.value = json.value;
+        if (json.value) fieldNode.value = json.value;
         fieldNode.addEventListener('click', (event) => {console.log(json.type + " change", event);setButton(event.target);});
       } else {
-        fieldNode.value = json.value;
+        if (json.value) fieldNode.value = json.value;
         fieldNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
       }
       newNode.appendChild(fieldNode);
@@ -237,6 +246,8 @@ function processUpdate(json) {
 }
 
 function requestJson(command) {
+  gId('connind').style.backgroundColor = "var(--c-y)";
+  if (!ws) return;
   let url = `http://${window.location.hostname}/json`;
   let req = JSON.stringify(command);
 

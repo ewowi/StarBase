@@ -55,8 +55,6 @@ public:
       web->addResponse(object, "label", "Is full");
     });
 
-
-
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
@@ -78,11 +76,14 @@ public:
         web->clientsChanged = false;
 
         //replace clist table
-        responseDoc.clear(); //needed for deserializeJson?
-        responseDoc["uiFun"] = "clist";
-        JsonVariant responseVariant = responseDoc.as<JsonVariant>();
+        JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+        (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).clear();
+        
+        print->print("response system loop core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
+
+        responseVariant["uiFun"] = "clist";
         ui->processJson(responseVariant); //this calls uiFun command
-        print->printJson("clist change response", responseDoc);
+        print->printJson("clist change response", responseVariant);
         web->sendDataWs(responseVariant);
       }
 

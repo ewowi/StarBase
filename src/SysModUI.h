@@ -17,7 +17,7 @@ public:
   static std::vector<USFun> uiFunctions;
   static std::vector<UserLoop> loopFunctions;
 
-  // static bool userLoopsChanged;
+  static bool userLoopsChanged;
 
   SysModUI() :Module("UI") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -38,29 +38,26 @@ public:
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = initGroup(parentObject, name);
-    initDisplay(parentObject, "uloops", nullptr, [](JsonObject object) { //uiFun
+
+    JsonObject userLoopsObject = initMany(parentObject, "uloops", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "User loops");
+      JsonArray rows = web->addResponseArray(object, "many");
+
+      for (auto userLoop = begin (loopFunctions); userLoop != end (loopFunctions); ++userLoop) {
+        JsonArray row = rows.createNestedArray();
+        row.add(userLoop->object["id"]);
+        row.add(userLoop->counter);
+        userLoopsChanged = userLoop->counter != userLoop->prevCounter;
+        userLoop->prevCounter = userLoop->counter;
+        userLoop->counter = 0;
+      }
     });
-
-    // JsonObject userLoopsObject = initMany(parentObject, "uloops", nullptr, [](JsonObject object) { //uiFun
-    //   web->addResponse(object, "label", "User loops");
-    //   JsonArray rows = web->addResponseArray(object, "many");
-
-    //   for (auto userLoop = begin (loopFunctions); userLoop != end (loopFunctions); ++userLoop) {
-    //     JsonArray row = rows.createNestedArray();
-    //     row.add(userLoop->object["id"]);
-    //     row.add(userLoop->counter);
-    //     userLoopsChanged = userLoop->counter != userLoop->prevCounter;
-    //     userLoop->prevCounter = userLoop->counter;
-    //     userLoop->counter = 0;
-    //   }
-    // });
-    // initDisplay(userLoopsObject, "ulObject", nullptr, [](JsonObject object) { //uiFun
-    //   web->addResponse(object, "label", "Name");
-    // });
-    // initDisplay(userLoopsObject, "ulLoopps", nullptr, [](JsonObject object) { //uiFun
-    //   web->addResponse(object, "label", "Loops/s");
-    // });
+    initDisplay(userLoopsObject, "ulObject", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Name");
+    });
+    initDisplay(userLoopsObject, "ulLoopps", nullptr, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Loops/s");
+    });
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -76,20 +73,10 @@ public:
         if (ws.count()) {
 
           //send object to notify client data coming is for object (client then knows it is canvas and expects data for it)
-          // print->printObject(object); print->print("\n");
-          responseDoc.clear(); //needed for deserializeJson?
-          JsonString id = userLoop->object["id"];
-          if (responseDoc[id].isNull()) responseDoc.createNestedObject(id);
-          responseDoc[id]["value"] = true;
-          // web->addResponse(object, "value", object["value"]);
-          web->sendDataWs(responseDoc.as<JsonVariant>());
-
-          // print->print("bufSize %d", userLoop->bufSize);
+          setChFunAndWs(userLoop->object, "new");
 
           //send leds info in binary data format
-
           AsyncWebSocketMessageBuffer * wsBuf = ws.makeBuffer(userLoop->bufSize * 3 + 4);
-
           if (wsBuf) {//out of memory
             wsBuf->lock();
             uint8_t* buffer = wsBuf->get();
@@ -105,19 +92,13 @@ public:
             userLoop->interval = buffer[3]*10; //from cs to ms
             // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), userLoop->interval, userLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
-            try {
-              for (auto client:ws.getClients()) {
-                if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
-                  client->binary(wsBuf);
-                else {
-                  // web->clientsChanged = true; tbd: changed also if full status changes
-                  print->print("loopFun client %s full or not connected\n", client->remoteIP().toString().c_str());
-                }
+            for (auto client:ws.getClients()) {
+              if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
+                client->binary(wsBuf);
+              else {
+                // web->clientsChanged = true; tbd: changed also if full status changes
+                web->printClient("loopFun client full or not connected", client);
               }
-              // throw (1); // Throw an exception when a problem arise
-            }
-            catch (...) {
-              Serial.printf("BINARY ALL EXCEPTION\n");
             }
             wsBuf->unlock();
             ws._cleanBuffers();
@@ -138,21 +119,19 @@ public:
     if (millis() - secondMillis >= 1000 || !secondMillis) {
       secondMillis = millis();
 
-      setValueV("uloops", "%lu /s", loopFunctions[loopFunctions.size()-1].counter);
-      loopFunctions[loopFunctions.size()-1].counter = 0;
+      //replace uloops table
+      JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+      (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).clear(); //needed for deserializeJson?
 
-      // //replace uloops table
-      // responseDoc.clear(); //needed for deserializeJson?
-      // responseDoc["uiFun"] = "uloops";
-      // JsonVariant responseVariant = responseDoc.as<JsonVariant>();
-      // processJson(responseVariant); //this calls uiFun command, which might change userLoopsChanged
+      responseVariant["uiFun"] = "uloops";
+      processJson(responseVariant); //this calls uiFun command, which might change userLoopsChanged
 
-      // //if something changed in uloops
-      // if (userLoopsChanged) {
-      //   userLoopsChanged = false;
-      //   print->printJson("uloops change response", responseDoc);
-      //   web->sendDataWs(responseVariant);
-      // }
+      //if something changed in uloops
+      if (userLoopsChanged) {
+        userLoopsChanged = false;
+        // print->printJson("uloops change response", responseVariant);
+        web->sendDataWs(responseVariant);
+      }
     }
   }
 
@@ -283,7 +262,7 @@ public:
 
         loopFunctions.push_back(loop);
         object["loopFun"] = loopFunctions.size()-1;
-        // userLoopsChanged = true;
+        userLoopsChanged = true;
         // print->print("iObject loopFun %s %u %u %d %d\n", object["id"].as<const char *>());
       }
     }
@@ -300,14 +279,7 @@ public:
       if (object["value"].isNull() || object["value"] != value) {
         // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
         if (object["type"] == "display") { // do not update object["value"]
-          if (!object["chFun"].isNull()) {//isnull needed here!
-            size_t funNr = object["chFun"];
-            uiFunctions[funNr](object);
-          }
-
-          responseDoc.clear(); //needed for deserializeJson?
-          web->addResponse(object, "value", value);
-          web->sendDataWs(responseDoc.as<JsonVariant>());
+          setChFunAndWs(object, value); //value: bypass object["value"]
         } else {
           object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
           setChFunAndWs(object);
@@ -351,29 +323,35 @@ public:
   }
 
   //run the change function and send response to all? websocket clients
-  static void setChFunAndWs(JsonObject object) {
+  static void setChFunAndWs(JsonObject object, const char * value = nullptr) { //value: bypass object["value"]
 
     if (!object["chFun"].isNull()) {//isnull needed here!
       size_t funNr = object["chFun"];
       uiFunctions[funNr](object);
     }
 
-    responseDoc.clear(); //needed for deserializeJson?
-    if (object["value"].is<int>())
-      web->addResponseInt(object, "value", object["value"].as<int>());
-    else if (object["value"].is<bool>())
-      web->addResponseBool(object, "value", object["value"].as<bool>());
-    else if (object["value"].is<const char *>())
-      web->addResponse(object, "value", object["value"].as<const char *>());
-    else {
-      print->print("unknown type for %s\n", object["value"].as<String>().c_str());
-      web->addResponse(object, "value", object["value"]);
-    }
-    // if (object["id"] == "pview" || object["id"] == "fx") {
-    //   print->printJson("setChFunAndWs response", responseDoc);
-    // }
+    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+    (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).clear();
 
-    web->sendDataWs(responseDoc.as<JsonVariant>());
+    if (value)
+      web->addResponse(object, "value", value);
+    else {
+      if (object["value"].is<int>())
+        web->addResponseInt(object, "value", object["value"].as<int>());
+      else if (object["value"].is<bool>())
+        web->addResponseBool(object, "value", object["value"].as<bool>());
+      else if (object["value"].is<const char *>())
+        web->addResponse(object, "value", object["value"].as<const char *>());
+      else {
+        print->print("unknown type for %s\n", object["value"].as<String>().c_str());
+        web->addResponse(object, "value", object["value"]);
+      }
+      // if (object["id"] == "pview" || object["id"] == "fx") {
+      //   print->printJson("setChFunAndWs response", responseDoc);
+      // }
+    }
+
+    web->sendDataWs(responseVariant);
   }
 
   //Set value with argument list
@@ -436,6 +414,7 @@ public:
     return foundObject;
   }
 
+  //interpret json and run commands or set values
   static const char * processJson(JsonVariant &json) { //static for setupJsonHandlers
     if (json.is<JsonObject>()) //should be
     {
@@ -480,8 +459,8 @@ public:
                   print->print("processJson %s %s->%s not a supported type yet\n", key, object["value"].as<String>().c_str(), value.as<String>().c_str());
                 }
               }
-              else if (object["type"] == "button")
-                setChFunAndWs(object);
+              else if (object["type"] == "button") //button always
+                setChFunAndWs(object); //setValue without assignment
             }
             else
               print->print("Object %s not found\n", key);
@@ -493,7 +472,6 @@ public:
       print->print("Json not object???\n");
     return nullptr;
   }
-
 };
 
 static SysModUI *ui;
@@ -502,4 +480,4 @@ static SysModUI *ui;
 std::vector<void(*)(JsonObject object)> SysModUI::uiFunctions;
 std::vector<UserLoop> SysModUI::loopFunctions;
 
-// bool SysModUI::userLoopsChanged = false;;
+bool SysModUI::userLoopsChanged = false;;

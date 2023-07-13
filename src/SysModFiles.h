@@ -1,4 +1,7 @@
+#pragma once
 #include "LittleFS.h"
+#include "SysModUI.h"
+#include "SysModWeb.h"
 // #include <FS.h>
 
 //https://randomnerdtutorials.com/esp32-vs-code-platformio-spiffs/
@@ -29,7 +32,6 @@ public:
   //setup filesystem
   void setup() {
     Module::setup();
-    //should be in SysModFiles...
     parentObject = ui->initGroup(parentObject, name);
 
     JsonObject fileListObject = ui->initMany(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
@@ -57,7 +59,6 @@ public:
     if (millis() - secondMillis >= 1000 || !secondMillis) {
       secondMillis = millis();
 
-      //should be in SysModFiles...
       ui->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
     }
 

@@ -1,33 +1,36 @@
-#include "html_ui.h"
+#pragma once
 
 #include <ESPAsyncWebServer.h>
 #include "AsyncJson.h"
 
+#include "SysModPrint.h"
+#include "module.h"
+
+#include "html_ui.h"
+
 //https://techtutorialsx.com/2018/08/24/esp32-web-server-serving-html-from-file-system/
 //https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
-
-// Create AsyncWebServer object on port 80
-static AsyncWebServer server(80);
-static AsyncWebSocket ws("/ws");
-static const char * (*processWSFunc)(JsonVariant &) = nullptr;
-static StaticJsonDocument<2048> responseDoc0;
-static StaticJsonDocument<2048> responseDoc1;
 
 class SysModWeb:public Module {
 
 public:
   bool modelUpdated = false;
   static bool clientsChanged;
+  static AsyncWebServer *server;
+  static AsyncWebSocket *ws;
+  static const char * (*processWSFunc)(JsonVariant &);
+  static DynamicJsonDocument *responseDoc0;
+  static DynamicJsonDocument *responseDoc1;
 
-  SysModWeb() :Module("Web") {};
+  SysModWeb() :Module("Web") {
+    ws = new AsyncWebSocket("/ws");
+    server = new AsyncWebServer(80);
+    responseDoc0 = new DynamicJsonDocument(2048);
+    responseDoc1 = new DynamicJsonDocument(2048);
+  };
 
   //setup wifi an async webserver
-  void setup() {
-    Module::setup();
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
-  }
+  void setup();
 
   void loop() {
     // Module::loop();
@@ -40,10 +43,10 @@ public:
   }
 
   void connected() {
-      ws.onEvent(wsEvent);
-      server.addHandler(&ws);
+      ws->onEvent(wsEvent);
+      server->addHandler(ws);
 
-      server.begin();
+      server->begin();
 
       print->print("%s server (re)started\n", name);
   }
@@ -55,9 +58,8 @@ public:
   //wsEvent deserializeJson failed with code EmptyInput
 
   // https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
-
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
-    if (!ws.count()) {
+    if (!ws->count()) {
       print->print("wsEvent no clients\n");
       return;
     }
@@ -85,8 +87,8 @@ public:
           }
 
           if (processWSFunc) { //processJson defined
-            DeserializationError error = deserializeJson(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1, data, len); //data to responseDoc
-            JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
+            DeserializationError error = deserializeJson(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?*responseDoc0:*responseDoc1, data, len); //data to responseDoc
+            JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
             print->print("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
 
             if (error || responseVariant.isNull()) {
@@ -148,58 +150,17 @@ public:
   }
 
   static void printClient(const char * text, AsyncWebSocketClient * client) {
-    print->print("%s client: %d %s (%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", ws.count());
+    print->print("%s client: %d %s (%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", ws->count());
   }
 
   //send json to client or all clients
-  static void sendDataWs(AsyncWebSocketClient * client = nullptr, JsonVariant json = JsonVariant()) {
-    ws.cleanupClients();
-
-    if (ws.count()) {
-      size_t len = measureJson(json);
-      AsyncWebSocketMessageBuffer *wsBuf = ws.makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
-
-      if (wsBuf) {
-        wsBuf->lock();
-        serializeJson(json, (char *)wsBuf->get(), len);
-        if (client) {
-          if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
-            client->text(wsBuf);
-          else 
-            print->print("sendDataWs client %s full or not connected\n", client->remoteIP().toString().c_str());
-          // DEBUG_PRINTLN(F("to a single client."));
-        } else {
-          for (auto client:ws.getClients()) {
-            if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
-              client->text(wsBuf);
-            else 
-              print->print("sendDataWs client %s full or not connected\n", client->remoteIP().toString().c_str());
-          }
-          // DEBUG_PRINTLN(F("to multiple clients."));
-        }
-        wsBuf->unlock();
-        ws._cleanBuffers();
-      }
-      else {
-        print->print("sendDataWs WS buffer allocation failed\n");
-        ws.closeAll(1013); //code 1013 = temporary overload, try again later
-        ws.cleanupClients(0); //disconnect all clients to release memory
-        ws._cleanBuffers();
-      }
-
-    }
-  }
+  static void sendDataWs(AsyncWebSocketClient * client = nullptr, JsonVariant json = JsonVariant());
 
   //specific json data send to all clients
-  static void sendDataWs(JsonVariant json) {
-    sendDataWs(nullptr, json);
-  }
+  static void sendDataWs(JsonVariant json);
 
   //complete document send to client or all clients
-  static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false) {
-    model[0]["incldef"] = inclDef;
-    sendDataWs(client, model);
-  }
+  static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false);
 
   //add an url to the webserver to listen to
   bool addURL(const char * uri, const char * path, const char * contentType) {
@@ -210,7 +171,7 @@ public:
     // } else {
       // print->print("addURL File %s size %d\n", path, f.size());
 
-    server.on(uri, HTTP_GET, [uri, path, contentType](AsyncWebServerRequest *request) {
+    server->on(uri, HTTP_GET, [uri, path, contentType](AsyncWebServerRequest *request) {
       print->print("Webserver: client request %s %s %s", uri, path, contentType);
 
       if (strcmp(path, "/index.htm") == 0) {
@@ -235,7 +196,7 @@ public:
 
   //not used at the moment
   bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *)) {
-    server.on(uri, HTTP_GET, [uri, func](AsyncWebServerRequest *request) {
+    server->on(uri, HTTP_GET, [uri, func](AsyncWebServerRequest *request) {
       func(request);
     });
     return true;
@@ -253,9 +214,9 @@ public:
 
     //URL handler
     AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
-      JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
-      (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).clear();
-      
+      JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
+      (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->clear();
+
       print->printJson("AsyncCallbackJsonWebHandler", json);
       const char * pErr = processFunc(json); //processJson
       if (responseVariant.size()) {
@@ -268,54 +229,18 @@ public:
         request->send(200, "text/plain", "OKOK");
 
     });
-    server.addHandler(handler);
+    server->addHandler(handler);
     return true;
   }
 
-  void addResponse(JsonObject object, const char * key, const char * value) {
-    const char * id = object["id"];
-    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
-    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-    responseVariant[id][key] = value;
-  }
+  void addResponse(JsonObject object, const char * key, const char * value);
 
-  void addResponseV(JsonObject object, const char * key, const char * format, ...) {
-    const char * id = object["id"];
-    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
-    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-    va_list args;
-    va_start(args, format);
+  void addResponseV(JsonObject object, const char * key, const char * format, ...);
 
-    // size_t len = vprintf(format, args);
-    char value[100];
-    vsnprintf(value, sizeof(value), format, args);
-
-    va_end(args);
-
-    responseVariant[id][key] = value;
-  }
-
-  void addResponseInt(JsonObject object, const char * key, int value) { //temporary, use overloading
-    const char * id = object["id"];
-    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
-    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-    responseVariant[id][key] = value;
-  }
-  void addResponseBool(JsonObject object, const char * key, bool value) { //temporary, use overloading
-    const char * id = object["id"];
-    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
-    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-    responseVariant[id][key] = value;
-  }
-  JsonArray addResponseArray(JsonObject object, const char * key) {
-    const char * id = object["id"];
-    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
-    if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-    return responseVariant[id].createNestedArray(key);
-  }
+  void addResponseInt(JsonObject object, const char * key, int value);
+  void addResponseBool(JsonObject object, const char * key, bool value);
+  JsonArray addResponseArray(JsonObject object, const char * key);
 
 };
 
 static SysModWeb *web;
-
-bool SysModWeb::clientsChanged = false;

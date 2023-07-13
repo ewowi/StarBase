@@ -1,3 +1,6 @@
+#pragma once
+#include "module.h"
+
 class SysModPrint:public Module {
 
 public:
@@ -12,20 +15,10 @@ public:
   };
 
   //setup Serial
-  void setup() {
-    Module::setup();
-  }
+  void setup();
 
   //generic print function (based on printf)
-  size_t print(const char * format, ...) {
-    va_list args;
-    va_start(args, format);
-
-    size_t len = vprintf(format, args);
-
-    va_end(args);
-    return len;
-  }
+  size_t print(const char * format, ...);
 
   size_t println(const __FlashStringHelper * x) {
     return Serial.println(x);

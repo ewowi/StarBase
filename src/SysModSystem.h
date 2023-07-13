@@ -23,21 +23,21 @@ public:
     ui->initDisplay(parentObject, "stack");
 
     ui->initButton(parentObject, "restart", "Restart", nullptr, [](JsonObject object) {  //chFun
-      ws.closeAll(1012);
+      web->ws->closeAll(1012);
       ESP.restart();
     });
 
     //should be in SysModWeb...
     web->parentObject = ui->initGroup(web->parentObject, web->name);
-    // ui->initDisplay(web->parentObject, "nrOfC", nullptr, [](JsonObject object) { //uiFun
-    //   web->addResponse(object, "label", "Nr of clients");
+    // ui->initDisplay(parentObject, "nrOfC", nullptr, [](JsonObject object) { //uiFun
+    //   addResponse(object, "label", "Nr of clients");
     // });
 
     clientListObject = ui->initMany(web->parentObject, "clist", nullptr, [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Clients");
       web->addResponse(object, "comment", "List of clients");
       JsonArray rows = web->addResponseArray(object, "many");
-      for (auto client:ws.getClients()) {
+      for (auto client:web->ws->getClients()) {
         // print->print("Client %d %d %s\n", client->id(), client->queueIsFull(), client->remoteIP().toString().c_str());
         JsonArray row = rows.createNestedArray();
         row.add(client->id());
@@ -71,13 +71,13 @@ public:
 
       //should be in SysModWeb...
 
-      //if something changed in clist
+      // if something changed in clist
       if (web->clientsChanged) {
         web->clientsChanged = false;
 
         //replace clist table
-        JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).as<JsonVariant>();
-        (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1).clear();
+        JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
+        (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
         
         print->print("response system loop core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
 

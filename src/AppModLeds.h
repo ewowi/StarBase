@@ -262,7 +262,7 @@ public:
       buffer[0] = width;
       buffer[1] = height;
       buffer[2] = depth;
-      buffer[3] = max(nrOfLeds * ws.count()/200, 16U); //interval in ms * 10, not too fast
+      buffer[3] = max(nrOfLeds * web->ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
     ui->initNumber(parentObject, "width", width, [](JsonObject object) { //uiFun

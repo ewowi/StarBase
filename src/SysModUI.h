@@ -32,83 +32,27 @@ public:
 
   void loop();
 
-  JsonObject initGroup(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "group", uiFun, chFun, loopFun);
-    if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(object);
-    return object;
-  }
+  JsonObject initGroup(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initMany(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "many", uiFun, chFun, loopFun);
-    if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(object);
-    return object;
-  }
+  JsonObject initMany(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initInput(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "input", uiFun, chFun, loopFun);
-    if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(object);
-    return object;
-  }
+  JsonObject initInput(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "password", uiFun, chFun, loopFun);
-    if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(object);
-    return object;
-  }
+  JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initNumber(JsonObject parent, const char * id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "number", uiFun, chFun, loopFun);
-    if (object["value"].isNull()) object["value"] = value;
-    if (chFun) chFun(object);
-    return object;
-  }
+  JsonObject initNumber(JsonObject parent, const char * id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initSlider(JsonObject parent, const char * id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "range", uiFun, chFun, loopFun);
-    if (object["value"].isNull()) object["value"] = value;
-    if (chFun) chFun(object);
-    return object;
-  }
+  JsonObject initSlider(JsonObject parent, const char * id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initCanvas(JsonObject parent, const char * id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "canvas", uiFun, chFun, loopFun);
-    if (object["value"].isNull()) object["value"] = value;
-    if (chFun) chFun(object);
-    return object;
-  }
+  JsonObject initCanvas(JsonObject parent, const char * id, int value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initDisplay(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "display", uiFun, chFun, loopFun);
-    if (object["value"].isNull() && value) object["value"] = value;
-    if (chFun && value) chFun(object);
-    return object;
-  }
+  JsonObject initDisplay(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initCheckBox(JsonObject parent, const char * id, bool value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "checkbox", uiFun, chFun, loopFun);
-    if (object["value"].isNull()) object["value"] = value;
-    if (chFun) chFun(object);
-    return object;
-  }
+  JsonObject initCheckBox(JsonObject parent, const char * id, bool value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initButton(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "button", uiFun, chFun, loopFun);
-    if (object["value"].isNull()) object["value"] = value;
-    //no call of fun for buttons!!! 
-    // if (chFun) chFun(object);
-    return object;
-  }
+  JsonObject initButton(JsonObject parent, const char * id, const char * value = nullptr, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  JsonObject initDropdown(JsonObject parent, const char * id, uint8_t value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    JsonObject object = initObject(parent, id, "dropdown", uiFun, chFun, loopFun);
-    if (object["value"].isNull()) object["value"] = value;
-    if (chFun) chFun(object);
-    return object;
-  }
+  JsonObject initDropdown(JsonObject parent, const char * id, uint8_t value, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
   JsonObject initObject(JsonObject parent, const char * id, const char * type, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
@@ -121,25 +65,14 @@ public:
   //setValue bool
   static JsonObject setValue(const char * id, bool value);
 
-  //run the change function and send response to all? websocket clients
-  static void setChFunAndWs(JsonObject object, const char * value = nullptr);
-
   //Set value with argument list
-  static JsonObject setValueV(const char * id, const char * format, ...) { //static to use in *Fun
-    va_list args;
-    va_start(args, format);
-
-    // size_t len = vprintf(format, args);
-    char value[100];
-    vsnprintf(value, sizeof(value), format, args);
-
-    va_end(args);
-
-    return setValue(id, value);
-  }
+  static JsonObject setValueV(const char * id, const char * format, ...);
 
   //Set value with argument list and print
   JsonObject setValueP(const char * id, const char * format, ...);
+
+  //run the change function and send response to all? websocket clients
+  static void setChFunAndWs(JsonObject object, const char * value = nullptr);
 
   JsonVariant getValue(const char * id);
 

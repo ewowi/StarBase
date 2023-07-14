@@ -1,12 +1,9 @@
-#include <vector>
-
 // remove latest commit
 // git reset --hard HEAD^
 // git push origin -f
 
 #include "Module.h"
-std::vector<Module *> modules;
-
+#include "Modules.h"
 #include "SysModPrint.h"
 #include "SysModWeb.h"
 #include "SysModUI.h"
@@ -19,6 +16,7 @@ std::vector<Module *> modules;
 
 //setup all modules
 void setup() {
+  mdls = new Modules();
   print = new SysModPrint();
   files = new SysModFiles();
   mdl = new SysModModel();
@@ -29,28 +27,20 @@ void setup() {
   pin = new AppModPinManager();
   lds = new AppModLeds();
 
-  modules.push_back(print);
-  modules.push_back(files);
-  modules.push_back(mdl);
-  modules.push_back(net);
-  modules.push_back(web);
-  modules.push_back(ui);
-  modules.push_back(sys);
-  modules.push_back(pin);
-  modules.push_back(lds);
+  mdls->modules.push_back(print);
+  mdls->modules.push_back(files);
+  mdls->modules.push_back(mdl);
+  mdls->modules.push_back(net);
+  mdls->modules.push_back(web);
+  mdls->modules.push_back(ui);
+  mdls->modules.push_back(sys);
+  mdls->modules.push_back(pin);
+  mdls->modules.push_back(lds);
 
-  for (Module *module:modules) module->setup();
+  mdls->setup();
 }
 
 //loop all modules
 void loop() {
-  for (Module *module:modules) {
-    if (module->enabled && module->success) {
-      module->loop();
-      // module->testManager();
-      // module->performanceManager();
-      // module->dataSizeManager();
-      // module->codeSizeManager();
-    }
-  }
+  mdls->loop();
 }

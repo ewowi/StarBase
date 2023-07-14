@@ -3,7 +3,6 @@
 
 #include "ArduinoJson.h"
 
-
 class Module {
 
 public:

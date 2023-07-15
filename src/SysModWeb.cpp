@@ -41,6 +41,7 @@ void SysModWeb::setup() {
       row.add(client->id());
       row.add((char *)client->remoteIP().toString().c_str()); //create a copy!
       row.add(client->queueIsFull());
+      row.add(client->status());
     }
   });
   ui->initDisplay(parentObject, "clNr", nullptr, [](JsonObject object) { //uiFun
@@ -51,6 +52,13 @@ void SysModWeb::setup() {
   });
   ui->initDisplay(parentObject, "clIsFull", nullptr, [](JsonObject object) { //uiFun
     web->addResponse(object, "label", "Is full");
+  });
+  ui->initDisplay(parentObject, "clStatus", nullptr, [](JsonObject object) { //uiFun
+    web->addResponse(object, "label", "Status");
+    JsonArray lov = web->addResponseArray(object, "lov");
+    lov.add("Disconnected"); //0
+    lov.add("Connected"); //1
+    lov.add("Disconnecting"); //2
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -80,11 +88,18 @@ void SysModWeb::loop() {
 
       responseVariant["uiFun"] = "clist";
       ui->processJson(responseVariant); //this calls uiFun command
+      //this also updates uiFun stuff - not needed!
+
       print->printJson("clist change response", responseVariant);
       sendDataWs(responseVariant);
+      print->print("  send done\n");
     }
-  }
+    for (auto client:web->ws->getClients()) {
+      mdl->setValue("clIsFull", client->queueIsFull());
+      mdl->setValue("clStatus", client->status());
+    }
 
+  }
 }
 
 void SysModWeb::connected2() {
@@ -195,7 +210,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
 }
 
 void SysModWeb::printClient(const char * text, AsyncWebSocketClient * client) {
-  print->print("%s client: %d %s (%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", ws->count());
+  print->print("%s client: %d %s q:%d s:%d (w:%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", client->queueIsFull(), client->status(), ws->count());
 }
 
 void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
@@ -223,8 +238,8 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
         for (auto client:ws->getClients()) {
           if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
             client->text(wsBuf);
-        else 
-          printClient("sendDataWs client full or not connected", client);
+          else 
+            printClient("sendDataWs client full or not connected", client);
         }
         // DEBUG_PRINTLN(F("to multiple clients."));
       }

@@ -73,7 +73,7 @@ void SysModModel::setup() {
 
   if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
-    ui->setValueV("mSize", "%u / %u B", model->memoryUsage(), model->capacity());
+    mdl->setValueV("mSize", "%u / %u B", model->memoryUsage(), model->capacity());
   }
 
   if (model->memoryUsage() / model->capacity() > 0.95) {
@@ -140,4 +140,112 @@ bool SysModModel::writeObjectToFile(const char* path, JsonDocument* dest) {
     print->println(F("  fail"));
     return false;
   }
+}
+
+//setValue char
+JsonObject SysModModel::setValue(const char * id, const char * value) {
+  JsonObject object = findObject(id);
+  if (!object.isNull()) {
+    if (object["value"].isNull() || object["value"] != value) {
+      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
+      if (object["type"] == "display") { // do not update object["value"]
+        ui->setChFunAndWs(object, value); //value: bypass object["value"]
+      } else {
+        object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
+        ui->setChFunAndWs(object);
+      }
+    }
+  }
+  else
+    print->print("setValue Object %s not found\n", id);
+  return object;
+}
+
+//setValue int
+JsonObject SysModModel::setValue(const char * id, int value) {
+  JsonObject object = findObject(id);
+  if (!object.isNull()) {
+    if (object["value"].isNull() || object["value"] != value) {
+      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
+      object["value"] = value;
+      ui->setChFunAndWs(object);
+    }
+  }
+  else
+    print->print("setValue Object %s not found\n", id);
+
+  return object;
+}
+
+JsonObject SysModModel::setValue(const char * id, bool value) {
+  JsonObject object = findObject(id);
+  if (!object.isNull()) {
+    if (object["value"].isNull() || object["value"] != value) {
+      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value?"true":"false");
+      object["value"] = value;
+      ui->setChFunAndWs(object);
+    }
+  }
+  else
+    print->print("setValue Object %s not found\n", id);
+  return object;
+}
+
+//Set value with argument list
+JsonObject SysModModel::setValueV(const char * id, const char * format, ...) { //static to use in *Fun
+  va_list args;
+  va_start(args, format);
+
+  // size_t len = vprintf(format, args);
+  char value[100];
+  vsnprintf(value, sizeof(value), format, args);
+
+  va_end(args);
+
+  return setValue(id, value);
+}
+
+JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
+  va_list args;
+  va_start(args, format);
+
+  // size_t len = vprintf(format, args);
+  char value[100];
+  vsnprintf(value, sizeof(value), format, args);
+  print->print("%s\n", value);
+
+  va_end(args);
+
+  return setValue(id, value);
+}
+
+JsonVariant SysModModel::getValue(const char * id) {
+  JsonObject object = findObject(id);
+  if (!object.isNull())
+    return object["value"];
+  else {
+    print->print("Value of %s does not exist!!\n", id);
+    return JsonVariant();
+  }
+}
+
+JsonObject SysModModel::findObject(const char * id, JsonArray parent) { //static for processJson
+  JsonArray root;
+  // print ->print("findObject %s %s\n", id, parent.isNull()?"root":"n");
+  if (parent.isNull()) {
+    root = mdl->model->as<JsonArray>();
+  }
+  else {
+    root = parent;
+  }
+  JsonObject foundObject;
+  for(JsonObject object : root) {
+    if (foundObject.isNull()) {
+      if (object["id"] == id)
+        foundObject = object;
+      else if (!object["n"].isNull())
+        foundObject = findObject(id, object["n"]);
+    }
+  }
+  return foundObject;
 }

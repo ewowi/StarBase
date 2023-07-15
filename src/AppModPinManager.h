@@ -17,6 +17,24 @@ public:
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentObject = ui->initGroup(parentObject, name);
+
+    ui->initCanvas(parentObject, "board", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Board layout");
+    }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
+      // send leds preview to clients
+      for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
+      {
+        buffer[i*3+4] = (digitalRead(i)+1) * 50;
+        buffer[i*3+4+1] = 255;
+        buffer[i*3+4+2] = 192;
+      }
+      //new values
+      buffer[0] = 10;
+      buffer[1] = 2;
+      buffer[2] = 1;
+      buffer[3] = 10*10; //every 10 sec 
+    });
+
     ui->initCheckBox(parentObject, "pin2", true, nullptr, updateGPIO);
     ui->initCheckBox(parentObject, "pin4", false);
     ui->initCheckBox(parentObject, "pin33", true);

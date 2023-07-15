@@ -2,6 +2,7 @@
 #include "SysModUI.h"
 #include "SysModWeb.h"
 #include "SysModPrint.h"
+#include "SysModModel.h"
 
 // #include <FS.h>
 
@@ -47,7 +48,7 @@ void SysModFiles::loop(){
   if (millis() - secondMillis >= 1000 || !secondMillis) {
     secondMillis = millis();
 
-    ui->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
+    mdl->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
   }
 
 }

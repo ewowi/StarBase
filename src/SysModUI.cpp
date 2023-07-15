@@ -115,6 +115,7 @@ void SysModUI::loop() {
 
     responseVariant["uiFun"] = "uloops";
     processJson(responseVariant); //this calls uiFun command, which might change userLoopsChanged
+    //this also updates uiFun stuff - not needed!
 
     //if something changed in uloops
     if (userLoopsChanged) {
@@ -204,7 +205,7 @@ JsonObject SysModUI::initDropdown(JsonObject parent, const char * id, uint8_t va
 }
 
 JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char * type, USFun uiFun, USFun chFun, LoopFun loopFun) {
-  JsonObject object = findObject(id);
+  JsonObject object = mdl->findObject(id);
 
   //create new object
   if (object.isNull()) {
@@ -263,94 +264,6 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
   return object;
 }
 
-//setValue char
-JsonObject SysModUI::setValue(const char * id, const char * value) {
-  JsonObject object = findObject(id);
-  if (!object.isNull()) {
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
-      if (object["type"] == "display") { // do not update object["value"]
-        setChFunAndWs(object, value); //value: bypass object["value"]
-      } else {
-        object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-        setChFunAndWs(object);
-      }
-    }
-  }
-  else
-    print->print("setValue Object %s not found\n", id);
-  return object;
-}
-
-//setValue int
-JsonObject SysModUI::setValue(const char * id, int value) {
-  JsonObject object = findObject(id);
-  if (!object.isNull()) {
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
-      object["value"] = value;
-      setChFunAndWs(object);
-    }
-  }
-  else
-    print->print("setValue Object %s not found\n", id);
-
-  return object;
-}
-
-//setValue bool
-JsonObject SysModUI::setValue(const char * id, bool value) {
-  JsonObject object = findObject(id);
-  if (!object.isNull()) {
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value?"true":"false");
-      object["value"] = value;
-      setChFunAndWs(object);
-    }
-  }
-  else
-    print->print("setValue Object %s not found\n", id);
-  return object;
-}
-
-//Set value with argument list
-JsonObject SysModUI::setValueV(const char * id, const char * format, ...) { //static to use in *Fun
-  va_list args;
-  va_start(args, format);
-
-  // size_t len = vprintf(format, args);
-  char value[100];
-  vsnprintf(value, sizeof(value), format, args);
-
-  va_end(args);
-
-  return setValue(id, value);
-}
-
-JsonObject SysModUI::setValueP(const char * id, const char * format, ...) {
-  va_list args;
-  va_start(args, format);
-
-  // size_t len = vprintf(format, args);
-  char value[100];
-  vsnprintf(value, sizeof(value), format, args);
-  print->print("%s\n", value);
-
-  va_end(args);
-
-  return setValue(id, value);
-}
-
-JsonVariant SysModUI::getValue(const char * id) {
-  JsonObject object = findObject(id);
-  if (!object.isNull())
-    return object["value"];
-  else {
-    print->print("Value of %s does not exist!!\n", id);
-    return JsonVariant();
-  }
-}
-
 //run the change function and send response to all? websocket clients
 void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: bypass object["value"]
 
@@ -383,27 +296,6 @@ void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: b
   web->sendDataWs(responseVariant);
 }
 
-JsonObject SysModUI::findObject(const char * id, JsonArray parent) { //static for processJson
-  JsonArray root;
-  // print ->print("findObject %s %s\n", id, parent.isNull()?"root":"n");
-  if (parent.isNull()) {
-    root = mdl->model->as<JsonArray>();
-  }
-  else {
-    root = parent;
-  }
-  JsonObject foundObject;
-  for(JsonObject object : root) {
-    if (foundObject.isNull()) {
-      if (object["id"] == id)
-        foundObject = object;
-      else if (!object["n"].isNull())
-        foundObject = findObject(id, object["n"]);
-    }
-  }
-  return foundObject;
-}
-
 const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHandlers
   if (json.is<JsonObject>()) //should be
   {
@@ -414,7 +306,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
       // commands
       if (pair.key() == "uiFun") { //JsonString can do ==
         //find the dropdown object and collect it's options...
-        JsonObject object = findObject(value); //value is the id
+        JsonObject object = mdl->findObject(value); //value is the id
         if (!object.isNull()) {
           //call ui function...
           if (!object["uiFun"].isNull()) {//isnull needed here!
@@ -431,7 +323,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
       } 
       else { //normal change
         if (!value.is<JsonObject>()) { //no objects (inserted by uiFun responses)
-          JsonObject object = findObject(key);
+          JsonObject object = mdl->findObject(key);
           if (!object.isNull())
           {
             if (object["value"] != value) { // if changed
@@ -439,11 +331,11 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
 
               //set new value
               if (value.is<const char *>())
-                setValue(key, value.as<const char *>());
+                mdl->setValue(key, value.as<const char *>());
               else if (value.is<bool>())
-                setValue(key, value.as<bool>());
+                mdl->setValue(key, value.as<bool>());
               else if (value.is<int>())
-                setValue(key, value.as<int>());
+                mdl->setValue(key, value.as<int>());
               else {
                 print->print("processJson %s %s->%s not a supported type yet\n", key, object["value"].as<String>().c_str(), value.as<String>().c_str());
               }

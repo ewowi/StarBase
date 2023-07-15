@@ -5,6 +5,7 @@
 #include "SysModPrint.h"
 #include "SysModWeb.h"
 #include "SysModUI.h"
+#include "SysModModel.h"
 
 #include <WiFi.h>
 
@@ -64,7 +65,7 @@ void SysModNetwork::handleConnection() {
       initAP();
     }
   } else if (!interfacesInited) { //newly connected
-    ui->setValueP("nwstatus", "Connected %s", WiFi.localIP().toString().c_str());
+    mdl->setValueP("nwstatus", "Connected %s", WiFi.localIP().toString().c_str());
 
     interfacesInited = true;
 
@@ -97,8 +98,8 @@ void SysModNetwork::initConnection() {
   WiFi.setSleep(!noWifiSleep);
   WiFi.setHostname("StarMod");
 
-  const char* ssid = ui->getValue("ssid");
-  const char* password = ui->getValue("pw");
+  const char* ssid = mdl->getValue("ssid");
+  const char* password = mdl->getValue("pw");
   if (ssid && strlen(ssid)>0) {
     char passXXX [20] = "";
     for (int i = 0; i < strlen(password); i++) strcat(passXXX, "*");
@@ -115,7 +116,7 @@ void SysModNetwork::initAP() {
   WiFi.softAP(apSSID, apPass, apChannel, apHide);
   if (!apActive) // start captive portal if AP active
   {
-    ui->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
+    mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
     // send all modules connect notification
     web->connected2();

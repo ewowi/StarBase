@@ -4,6 +4,7 @@ let ws = null;
 let columnNr = 0;
 let nrOfColumns = 4;
 let userFunId = "";
+let htmlGenerated = false;
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -34,9 +35,10 @@ function makeWS() {
     else {
       gId('connind').style.backgroundColor = "var(--c-l)";
       let json = JSON.parse(e.data);
-      if (json[0] && json[0].incldef) { //generate array of objects
+      if (json[0] && json[0].incldef && !htmlGenerated) { //generate array of objects
         console.log("WS receive generateHTML", json);
         generateHTML(null, json);
+        htmlGenerated = true;
       }
       else { //update
         // console.log("WS receive update", json);
@@ -132,6 +134,8 @@ function generateHTML(parentNode, json) {
     }
     else { //input
       newNode = cE("p");
+      let buttonSaveNode = null;
+      let buttonCancelNode = null;
       if (json.type != "button") newNode.appendChild(labelNode);
       let fieldNode = cE("input");
       fieldNode.id = json.id;
@@ -141,12 +145,28 @@ function generateHTML(parentNode, json) {
         fieldNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
       } else if (json.type == "button") {
         if (json.value) fieldNode.value = json.value;
-        fieldNode.addEventListener('click', (event) => {console.log(json.type + " change", event);setButton(event.target);});
+        fieldNode.addEventListener('click', (event) => {console.log(json.type + " click", event);setButton(event.target);});
       } else {
+        //input types: text, search, tel, url, email, and password.
         if (json.value) fieldNode.value = json.value;
         fieldNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
+        if (["input", "password", "number"].includes(json.type) ) {
+          buttonSaveNode = cE("text");
+          buttonSaveNode.innerHTML = "✅";
+          buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+          buttonCancelNode = cE("text");
+          buttonCancelNode.innerHTML = "🛑";
+          buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+        }
+        if (json.type == "number") {
+          fieldNode.setAttribute('size', '4');
+          fieldNode.maxlength = 4;
+          // fieldNode.size = 4;
+        }
       }
       newNode.appendChild(fieldNode);
+      if (buttonSaveNode) newNode.appendChild(buttonSaveNode);
+      if (buttonCancelNode) newNode.appendChild(buttonCancelNode);
     }
 
     if (newNode) parentNode.appendChild(newNode); //add new node to parent

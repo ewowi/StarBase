@@ -9,6 +9,10 @@ comment {
   margin-left: 6px; /*space before*/
 }
 
+text { /*currently onlu for buttonSaveNode and buttonCancelNode*/
+	font-size: 10px;
+}
+  
 /*table layout */
 .table-style {
   font-family: Arial, Helvetica, sans-serif;

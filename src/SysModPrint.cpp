@@ -35,7 +35,7 @@ size_t SysModPrint::print(const char * format, ...) {
 
   va_end(args);
   
-  // ui->setValueV("log", "%lu", millis());
+  // mdl->setValueV("log", "%lu", millis());
 
   return len;
 }
@@ -58,3 +58,17 @@ size_t SysModPrint::printJson(const char * text, JsonVariantConst source) {
   Serial.println();
   return size;
 }
+
+const char * SysModPrint::fFormat(const char * format, ...) {
+  static char msgbuf[32];
+
+  va_list args;
+  va_start(args, format);
+
+  size_t len = snprintf(msgbuf, sizeof(msgbuf), format, args);
+
+  va_end(args);
+
+  return msgbuf;
+}
+

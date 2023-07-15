@@ -6,7 +6,8 @@
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
-CRGB *leds = nullptr;
+// CRGB *leds = nullptr;
+CRGB leds[NUM_LEDS];
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 static uint16_t nrOfLeds = 0; 
 static uint16_t width = 8; 
@@ -162,8 +163,6 @@ public:
             float d = distance(3.5, 3.5, 0, x, z, 0)/9.899495*mH;
             uint16_t height = floor(mH/2.0+sinf(d/ripple_interval + call/((256.0-128.0)/20.0))*mH/2.0); //between 0 and 8
 
-            // CRGBPalette256 pal;
-            // ColorFromPalette(pal,call, ui->getValue("bri").as<uint8_t>(), LINEARBLEND);
             leds[x + height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
         }
     }
@@ -202,7 +201,6 @@ public:
                 d = distance(x, y, z, origin_x, origin_y, origin_z);
 
                 if (d>diameter && d<diameter+1) {
-                    // setPixelColor(x + y*mW + z*mW*mH, color_from_palette(SEGENV.call, true, PALETTE_SOLID_WRAP, 0));
                     leds[x + height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
                 }
             }
@@ -269,7 +267,7 @@ public:
       web->addResponseV(object, "comment", "Max %d", 256);
     }, [](JsonObject object) { //chFun
       width = object["value"];
-      if (width>256) {width = 256;ui->setValue("width", 256);};
+      if (width>256) {width = 256;mdl->setValue("width", 256);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
     });
@@ -278,7 +276,7 @@ public:
       web->addResponseV(object, "comment", "Max %d", 64);
     }, [](JsonObject object) { //chFun
       height = object["value"];
-      if (height>64) {height = 64;ui->setValue("height", 64);};
+      if (height>64) {height = 64;mdl->setValue("height", 64);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
     });
@@ -287,7 +285,7 @@ public:
       web->addResponseV(object, "comment", "Max %d", 16);
     }, [](JsonObject object) { //chFun
       depth = object["value"];
-      if (depth>16) {depth = 16;ui->setValue("depth", 16);};
+      if (depth>16) {depth = 16;mdl->setValue("depth", 16);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
     });
@@ -304,7 +302,7 @@ public:
     ui->initDisplay(parentObject, "nrOfLeds", nullptr, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Max %d", NUM_LEDS);
     });
-    ui->setValue("nrOfLeds", nrOfLeds); //set here as changeDimensions already called for width/height/depth
+    mdl->setValue("nrOfLeds", nrOfLeds); //set here as changeDimensions already called for width/height/depth
 
     ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
@@ -335,7 +333,7 @@ public:
     if(millis() - frameMillis >= 1000.0/fps) {
       frameMillis = millis();
 
-      Effect* effect = effects[ui->getValue("fx")];
+      Effect* effect = effects[mdl->getValue("fx")];
       effect->loop();
 
       // yield();
@@ -346,7 +344,7 @@ public:
     }
     if (millis() - secondMillis >= 1000 || !secondMillis) {
       secondMillis = millis();
-      ui->setValueV("realFps", "%lu /s", frameCounter);
+      mdl->setValueV("realFps", "%lu /s", frameCounter);
       frameCounter = 0;
     }
 
@@ -355,11 +353,16 @@ public:
   }
 
   static void changeDimensions() { //static because of lambda functions
-    nrOfLeds = min(width * height * depth, 4096); //not highter then 4K leds
-    ui->setValue("nrOfLeds", nrOfLeds);
+    nrOfLeds = min(width * height * depth, NUM_LEDS); //not highter then 4K leds
+    mdl->setValue("nrOfLeds", nrOfLeds);
     print->print("changeDimensions %d x %d x %d = %d\n", width, height, depth, nrOfLeds);
-    if (leds) free(leds);
-    leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
+    // if (!leds)
+    //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
+    // else
+    //   leds = (CRGB*)reallocarray(leds, nrOfLeds, sizeof(CRGB));
+    // if (leds) free(leds);
+    // leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
+    // leds = (CRGB*)reallocarray
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
   }

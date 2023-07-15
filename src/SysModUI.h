@@ -56,27 +56,8 @@ public:
 
   JsonObject initObject(JsonObject parent, const char * id, const char * type, USFun uiFun = nullptr, USFun chFun = nullptr, LoopFun loopFun = nullptr);
 
-  //setValue char
-  static JsonObject setValue(const char * id, const char * value);
-
-  //setValue int
-  static JsonObject setValue(const char * id, int value);
-
-  //setValue bool
-  static JsonObject setValue(const char * id, bool value);
-
-  //Set value with argument list
-  static JsonObject setValueV(const char * id, const char * format, ...);
-
-  //Set value with argument list and print
-  JsonObject setValueP(const char * id, const char * format, ...);
-
   //run the change function and send response to all? websocket clients
   static void setChFunAndWs(JsonObject object, const char * value = nullptr);
-
-  JsonVariant getValue(const char * id);
-
-  static JsonObject findObject(const char * id, JsonArray parent = JsonArray());
 
   //interpret json and run commands or set values
   static const char * processJson(JsonVariant &json);

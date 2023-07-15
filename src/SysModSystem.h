@@ -9,10 +9,10 @@ public:
   unsigned long loopCounter = 0;
 
   SysModSystem();
-
   void setup();
-
   void loop();
+
+  void addResetReasonsLov(JsonArray lov);
 
 };
 

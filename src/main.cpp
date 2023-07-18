@@ -13,6 +13,7 @@
 #include "SysModNetwork.h"
 #include "AppModPinManager.h"
 #include "AppModLeds.h"
+#include "UserModE131.h"
 
 //setup all modules
 void setup() {
@@ -26,6 +27,7 @@ void setup() {
   sys = new SysModSystem();
   pin = new AppModPinManager();
   lds = new AppModLeds();
+  UserModE131 *e131 = new UserModE131();
 
   mdls->modules.push_back(print);
   mdls->modules.push_back(files);
@@ -36,6 +38,7 @@ void setup() {
   mdls->modules.push_back(sys);
   mdls->modules.push_back(pin);
   mdls->modules.push_back(lds);
+  mdls->modules.push_back(e131);
 
   mdls->setup();
 }

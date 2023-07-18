@@ -20,6 +20,7 @@ struct UserLoop {
 class SysModUI:public Module {
 
 public:
+// TODO: which of these fields should be private?
   static std::vector<USFun> uiFunctions;
   static std::vector<UserLoop> loopFunctions;
 

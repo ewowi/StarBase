@@ -6,6 +6,7 @@
 class SysModWeb:public Module {
 
 public:
+// TODO: which of these fields should be private?
   bool modelUpdated = false;
   static bool clientsChanged;
   static AsyncWebServer *server;

@@ -71,9 +71,9 @@ void SysModWeb::loop() {
   // Module::loop();
 
   //currently not used as each variable is send individually
-  if (modelUpdated) {
+  if (this->modelUpdated) {
     sendDataWs(nullptr, false); //send new data, all clients, no def
-    modelUpdated = false;
+    this->modelUpdated = false;
   }
 
   if (millis() - secondMillis >= 1000 || !secondMillis) {

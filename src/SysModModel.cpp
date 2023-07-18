@@ -140,7 +140,7 @@ bool SysModModel::writeObjectToFile(const char* path, JsonDocument* dest) {
   if (f) {
     print->println(F("  success"));
     serializeJson(*dest, f);
-    files->filesChanged = true;
+    files->filesChange();
     return true;
   } else {
     f.close();

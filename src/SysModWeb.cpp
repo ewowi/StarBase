@@ -334,7 +334,7 @@ bool SysModWeb::addUpload(const char * uri) {
           request->send(200, "text/plain", F("File Uploaded!"));
       // }
       // cacheInvalidate++;
-      files->filesChanged = true;
+     files->filesChange();
     }
   });
   return true;

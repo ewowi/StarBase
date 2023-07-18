@@ -1,6 +1,5 @@
 #include "SysModNetwork.h"
-#include "module.h"
-#include "modules.h"
+#include "Module.h"
 
 #include "SysModPrint.h"
 #include "SysModWeb.h"

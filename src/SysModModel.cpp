@@ -1,5 +1,5 @@
 #include "SysModModel.h"
-#include "module.h"
+#include "Module.h"
 #include "SysModWeb.h"
 #include "SysModPrint.h"
 #include "SysModUI.h"

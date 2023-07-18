@@ -7,9 +7,7 @@ class SysModWeb:public Module {
 
 public:
 // TODO: which of these fields should be private?
-  static AsyncWebServer *server;
   static AsyncWebSocket *ws;
-  static const char * (*processWSFunc)(JsonVariant &);
   static DynamicJsonDocument *responseDoc0;
   static DynamicJsonDocument *responseDoc1;
 
@@ -63,6 +61,9 @@ public:
 private:
   bool modelUpdated = false;
   static bool clientsChanged;
+
+  static AsyncWebServer *server;
+  static const char * (*processWSFunc)(JsonVariant &);
 
 };
 

@@ -35,10 +35,14 @@ function makeWS() {
     else {
       gId('connind').style.backgroundColor = "var(--c-l)";
       let json = JSON.parse(e.data);
-      if (json[0] && json[0].incldef && !htmlGenerated) { //generate array of objects
-        console.log("WS receive generateHTML", json);
-        generateHTML(null, json);
-        htmlGenerated = true;
+      if (!htmlGenerated) { //generate array of objects
+        if (Array.isArray(json)) {
+          console.log("WS receive generateHTML", json);
+          generateHTML(null, json); //no parentNode
+          htmlGenerated = true;
+        }
+        else
+          console.log("Error: no array", json);
       }
       else { //update
         // console.log("WS receive update", json);
@@ -58,10 +62,17 @@ function makeWS() {
 }
 
 function generateHTML(parentNode, json) {
-  // console.log("generateHTML", json);
-  if (Array.isArray(json)) for (var element of json) //if isArray then objects of array
-    generateHTML(parentNode, element);
-  else if (json.s) {
+  // console.log("generateHTML", parentNode, json);
+  if (Array.isArray(json)) {
+    json.sort(function(a,b) {
+      // Turn your strings into dates, and then subtract them
+      // to get a value that is either negative, positive, or zero.
+      return a.o - b.o; //o is order nr
+    });
+    for (var element of json) //if isArray then objects of array
+      generateHTML(parentNode, element);
+  }
+  else {
     if (parentNode == null) {
       parentNode = gId("column" + columnNr);
       columnNr = (columnNr +1)%nrOfColumns;
@@ -189,81 +200,81 @@ function processUpdate(json) {
     // console.log("processUpdate", key, json[key]);
     if (key != "uiFun") { //was the request
       // let id = gId(key);
-      if (json[key].label) {
-        console.log("processUpdate label", key, json[key].label);
-        let node;
-        if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
-          node = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
-        else if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
-          node = gId(key); //the <th>
-        else
-          node = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
-        node.innerHTML = json[key].label;
-      }
-      if (json[key].comment) {
-        console.log("processUpdate comment", key, json[key].comment);
-        // normal: <p><label><input id><comment></p>
-        // table or canvas <p><label><comment></p><canvas id>
-        // 1) if exist then replace else add
-        let parentNode;
-        if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
-          parentNode = gId(key).previousSibling; //<p><label> before <canvas>/<table>
-        else
-          parentNode = gId(key).parentNode;
-        let commentNode = parentNode.querySelector('comment');
-        // console.log("commentNode", commentNode);
-        if (!commentNode) {
-          commentNode = cE("comment");
-          parentNode.appendChild(commentNode);
+      if (gId(key)) {
+
+        if (json[key].label) {
+          console.log("processUpdate label", key, json[key].label);
+          let node;
+          if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
+            node = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
+          else if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
+            node = gId(key); //the <th>
+          else
+            node = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
+          node.innerHTML = json[key].label;
         }
-        commentNode.innerHTML = json[key].comment;
-        
-        // node.insertAdjacentHTML("afterend", `<comment>${json[key].comment}</comment>`);
-
-        // gId(key).parentNode.lastChild.innerHTML = json[key].comment;
-
-      }
-      if (json[key].lov) {
-        console.log("processUpdate lov", key, json[key].lov);
-        var index = 0;
-        for (var value of json[key].lov) {
-          let optNode = cE("option");
-          optNode.value = index;
-          optNode.text = value;
-          gId(key).appendChild(optNode);
-          index++;
-        }
-      }
-      if (json[key].many) {
-        console.log("processUpdate many", key, json[key].many);
-        //remove table rows
-        let tbodyNode = cE('tbody');
-
-        for (var row of json[key].many) {
-          let trNode = cE("tr");
-          for (var columnRow of row) {
-            let tdNode = cE("td");
-            tdNode.innerHTML = columnRow;
-            trNode.appendChild(tdNode);
+        if (json[key].comment) {
+          console.log("processUpdate comment", key, json[key].comment);
+          // normal: <p><label><input id><comment></p>
+          // table or canvas <p><label><comment></p><canvas id>
+          // 1) if exist then replace else add
+          let parentNode;
+          if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
+            parentNode = gId(key).previousSibling; //<p><label> before <canvas>/<table>
+          else
+            parentNode = gId(key).parentNode;
+          let commentNode = parentNode.querySelector('comment');
+          // console.log("commentNode", commentNode);
+          if (!commentNode) {
+            commentNode = cE("comment");
+            parentNode.appendChild(commentNode);
           }
-          tbodyNode.appendChild(trNode);
+          commentNode.innerHTML = json[key].comment;        
         }
-        gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
+        if (json[key].lov) {
+          console.log("processUpdate lov", key, json[key].lov);
+          var index = 0;
+          for (var value of json[key].lov) {
+            let optNode = cE("option");
+            optNode.value = index;
+            optNode.text = value;
+            gId(key).appendChild(optNode);
+            index++;
+          }
+        }
+        if (json[key].many) {
+          console.log("processUpdate many", key, json[key].many);
+          //remove table rows
+          let tbodyNode = cE('tbody');
+  
+          for (var row of json[key].many) {
+            let trNode = cE("tr");
+            for (var columnRow of row) {
+              let tdNode = cE("td");
+              tdNode.innerHTML = columnRow;
+              trNode.appendChild(tdNode);
+            }
+            tbodyNode.appendChild(trNode);
+          }
+          gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
+        }
+        if (json[key].value) { //after lov, in case used
+          // console.log("processUpdate value", key, json[key].value, gId(key));
+          if (gId(key).nodeName.toLocaleLowerCase() == "span") //display
+            gId(key).textContent = json[key].value;
+          else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
+            userFunId = key; //prepare for websocket data
+          } else if (gId(key).type == "checkbox") //checkbox
+            gId(key).checked = json[key].value;
+          else //inputs
+            gId(key).value = json[key].value;
+        }
       }
-      if (json[key].value) { //after lov, in case used
-        // console.log("processUpdate value", key, json[key].value, gId(key));
-        if (gId(key).nodeName.toLocaleLowerCase() == "span") //display
-          gId(key).textContent = json[key].value;
-        else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
-          userFunId = key; //prepare for websocket data
-        } else if (gId(key).type == "checkbox") //checkbox
-          gId(key).checked = json[key].value;
-        else //inputs
-          gId(key).value = json[key].value;
-      }
-    }
-  }
-}
+      else
+        console.log("Id not found", key);
+    } //key != uiFun
+  } //for keys
+} //processUpdate
 
 function requestJson(command) {
   gId('connind').style.backgroundColor = "var(--c-y)";

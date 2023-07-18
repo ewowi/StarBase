@@ -6,6 +6,7 @@
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 std::vector<void(*)(JsonObject object)> SysModUI::uiFunctions;
 std::vector<UserLoop> SysModUI::loopFunctions;
+int SysModUI::objectCounter = 1;
 
 bool SysModUI::userLoopsChanged = false;;
 
@@ -109,19 +110,11 @@ void SysModUI::loop() {
   if (millis() - secondMillis >= 1000 || !secondMillis) {
     secondMillis = millis();
 
-    //replace uloops table
-    JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
-    (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear(); //needed for deserializeJson?
-
-    responseVariant["uiFun"] = "uloops";
-    processJson(responseVariant); //this calls uiFun command, which might change userLoopsChanged
-    //this also updates uiFun stuff - not needed!
-
     //if something changed in uloops
     if (userLoopsChanged) {
       userLoopsChanged = false;
-      // print->printJson("uloops change response", responseVariant);
-      web->sendDataWs(responseVariant);
+
+      processUiFun("uloops");
     }
   }
 }
@@ -210,7 +203,6 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
   //create new object
   if (object.isNull()) {
     print->print("initObject create new %s: %s\n", type, id);
-    // print->printJson("test2", *mdl->model);
     if (parent.isNull()) {
       JsonArray objects = mdl->model->as<JsonArray>();
       object = objects.createNestedObject();
@@ -225,8 +217,8 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
     print->print("Object %s already defined\n", id);
 
   if (!object.isNull()) {
-    object["s"] = true; //deal with obsolete objects, check object exists in code
     object["type"] = type;
+    object["o"] = -objectCounter++; //make order negative to check if not obsolete, see cleanUpModel
     if (uiFun) {
       //if fun already in uiFunctions then reuse, otherwise add new fun in uiFunctions
       std::vector<void(*)(JsonObject object)>::iterator itr = find(uiFunctions.begin(), uiFunctions.end(), uiFun);
@@ -352,4 +344,17 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
   else
     print->print("Json not object???\n");
   return nullptr;
+}
+
+void SysModUI::processUiFun(const char * id) {
+  JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
+  (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear(); //needed for deserializeJson?
+
+  responseVariant["uiFun"] = id;
+  processJson(responseVariant); //this calls uiFun command, which might change userLoopsChanged
+  //this also updates uiFun stuff - not needed!
+
+  // print->printJson("uloops change response", responseVariant);
+  web->sendDataWs(responseVariant);
+
 }

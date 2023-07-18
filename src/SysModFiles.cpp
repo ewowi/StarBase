@@ -6,6 +6,8 @@
 
 // #include <FS.h>
 
+bool SysModFiles::filesChanged = false;
+
 SysModFiles::SysModFiles() :Module("Files") {
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
@@ -40,6 +42,8 @@ void SysModFiles::setup() {
     web->addResponse(object, "label", "Total FS size");
   });
 
+  web->addUpload("/upload");
+
 }
 
 void SysModFiles::loop(){
@@ -49,11 +53,19 @@ void SysModFiles::loop(){
     secondMillis = millis();
 
     mdl->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
-  }
 
+        // if something changed in clist
+    if (filesChanged) {
+      filesChanged = false;
+
+      ui->processUiFun("flist");
+
+    }
+  }
 }
 
 bool SysModFiles::remove(const char * path) {
+  filesChanged = true;
   return LittleFS.remove(path);
 }
 
@@ -80,6 +92,21 @@ void SysModFiles::dirToJson(JsonArray array) {
     JsonArray row = array.createNestedArray();
     row.add((char *)file.name());  //create a copy!
     row.add(file.size());
+
+    Serial.printf("FILE: %s %d\n", file.name(), file.size());
+
+    file = root.openNextFile();
+  }
+}
+
+void SysModFiles::dirToJson2(JsonArray array) {
+  File root = LittleFS.open("/");
+
+  File file = root.openNextFile();
+
+  while(file){
+
+    array.add((char *)file.name());
 
     Serial.printf("FILE: %s %d\n", file.name(), file.size());
 

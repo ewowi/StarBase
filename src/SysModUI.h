@@ -25,6 +25,8 @@ public:
 
   static bool userLoopsChanged;
 
+  static int objectCounter; //not static crashes ??? (not called async...?)
+
   SysModUI();
 
   //serve index.htm
@@ -61,6 +63,9 @@ public:
 
   //interpret json and run commands or set values
   static const char * processJson(JsonVariant &json);
+
+  void processUiFun(const char * id);
+
 };
 
 static SysModUI *ui;

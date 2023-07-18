@@ -263,6 +263,14 @@ public:
       buffer[3] = max(nrOfLeds * web->ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
+    ui->initDropdown(parentObject, "ledmap", 3, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "Ledmap");
+      JsonArray lov = web->addResponseArray(object, "lov");
+      files->dirToJson2(lov);
+    }, [](JsonObject object) { //chFun
+      print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
+    });
+
     ui->initNumber(parentObject, "width", width, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Max %d", 256);
     }, [](JsonObject object) { //chFun
@@ -319,10 +327,6 @@ public:
     effects.push_back(new JuggleEffect);
     effects.push_back(new Ripples3DEffect);
     effects.push_back(new SphereMove3DEffect);
-
-    for (Effect *effect:effects) {
-      print->print("Size of %s is %d\n", effect->name(), sizeof(*effect));
-    }
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }

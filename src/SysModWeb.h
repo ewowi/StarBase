@@ -41,6 +41,9 @@ public:
   //not used at the moment
   bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *));
 
+// curl -F 'data=@ledmap1.json' 192.168.8.213/upload
+  bool addUpload(const char * uri);
+
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"

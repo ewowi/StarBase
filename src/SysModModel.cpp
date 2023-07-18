@@ -56,14 +56,22 @@ void SysModModel::setup() {
     files->remove("/model.json");
   });
 
+  ui->initButton(parentObject, "deleteLedMap", "DeleteLedMap", nullptr, [](JsonObject object) {
+    print->print("delete ledmap json\n");
+    files->remove("/ledmap1.json");
+  });
+
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
   void SysModModel::loop() {
   // Module::loop();
-  if (doWriteModel) {
-    //clean up model
+
+  if (!cleanUpModelDone) { //do after all setups
+    cleanUpModelDone = true;
     cleanUpModel(model->as<JsonArray>());
+  }
+  if (doWriteModel) {
     print->println(F("Writing model to /model.json... (serializeConfig)"));
     writeObjectToFile("/model.json", model);
     print->printJson("Write model", *model);
@@ -73,7 +81,7 @@ void SysModModel::setup() {
 
   if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
-    mdl->setValueV("mSize", "%u / %u B", model->memoryUsage(), model->capacity());
+    setValueV("mSize", "%u / %u B", model->memoryUsage(), model->capacity());
   }
 
   if (model->memoryUsage() / model->capacity() > 0.95) {
@@ -88,22 +96,20 @@ void SysModModel::cleanUpModel(JsonArray objects) {
   for (JsonArray::iterator objectV=objects.begin(); objectV!=objects.end(); ++objectV) {
   // for (JsonVariant objectV : objects) {
     if (objectV->is<JsonObject>()) {
-
       JsonObject object = objectV->as<JsonObject>();
 
-      if ((object)["type"] == "display")  {
-        // objects.remove(objectV); //not for now as app needs it (rebuild needed?)
+      if (object["o"].isNull() || object["o"] >= 0) { //not set negative in initObject
+        if (!doShowObsolete)
+        //   object["d"] = true;
+        // else
+          objects.remove(objectV);
       }
       else {
-        for (JsonPair pair : object) { //iterate json elements
-          JsonVariant value = pair.value();
-        }
-
-        object.remove("s");
-
-        if (!object["n"].isNull() && object["n"].is<JsonArray>())
-          cleanUpModel(object["n"]);
+        object["o"] = -object["o"].as<int>(); //make it possitive
       }
+
+      if (!object["n"].isNull() && object["n"].is<JsonArray>())
+        cleanUpModel(object["n"]);
     } 
   }
 }
@@ -134,6 +140,7 @@ bool SysModModel::writeObjectToFile(const char* path, JsonDocument* dest) {
   if (f) {
     print->println(F("  success"));
     serializeJson(*dest, f);
+    files->filesChanged = true;
     return true;
   } else {
     f.close();
@@ -233,7 +240,7 @@ JsonObject SysModModel::findObject(const char * id, JsonArray parent) { //static
   JsonArray root;
   // print ->print("findObject %s %s\n", id, parent.isNull()?"root":"n");
   if (parent.isNull()) {
-    root = mdl->model->as<JsonArray>();
+    root = model->as<JsonArray>();
   }
   else {
     root = parent;

@@ -2,6 +2,7 @@
 #include "SysModModel.h"
 #include "SysModUI.h"
 #include "SysModPrint.h"
+#include "SysModFiles.h"
 
 #include "AsyncJson.h"
 
@@ -13,7 +14,9 @@
 
 AsyncWebServer * SysModWeb::server = nullptr;
 AsyncWebSocket * SysModWeb::ws = nullptr;
+
 const char * (*SysModWeb::processWSFunc)(JsonVariant &) = nullptr;
+
 DynamicJsonDocument * SysModWeb::responseDoc0 = nullptr;
 DynamicJsonDocument * SysModWeb::responseDoc1 = nullptr;
 bool SysModWeb::clientsChanged = false;
@@ -80,20 +83,9 @@ void SysModWeb::loop() {
     if (clientsChanged) {
       clientsChanged = false;
 
-      //replace clist table
-      JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
-      (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->clear();
-      
-      print->print("response system loop core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
-
-      responseVariant["uiFun"] = "clist";
-      ui->processJson(responseVariant); //this calls uiFun command
-      //this also updates uiFun stuff - not needed!
-
-      print->printJson("clist change response", responseVariant);
-      sendDataWs(responseVariant);
-      print->print("  send done\n");
+      ui->processUiFun("clist");
     }
+
     for (auto client:web->ws->getClients()) {
       mdl->setValue("clIsFull", client->queueIsFull());
       mdl->setValue("clStatus", client->status());
@@ -133,7 +125,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   } else if(type == WS_EVT_DATA){
     AwsFrameInfo * info = (AwsFrameInfo*)arg;
     printClient("WS event data", client);
-    print->print("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
+    // print->print("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
     if (info->final && info->index == 0 && info->len == len){
       // the whole message is in a single frame and we got all of its data (max. 1450 bytes)
       if (info->opcode == WS_TEXT)
@@ -149,7 +141,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
         if (processWSFunc) { //processJson defined
           DeserializationError error = deserializeJson(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?*responseDoc0:*responseDoc1, data, len); //data to responseDoc
           JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
-          print->print("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
+          // print->print("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
 
           if (error || responseVariant.isNull()) {
             print->print("wsEvent deserializeJson failed with code %s %s\n", error.c_str(), data);
@@ -262,7 +254,7 @@ void SysModWeb::sendDataWs(JsonVariant json) {
 }
 
 void SysModWeb::sendDataWs(AsyncWebSocketClient * client, bool inclDef) {
-  mdl->model[0]["incldef"] = inclDef;
+  //tbd: remove inclDef paramater (now only used to type overload sendDataWS)
   sendDataWs(client, *mdl->model);
 }
 
@@ -302,6 +294,48 @@ bool SysModWeb::addURL(const char * uri, const char * path, const char * content
 bool SysModWeb::processURL(const char * uri, void (*func)(AsyncWebServerRequest *)) {
   server->on(uri, HTTP_GET, [uri, func](AsyncWebServerRequest *request) {
     func(request);
+  });
+  return true;
+}
+
+// curl -F 'data=@ledmap1.json' 192.168.8.213/upload
+bool SysModWeb::addUpload(const char * uri) {
+
+  // curl -F 'data=@ledmap1.json' 192.168.8.213/upload
+  server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
+  [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
+                size_t len, bool final) {
+    print->print("handleUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+    if (!index) {
+      String finalname = filename;
+      if (finalname.charAt(0) != '/') {
+        finalname = '/' + finalname; // prepend slash if missing
+      }
+
+      request->_tempFile = files->open(finalname.c_str(), "w");
+      // DEBUG_PRINT(F("Uploading "));
+      // DEBUG_PRINTLN(finalname);
+      // if (finalname.equals("/presets.json")) presetsModifiedTime = toki.second();
+    }
+    if (len) {
+      request->_tempFile.write(data,len);
+    }
+    if (final) {
+      request->_tempFile.close();
+      // USER_PRINT(F("File uploaded: "));  // WLEDMM
+      // USER_PRINTLN(filename);            // WLEDMM
+      // if (filename.equalsIgnoreCase("/cfg.json") || filename.equalsIgnoreCase("cfg.json")) { // WLEDMM
+      //   request->send(200, "text/plain", F("Configuration restore successful.\nRebooting..."));
+      //   doReboot = true;
+      // } else {
+      //   if (filename.equals("/presets.json") || filename.equals("presets.json")) {  // WLEDMM
+      //     request->send(200, "text/plain", F("Presets File Uploaded!"));
+      //   } else
+          request->send(200, "text/plain", F("File Uploaded!"));
+      // }
+      // cacheInvalidate++;
+      files->filesChanged = true;
+    }
   });
   return true;
 }

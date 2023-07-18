@@ -1,5 +1,5 @@
 #pragma once
-#include "module.h"
+#include "Module.h"
 #include "LittleFS.h"
 
 class SysModFiles:public Module {

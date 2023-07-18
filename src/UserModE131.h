@@ -21,7 +21,7 @@ public:
       print->print("No network yet, can't start e131");
     }
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+//    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){
@@ -32,7 +32,7 @@ public:
     if(!e131Created) {
       print->print("Network exists, now init e131\n");
       e131 = ESPAsyncE131(universeCount);
-      if (this->e131.begin(E131_MULTICAST, universe, universeCount)) {
+      if (this->e131.begin(E131_MULTICAST, universe, universeCount)) { // TODO: multicast igmp failing, so only works with unicast currently
         print->print("Network exists, begin e131.begin ok\n");
         success = true;
       }

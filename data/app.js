@@ -46,6 +46,14 @@ function preview2D(node, leds) {
   let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
   let i = 4;
   ctx.clearRect(0, 0, node.width, node.height);
+  if (jsonValues.pview) { // && jsonValues.pview.map
+    if (jsonValues.pview.map)  {
+      console.log(jsonValues.pview);
+    }
+    else
+      console.log("preview2D unknown json", jsonValues.pview);
+    jsonValues.pview = null;
+  }
   for (y=0.5;y<mH;y++) for (x=0.5; x<mW; x++) {
     if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
       ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
@@ -55,7 +63,6 @@ function preview2D(node, leds) {
     }
     i+=3;
   }
-
 }
 
 function preview3D(node, leds) {

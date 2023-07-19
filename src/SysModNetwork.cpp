@@ -95,7 +95,7 @@ void SysModNetwork::initConnection() {
   }
 
   WiFi.setSleep(!noWifiSleep);
-  WiFi.setHostname("StarMod");
+  WiFi.setHostname("LedFix");
 
   const char* ssid = mdl->getValue("ssid");
   const char* password = mdl->getValue("pw");

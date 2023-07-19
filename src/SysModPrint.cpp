@@ -59,7 +59,7 @@ size_t SysModPrint::printJson(const char * text, JsonVariantConst source) {
   return size;
 }
 
-const char * SysModPrint::fFormat(const char * format, ...) {
+char * SysModPrint::fFormat(const char * format, ...) {
   static char msgbuf[32];
 
   va_list args;

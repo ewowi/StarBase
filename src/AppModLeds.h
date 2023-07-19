@@ -263,12 +263,23 @@ public:
       buffer[3] = max(nrOfLeds * web->ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
-    ui->initDropdown(parentObject, "ledmap", 3, [](JsonObject object) { //uiFun
-      web->addResponse(object, "label", "Ledmap");
+    ui->initDropdown(parentObject, "ledfix", 0, [](JsonObject object) { //uiFun
+      web->addResponse(object, "label", "LedFix");
       JsonArray lov = web->addResponseArray(object, "lov");
       files->dirToJson2(lov);
     }, [](JsonObject object) { //chFun
       print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
+      StaticJsonDocument<2048> lmJson;
+      char temp[30] = "/"; //add root prefix
+      strcat(temp, files->seqNrToName(object["value"].as<int>()));
+      files->readObjectFromFile(temp, &lmJson);
+      //send the json to pview...
+      JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
+      (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
+      responseVariant["pview"]["json"] = lmJson;
+      print->printJson("ledfix", responseVariant);
+      web->sendDataWs(responseVariant);
+      print->print("ledfix send ws done\n");
     });
 
     ui->initNumber(parentObject, "width", width, [](JsonObject object) { //uiFun
@@ -316,6 +327,27 @@ public:
       web->addResponseV(object, "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
     }, [](JsonObject object) { //chFun
       print->print("Set data pin to %d\n", object["value"].as<int>());
+    });
+
+    ui->initButton(parentObject, "createR35LedFix", "createR35LedFix", nullptr, [](JsonObject object) {
+      StaticJsonDocument<2048> lmJson;
+      JsonObject lmObject = lmJson.to<JsonObject>();
+      lmObject["name"] = "R35";
+      lmObject["scale"] = "mm";
+      lmObject["map"] = lmJson.createNestedArray();
+
+      uint16_t diameter = 100; //in mm
+      for (int i=0; i<35; i++) {
+        float radians = i*360/35 * (M_PI / 180);
+        int16_t x = sinf(radians) * diameter;
+        int16_t y = cosf(radians) * diameter;
+        print->print("createRingLedMap %d %d %d\n", i, x, y);
+        JsonArray array2 = lmObject["map"].createNestedArray();
+        array2.add(x);
+        array2.add(y);
+      }
+      files->writeObjectToFile("/lfR35.json", &lmJson);
+      print->printJson("ring", lmJson);
     });
 
     effects.push_back(new RainbowEffect);

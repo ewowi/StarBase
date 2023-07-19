@@ -3,8 +3,10 @@
 #include <vector>
 
 class Modules {
-public:
-  std::vector<Module *> modules;
+  private:
+    std::vector<Module *> modules;
+
+  public:
 
   void setup() {
       for (Module *module:modules) module->setup();
@@ -22,8 +24,8 @@ public:
     }
   }
 
-  void add (Module module) {
-    // modules.push_back(module);
+  void add (Module* module) {
+    modules.push_back(module);
   }
 
   void connected() {

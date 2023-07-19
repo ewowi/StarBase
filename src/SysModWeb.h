@@ -6,11 +6,8 @@
 class SysModWeb:public Module {
 
 public:
-  bool modelUpdated = false;
-  static bool clientsChanged;
-  static AsyncWebServer *server;
+// TODO: which of these fields should be private?
   static AsyncWebSocket *ws;
-  static const char * (*processWSFunc)(JsonVariant &);
   static DynamicJsonDocument *responseDoc0;
   static DynamicJsonDocument *responseDoc1;
 
@@ -41,7 +38,7 @@ public:
   //not used at the moment
   bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *));
 
-// curl -F 'data=@ledmap1.json' 192.168.8.213/upload
+// curl -F 'data=@ledfix1.json' 192.168.8.213/upload
   bool addUpload(const char * uri);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
@@ -60,6 +57,13 @@ public:
   void addResponseInt(JsonObject object, const char * key, int value);
   void addResponseBool(JsonObject object, const char * key, bool value);
   JsonArray addResponseArray(JsonObject object, const char * key);
+
+private:
+  bool modelUpdated = false;
+  static bool clientsChanged;
+
+  static AsyncWebServer *server;
+  static const char * (*processWSFunc)(JsonVariant &);
 
 };
 

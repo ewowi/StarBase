@@ -6,11 +6,13 @@ class SysModSystem:public Module {
 
 public:
 
-  unsigned long loopCounter = 0;
-
   SysModSystem();
   void setup();
   void loop();
+
+
+private:
+  unsigned long loopCounter = 0;
 
   void addResetReasonsLov(JsonArray lov);
 

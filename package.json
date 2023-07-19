@@ -1,7 +1,7 @@
 {
-  "name": "starmod",
+  "name": "LedFix",
   "version": "0.0.1",
-  "description": "Tools for starmod",
+  "description": "Tools for LedFix",
   "main": "tools/cdata.js",
   "directories": {
     "lib": "lib",

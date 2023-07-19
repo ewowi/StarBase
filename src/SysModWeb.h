@@ -38,7 +38,7 @@ public:
   //not used at the moment
   bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *));
 
-// curl -F 'data=@ledmap1.json' 192.168.8.213/upload
+// curl -F 'data=@ledfix1.json' 192.168.8.213/upload
   bool addUpload(const char * uri);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl

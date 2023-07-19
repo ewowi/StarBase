@@ -17,7 +17,7 @@ SysModModel::SysModModel() :Module("Model") {
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
-  if (readObjectFromFile("/model.json", model)) {//not part of success...
+  if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     print->printJson("Read model", *model);
     web->sendDataWs(nullptr, false); //send new data: all clients, no def
   }
@@ -73,7 +73,7 @@ void SysModModel::setup() {
   }
   if (doWriteModel) {
     print->println(F("Writing model to /model.json... (serializeConfig)"));
-    writeObjectToFile("/model.json", model);
+    files->writeObjectToFile("/model.json", model);
     print->printJson("Write model", *model);
 
     doWriteModel = false;
@@ -111,41 +111,6 @@ void SysModModel::cleanUpModel(JsonArray objects) {
       if (!object["n"].isNull() && object["n"].is<JsonArray>())
         cleanUpModel(object["n"]);
     } 
-  }
-}
-
-bool SysModModel::readObjectFromFile(const char* path, JsonDocument* dest) {
-  // if (doCloseFile) closeFile();
-  File f = files->open(path, "r");
-  if (!f) {
-    print->print("File %s open not successful %s\n", path);
-    return false;
-  }
-  else { 
-    print->print(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
-    DeserializationError error = deserializeJson(*dest, f);
-    if (error) {
-      print->print("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
-      f.close();
-      return false;
-    } else {
-      f.close();
-      return true;
-    }
-  }
-}
-
-bool SysModModel::writeObjectToFile(const char* path, JsonDocument* dest) {
-  File f = files->open(path, "w");
-  if (f) {
-    print->println(F("  success"));
-    serializeJson(*dest, f);
-    files->filesChange();
-    return true;
-  } else {
-    f.close();
-    print->println(F("  fail"));
-    return false;
   }
 }
 

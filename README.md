@@ -1,4 +1,4 @@
-# StarMod
+# LedFix
 
 Headstart for building ESP32 applications: printing, file management, persistent data, Wifi, Web, UI and system management works out of the box.
 

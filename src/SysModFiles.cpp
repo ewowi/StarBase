@@ -87,7 +87,7 @@ void SysModFiles::dirToJson(JsonArray array) {
 
   File file = root.openNextFile();
 
-  while(file){
+  while (file) {
 
     JsonArray row = array.createNestedArray();
     row.add((char *)file.name());  //create a copy!
@@ -95,8 +95,11 @@ void SysModFiles::dirToJson(JsonArray array) {
 
     Serial.printf("FILE: %s %d\n", file.name(), file.size());
 
+    file.close();
+
     file = root.openNextFile();
   }
+  root.close();
 }
 
 void SysModFiles::dirToJson2(JsonArray array) {
@@ -104,16 +107,78 @@ void SysModFiles::dirToJson2(JsonArray array) {
 
   File file = root.openNextFile();
 
-  while(file){
+  while (file) {
 
+    // array.add(print->fFormat("hoi %s", "file.name()"));
     array.add((char *)file.name());
 
     Serial.printf("FILE: %s %d\n", file.name(), file.size());
 
+    file.close();
+
     file = root.openNextFile();
   }
+  root.close();
 }
 
 void SysModFiles::filesChange() {
   filesChanged = true;
 }
+char * SysModFiles::seqNrToName(size_t seqNr) {
+  File root = LittleFS.open("/");
+
+  File file = root.openNextFile();
+
+  size_t counter = 0;
+  while (file) {
+
+    if (counter == seqNr) {
+      Serial.printf("FILE: %s %d\n", file.name(), file.size());
+      // file.close();
+      root.close();
+      return (char *)file.name();
+    }
+
+    file.close();
+    file = root.openNextFile();
+    counter++;
+  }
+  root.close();
+  return nullptr;
+}
+
+bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
+  // if (doCloseFile) closeFile();
+  File f = open(path, "r");
+  if (!f) {
+    print->print("File %s open not successful %s\n", path);
+    return false;
+  }
+  else { 
+    print->print(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
+    DeserializationError error = deserializeJson(*dest, f);
+    if (error) {
+      print->print("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
+      f.close();
+      return false;
+    } else {
+      f.close();
+      return true;
+    }
+  }
+}
+
+bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
+  File f = open(path, "w");
+  if (f) {
+    print->println(F("  success"));
+    serializeJson(*dest, f);
+    filesChanged = true;
+    return true;
+  } else {
+    f.close();
+    print->println(F("  fail"));
+    return false;
+  }
+}
+

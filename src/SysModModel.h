@@ -17,12 +17,6 @@ public:
   //scan all objects in the model and remove the s element 
   void cleanUpModel(JsonArray objects);
 
-  //reads model.json and load it in model
-  bool readObjectFromFile(const char* path, JsonDocument* dest);
-
-  //write model into model.json
-  bool writeObjectToFile(const char* path, JsonDocument* dest);
-
   //sets the value of object with id
   static JsonObject setValue(const char * id, const char * value);
 

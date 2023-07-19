@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include <ArduinoHA.h>
 
-#define BROKER_ADDR     IPAddress(192.168.178.42)
+#define BROKER_ADDR     IPAddress(192,168,178,42)
 
 class UserModHA:public Module {
 
@@ -12,21 +12,21 @@ public:
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
-  void onStateCommand(bool state, HALight* sender) {
+  static void onStateCommand(bool state, HALight* sender) {
       Serial.print("State: ");
       Serial.println(state);
 
       sender->setState(state); // report state back to the Home Assistant
   }
 
-  void onBrightnessCommand(uint8_t brightness, HALight* sender) {
+  static void onBrightnessCommand(uint8_t brightness, HALight* sender) {
       Serial.print("Brightness: ");
       Serial.println(brightness);
 
       sender->setBrightness(brightness); // report brightness back to the Home Assistant
   }
 
-  void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
+  static void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
       Serial.print("Red: ");
       Serial.println(color.red);
       Serial.print("Green: ");
@@ -44,8 +44,9 @@ public:
     device.setName("Playground");
     device.setSoftwareVersion("0.0.1");
 
+
     // configure light (optional)
-    light.setName("LEDs");
+    light->setName("LEDs");
 
     // Optionally you can set retain flag for the HA commands
     // light.setRetain(true);
@@ -58,24 +59,24 @@ public:
     // light.setOptimistic(true);
 
     // handle light states
-    light.onStateCommand(onStateCommand);
-    light.onBrightnessCommand(onBrightnessCommand); // optional
-    light.onRGBColorCommand(onRGBColorCommand); // optional
+    light->onStateCommand(onStateCommand);
+    light->onBrightnessCommand(onBrightnessCommand); // optional
+    light->onRGBColorCommand(onRGBColorCommand); // optional
 
-    mqtt.begin(BROKER_ADDR);
+    mqtt->begin(BROKER_ADDR);
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){
     // Module::loop();
-    mqtt.loop();
+    mqtt->loop();
   }
 
   private:
     WiFiClient client;
     HADevice device;
-    HAMqtt mqtt(client, device);
-    HALight light("playgroundlight", HALight::BrightnessFeature | HALight::RGBFeature);
+    HAMqtt* mqtt = new HAMqtt(client, device);
+    HALight* light = new HALight("playgroud", HALight::BrightnessFeature | HALight::RGBFeature);
 };
 
 static UserModHA *hamod;

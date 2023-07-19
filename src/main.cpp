@@ -13,6 +13,7 @@
 #include "SysModNetwork.h"
 #include "AppModPinManager.h"
 #include "AppModLeds.h"
+#include "UserModHA.h"
 
 //setup all modules
 void setup() {
@@ -26,6 +27,7 @@ void setup() {
   sys = new SysModSystem();
   pin = new AppModPinManager();
   lds = new AppModLeds();
+  hamod = new UserModHA();
 
   mdls->modules.push_back(print);
   mdls->modules.push_back(files);
@@ -36,6 +38,7 @@ void setup() {
   mdls->modules.push_back(sys);
   mdls->modules.push_back(pin);
   mdls->modules.push_back(lds);
+  mdls->modules.push_back(hamod);
 
   mdls->setup();
 }

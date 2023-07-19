@@ -6,7 +6,6 @@ class SysModFiles:public Module {
 
 public:
 
-  static bool filesChanged;
 
   SysModFiles();
   void setup();
@@ -22,8 +21,13 @@ public:
 
   File open(const char * path, const char * mode, const bool create = false);
 
+  void filesChange();
+
   static void dirToJson(JsonArray array);
   static void dirToJson2(JsonArray array);
+
+private:
+  static bool filesChanged;
 
 };
 

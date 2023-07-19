@@ -113,3 +113,7 @@ void SysModFiles::dirToJson2(JsonArray array) {
     file = root.openNextFile();
   }
 }
+
+void SysModFiles::filesChange() {
+  filesChanged = true;
+}

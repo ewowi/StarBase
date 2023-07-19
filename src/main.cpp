@@ -27,18 +27,18 @@ void setup() {
   sys = new SysModSystem();
   pin = new AppModPinManager();
   lds = new AppModLeds();
-  UserModE131 *e131 = new UserModE131();
+  e131mod = new UserModE131();
 
-  mdls->modules.push_back(print);
-  mdls->modules.push_back(files);
-  mdls->modules.push_back(mdl);
-  mdls->modules.push_back(net);
-  mdls->modules.push_back(web);
-  mdls->modules.push_back(ui);
-  mdls->modules.push_back(sys);
-  mdls->modules.push_back(pin);
-  mdls->modules.push_back(lds);
-  mdls->modules.push_back(e131);
+  mdls->add(print);
+  mdls->add(files);
+  mdls->add(mdl);
+  mdls->add(net);
+  mdls->add(web);
+  mdls->add(ui);
+  mdls->add(sys);
+  mdls->add(pin);
+  mdls->add(lds);
+  mdls->add(e131mod);
 
   mdls->setup();
 }

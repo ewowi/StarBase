@@ -20,13 +20,6 @@ struct UserLoop {
 class SysModUI:public Module {
 
 public:
-  static std::vector<USFun> uiFunctions;
-  static std::vector<UserLoop> loopFunctions;
-
-  static bool userLoopsChanged;
-
-  static int objectCounter; //not static crashes ??? (not called async...?)
-
   SysModUI();
 
   //serve index.htm
@@ -65,6 +58,14 @@ public:
   static const char * processJson(JsonVariant &json);
 
   void processUiFun(const char * id);
+
+private:
+  static bool userLoopsChanged;
+
+  static int objectCounter; //not static crashes ??? (not called async...?)
+
+  static std::vector<USFun> uiFunctions;
+  static std::vector<UserLoop> loopFunctions;
 
 };
 

@@ -18,7 +18,8 @@ public:
 
   size_t printJson(const char * text, JsonVariantConst source);
 
-  const char * fFormat(const char * format, ...);
+  //experimenting with return of char, if possible at all - wip...
+  char * fFormat(const char * format, ...);
 };
 
 static SysModPrint *print;

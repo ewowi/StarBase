@@ -6,9 +6,6 @@
 class SysModModel:public Module {
 
 public:
-  static bool doWriteModel;
-  static bool doShowObsolete;
-  bool cleanUpModelDone = false;
 
   // StaticJsonDocument<24576> model; //not static as that blows up the stack. Use extern??
   static DynamicJsonDocument *model;
@@ -19,12 +16,6 @@ public:
 
   //scan all objects in the model and remove the s element 
   void cleanUpModel(JsonArray objects);
-
-  //reads model.json and load it in model
-  bool readObjectFromFile(const char* path, JsonDocument* dest);
-
-  //write model into model.json
-  bool writeObjectToFile(const char* path, JsonDocument* dest);
 
   //sets the value of object with id
   static JsonObject setValue(const char * id, const char * value);
@@ -45,6 +36,11 @@ public:
 
   //returns the object defined by id (parent to recursively call findObject)
   static JsonObject findObject(const char * id, JsonArray parent = JsonArray());
+  
+private:
+  static bool doWriteModel;
+  static bool doShowObsolete;
+  bool cleanUpModelDone = false;
 
 };
 

@@ -9,7 +9,7 @@ public:
   const char * name;
   bool success;
   bool enabled;
-  unsigned long secondMillis = 0;
+  unsigned long secondMillis = 0; // Feels like it should be private, bit doesn't compile if set as such
 
   JsonObject parentObject;
 

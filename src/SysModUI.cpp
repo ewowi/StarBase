@@ -259,7 +259,7 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
 //run the change function and send response to all? websocket clients
 void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: bypass object["value"]
 
-  if (!object["chFun"].isNull()) {//isnull needed here!
+  if (!object["chFun"].isNull()) {//isNull needed here!
     size_t funNr = object["chFun"];
     uiFunctions[funNr](object);
   }

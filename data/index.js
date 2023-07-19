@@ -5,6 +5,7 @@ let columnNr = 0;
 let nrOfColumns = 4;
 let userFunId = "";
 let htmlGenerated = false;
+let jsonValues = {};
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -268,6 +269,10 @@ function processUpdate(json) {
             gId(key).checked = json[key].value;
           else //inputs
             gId(key).value = json[key].value;
+        }
+        if (json[key].json) { //json send html nodes cannot process, store in jsonValues array
+          console.log("processUpdate json", key, json[key].json, gId(key));
+          jsonValues[key] = json[key].json;
         }
       }
       else

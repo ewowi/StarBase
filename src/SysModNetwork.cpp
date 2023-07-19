@@ -18,8 +18,8 @@ void SysModNetwork::setup() {
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentObject = ui->initGroup(parentObject, name);
-  ui->initInput(parentObject, "ssid", "");
-  ui->initPassword(parentObject, "pw", "", [](JsonObject object) { //uiFun
+  ui->initInput(parentObject, "ssid", "MilliWatt");
+  ui->initPassword(parentObject, "pw", "BigTitties73!", [](JsonObject object) { //uiFun
     web->addResponse(object, "label", "Password");
   });
   ui->initButton(parentObject, "connect", "Connect", nullptr, [](JsonObject object) {
@@ -95,7 +95,7 @@ void SysModNetwork::initConnection() {
   }
 
   WiFi.setSleep(!noWifiSleep);
-  WiFi.setHostname("StarMod");
+  WiFi.setHostname("LedFix");
 
   const char* ssid = mdl->getValue("ssid");
   const char* password = mdl->getValue("pw");

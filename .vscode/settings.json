@@ -59,7 +59,8 @@
         "future": "cpp",
         "mutex": "cpp",
         "thread": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "list": "cpp"
     },
     "cmake.configureOnOpen": false
 }

@@ -71,9 +71,9 @@ void SysModWeb::loop() {
   // Module::loop();
 
   //currently not used as each variable is send individually
-  if (modelUpdated) {
+  if (this->modelUpdated) {
     sendDataWs(nullptr, false); //send new data, all clients, no def
-    modelUpdated = false;
+    this->modelUpdated = false;
   }
 
   if (millis() - secondMillis >= 1000 || !secondMillis) {
@@ -298,10 +298,10 @@ bool SysModWeb::processURL(const char * uri, void (*func)(AsyncWebServerRequest 
   return true;
 }
 
-// curl -F 'data=@ledmap1.json' 192.168.8.213/upload
+// curl -F 'data=@ledfix1.json' 192.168.8.213/upload
 bool SysModWeb::addUpload(const char * uri) {
 
-  // curl -F 'data=@ledmap1.json' 192.168.8.213/upload
+  // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
   server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
   [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
                 size_t len, bool final) {
@@ -334,7 +334,7 @@ bool SysModWeb::addUpload(const char * uri) {
           request->send(200, "text/plain", F("File Uploaded!"));
       // }
       // cacheInvalidate++;
-      files->filesChanged = true;
+     files->filesChange();
     }
   });
   return true;

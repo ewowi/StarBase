@@ -8,14 +8,6 @@
 
 // CRGB *leds = nullptr;
 CRGB leds[NUM_LEDS];
-static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-static uint16_t nrOfLeds = 0; 
-static uint16_t width = 8; 
-static uint8_t height = 8; 
-static uint8_t depth = 1; 
-static uint16_t fps = 40;
-static unsigned long call = 0;
-uint8_t bri = 10;
 
 //should not contain bytes to keep mem as small as possible
 class Effect {
@@ -24,6 +16,15 @@ public:
   virtual void setup() {} //not implemented yet
   virtual void loop() {}
   virtual const char * parameters() {return nullptr;}
+protected:
+  uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+  uint16_t nrOfLeds = 0; 
+  uint16_t width = 8; 
+  uint8_t height = 8; 
+  uint8_t depth = 1; 
+  uint16_t fps = 40;
+  unsigned long call = 0;
+
 };
 
 class RainbowEffect:public Effect {
@@ -49,7 +50,7 @@ public:
     RainbowEffect::loop();
     addGlitter(80);
   }
-  static void addGlitter( fract8 chanceOfGlitter) 
+  void addGlitter( fract8 chanceOfGlitter) 
   {
     if( random8() < chanceOfGlitter) {
       leds[ random16(nrOfLeds) ] += CRGB::White;
@@ -212,7 +213,9 @@ public:
 
 static std::vector<Effect *> effects;
 
-class AppModLeds:public Module {
+class AppModLeds:public Module, public Effect {
+
+using Module::name;
 
 public:
   uint8_t dataPin = 16; 
@@ -230,7 +233,7 @@ public:
     ui->initSlider(parentObject, "bri", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Brightness");
     }, [](JsonObject object) { //chFun
-      bri = map(object["value"], 0, 100, 0, 255);
+      uint8_t bri = map(object["value"], 0, 100, 0, 255);
       FastLED.setBrightness(bri);
       print->print("Set Brightness to %d -> %d\n", object["value"].as<int>(), bri);
     });
@@ -248,7 +251,7 @@ public:
 
     ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Preview");
-    }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
+    }, nullptr, [this](JsonObject object, uint8_t* buffer) { //loopFun
       // send leds preview to clients
       for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
       {
@@ -284,7 +287,7 @@ public:
 
     ui->initNumber(parentObject, "width", width, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Max %d", 256);
-    }, [](JsonObject object) { //chFun
+    }, [this](JsonObject object) { //chFun
       width = object["value"];
       if (width>256) {width = 256;mdl->setValue("width", 256);};
       changeDimensions();
@@ -293,7 +296,7 @@ public:
 
     ui->initNumber(parentObject, "height", height, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Max %d", 64);
-    }, [](JsonObject object) { //chFun
+    }, [this](JsonObject object) { //chFun
       height = object["value"];
       if (height>64) {height = 64;mdl->setValue("height", 64);};
       changeDimensions();
@@ -302,7 +305,7 @@ public:
 
     ui->initNumber(parentObject, "depth", depth, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Max %d", 16);
-    }, [](JsonObject object) { //chFun
+    }, [this](JsonObject object) { //chFun
       depth = object["value"];
       if (depth>16) {depth = 16;mdl->setValue("depth", 16);};
       changeDimensions();
@@ -311,7 +314,7 @@ public:
 
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
       web->addResponse(object, "comment", "Frames per second");
-    }, [](JsonObject object) { //chFun
+    }, [this](JsonObject object) { //chFun
       fps = object["value"];
       print->print("fps changed %d\n", fps);
     });
@@ -388,7 +391,7 @@ public:
     EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
   }
 
-  static void changeDimensions() { //static because of lambda functions
+  void changeDimensions() {
     nrOfLeds = min(width * height * depth, NUM_LEDS); //not highter then 4K leds
     mdl->setValue("nrOfLeds", nrOfLeds);
     print->print("changeDimensions %d x %d x %d = %d\n", width, height, depth, nrOfLeds);

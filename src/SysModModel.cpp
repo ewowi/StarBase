@@ -56,11 +56,6 @@ void SysModModel::setup() {
     files->remove("/model.json");
   });
 
-  ui->initButton(parentObject, "deleteLedMap", "DeleteLedMap", nullptr, [](JsonObject object) {
-    print->print("delete ledmap json\n");
-    files->remove("/ledmap1.json");
-  });
-
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 

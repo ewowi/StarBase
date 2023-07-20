@@ -24,10 +24,10 @@ public:
   void filesChange();
 
   //get the file names and size in an array of arrays
-  static void dirToJson(JsonArray array);
+  static void dirToJson(JsonArray array, const char * filter = nullptr);
 
   //get the file names in an array
-  static void dirToJson2(JsonArray array);
+  static void dirToJson2(JsonArray array, const char * filter = nullptr);
 
   //get back the name of a file based on the sequence
   static char * seqNrToName(size_t seqNr);
@@ -39,6 +39,8 @@ public:
   //write json into file
   //name is copied from WLED but better to call it readJsonFrom file
   bool writeObjectToFile(const char* path, JsonDocument* dest);
+
+  void removeFiles(const char * filter = nullptr);
 
 private:
   static bool filesChanged;

@@ -356,5 +356,4 @@ void SysModUI::processUiFun(const char * id) {
 
   // print->printJson("uloops change response", responseVariant);
   web->sendDataWs(responseVariant);
-
 }

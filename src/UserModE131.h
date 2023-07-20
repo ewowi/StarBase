@@ -48,8 +48,8 @@ public:
                 e131.stats.packet_errors,               // Packet error counter
                 packet.property_values[1]);             // Dimmer data for Channel 1
 
-      bri = packet.property_values[1]; // TODO: ugly to just hack the global bri value
-      // mdl->setValue("fx", packet.property_values[2]); // TODO: ugly to have magic string and also is updating even when no change
+      mdl->setValue("bri", packet.property_values[1]); // TODO: ugly to have magic string 
+      mdl->setValue("fx", packet.property_values[2]); // TODO: ugly to have magic string
     }
   }
 

@@ -72,3 +72,7 @@ char * SysModPrint::fFormat(const char * format, ...) {
   return msgbuf;
 }
 
+void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
+  print("%s  %u / %u (%u%%) (%u %u %u)\n", text, source.memoryUsage(), source.capacity(), 100 * source.memoryUsage() / source.capacity(), source.size(), source.overflowed(), source.nesting());
+}
+

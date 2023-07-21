@@ -20,6 +20,7 @@ public:
 
     ui->initCanvas(parentObject, "board", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object, "label", "Board layout");
+      web->addResponse(object, "comment", "WIP");
     }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
       // send leds preview to clients
       for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)

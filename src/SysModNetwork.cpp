@@ -1,5 +1,6 @@
 #include "SysModNetwork.h"
 #include "Module.h"
+// #include "Modules.h"
 
 #include "SysModPrint.h"
 #include "SysModWeb.h"
@@ -27,6 +28,7 @@ void SysModNetwork::setup() {
   });
   ui->initDisplay(parentObject, "nwstatus", nullptr, [](JsonObject object) { //uiFun
     web->addResponse(object, "label", "Status");
+    web->addResponse(object, "comment", "Not shown for some reason (wip)");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -68,6 +70,7 @@ void SysModNetwork::handleConnection() {
 
     interfacesInited = true;
 
+    // mdls->connected(); //causes crash
     web->connected2();
 
     // shut down AP
@@ -118,6 +121,7 @@ void SysModNetwork::initAP() {
     mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
     // send all modules connect notification
+    // mdls->connected();  //causes crash
     web->connected2();
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);

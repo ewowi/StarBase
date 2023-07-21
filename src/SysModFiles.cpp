@@ -167,6 +167,7 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
     print->print(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
     DeserializationError error = deserializeJson(*dest, f);
     if (error) {
+      print->printJDocInfo("readObjectFromFile", *dest);
       print->print("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
       f.close();
       return false;
@@ -182,10 +183,10 @@ bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
   if (f) {
     print->println(F("  success"));
     serializeJson(*dest, f);
+    f.close();
     filesChanged = true;
     return true;
   } else {
-    f.close();
     print->println(F("  fail"));
     return false;
   }
@@ -209,4 +210,20 @@ void SysModFiles::removeFiles(const char * filter) {
   }
 
   root.close();
+}
+
+bool SysModFiles::readFile(const char * path) {
+  File f = open(path, "r");
+  if (f) {
+
+    while(f.available()) {
+      Serial.print((char)f.read());
+    }
+    Serial.println();
+
+    f.close();
+    return true;
+  }
+  else 
+    return false;
 }

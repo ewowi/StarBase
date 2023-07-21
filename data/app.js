@@ -40,21 +40,18 @@ function userFun(userFunId, data) {
 
 function preview2D(node, leds) {
   let ctx = node.getContext('2d');
-  let mW = leds[0]; // matrix width
-  let mH = leds[1]; // matrix height
-  let pPL = Math.min(node.width / 16, node.height / 16); // pixels per LED (width of circle)
-  let pPL2 = Math.min(node.width / 120, node.height / 120); // pixels per LED (width of circle)
-  let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
   let i = 4;
   ctx.clearRect(0, 0, node.width, node.height);
   if (jsonValues.pview) { // && jsonValues.pview.leds
+    let pPL = Math.min(node.width / jsonValues.pview.width, node.height / jsonValues.pview.height); // pixels per LED (width of circle)
+    let lOf = Math.floor((node.width - pPL*jsonValues.pview.width)/2); //left offeset (to center matrix)
     if (jsonValues.pview.leds) {
       // console.log(jsonValues.pview.leds);
       for (var led of jsonValues.pview.leds) {
         if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
           ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
           ctx.beginPath();
-          ctx.arc(led[0]*pPL2 + node.width/2, led[1]*pPL2+node.height/2, pPL*0.4, 0, 2 * Math.PI);
+          ctx.arc(led[0]*pPL*jsonValues.pview.width/jsonValues.pview.size + lOf, led[1]*pPL*jsonValues.pview.height/jsonValues.pview.size, pPL*0.4, 0, 2 * Math.PI);
           ctx.fill();
         }
         i+=3;
@@ -66,6 +63,10 @@ function preview2D(node, leds) {
     }
   }
   else {
+    let mW = leds[0]; // matrix width
+    let mH = leds[1]; // matrix height
+    let pPL = Math.min(node.width / mW, node.height / mH); // pixels per LED (width of circle)
+    let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
     for (y=0.5;y<mH;y++) for (x=0.5; x<mW; x++) {
       if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
         ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;

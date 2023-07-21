@@ -20,6 +20,8 @@ public:
 
   //experimenting with return of char, if possible at all - wip... use String?
   char * fFormat(const char * format, ...);
+
+  void printJDocInfo(const char * text, DynamicJsonDocument source);
 };
 
 static SysModPrint *print;

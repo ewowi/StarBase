@@ -235,6 +235,10 @@ function processUpdate(json) {
         if (json[key].lov) {
           console.log("processUpdate lov", key, json[key].lov);
           var index = 0;
+          //remove all old options first
+          while (gId(key).options.length > 0) {
+            gId(key).remove(0);
+          }
           for (var value of json[key].lov) {
             let optNode = cE("option");
             optNode.value = index;

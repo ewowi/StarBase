@@ -1,4 +1,5 @@
 #pragma once
+#include "SysModPrint.h"
 
 #include <vector>
 
@@ -9,7 +10,10 @@ class Modules {
   public:
 
   void setup() {
-      for (Module *module:modules) module->setup();
+    for (Module *module:modules) {
+      print->print("MODULES SETUP %s\n", module->name);
+      module->setup();
+    }
   }
 
   void loop() {
@@ -24,12 +28,17 @@ class Modules {
     }
   }
 
-  void add (Module* module) {
+  void add(Module* module) {
+    print->print("MODULES ADD %s\n", module->name);
     modules.push_back(module);
   }
 
   void connected() {
-    for (Module *module:modules) module->connected();
+    print->print("MODULES connected \n");
+    for (Module *module:modules) { //this causes crash!!! why???
+      print->print("MODULES connected to %s\n", module->name);
+      module->connected();
+    }
   }
 
 };

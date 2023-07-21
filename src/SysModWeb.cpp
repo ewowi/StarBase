@@ -100,7 +100,8 @@ void SysModWeb::connected2() {
 
     server->begin();
 
-    // print->print("%s server (re)started\n", name); //causes crass for some reason...
+    // print->print("%s server (re)started\n", name); //causes crash for some reason...
+    print->print("server (re)started\n"); //and this not causes crash ??? whats with name?
 }
 
 //WebSocket connection to 'ws://192.168.8.152/ws' failed: The operation couldn’t be completed. Protocol error

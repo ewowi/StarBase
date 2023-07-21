@@ -269,25 +269,36 @@ public:
       files->dirToJson2(lov, "lf"); //only files containing lf
     }, [](JsonObject object) { //chFun
       print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
-      StaticJsonDocument<4096> lmJson;
-      char temp[30] = "/"; //add root prefix
-      strcat(temp, files->seqNrToName(object["value"].as<int>()));
-      files->readObjectFromFile(temp, &lmJson);
+      DynamicJsonDocument lmJson (8192);
+      char fileName[30] = "/"; //add root prefix
+      strcat(fileName, files->seqNrToName(object["value"].as<int>()));
+      if (files->readFile(fileName)) {
+        files->readObjectFromFile(fileName, &lmJson);
+        print->printJDocInfo("ledFix", lmJson);
+        print->printJson("ledFix", lmJson);
 
-      //change the setup based on the json file
-      nrOfLeds = lmJson["leds"].size();
-      mdl->setValue("nrOfLeds", nrOfLeds);
-      width = nrOfLeds;
-      height = 1;
-      depth = 1;
+        width = lmJson["pview"]["json"]["width"];
+        height = lmJson["pview"]["json"]["height"];
+        depth = lmJson["pview"]["json"]["depth"];
 
-      //send the json to pview...
-      JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
-      (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
-      responseVariant["pview"]["json"] = lmJson;
-      print->printJson("ledFix", responseVariant);
-      web->sendDataWs(responseVariant);
-      print->print("ledfix send ws done\n");
+        //change the setup based on the json file
+        nrOfLeds = lmJson["pview"]["json"]["leds"].size() / (depth>1?3:2);
+        if (nrOfLeds == 0) { //avoid div/0 in %nrOfLeds
+          print->print("ledFix could not find nrofleds");
+          nrOfLeds = 30;
+        }
+        // mdl->setValue("nrOfLeds", nrOfLeds); //done by width/height and depth already
+        mdl->setValue("width", width);
+        mdl->setValue("height", height);
+        mdl->setValue("depth", depth);
+
+        //send the json to pview...
+        // JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
+        // (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
+        // responseVariant["pview"]["json"] = lmJson;
+        web->sendDataWs(lmJson);
+        print->print("ledfix send ws done\n");
+      }
     });
 
     ui->initNumber(parentObject, "width", width, [](JsonObject object) { //uiFun
@@ -343,69 +354,119 @@ public:
       lov.add("R24"); //0
       lov.add("R35"); //1
       lov.add("M88"); //2
+      lov.add("M885"); //3
     }, [](JsonObject object) { //chFun
-      StaticJsonDocument<4096> lmJson; //2048 is not even enough for 64 leds!!!!
+      DynamicJsonDocument lmJson (8192);
       JsonObject lmObject = lmJson.to<JsonObject>();
-      size_t fix = object["value"];
 
       const char * name = "TT";
       uint16_t nrOfLeds = 30; //default
       uint16_t diameter = 100; //in mm
 
+      uint16_t width = 0;
+      uint8_t height = 0;
+      uint8_t depth = 0;
+
+      size_t fix = object["value"];
       switch (fix) {
         case 0: //R24
-          name = "R24";
-          lmObject["name"] = name;
-          nrOfLeds = 24;
         case 1: //R35
           diameter = 100; //in mm
 
-          if (fix == 1) {
+          if (fix == 0) {
+            name = "R24";
+            nrOfLeds = 24;
+          }
+          else {
             name = "R35";
-            lmObject["name"] = name;
             nrOfLeds = 35;
           }
 
-          lmObject["scale"] = "mm";
-          lmObject["size"] = diameter;
-          lmObject["pin"] = 16;
-          lmObject["leds"] = lmJson.createNestedArray();
+          lmObject["pview"]["json"]["name"] = name;
+
+          lmObject["pview"]["json"]["scale"] = "mm";
+          lmObject["pview"]["json"]["size"] = diameter;
+          lmObject["pview"]["json"]["pin"] = 16;
+          lmObject["pview"]["json"]["leds"] = lmJson.createNestedArray();
 
           for (int i=0; i<nrOfLeds; i++) {
             float radians = i*360/nrOfLeds * (M_PI / 180);
-            int16_t x = sinf(radians) * diameter/2;
-            int16_t y = cosf(radians) * diameter/2;
-            // print->print("createR24LedFix %d %d %d\n", i, x, y);
-            JsonArray array2 = lmObject["leds"].createNestedArray();
+            uint16_t x = diameter/2 * (1 + sinf(radians));
+            uint8_t y = diameter/2 * (1+ cosf(radians));
+            JsonArray array2 = lmObject["pview"]["json"]["leds"].createNestedArray();
             array2.add(x);
             array2.add(y);
+            width = max(width, x);
+            height = max(height, y);
+            depth = 1;
+
           }
+          width = 10; //overrule wip
+          height = 10;
+          depth = 1;
           break;
         case 2: //M88
           name = "M88";
-          diameter = 80; //in mm
+          diameter = 8; //in cm
           nrOfLeds = 64;
 
+          lmObject["pview"]["json"]["name"] = name;
+          lmObject["pview"]["json"]["scale"] = "cm";
+          lmObject["pview"]["json"]["size"] = diameter;
+          lmObject["pview"]["json"]["pin"] = 16;
+          lmObject["pview"]["json"]["leds"] = lmJson.createNestedArray();
 
-          lmObject["name"] = name;
-          lmObject["scale"] = "mm";
-          lmObject["size"] = diameter;
-          lmObject["pin"] = 16;
-          lmObject["leds"] = lmJson.createNestedArray();
-
-          for (int y = 0; y<8; y++)
-            for (int x = 0; x<8 ; x++) {
-              // print->print("createM88LedFix %d %d %d\n", i, x, y);
-              JsonArray array2 = lmObject["leds"].createNestedArray();
-              array2.add(x*10);
-              array2.add(y*10);
+          for (uint8_t y = 0; y<8; y++)
+            for (uint16_t x = 0; x<8 ; x++) {
+              JsonArray array2 = lmObject["pview"]["json"]["leds"].createNestedArray();
+              array2.add(x);
+              array2.add(y);
+              width = max(width, x);
+              height = max(height, y);
+              depth = 1;
             }
+
+          width = 8; //overrule wip
+          height = 8;
+          depth = 1;
+          break;
+        case 3: //M885
+          name = "M885";
+          diameter = 80; //in mm
+          nrOfLeds = 64*8;
+
+          lmObject["pview"]["json"]["name"] = name;
+          lmObject["pview"]["json"]["scale"] = "cm";
+          lmObject["pview"]["json"]["size"] = diameter;
+          lmObject["pview"]["json"]["pin"] = 16;
+          lmObject["pview"]["json"]["leds"] = lmJson.createNestedArray();
+
+          for (uint8_t z = 0; z<8; z++)
+            for (uint8_t y = 0; y<8; y++)
+              for (uint16_t x = 0; x<8 ; x++) {
+                JsonArray array2 = lmObject["pview"]["json"]["leds"].createNestedArray();
+                array2.add(x);
+                array2.add(y);
+                array2.add(z);
+                width = max(width, x);
+                height = max(height, y);
+                depth = max(depth, z);
+              }
+
+          width = 8; //overrule wip
+          height = 8;
+          depth = 8;
           break;
       }
+
+      lmObject["pview"]["json"]["width"] = width;
+      lmObject["pview"]["json"]["height"] = height;
+      lmObject["pview"]["json"]["depth"] = depth;
 
       char fileName[30] = "/lf";
       strcat(fileName, name);
       strcat(fileName, ".json");
+      print->printJDocInfo("ledFixGen", lmJson);
       files->writeObjectToFile(fileName, &lmJson);
       print->printJson(fileName, lmJson);
 

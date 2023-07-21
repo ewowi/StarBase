@@ -42,6 +42,8 @@ public:
 
   void removeFiles(const char * filter = nullptr);
 
+  bool readFile(const char * path);
+
 private:
   static bool filesChanged;
 

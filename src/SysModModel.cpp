@@ -48,10 +48,13 @@ void SysModModel::setup() {
 
   ui->initButton(parentObject, "deleteObsolete", "DeleteObsolete", [](JsonObject object) {
     web->addResponse(object, "label", "Delete obsolete objects");
+    web->addResponse(object, "comment", "WIP");
   }, [](JsonObject object) {
   });
 
-  ui->initButton(parentObject, "deleteModel", "DeleteModel", nullptr, [](JsonObject object) {
+  ui->initButton(parentObject, "deleteModel", "DeleteModel", [](JsonObject object) {
+    web->addResponse(object, "comment", "Back to defaults");
+  }, [](JsonObject object) {
     print->print("delete model json\n");
     files->remove("/model.json");
   });
@@ -80,10 +83,10 @@ void SysModModel::setup() {
   }
 
   if (model->memoryUsage() / model->capacity() > 0.95) {
-    print->print("model  %u / %u (%u%%) (%u %u %u)\n", model->memoryUsage(), model->capacity(), 100 * model->memoryUsage() / model->capacity(), model->size(), model->overflowed(), model->nesting());
+    print->printJDocInfo("model", *model);
     size_t memBefore = model->memoryUsage();
     model->garbageCollect();
-    print->print("garbageCollect %u / %u%% -> %u / %u%%\n", memBefore, 100 * memBefore / model->capacity(), model->memoryUsage(), 100 * model->memoryUsage() / model->capacity());
+    print->printJDocInfo("garbageCollect", *model);
   }
 }
 

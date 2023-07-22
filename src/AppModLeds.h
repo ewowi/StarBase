@@ -1,13 +1,14 @@
 #include "FastLED.h"
 
 #define DATA_PIN 16
-#define NUM_LEDS 1024
+#define NUM_LEDS_Fastled 1024
+#define NUM_LEDS_preview 2000
 
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
 // CRGB *leds = nullptr;
-CRGB leds[NUM_LEDS];
+CRGB leds[NUM_LEDS_preview];
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 static uint16_t nrOfLeds = 0; 
 static uint16_t width = 8; 
@@ -269,34 +270,36 @@ public:
       files->dirToJson2(lov, "lf"); //only files containing lf
     }, [](JsonObject object) { //chFun
       print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
-      DynamicJsonDocument lmJson (8192);
+
       char fileName[30] = "/"; //add root prefix
-      strcat(fileName, files->seqNrToName(object["value"].as<int>()));
-      if (files->readFile(fileName)) {
-        files->readObjectFromFile(fileName, &lmJson);
-        print->printJDocInfo("ledFix", lmJson);
-        print->printJson("ledFix", lmJson);
+      const char * fname = files->seqNrToName(object["value"].as<int>());
+      if (!fname) {
+        print->print("ledFix file %d does not exist\n", object["value"].as<int>());
+        //due to delete files
+        return;
+      }
+      strcat(fileName, fname);
 
-        width = lmJson["pview"]["json"]["width"];
-        height = lmJson["pview"]["json"]["height"];
-        depth = lmJson["pview"]["json"]["depth"];
+      LazyJsonRDWS ljrdws(fileName); //open fileName for deserialize
 
-        //change the setup based on the json file
-        nrOfLeds = lmJson["pview"]["json"]["leds"].size() / (depth>1?3:2);
-        if (nrOfLeds == 0) { //avoid div/0 in %nrOfLeds
-          print->print("ledFix could not find nrofleds");
-          nrOfLeds = 30;
-        }
-        // mdl->setValue("nrOfLeds", nrOfLeds); //done by width/height and depth already
-        mdl->setValue("width", width);
-        mdl->setValue("height", height);
-        mdl->setValue("depth", depth);
+      //what to deserialize
+      ljrdws.lookFor("width", &width);
+      ljrdws.lookFor("height", &height);
+      ljrdws.lookFor("depth", &depth);
 
-        //send the json to pview...
-        // JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
-        // (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
-        // responseVariant["pview"]["json"] = lmJson;
-        web->sendDataWs(lmJson);
+      if (ljrdws.deserialize()) {
+        print->print("ljrdws whd %d %d %d\n", width, height, depth);
+
+        // mdl->setValueI("nrOfLeds", nrOfLeds); //done by width/height and depth already
+        mdl->setValueI("width", width);
+        mdl->setValueI("height", height);
+        mdl->setValueI("depth", depth);
+
+        //send to pview a message to get file filename
+        JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
+        (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
+        responseVariant["pview"]["file"] = fileName;
+        web->sendDataWs(responseVariant);
         print->print("ledfix send ws done\n");
       }
     });
@@ -305,7 +308,7 @@ public:
       web->addResponseV(object, "comment", "Max %d", 256);
     }, [](JsonObject object) { //chFun
       width = object["value"];
-      if (width>256) {width = 256;mdl->setValue("width", 256);};
+      if (width>256) {width = 256;mdl->setValueI("width", 256);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
     });
@@ -314,7 +317,7 @@ public:
       web->addResponseV(object, "comment", "Max %d", 64);
     }, [](JsonObject object) { //chFun
       height = object["value"];
-      if (height>64) {height = 64;mdl->setValue("height", 64);};
+      if (height>64) {height = 64;mdl->setValueI("height", 64);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
     });
@@ -323,7 +326,7 @@ public:
       web->addResponseV(object, "comment", "Max %d", 16);
     }, [](JsonObject object) { //chFun
       depth = object["value"];
-      if (depth>16) {depth = 16;mdl->setValue("depth", 16);};
+      if (depth>16) {depth = 16;mdl->setValueI("depth", 16);};
       changeDimensions();
       fadeToBlackBy( leds, nrOfLeds, 100);
     });
@@ -338,9 +341,9 @@ public:
     ui->initDisplay(parentObject, "realFps");
 
     ui->initDisplay(parentObject, "nrOfLeds", nullptr, [](JsonObject object) { //uiFun
-      web->addResponseV(object, "comment", "Max %d", NUM_LEDS);
+      web->addResponseV(object, "comment", "Max %d", NUM_LEDS_preview);
     });
-    mdl->setValue("nrOfLeds", nrOfLeds); //set here as changeDimensions already called for width/height/depth
+    mdl->setValueI("nrOfLeds", nrOfLeds); //set here as changeDimensions already called for width/height/depth
 
     ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
       web->addResponseV(object, "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
@@ -354,10 +357,11 @@ public:
       lov.add("R24"); //0
       lov.add("R35"); //1
       lov.add("M88"); //2
-      lov.add("M885"); //3
+      lov.add("M888"); //3
+      lov.add("M888h"); //4
+      lov.add("HSC"); //5
+      lov.add("Globe"); //6
     }, [](JsonObject object) { //chFun
-      DynamicJsonDocument lmJson (8192);
-      JsonObject lmObject = lmJson.to<JsonObject>();
 
       const char * name = "TT";
       uint16_t nrOfLeds = 30; //default
@@ -370,105 +374,204 @@ public:
       size_t fix = object["value"];
       switch (fix) {
         case 0: //R24
+          name = "R24";
+          nrOfLeds = 24;
+          break;
         case 1: //R35
-          diameter = 100; //in mm
-
-          if (fix == 0) {
-            name = "R24";
-            nrOfLeds = 24;
-          }
-          else {
-            name = "R35";
-            nrOfLeds = 35;
-          }
-
-          lmObject["pview"]["json"]["name"] = name;
-
-          lmObject["pview"]["json"]["scale"] = "mm";
-          lmObject["pview"]["json"]["size"] = diameter;
-          lmObject["pview"]["json"]["pin"] = 16;
-          lmObject["pview"]["json"]["leds"] = lmJson.createNestedArray();
-
-          for (int i=0; i<nrOfLeds; i++) {
-            float radians = i*360/nrOfLeds * (M_PI / 180);
-            uint16_t x = diameter/2 * (1 + sinf(radians));
-            uint8_t y = diameter/2 * (1+ cosf(radians));
-            JsonArray array2 = lmObject["pview"]["json"]["leds"].createNestedArray();
-            array2.add(x);
-            array2.add(y);
-            width = max(width, x);
-            height = max(height, y);
-            depth = 1;
-
-          }
-          width = 10; //overrule wip
-          height = 10;
-          depth = 1;
+          name = "R35";
+          nrOfLeds = 35;
           break;
         case 2: //M88
           name = "M88";
-          diameter = 8; //in cm
           nrOfLeds = 64;
-
-          lmObject["pview"]["json"]["name"] = name;
-          lmObject["pview"]["json"]["scale"] = "cm";
-          lmObject["pview"]["json"]["size"] = diameter;
-          lmObject["pview"]["json"]["pin"] = 16;
-          lmObject["pview"]["json"]["leds"] = lmJson.createNestedArray();
-
-          for (uint8_t y = 0; y<8; y++)
-            for (uint16_t x = 0; x<8 ; x++) {
-              JsonArray array2 = lmObject["pview"]["json"]["leds"].createNestedArray();
-              array2.add(x);
-              array2.add(y);
-              width = max(width, x);
-              height = max(height, y);
-              depth = 1;
-            }
-
-          width = 8; //overrule wip
-          height = 8;
-          depth = 1;
           break;
-        case 3: //M885
-          name = "M885";
-          diameter = 80; //in mm
-          nrOfLeds = 64*8;
-
-          lmObject["pview"]["json"]["name"] = name;
-          lmObject["pview"]["json"]["scale"] = "cm";
-          lmObject["pview"]["json"]["size"] = diameter;
-          lmObject["pview"]["json"]["pin"] = 16;
-          lmObject["pview"]["json"]["leds"] = lmJson.createNestedArray();
-
-          for (uint8_t z = 0; z<8; z++)
-            for (uint8_t y = 0; y<8; y++)
-              for (uint16_t x = 0; x<8 ; x++) {
-                JsonArray array2 = lmObject["pview"]["json"]["leds"].createNestedArray();
-                array2.add(x);
-                array2.add(y);
-                array2.add(z);
-                width = max(width, x);
-                height = max(height, y);
-                depth = max(depth, z);
-              }
-
-          width = 8; //overrule wip
-          height = 8;
-          depth = 8;
+        case 3: //M888
+          name = "M888";
+          nrOfLeds = 512;
+          break;
+        case 4: //M888h
+          name = "M888h";
+          nrOfLeds = 512;
+          break;
+        case 5: //HSC
+          name = "HSC";
+          nrOfLeds = 2000;
+          break;
+        case 6: //Globe
+          name = "Globe";
+          nrOfLeds = 512;
           break;
       }
-
-      lmObject["pview"]["json"]["width"] = width;
-      lmObject["pview"]["json"]["height"] = height;
-      lmObject["pview"]["json"]["depth"] = depth;
 
       char fileName[30] = "/lf";
       strcat(fileName, name);
       strcat(fileName, ".json");
-      print->printJDocInfo("ledFixGen", lmJson);
-      files->writeObjectToFile(fileName, &lmJson);
-      print->printJson(fileName, lmJson);
+
+      File f = files->open(fileName, "w");
+      if (f) {
+        f.print("{"); //{\"pview\":{\"json\":
+      }
+      else
+        print->print("ledFixGen Could not open file %s for writing\n", fileName);
+      
+      char sep[3]="";
+
+      f.printf("\"name\":\"%s\"", name);
+      f.printf(",\"pin\":%d",16);
+      switch (fix) {
+        case 0: //R24
+        case 1: //R35
+          diameter = 100; //in mm
+
+          f.printf(",\"scale\":\"%s\"", "mm");
+          f.printf(",\"size\":%d", diameter);
+
+          width = 10;
+          height = 10;
+          depth = 1;
+          f.printf(",\"width\":%d", width);
+          f.printf(",\"height\":%d", height);
+          f.printf(",\"depth\":%d", depth);
+
+          f.printf(",\"leds\":[");
+          strcpy(sep, "");
+          for (int i=0; i<nrOfLeds; i++) {
+            float radians = i*360/nrOfLeds * (M_PI / 180);
+            uint16_t x = diameter/2 * (1 + sinf(radians));
+            uint8_t y = diameter/2 * (1+ cosf(radians));
+            f.printf("%s[%d,%d]", sep, x,y); strcpy(sep, ",");
+          }
+          f.printf("]");
+          break;
+        case 2: //M88
+          diameter = 8; //in cm
+
+          f.printf(",\"scale\":\"%s\"", "cm");
+          f.printf(",\"size\":%d", diameter);
+
+          width = 8;
+          height = 8;
+          depth = 1;
+          f.printf(",\"width\":%d", width);
+          f.printf(",\"height\":%d", height);
+          f.printf(",\"depth\":%d", depth);
+
+          f.printf(",\"leds\":[");
+          strcpy(sep,"");
+          for (uint8_t y = 0; y<8; y++)
+            for (uint16_t x = 0; x<8 ; x++) {
+              // width = max(width, x);
+              // height = max(height, y);
+              // depth = 1;
+              f.printf("%s[%d,%d]", sep, x,y); strcpy(sep, ",");
+            }
+          f.printf("]");
+
+          break;
+        case 3: //M888
+          diameter = 8; //in cm
+
+          f.printf(",\"scale\":\"%s\"", "cm");
+          f.printf(",\"size\":%d", diameter);
+
+          width = 8;
+          height = 8;
+          depth = 8;
+          f.printf(",\"width\":%d", width);
+          f.printf(",\"height\":%d", height);
+          f.printf(",\"depth\":%d", depth);
+
+          f.printf(",\"leds\":[");
+          strcpy(sep,"");
+          for (uint8_t z = 0; z<depth; z++)
+            for (uint8_t y = 0; y<height; y++)
+              for (uint16_t x = 0; x<width ; x++) {
+                // width = max(width, x);
+                // height = max(height, y);
+                // depth = max(depth, z);
+                f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
+              }
+          f.printf("]");
+
+          break;
+        case 4: //M888h
+        case 5: //HSC
+          if (fix==4) {
+            diameter = 8; //in cm
+            width = 8;
+            height = 8;
+            depth = 8;
+            f.printf(",\"scale\":\"%s\"", "cm");
+          }
+          else {
+            diameter = 20; //in dm
+            width = 20;
+            height = 20;
+            depth = 20;
+            f.printf(",\"scale\":\"%s\"", "dm");
+          }
+
+          f.printf(",\"size\":%d", diameter);
+
+          f.printf(",\"width\":%d", width);
+          f.printf(",\"height\":%d", height);
+          f.printf(",\"depth\":%d", depth);
+
+          f.printf(",\"leds\":[");
+          strcpy(sep,"");
+
+          //front and back
+          for (uint8_t z = 0; z<depth; z+=depth-1)
+            for (uint8_t y = 0; y<height; y++)
+              for (uint16_t x = 0; x<width ; x++) {
+                f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
+              }
+          //NO botom and top
+          for (uint8_t z = 0; z<depth; z++)
+            for (uint8_t y = height-1; y<height; y+=height-1)
+              for (uint16_t x = 0; x<width ; x++) {
+                f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
+              }
+          //left and right
+          for (uint8_t z = 0; z<depth; z++)
+            for (uint8_t y = 0; y<height; y++)
+              for (uint16_t x = 0; x<width ; x+=width-1) {
+                f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
+              }
+          f.printf("]");
+
+          break;
+        case 6: //Globe
+          diameter = 100; //in mm
+
+          f.printf(",\"scale\":\"%s\"", "mm");
+          f.printf(",\"size\":%d", diameter);
+
+          width = 10;
+          height = 10;
+          depth = 1;
+          f.printf(",\"width\":%d", width);
+          f.printf(",\"height\":%d", height);
+          f.printf(",\"depth\":%d", depth);
+
+          f.printf(",\"leds\":[");
+          strcpy(sep, "");
+          for (int i=0; i<nrOfLeds; i++) {
+            float radians = i*360/nrOfLeds * (M_PI / 180);
+            uint16_t x = diameter/2 * (1 + sinf(radians));
+            uint8_t y = diameter/2 * (1+ cosf(radians));
+            uint8_t z = diameter/2 * (1+ cosf(radians));
+            f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
+
+          }
+          f.printf("]");
+          break;
+      }
+
+      f.print("}"); //}}
+      f.close();
+
+      files->filesChange();
 
       //reload ledfix dropdown
       ui->processUiFun("ledFix");
@@ -513,8 +616,8 @@ public:
   }
 
   static void changeDimensions() { //static because of lambda functions
-    nrOfLeds = min(width * height * depth, NUM_LEDS); //not highter then 4K leds
-    mdl->setValue("nrOfLeds", nrOfLeds);
+    nrOfLeds = min(width * height * depth, NUM_LEDS_preview); //not highter then 4K leds
+    mdl->setValueI("nrOfLeds", nrOfLeds);
     print->print("changeDimensions %d x %d x %d = %d\n", width, height, depth, nrOfLeds);
     // if (!leds)
     //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
@@ -524,7 +627,7 @@ public:
     // leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
     // leds = (CRGB*)reallocarray
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS); 
+    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS_Fastled); 
   }
 
 };

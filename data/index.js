@@ -186,7 +186,7 @@ function generateHTML(parentNode, json) {
     //call ui Functionality, if defined (to set label, comment, lov etc)
     if (json.uiFun >= 0) { //>=0 as element in object
       var command = {};
-      command["uiFun"] = json.id; //ask for uiFun (to add the options)
+      command["uiFun"] = json.id; //ask to run uiFun for object (to add the options)
       requestJson(command);
     }
 
@@ -278,6 +278,18 @@ function processUpdate(json) {
           console.log("processUpdate json", key, json[key].json, gId(key));
           jsonValues[key] = json[key].json;
         }
+        if (json[key].file) { //json send html nodes cannot process, store in jsonValues array
+          console.log("processUpdate file", key, json[key].file, gId(key));
+        
+          //we need to send a request which the server can handle using request variable
+          let url = `http://${window.location.hostname}/file`;
+          fetchAndExecute(url, json[key].file, jsonValues, function(jsonValues,text) {
+            var ledmapJson = JSON.parse(text);
+            jsonValues[key] = ledmapJson;
+            // console.log(jsonValues);
+          }); 
+
+        }
       }
       else
         console.log("Id not found", key);
@@ -288,14 +300,15 @@ function processUpdate(json) {
 function requestJson(command) {
   gId('connind').style.backgroundColor = "var(--c-y)";
   if (!ws) return;
-  let url = `http://${window.location.hostname}/json`;
   let req = JSON.stringify(command);
-
-  console.log("requestJson", url, command);
-
+  
+  console.log("requestJson", command);
+  
   ws.send(req?req:'{"v":true}');
-  return;
 
+  return;
+  
+  let url = `http://${window.location.hostname}/json`;
   //not used at the moment as WebSockets only
   fetch(url, {
     method: 'post',
@@ -461,4 +474,32 @@ function handleDrop(e) {
   }
 
   return false;
+}
+
+//WLEDMM: utility function to load contents of file from FS (used in draw)
+function fetchAndExecute(url, name, parms, callback, callError = null)
+{
+  fetch
+  (url+name, {
+    method: 'get'
+  })
+  .then(res => {
+    if (!res.ok) {
+		callError("File " + name + " not found");
+    	return "";
+    }
+    // console.log("res", res, res.text(), res.text().result);
+    return res.text();
+  })
+  .then(text => {
+    // console.log("text", text);
+    callback(parms, text);
+  })
+  .catch(function (error) {
+	if (callError) callError(parms, "Error getting " + name);
+	console.log(error);
+  })
+  .finally(() => {
+    // if (callback) setTimeout(callback,99);
+  });
 }

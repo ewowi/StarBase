@@ -1,6 +1,7 @@
 #include "Module.h"
 #include "SysModPrint.h"
 #include "SysModUI.h"
+#include "SysModModel.h"
 
 SysModPrint::SysModPrint() :Module("Print") {
   print("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -25,6 +26,7 @@ void SysModPrint::setup() {
 
 void SysModPrint::loop() {
   // Module::loop();
+  if (!setupsDone) setupsDone = true;
 }
 
 size_t SysModPrint::print(const char * format, ...) {
@@ -35,7 +37,8 @@ size_t SysModPrint::print(const char * format, ...) {
 
   va_end(args);
   
-  // mdl->setValueV("log", "%lu", millis());
+  // if (setupsDone) mdl->setValueI("log", (int)millis()/1000);
+  //this function looks very sensitive, any chance causes crashes!
 
   return len;
 }

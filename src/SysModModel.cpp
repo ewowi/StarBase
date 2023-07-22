@@ -36,7 +36,9 @@ void SysModModel::setup() {
     web->addResponse(object, "label", "Size");
   });
 
-  ui->initButton(parentObject, "saveModel", "SaveModel", nullptr, [](JsonObject object) {
+  ui->initButton(parentObject, "saveModel", "SaveModel", [](JsonObject object) {
+    web->addResponse(object, "comment", "Write to model.json (manual save only currently)");
+  }, [](JsonObject object) {
     doWriteModel = true;
   });
 
@@ -113,7 +115,7 @@ void SysModModel::cleanUpModel(JsonArray objects) {
 }
 
 //setValue char
-JsonObject SysModModel::setValue(const char * id, const char * value) {
+JsonObject SysModModel::setValueC(const char * id, const char * value) {
   JsonObject object = findObject(id);
   if (!object.isNull()) {
     if (object["value"].isNull() || object["value"] != value) {
@@ -132,7 +134,7 @@ JsonObject SysModModel::setValue(const char * id, const char * value) {
 }
 
 //setValue int
-JsonObject SysModModel::setValue(const char * id, int value) {
+JsonObject SysModModel::setValueI(const char * id, int value) {
   JsonObject object = findObject(id);
   if (!object.isNull()) {
     if (object["value"].isNull() || object["value"] != value) {
@@ -147,7 +149,7 @@ JsonObject SysModModel::setValue(const char * id, int value) {
   return object;
 }
 
-JsonObject SysModModel::setValue(const char * id, bool value) {
+JsonObject SysModModel::setValueB(const char * id, bool value) {
   JsonObject object = findObject(id);
   if (!object.isNull()) {
     if (object["value"].isNull() || object["value"] != value) {
@@ -172,7 +174,7 @@ JsonObject SysModModel::setValueV(const char * id, const char * format, ...) { /
 
   va_end(args);
 
-  return setValue(id, value);
+  return setValueC(id, value);
 }
 
 JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
@@ -186,7 +188,7 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
 
   va_end(args);
 
-  return setValue(id, value);
+  return setValueC(id, value);
 }
 
 JsonVariant SysModModel::getValue(const char * id) {

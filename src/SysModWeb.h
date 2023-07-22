@@ -40,6 +40,7 @@ public:
 
 // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
   bool addUpload(const char * uri);
+  bool addFileServer(const char * uri);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"

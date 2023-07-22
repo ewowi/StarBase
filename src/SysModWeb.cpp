@@ -87,8 +87,8 @@ void SysModWeb::loop() {
     }
 
     for (auto client:web->ws->getClients()) {
-      mdl->setValue("clIsFull", client->queueIsFull());
-      mdl->setValue("clStatus", client->status());
+      mdl->setValueB("clIsFull", client->queueIsFull());
+      mdl->setValueI("clStatus", client->status());
     }
 
   }
@@ -336,6 +336,23 @@ bool SysModWeb::addUpload(const char * uri) {
       // }
       // cacheInvalidate++;
      files->filesChange();
+    }
+  });
+  return true;
+}
+
+bool SysModWeb::addFileServer(const char * uri) {
+
+  // AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler("/json", [](AsyncWebServerRequest *request) {
+  // });
+  // server->addHandler(handler);
+
+  server->on(uri, HTTP_GET, [uri](AsyncWebServerRequest *request){
+    const char * ddd = request->url().c_str();
+    const char * path = ddd + strlen(uri); //remove the uri from the path (skip their positions)
+    print->print("fileServer request %s %s %s\n", uri, request->url().c_str(), path);
+    if(LittleFS.exists(path)) {
+      request->send(LittleFS, path, "text/plain");//"application/json");
     }
   });
   return true;

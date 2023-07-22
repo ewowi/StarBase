@@ -22,6 +22,9 @@ public:
   char * fFormat(const char * format, ...);
 
   void printJDocInfo(const char * text, DynamicJsonDocument source);
+
+private:
+  bool setupsDone = false;
 };
 
 static SysModPrint *print;

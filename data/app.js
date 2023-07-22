@@ -102,12 +102,34 @@ function preview3D(node, leds) {
     scene = new THREE.Scene();
     scene.background = null; //new THREE.Color( 0xff0000 );
 
-    var d = 5; //distanceLED;
-    var offset_x = -d*(mW-1)/2;
-    var offset_y = -d*(mH-1)/2;
-    var offset_z = -d*(mD-1)/2;
+    if (jsonValues.pview) { // && jsonValues.pview.leds
+      var d = 5; //distanceLED;
+      var offset_x = -d*(jsonValues.pview.width-1)/2;
+      var offset_y = -d*(jsonValues.pview.height-1)/2;
+      var offset_z = -d*(jsonValues.pview.depth-1)/2;
 
-    for (var x = 0; x < mW; x++) {
+      console.log("3D jsonValues", jsonValues.pview);
+
+      if (jsonValues.pview.leds) {
+        console.log(jsonValues.pview.leds);
+        for (var led of jsonValues.pview.leds) {
+          const geometry = new THREE.SphereGeometry( 1, 32, 16 );
+          const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5});
+          // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
+          const sphere = new THREE.Mesh( geometry, material );
+          sphere.position.set(offset_x + d*led[0], offset_y + d*led[1], offset_z + d*led[2]);
+          scene.add( sphere );
+        }  
+      }
+    }
+    else
+    {
+      var d = 5; //distanceLED;
+      var offset_x = -d*(mW-1)/2;
+      var offset_y = -d*(mH-1)/2;
+      var offset_z = -d*(mD-1)/2;
+
+      for (var x = 0; x < mW; x++) {
         for (var y = 0; y < mH; y++) {
             for (var z = 0; z < mD; z++) {
                 const geometry = new THREE.SphereGeometry( 1, 32, 16 );
@@ -118,6 +140,7 @@ function preview3D(node, leds) {
                 scene.add( sphere );
             }
         }
+      }
     }
   } //new
 

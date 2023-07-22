@@ -31,16 +31,16 @@ void SysModSystem::setup() {
   });
 
   ui->initDropdown(parentObject, "reset0", (int)rtc_get_reset_reason(0), [](JsonObject object) { //uiFun
-    web->addResponse(object, "comment", "Reset reason core 0");
+    web->addResponse(object, "comment", "Reset reason core 0 (to do readonly)");
     sys->addResetReasonsLov(web->addResponseArray(object, "lov"));
   });
   if (ESP.getChipCores() > 1)
     ui->initDropdown(parentObject, "reset1", (int)rtc_get_reset_reason(1), [](JsonObject object) { //uiFun
-      web->addResponse(object, "comment", "Reset reason core 1");
+      web->addResponse(object, "comment", "Reset reason core 1 (to do readonly)");
       sys->addResetReasonsLov(web->addResponseArray(object, "lov"));
     });
   ui->initDropdown(parentObject, "restartReason", (int)esp_reset_reason(), [](JsonObject object) { //uiFun
-    web->addResponse(object, "comment", "Restart reason");
+    web->addResponse(object, "comment", "Restart reason (to do readonly)");
     JsonArray lov = web->addResponseArray(object, "lov");
     lov.add("ESP_RST_UNKNOWN");//  //!< Reset reason can not be determined
     lov.add("ESP_RST_POWERON");//  //!< Reset due to power-on event

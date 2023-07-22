@@ -42,15 +42,16 @@ void SysModFiles::setup() {
     web->addResponse(object, "label", "Total FS size");
   });
 
-  ui->initButton(parentObject, "deleteLedFixes", "deleteLedFixes", [](JsonObject object) { //uiFun
-    web->addResponse(object, "comment", "temporary");
+  ui->initButton(parentObject, "deleteFiles", "deleteFiles", [](JsonObject object) { //uiFun
+    web->addResponse(object, "comment", "All but model.json, temporary");
   }, [](JsonObject object) {
-    print->print("delete deleteLedFixes json\n");
-    files->removeFiles("lm1");
-    files->removeFiles("lf");
+    print->print("delete files\n");
+    files->removeFiles("model.json", true); //all but model.json
   });
 
   web->addUpload("/upload");
+
+  web->addFileServer("/file");
 
 }
 
@@ -73,7 +74,7 @@ void SysModFiles::loop(){
 }
 
 bool SysModFiles::remove(const char * path) {
-  filesChanged = true;
+  filesChange();
   print->print("File remove %s\n", path);
   return LittleFS.remove(path);
 }
@@ -184,7 +185,7 @@ bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
     print->println(F("  success"));
     serializeJson(*dest, f);
     f.close();
-    filesChanged = true;
+    filesChange();
     return true;
   } else {
     print->println(F("  fail"));
@@ -192,12 +193,12 @@ bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
   }
 }
 
-void SysModFiles::removeFiles(const char * filter) {
+void SysModFiles::removeFiles(const char * filter, bool reverse) {
   File root = LittleFS.open("/");
   File file = root.openNextFile();
 
   while (file) {
-    if (filter == nullptr || strstr(file.name(), filter) != nullptr) {
+    if (filter == nullptr || reverse?strstr(file.name(), filter) == nullptr: strstr(file.name(), filter) != nullptr) {
       char fileName[30] = "/";
       strcat(fileName, file.name());
       file.close(); //close otherwise not removeable

@@ -23,7 +23,9 @@ void SysModNetwork::setup() {
   ui->initPassword(parentObject, "pw", "", [](JsonObject object) { //uiFun
     web->addResponse(object, "label", "Password");
   });
-  ui->initButton(parentObject, "connect", "Connect", nullptr, [](JsonObject object) {
+  ui->initButton(parentObject, "connect", "Connect", [](JsonObject object) {
+    web->addResponse(object, "comment", "Force reconnect (you loose current connection)");
+  }, [](JsonObject object) {
     forceReconnect = true;
   });
   ui->initDisplay(parentObject, "nwstatus", nullptr, [](JsonObject object) { //uiFun

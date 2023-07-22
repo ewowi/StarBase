@@ -261,7 +261,10 @@ void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: b
 
   if (!object["chFun"].isNull()) {//isNull needed here!
     size_t funNr = object["chFun"];
-    uiFunctions[funNr](object);
+    if (funNr < uiFunctions.size()) 
+      uiFunctions[funNr](object);
+    else    
+      print->print("setChFunAndWs function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, uiFunctions.size());
   }
 
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
@@ -303,7 +306,10 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
           //call ui function...
           if (!object["uiFun"].isNull()) {//isnull needed here!
             size_t funNr = object["uiFun"];
-            uiFunctions[funNr](object);
+            if (funNr < uiFunctions.size()) 
+              uiFunctions[funNr](object);
+            else    
+              print->print("processJson function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, uiFunctions.size());
             if (object["type"] == "dropdown")
               web->addResponseInt(object, "value", object["value"]); //temp assume int only
 
@@ -323,11 +329,11 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
 
               //set new value
               if (value.is<const char *>())
-                mdl->setValue(key, value.as<const char *>());
+                mdl->setValueC(key, value.as<const char *>());
               else if (value.is<bool>())
-                mdl->setValue(key, value.as<bool>());
+                mdl->setValueB(key, value.as<bool>());
               else if (value.is<int>())
-                mdl->setValue(key, value.as<int>());
+                mdl->setValueI(key, value.as<int>());
               else {
                 print->print("processJson %s %s->%s not a supported type yet\n", key, object["value"].as<String>().c_str(), value.as<String>().c_str());
               }

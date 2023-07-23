@@ -11,7 +11,6 @@ class Modules {
 
   void setup() {
     for (Module *module:modules) {
-      print->print("MODULES SETUP %s\n", module->name);
       module->setup();
     }
   }
@@ -29,7 +28,6 @@ class Modules {
   }
 
   void add(Module* module) {
-    print->print("MODULES ADD %s\n", module->name);
     modules.push_back(module);
   }
 

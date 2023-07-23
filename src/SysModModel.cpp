@@ -19,7 +19,7 @@ SysModModel::SysModModel() :Module("Model") {
   print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     print->printJson("Read model", *model);
-    web->sendDataWs(nullptr, false); //send new data: all clients, no def
+    web->sendDataWs(nullptr, false); //send new data: all clients, no def, no ws here yet!!!
   }
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -33,29 +33,29 @@ void SysModModel::setup() {
   parentObject = ui->initGroup(parentObject, name);
 
   ui->initDisplay(parentObject, "mSize", nullptr, [](JsonObject object) {
-    web->addResponse(object, "label", "Size");
+    web->addResponse(object["id"], "label", "Size");
   });
 
   ui->initButton(parentObject, "saveModel", "SaveModel", [](JsonObject object) {
-    web->addResponse(object, "comment", "Write to model.json (manual save only currently)");
+    web->addResponse(object["id"], "comment", "Write to model.json (manual save only currently)");
   }, [](JsonObject object) {
     doWriteModel = true;
   });
 
   ui->initCheckBox(parentObject, "showObsolete", false, [](JsonObject object) {
-    web->addResponse(object, "comment", "Show in UI (refresh)");
+    web->addResponse(object["id"], "comment", "Show in UI (refresh)");
   }, [](JsonObject object) {
     doShowObsolete = object["value"];
   });
 
   ui->initButton(parentObject, "deleteObsolete", "DeleteObsolete", [](JsonObject object) {
-    web->addResponse(object, "label", "Delete obsolete objects");
-    web->addResponse(object, "comment", "WIP");
+    web->addResponse(object["id"], "label", "Delete obsolete objects");
+    web->addResponse(object["id"], "comment", "WIP");
   }, [](JsonObject object) {
   });
 
   ui->initButton(parentObject, "deleteModel", "DeleteModel", [](JsonObject object) {
-    web->addResponse(object, "comment", "Back to defaults");
+    web->addResponse(object["id"], "comment", "Back to defaults");
   }, [](JsonObject object) {
     print->print("delete model json\n");
     files->remove("/model.json");

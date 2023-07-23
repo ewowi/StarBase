@@ -31,8 +31,8 @@ void SysModUI::setup() {
   parentObject = initGroup(parentObject, name);
 
   JsonObject userLoopsObject = initMany(parentObject, "uloops", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "User loops");
-    JsonArray rows = web->addResponseArray(object, "many");
+    web->addResponse(object["id"], "label", "User loops");
+    JsonArray rows = web->addResponseA(object["id"], "many");
 
     for (auto userLoop = begin (loopFunctions); userLoop != end (loopFunctions); ++userLoop) {
       JsonArray row = rows.createNestedArray();
@@ -44,10 +44,10 @@ void SysModUI::setup() {
     }
   });
   initDisplay(userLoopsObject, "ulObject", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Name");
+    web->addResponse(object["id"], "label", "Name");
   });
   initDisplay(userLoopsObject, "ulLoopps", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Loops/s");
+    web->addResponse(object["id"], "label", "Loops/s");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -75,11 +75,12 @@ void SysModUI::loop() {
           //to loop over old size
           buffer[0] = userLoop->bufSize / 256;
           buffer[1] = userLoop->bufSize % 256;
+          //buffer[2] can be removed
           // print->print("interval1 %u %d %d %d %d %d %d\n", millis(), userLoop->interval, userLoop->bufSize, buffer[0], buffer[1]);
 
           userLoop->loopFun(userLoop->object, buffer); //call the function and fill the buffer
 
-          userLoop->bufSize = buffer[0] * buffer[1] * buffer[2];
+          userLoop->bufSize = buffer[0] * 256 + buffer[1];
           userLoop->interval = buffer[3]*10; //from cs to ms
           // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), userLoop->interval, userLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
@@ -271,17 +272,17 @@ void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: b
   (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
 
   if (value)
-    web->addResponse(object, "value", value);
+    web->addResponse(object["id"], "value", value);
   else {
     if (object["value"].is<int>())
-      web->addResponseInt(object, "value", object["value"].as<int>());
+      web->addResponseI(object["id"], "value", object["value"].as<int>());
     else if (object["value"].is<bool>())
-      web->addResponseBool(object, "value", object["value"].as<bool>());
+      web->addResponseB(object["id"], "value", object["value"].as<bool>());
     else if (object["value"].is<const char *>())
-      web->addResponse(object, "value", object["value"].as<const char *>());
+      web->addResponse(object["id"], "value", object["value"].as<const char *>());
     else {
       print->print("unknown type for %s\n", object["value"].as<String>().c_str());
-      web->addResponse(object, "value", object["value"]);
+      web->addResponse(object["id"], "value", object["value"]);
     }
     // if (object["id"] == "pview" || object["id"] == "fx") {
     //   print->printJson("setChFunAndWs response", responseDoc);
@@ -311,7 +312,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
             else    
               print->print("processJson function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, uiFunctions.size());
             if (object["type"] == "dropdown")
-              web->addResponseInt(object, "value", object["value"]); //temp assume int only
+              web->addResponseI(object["id"], "value", object["value"]); //temp assume int only
 
             // print->printJson("PJ Command", responseDoc);
           }

@@ -35,9 +35,9 @@ void SysModWeb::setup() {
   parentObject = ui->initGroup(parentObject, name);
 
   parentObject = ui->initMany(parentObject, "clist", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Clients");
-    web->addResponse(object, "comment", "List of clients");
-    JsonArray rows = web->addResponseArray(object, "many");
+    web->addResponse(object["id"], "label", "Clients");
+    web->addResponse(object["id"], "comment", "List of clients");
+    JsonArray rows = web->addResponseA(object["id"], "many");
     for (auto client:ws->getClients()) {
       // print->print("Client %d %d %s\n", client->id(), client->queueIsFull(), client->remoteIP().toString().c_str());
       JsonArray row = rows.createNestedArray();
@@ -48,17 +48,17 @@ void SysModWeb::setup() {
     }
   });
   ui->initDisplay(parentObject, "clNr", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Nr");
+    web->addResponse(object["id"], "label", "Nr");
   });
   ui->initDisplay(parentObject, "clIp", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "IP");
+    web->addResponse(object["id"], "label", "IP");
   });
   ui->initDisplay(parentObject, "clIsFull", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Is full");
+    web->addResponse(object["id"], "label", "Is full");
   });
   ui->initDisplay(parentObject, "clStatus", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Status");
-    JsonArray lov = web->addResponseArray(object, "lov");
+    web->addResponse(object["id"], "label", "Status");
+    JsonArray lov = web->addResponseA(object["id"], "lov");
     lov.add("Disconnected"); //0
     lov.add("Connected"); //1
     lov.add("Disconnecting"); //2
@@ -208,7 +208,7 @@ void SysModWeb::printClient(const char * text, AsyncWebSocketClient * client) {
 
 void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
   if (!ws) {
-    print->print("no ws\n");
+    print->printJson("no ws for", json);
     return;
   }
   ws->cleanupClients();
@@ -389,15 +389,13 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
   return true;
 }
 
-void SysModWeb::addResponse(JsonObject object, const char * key, const char * value) {
-  const char * id = object["id"];
+void SysModWeb::addResponse(const char * id, const char * key, const char * value) {
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   responseVariant[id][key] = value;
 }
 
-void SysModWeb::addResponseV(JsonObject object, const char * key, const char * format, ...) {
-  const char * id = object["id"];
+void SysModWeb::addResponseV(const char * id, const char * key, const char * format, ...) {
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   va_list args;
@@ -412,20 +410,17 @@ void SysModWeb::addResponseV(JsonObject object, const char * key, const char * f
   responseVariant[id][key] = value;
 }
 
-void SysModWeb::addResponseInt(JsonObject object, const char * key, int value) { //temporary, use overloading
-  const char * id = object["id"];
+void SysModWeb::addResponseI(const char * id, const char * key, int value) { //temporary, use overloading
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   responseVariant[id][key] = value;
 }
-void SysModWeb::addResponseBool(JsonObject object, const char * key, bool value) { //temporary, use overloading
-  const char * id = object["id"];
+void SysModWeb::addResponseB(const char * id, const char * key, bool value) { //temporary, use overloading
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   responseVariant[id][key] = value;
 }
-JsonArray SysModWeb::addResponseArray(JsonObject object, const char * key) {
-  const char * id = object["id"];
+JsonArray SysModWeb::addResponseA(const char * id, const char * key) {
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   return responseVariant[id].createNestedArray(key);

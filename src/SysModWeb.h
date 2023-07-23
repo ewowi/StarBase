@@ -51,13 +51,13 @@ public:
 
   bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &));
 
-  void addResponse(JsonObject object, const char * key, const char * value);
+  void addResponse(const char * id, const char * key, const char * value);
 
-  void addResponseV(JsonObject object, const char * key, const char * format, ...);
+  void addResponseV(const char * id, const char * key, const char * format, ...);
 
-  void addResponseInt(JsonObject object, const char * key, int value);
-  void addResponseBool(JsonObject object, const char * key, bool value);
-  JsonArray addResponseArray(JsonObject object, const char * key);
+  void addResponseI(const char * id, const char * key, int value);
+  void addResponseB(const char * id, const char * key, bool value);
+  JsonArray addResponseA(const char * id, const char * key);
 
 private:
   bool modelUpdated = false;

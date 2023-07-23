@@ -236,7 +236,7 @@ function processUpdate(json) {
           console.log("processUpdate lov", key, json[key].lov);
           var index = 0;
           //remove all old options first
-          while (gId(key).options.length > 0) {
+          while (gId(key).options && gId(key).options.length > 0) {
             gId(key).remove(0);
           }
           for (var value of json[key].lov) {
@@ -264,7 +264,8 @@ function processUpdate(json) {
           gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
         }
         if (json[key].value) { //after lov, in case used
-          // console.log("processUpdate value", key, json[key].value, gId(key));
+          if (key=="ledFix" || key =="ledFixGen")
+            console.log("processUpdate value", key, json[key].value, gId(key));
           if (gId(key).nodeName.toLocaleLowerCase() == "span") //display
             gId(key).textContent = json[key].value;
           else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
@@ -284,9 +285,11 @@ function processUpdate(json) {
           //we need to send a request which the server can handle using request variable
           let url = `http://${window.location.hostname}/file`;
           fetchAndExecute(url, json[key].file, jsonValues, function(jsonValues,text) {
+            // console.log("fetchAndExecute", text); //in case of invalid json
             var ledmapJson = JSON.parse(text);
             jsonValues[key] = ledmapJson;
-            // console.log(jsonValues);
+            jsonValues[key].new = true;
+            console.log("fetchAndExecute", jsonValues);
           }); 
 
         }

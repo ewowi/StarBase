@@ -21,16 +21,16 @@ void SysModNetwork::setup() {
   parentObject = ui->initGroup(parentObject, name);
   ui->initInput(parentObject, "ssid", "");
   ui->initPassword(parentObject, "pw", "", [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Password");
+    web->addResponse(object["id"], "label", "Password");
   });
   ui->initButton(parentObject, "connect", "Connect", [](JsonObject object) {
-    web->addResponse(object, "comment", "Force reconnect (you loose current connection)");
+    web->addResponse(object["id"], "comment", "Force reconnect (you loose current connection)");
   }, [](JsonObject object) {
     forceReconnect = true;
   });
   ui->initDisplay(parentObject, "nwstatus", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Status");
-    web->addResponse(object, "comment", "Not shown for some reason (wip)");
+    web->addResponse(object["id"], "label", "Status");
+    web->addResponse(object["id"], "comment", "Not shown for some reason (wip)");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");

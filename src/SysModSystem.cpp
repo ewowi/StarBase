@@ -17,11 +17,11 @@ void SysModSystem::setup() {
   parentObject = ui->initGroup(parentObject, name);
 
   ui->initDisplay(parentObject, "upTime", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "comment", "Uptime of board");
+    web->addResponse(object["id"], "comment", "Uptime of board");
   });
   ui->initDisplay(parentObject, "loops");
   ui->initDisplay(parentObject, "heap", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "comment", "Free / Total (largest free)");
+    web->addResponse(object["id"], "comment", "Free / Total (largest free)");
   });
   ui->initDisplay(parentObject, "stack");
 
@@ -31,17 +31,17 @@ void SysModSystem::setup() {
   });
 
   ui->initDropdown(parentObject, "reset0", (int)rtc_get_reset_reason(0), [](JsonObject object) { //uiFun
-    web->addResponse(object, "comment", "Reset reason core 0 (to do readonly)");
-    sys->addResetReasonsLov(web->addResponseArray(object, "lov"));
+    web->addResponse(object["id"], "comment", "Reset reason core 0 (to do readonly)");
+    sys->addResetReasonsLov(web->addResponseA(object["id"], "lov"));
   });
   if (ESP.getChipCores() > 1)
     ui->initDropdown(parentObject, "reset1", (int)rtc_get_reset_reason(1), [](JsonObject object) { //uiFun
-      web->addResponse(object, "comment", "Reset reason core 1 (to do readonly)");
-      sys->addResetReasonsLov(web->addResponseArray(object, "lov"));
+      web->addResponse(object["id"], "comment", "Reset reason core 1 (to do readonly)");
+      sys->addResetReasonsLov(web->addResponseA(object["id"], "lov"));
     });
   ui->initDropdown(parentObject, "restartReason", (int)esp_reset_reason(), [](JsonObject object) { //uiFun
-    web->addResponse(object, "comment", "Restart reason (to do readonly)");
-    JsonArray lov = web->addResponseArray(object, "lov");
+    web->addResponse(object["id"], "comment", "Restart reason (to do readonly)");
+    JsonArray lov = web->addResponseA(object["id"], "lov");
     lov.add("ESP_RST_UNKNOWN");//  //!< Reset reason can not be determined
     lov.add("ESP_RST_POWERON");//  //!< Reset due to power-on event
     lov.add("ESP_RST_EXT");//      //!< Reset by external pin (not applicable for ESP32)

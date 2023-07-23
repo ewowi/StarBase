@@ -3,9 +3,9 @@ SysModFiles::SysModFiles() Files
 SysModFiles::SysModFiles() Files success
 SysModModel::SysModModel() Model
 Reading model from /model.json... (deserializeConfigFromFS)
-File /model.json open to read, size 3290 bytes
-Read model [{"id":"Print","type":"group","o":1,"n":[{"id":"log","type":"display","o":2}]},{"id":"Files","type":"group","o":3,"n":[{"id":"flist","type":"many","o":4,"uiFun":0,"n":[{"id":"flName","type":"display","o":5,"uiFun":1},{"id":"flSize","type":"display","o":6,"uiFun":2}]},{"id":"drsize","type":"display","o":7,"uiFun":3},{"id":"deleteFiles","type":"button","o":8,"uiFun":4,"chFun":5,"value":"deleteFiles"}]},{"id":"Model","type":"group","o":9,"n":[{"id":"mSize","type":"display","o":10,"uiFun":6},{"id":"saveModel","type":"button","o":11,"uiFun":7,"chFun":8,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","o":12,"uiFun":9,"chFun":10,"value":false},{"id":"deleteObsolete","type":"button","o":13,"uiFun":11,"chFun":12,"value":"DeleteObsolete"},{"id":"deleteModel","type":"button","o":14,"uiFun":13,"chFun":14,"value":"DeleteModel"}]},{"id":"Network","type":"group","o":15,"n":[{"id":"ssid","type":"input","o":16,"value":"ewtr"},{"id":"pw","type":"password","o":17,"uiFun":15,"value":"zonledmod"},{"id":"connect","type":"button","o":18,"uiFun":16,"chFun":17,"value":"Connect"},{"id":"nwstatus","type":"display","o":19,"uiFun":18}]},{"id":"Web","type":"group","o":20,"n":[{"id":"clist","type":"many","o":21,"uiFun":19,"n":[{"id":"clNr","type":"display","o":22,"uiFun":20},{"id":"clIp","type":"display","o":23,"uiFun":21},{"id":"clIsFull","type":"display","o":24,"uiFun":22,"value":false},{"id":"clStatus","type":"display","o":25,"uiFun":23,"value":1}]}]},{"id":"UI","type":"group","o":26,"n":[{"id":"uloops","type":"many","o":27,"uiFun":24,"n":[{"id":"ulObject","type":"display","o":28,"uiFun":25},{"id":"ulLoopps","type":"display","o":29,"uiFun":26}]}]},{"id":"System","type":"group","o":30,"n":[{"id":"upTime","type":"display","o":31,"uiFun":27},{"id":"loops","type":"display","o":32},{"id":"heap","type":"display","o":33,"uiFun":28},{"id":"stack","type":"display","o":34},{"id":"restart","type":"button","o":35,"chFun":29,"value":"Restart"},{"id":"reset0","type":"dropdown","o":36,"uiFun":30,"value":1},{"id":"reset1","type":"dropdown","o":37,"uiFun":31,"value":14},{"id":"restartReason","type":"dropdown","o":38,"uiFun":32,"value":1}]},{"id":"Pin Manager","type":"group","o":39,"n":[{"id":"board","type":"canvas","o":40,"uiFun":33,"loopFun":0,"value":1},{"id":"pin2","type":"checkbox","o":41,"chFun":34,"value":true},{"id":"pin4","type":"checkbox","o":42,"value":false},{"id":"pin33","type":"checkbox","o":43,"value":true}]},{"id":"Leds","type":"group","o":44,"n":[{"id":"bri","type":"range","o":45,"uiFun":35,"chFun":36,"value":1},{"id":"fx","type":"dropdown","o":46,"uiFun":37,"chFun":38,"value":3},{"id":"pview","type":"canvas","o":47,"uiFun":39,"loopFun":1,"value":1},{"id":"ledFix","type":"dropdown","o":48,"uiFun":40,"chFun":41,"value":0},{"id":"width","type":"number","o":49,"uiFun":42,"chFun":43,"value":8},{"id":"height","type":"number","o":50,"uiFun":44,"chFun":45,"value":8},{"id":"depth","type":"number","o":51,"uiFun":46,"chFun":47,"value":1},{"id":"fps","type":"number","o":52,"uiFun":48,"chFun":49,"value":40},{"id":"realFps","type":"display","o":53},{"id":"nrOfLeds","type":"display","o":54,"uiFun":50,"value":64},{"id":"dataPin","type":"number","o":55,"uiFun":51,"chFun":52,"value":16},{"id":"ledFixGen","type":"dropdown","o":56,"uiFun":53,"chFun":54,"value":3}]}]
-no ws for [{"id":"Print","type":"group","o":1,"n":[{"id":"log","type":"display","o":2}]},{"id":"Files","type":"group","o":3,"n":[{"id":"flist","type":"many","o":4,"uiFun":0,"n":[{"id":"flName","type":"display","o":5,"uiFun":1},{"id":"flSize","type":"display","o":6,"uiFun":2}]},{"id":"drsize","type":"display","o":7,"uiFun":3},{"id":"deleteFiles","type":"button","o":8,"uiFun":4,"chFun":5,"value":"deleteFiles"}]},{"id":"Model","type":"group","o":9,"n":[{"id":"mSize","type":"display","o":10,"uiFun":6},{"id":"saveModel","type":"button","o":11,"uiFun":7,"chFun":8,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","o":12,"uiFun":9,"chFun":10,"value":false},{"id":"deleteObsolete","type":"button","o":13,"uiFun":11,"chFun":12,"value":"DeleteObsolete"},{"id":"deleteModel","type":"button","o":14,"uiFun":13,"chFun":14,"value":"DeleteModel"}]},{"id":"Network","type":"group","o":15,"n":[{"id":"ssid","type":"input","o":16,"value":"ewtr"},{"id":"pw","type":"password","o":17,"uiFun":15,"value":"zonledmod"},{"id":"connect","type":"button","o":18,"uiFun":16,"chFun":17,"value":"Connect"},{"id":"nwstatus","type":"display","o":19,"uiFun":18}]},{"id":"Web","type":"group","o":20,"n":[{"id":"clist","type":"many","o":21,"uiFun":19,"n":[{"id":"clNr","type":"display","o":22,"uiFun":20},{"id":"clIp","type":"display","o":23,"uiFun":21},{"id":"clIsFull","type":"display","o":24,"uiFun":22,"value":false},{"id":"clStatus","type":"display","o":25,"uiFun":23,"value":1}]}]},{"id":"UI","type":"group","o":26,"n":[{"id":"uloops","type":"many","o":27,"uiFun":24,"n":[{"id":"ulObject","type":"display","o":28,"uiFun":25},{"id":"ulLoopps","type":"display","o":29,"uiFun":26}]}]},{"id":"System","type":"group","o":30,"n":[{"id":"upTime","type":"display","o":31,"uiFun":27},{"id":"loops","type":"display","o":32},{"id":"heap","type":"display","o":33,"uiFun":28},{"id":"stack","type":"display","o":34},{"id":"restart","type":"button","o":35,"chFun":29,"value":"Restart"},{"id":"reset0","type":"dropdown","o":36,"uiFun":30,"value":1},{"id":"reset1","type":"dropdown","o":37,"uiFun":31,"value":14},{"id":"restartReason","type":"dropdown","o":38,"uiFun":32,"value":1}]},{"id":"Pin Manager","type":"group","o":39,"n":[{"id":"board","type":"canvas","o":40,"uiFun":33,"loopFun":0,"value":1},{"id":"pin2","type":"checkbox","o":41,"chFun":34,"value":true},{"id":"pin4","type":"checkbox","o":42,"value":false},{"id":"pin33","type":"checkbox","o":43,"value":true}]},{"id":"Leds","type":"group","o":44,"n":[{"id":"bri","type":"range","o":45,"uiFun":35,"chFun":36,"value":1},{"id":"fx","type":"dropdown","o":46,"uiFun":37,"chFun":38,"value":3},{"id":"pview","type":"canvas","o":47,"uiFun":39,"loopFun":1,"value":1},{"id":"ledFix","type":"dropdown","o":48,"uiFun":40,"chFun":41,"value":0},{"id":"width","type":"number","o":49,"uiFun":42,"chFun":43,"value":8},{"id":"height","type":"number","o":50,"uiFun":44,"chFun":45,"value":8},{"id":"depth","type":"number","o":51,"uiFun":46,"chFun":47,"value":1},{"id":"fps","type":"number","o":52,"uiFun":48,"chFun":49,"value":40},{"id":"realFps","type":"display","o":53},{"id":"nrOfLeds","type":"display","o":54,"uiFun":50,"value":64},{"id":"dataPin","type":"number","o":55,"uiFun":51,"chFun":52,"value":16},{"id":"ledFixGen","type":"dropdown","o":56,"uiFun":53,"chFun":54,"value":3}]}]
+File /model.json open to read, size 2702 bytes
+Read model [{"id":"Print","type":"group","o":1,"n":[{"id":"log","type":"display","o":2}]},{"id":"Files","type":"group","o":3,"n":[{"id":"flist","type":"many","o":4,"n":[{"id":"flName","type":"display","o":5},{"id":"flSize","type":"display","o":6}]},{"id":"drsize","type":"display","o":7},{"id":"deleteFiles","type":"button","o":8,"value":"deleteFiles"}]},{"id":"Model","type":"group","o":9,"n":[{"id":"mSize","type":"display","o":10},{"id":"saveModel","type":"button","o":11,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","o":12,"value":false},{"id":"deleteObsolete","type":"button","o":13,"value":"DeleteObsolete"},{"id":"deleteModel","type":"button","o":14,"value":"DeleteModel"}]},{"id":"Network","type":"group","o":15,"n":[{"id":"ssid","type":"input","o":16,"value":"ewtr"},{"id":"pw","type":"password","o":17,"value":"zonledmod"},{"id":"connect","type":"button","o":18,"value":"Connect"},{"id":"nwstatus","type":"display","o":19}]},{"id":"Web","type":"group","o":20,"n":[{"id":"clist","type":"many","o":21,"n":[{"id":"clNr","type":"display","o":22},{"id":"clIp","type":"display","o":23},{"id":"clIsFull","type":"display","o":24,"value":false},{"id":"clStatus","type":"display","o":25,"value":1}]}]},{"id":"UI","type":"group","o":26,"n":[{"id":"uloops","type":"many","o":27,"n":[{"id":"ulObject","type":"display","o":28},{"id":"ulLoopps","type":"display","o":29}]}]},{"id":"System","type":"group","o":30,"n":[{"id":"upTime","type":"display","o":31},{"id":"loops","type":"display","o":32},{"id":"heap","type":"display","o":33},{"id":"stack","type":"display","o":34},{"id":"restart","type":"button","o":35,"value":"Restart"},{"id":"reset0","type":"dropdown","o":36,"value":1},{"id":"reset1","type":"dropdown","o":37,"value":14},{"id":"restartReason","type":"dropdown","o":38,"value":1}]},{"id":"Pin Manager","type":"group","o":39,"n":[{"id":"board","type":"canvas","o":40,"loopFun":0,"value":1},{"id":"pin2","type":"checkbox","o":41,"value":true},{"id":"pin4","type":"checkbox","o":42,"value":false},{"id":"pin33","type":"checkbox","o":43,"value":true}]},{"id":"Leds","type":"group","o":44,"n":[{"id":"bri","type":"range","o":45,"value":1},{"id":"fx","type":"dropdown","o":46,"value":6},{"id":"pview","type":"canvas","o":47,"loopFun":1,"value":1},{"id":"ledFix","type":"dropdown","o":48,"value":"4"},{"id":"width","type":"display","o":49,"value":10},{"id":"height","type":"display","o":50,"value":10},{"id":"depth","type":"display","o":51,"value":1},{"id":"fps","type":"number","o":53,"value":40},{"id":"realFps","type":"display","o":54},{"id":"nrOfLeds","type":"display","o":52,"value":35},{"id":"dataPin","type":"number","o":55,"value":16},{"id":"ledFixGen","type":"dropdown","o":56,"value":3}]}]
+no ws for [{"id":"Print","type":"group","o":1,"n":[{"id":"log","type":"display","o":2}]},{"id":"Files","type":"group","o":3,"n":[{"id":"flist","type":"many","o":4,"n":[{"id":"flName","type":"display","o":5},{"id":"flSize","type":"display","o":6}]},{"id":"drsize","type":"display","o":7},{"id":"deleteFiles","type":"button","o":8,"value":"deleteFiles"}]},{"id":"Model","type":"group","o":9,"n":[{"id":"mSize","type":"display","o":10},{"id":"saveModel","type":"button","o":11,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","o":12,"value":false},{"id":"deleteObsolete","type":"button","o":13,"value":"DeleteObsolete"},{"id":"deleteModel","type":"button","o":14,"value":"DeleteModel"}]},{"id":"Network","type":"group","o":15,"n":[{"id":"ssid","type":"input","o":16,"value":"ewtr"},{"id":"pw","type":"password","o":17,"value":"zonledmod"},{"id":"connect","type":"button","o":18,"value":"Connect"},{"id":"nwstatus","type":"display","o":19}]},{"id":"Web","type":"group","o":20,"n":[{"id":"clist","type":"many","o":21,"n":[{"id":"clNr","type":"display","o":22},{"id":"clIp","type":"display","o":23},{"id":"clIsFull","type":"display","o":24,"value":false},{"id":"clStatus","type":"display","o":25,"value":1}]}]},{"id":"UI","type":"group","o":26,"n":[{"id":"uloops","type":"many","o":27,"n":[{"id":"ulObject","type":"display","o":28},{"id":"ulLoopps","type":"display","o":29}]}]},{"id":"System","type":"group","o":30,"n":[{"id":"upTime","type":"display","o":31},{"id":"loops","type":"display","o":32},{"id":"heap","type":"display","o":33},{"id":"stack","type":"display","o":34},{"id":"restart","type":"button","o":35,"value":"Restart"},{"id":"reset0","type":"dropdown","o":36,"value":1},{"id":"reset1","type":"dropdown","o":37,"value":14},{"id":"restartReason","type":"dropdown","o":38,"value":1}]},{"id":"Pin Manager","type":"group","o":39,"n":[{"id":"board","type":"canvas","o":40,"loopFun":0,"value":1},{"id":"pin2","type":"checkbox","o":41,"value":true},{"id":"pin4","type":"checkbox","o":42,"value":false},{"id":"pin33","type":"checkbox","o":43,"value":true}]},{"id":"Leds","type":"group","o":44,"n":[{"id":"bri","type":"range","o":45,"value":1},{"id":"fx","type":"dropdown","o":46,"value":6},{"id":"pview","type":"canvas","o":47,"loopFun":1,"value":1},{"id":"ledFix","type":"dropdown","o":48,"value":"4"},{"id":"width","type":"display","o":49,"value":10},{"id":"height","type":"display","o":50,"value":10},{"id":"depth","type":"display","o":51,"value":1},{"id":"fps","type":"number","o":53,"value":40},{"id":"realFps","type":"display","o":54},{"id":"nrOfLeds","type":"display","o":52,"value":35},{"id":"dataPin","type":"number","o":55,"value":16},{"id":"ledFixGen","type":"dropdown","o":56,"value":3}]}]
 SysModModel::SysModModel() Model success
 SysModUI::SysModUI() UI
 SysModUI::SysModUI() UI success
@@ -46,7 +46,7 @@ Object clStatus already defined
 virtual void SysModWeb::setup() Web success
 virtual void SysModUI::setup() UI
 Object UI already defined
-Object uloops already defined
+initObject create new many: oloops
 Object ulObject already defined
 Object ulLoopps already defined
 virtual void SysModUI::setup() UI success
@@ -74,12 +74,15 @@ Object Leds already defined
 Object bri already defined
 Set Brightness to 1 -> 2
 Object fx already defined
-initDropdown chFun Change fx to 3
+initDropdown chFun Change fx to 6
 Object pview already defined
 Object ledFix already defined
-initDropdown chFun Change ledFix to 0
+initDropdown chFun Change ledFix to 4
+LazyJsonRDWS constructing /lfR35.json r
 Object []
-String name: [Globe]
+String name: [R35]
+Number nrOfLeds: [35]
+LazyJsonRDWS found nrOfLeds: 35
 Number pin: [16]
 String scale: [mm]
 Number size: [100]
@@ -87,25 +90,19 @@ Number width: [10]
 LazyJsonRDWS found width: 10
 Number height: [10]
 LazyJsonRDWS found height: 10
-Number depth: [10]
-LazyJsonRDWS found depth: 10
+Number depth: [1]
+LazyJsonRDWS found depth: 1
 Hooray, LazyJsonRDWS found all what we were looking for, no further search needed
-ljrdws whd 10 10 10
-setChFunAndWs function nr width outside bounds 43 >= 42
-setChFunAndWs function nr height outside bounds 45 >= 42
-setChFunAndWs function nr depth outside bounds 47 >= 42
-ledfix send ws done
+ljrdws whd 10 10 1 and 35
+ledfix send ws done {"pview":{"file":"/lfR35.json"}}
 LazyJsonRDWS destructing
 Object width already defined
-changeDimensions 10 x 10 x 10 = 1000
 Object height already defined
-changeDimensions 10 x 10 x 10 = 1000
 Object depth already defined
-changeDimensions 10 x 10 x 10 = 1000
+Object nrOfLeds already defined
 Object fps already defined
 fps changed 40
 Object realFps already defined
-Object nrOfLeds already defined
 Object dataPin already defined
 Set data pin to 16
 Object ledFixGen already defined
@@ -118,7 +115,9 @@ server (re)started
 Webserver: client request / /index.htm text/html!
 WS client connected client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"flist","flist":{"label":"Files","comment":"List of files","many":[["lfGlobe.json",5418],["lfHSC.json",19289],["lfM88.json",469],["lfM888.json",4182],["lfM888h.json",2647],["lfR35.json",355],["model.json",3290]]}}
+WS_EVT_DATA send response {"uiFun":"log","log":{"comment":"WIP"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"flist","flist":{"label":"Files","comment":"List of files","many":[["lfGlobe.json",5433],["lfHSC.json",19305],["lfM88.json",483],["lfM888h.json",2662],["lfR35.json",369],["model.json",2702],["model2.json",2702]]}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"flName","flName":{"label":"Name"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
@@ -154,11 +153,7 @@ WS_EVT_DATA send response {"uiFun":"clIsFull","clIsFull":{"label":"Is full"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"clStatus","clStatus":{"label":"Status","lov":["Disconnected","Connected","Disconnecting"]}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"uloops","uloops":{"label":"User loops","many":[["board",302],["pview",302]]}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"ulObject","ulObject":{"label":"Name"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"ulLoopps","ulLoopps":{"label":"Loops/s"}}
+WS_EVT_DATA send response {"uiFun":"oloops","oloops":{"label":"Object loops","comment":"Loops initiated by an object","many":[["board",0],["pview",1]]}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"upTime","upTime":{"comment":"Uptime of board"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
@@ -174,22 +169,22 @@ WS_EVT_DATA send response {"uiFun":"board","board":{"label":"Board layout","comm
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"bri","bri":{"label":"Brightness"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Running","Confetti","Beats per minute","Juggle","Ripples 3D","SphereMove 3D"],"value":3}}
+WS_EVT_DATA send response {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Running","Confetti","Beats per minute","Juggle","Ripples 3D","SphereMove 3D"],"value":6}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"pview","pview":{"label":"Preview"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"ledFix","ledFix":{"label":"LedFix","lov":["lfGlobe.json","lfHSC.json","lfM88.json","lfM888.json","lfM888h.json","lfR35.json"],"value":0}}
+WS_EVT_DATA send response {"uiFun":"ledFix","ledFix":{"label":"LedFix","lov":["lfGlobe.json","lfHSC.json","lfM88.json","lfM888h.json","lfR35.json"],"value":4}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"width","width":{"comment":"Max 256"}}
+WS_EVT_DATA send response {"uiFun":"width","width":{"comment":"Max 32K"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"height","height":{"comment":"Max 64"}}
+WS_EVT_DATA send response {"uiFun":"height","height":{"comment":"Max 32K"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"depth","depth":{"comment":"Max 16"}}
+WS_EVT_DATA send response {"uiFun":"depth","depth":{"comment":"Max 32K"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"nrOfLeds","nrOfLeds":{"comment":"Max 2000 (FastLed max 1024)"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"fps","fps":{"comment":"Frames per second"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"nrOfLeds","nrOfLeds":{"comment":"Max 2000"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"dataPin","dataPin":{"comment":"Not implemented yet (fixed to 16)"}}
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"ledFixGen","ledFixGen":{"label":"Ledfix generator","lov":["R24","R35","M88","M888","M888h","HSC","Globe"],"value":3}}
+WS_EVT_DATA send response {"uiFun":"ledFixGen","ledFixGen":{"label":"Ledfix generator","lov":["Spiral","R24","R35","M88","M888","M888h","HSC","Globe"],"value":3}}

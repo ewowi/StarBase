@@ -269,15 +269,15 @@ public:
       files->dirToJson2(lov, "lf"); //only files containing lf, alphabetically
 
       // ui needs to load the file also initially
-      // char fileName[30] = "";
-      // if (files->seqNrToName(fileName, object["value"].as<int>())) {
-      //   web->addResponse("pview", "file", fileName);
-      // }
+      char fileName[30] = "";
+      if (files->seqNrToName(fileName, object["value"])) {
+        web->addResponse("pview", "file", fileName);
+      }
     }, [](JsonObject object) { //chFun
       print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
 
       char fileName[30] = "";
-      if (files->seqNrToName(fileName, object["value"].as<int>())) {
+      if (files->seqNrToName(fileName, object["value"])) {
         LazyJsonRDWS ljrdws(fileName); //open fileName for deserialize
 
         //what to deserialize
@@ -299,28 +299,35 @@ public:
           (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
           web->addResponse("pview", "file", fileName);
           web->sendDataWs(responseVariant);
-          print->printJson("ledfix send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
+          print->printJson("ledfix chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
         } // if deserialize
       } //if fileName
     });
 
     ui->initDisplay(parentObject, "width", nullptr, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Max %dK", 32);
-    }, [](JsonObject object) { //chFun
-      width = object["value"];
     });
 
     ui->initDisplay(parentObject, "height", nullptr, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Max %dK", 32);
-    }, [](JsonObject object) { //chFun
-      height = object["value"];
     });
 
     ui->initDisplay(parentObject, "depth", nullptr, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Max %dK", 32);
-    }, [](JsonObject object) { //chFun
-      depth = object["value"];
     });
+
+    ui->initDisplay(parentObject, "nrOfLeds", nullptr, [](JsonObject object) { //uiFun
+      web->addResponseV(object["id"], "comment", "Max %d (FastLed max %d)", NUM_LEDS_preview, NUM_LEDS_Fastled);
+    });
+    // mdl->setValueI("nrOfLeds", nrOfLeds); //set here as changeDimensions already called for width/height/depth
+
+    // if (!leds)
+    //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
+    // else
+    //   leds = (CRGB*)reallocarray(leds, nrOfLeds, sizeof(CRGB));
+    // if (leds) free(leds);
+    // leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
+    // leds = (CRGB*)reallocarray
 
     ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "comment", "Frames per second");
@@ -331,20 +338,24 @@ public:
 
     ui->initDisplay(parentObject, "realFps");
 
-    ui->initDisplay(parentObject, "nrOfLeds", nullptr, [](JsonObject object) { //uiFun
-      web->addResponseV(object["id"], "comment", "Max %d (FastLed max %d)", NUM_LEDS_preview, NUM_LEDS_Fastled);
-    }, [](JsonObject object) { //chFun
-      print->print("nrOfLeds changed %d\n", fps);
-      changeDimensions();
-      // fadeToBlackBy( leds, nrOfLeds, 100);
-    });
-    // mdl->setValueI("nrOfLeds", nrOfLeds); //set here as changeDimensions already called for width/height/depth
 
     ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
     }, [](JsonObject object) { //chFun
       print->print("Set data pin to %d\n", object["value"].as<int>());
     });
+
+    enum Fixtures
+    {
+      Spiral,
+      R24,
+      R35,
+      M88,
+      M888,
+      M888h,
+      HSC,
+      Globe
+    };
 
     ui->initDropdown(parentObject, "ledFixGen", 3, [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "label", "Ledfix generator");
@@ -369,35 +380,35 @@ public:
 
       size_t fix = object["value"];
       switch (fix) {
-        case 0: //Spiral
+        case Spiral:
           name = "Spiral";
           nrOfLeds = 64;
           break;
-        case 1: //R24
+        case R24:
           name = "R24";
           nrOfLeds = 24;
           break;
-        case 2: //R35
+        case R35:
           name = "R35";
           nrOfLeds = 35;
           break;
-        case 3: //M88
+        case M88:
           name = "M88";
           nrOfLeds = 64;
           break;
-        case 4: //M888
+        case M888:
           name = "M888";
           nrOfLeds = 512;
           break;
-        case 5: //M888h
+        case M888h:
           name = "M888h";
           nrOfLeds = 320;
           break;
-        case 6: //HSC
+        case HSC:
           name = "HSC";
           nrOfLeds = 2000;
           break;
-        case 7: //Globe
+        case Globe:
           name = "Globe";
           nrOfLeds = 512;
           break;
@@ -420,9 +431,9 @@ public:
       f.printf(",\"nrOfLeds\":%d", nrOfLeds);
       f.printf(",\"pin\":%d",16);
       switch (fix) {
-        case 0: //Spiral
-        case 1: //R24
-        case 2: //R35
+        case Spiral:
+        case R24:
+        case R35:
           diameter = 100; //in mm
 
           f.printf(",\"scale\":\"%s\"", "mm");
@@ -445,7 +456,7 @@ public:
           }
           f.printf("]");
           break;
-        case 3: //M88
+        case M88:
           diameter = 8; //in cm
 
           f.printf(",\"scale\":\"%s\"", "cm");
@@ -470,7 +481,7 @@ public:
           f.printf("]");
 
           break;
-        case 4: //M888
+        case M888:
           diameter = 8; //in cm
 
           f.printf(",\"scale\":\"%s\"", "cm");
@@ -493,8 +504,8 @@ public:
           f.printf("]");
 
           break;
-        case 5: //M888h
-        case 6: //HSC
+        case M888h:
+        case HSC:
           if (fix==5) {
             diameter = 8; //in cm
             width = 8;
@@ -540,7 +551,7 @@ public:
           f.printf("]");
 
           break;
-        case 7: //Globe
+        case Globe:
           diameter = 100; //in mm
 
           f.printf(",\"scale\":\"%s\"", "mm");
@@ -574,7 +585,7 @@ public:
 
       //reload ledfix dropdown
       ui->processUiFun("ledFix");
-    });
+    }); //ledFixGen
 
     effects.push_back(new RainbowEffect);
     effects.push_back(new RainbowWithGlitterEffect);
@@ -585,6 +596,9 @@ public:
     effects.push_back(new JuggleEffect);
     effects.push_back(new Ripples3DEffect);
     effects.push_back(new SphereMove3DEffect);
+
+    // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
+    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS_Fastled); 
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -613,22 +627,6 @@ public:
     // do some periodic updates
     EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
   }
-
-  static void changeDimensions() { //static because of lambda functions
-    // nrOfLeds = min(width * height * depth, NUM_LEDS_preview); //not highter then 4K leds
-    // mdl->setValueI("nrOfLeds", nrOfLeds);
-    print->print("changeDimensions %d x %d x %d and %d\n", width, height, depth, nrOfLeds);
-    // if (!leds)
-    //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
-    // else
-    //   leds = (CRGB*)reallocarray(leds, nrOfLeds, sizeof(CRGB));
-    // if (leds) free(leds);
-    // leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
-    // leds = (CRGB*)reallocarray
-    // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS_Fastled); 
-  }
-
 };
 
 static AppModLeds *lds;

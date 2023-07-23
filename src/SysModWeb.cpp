@@ -208,7 +208,7 @@ void SysModWeb::printClient(const char * text, AsyncWebSocketClient * client) {
 
 void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
   if (!ws) {
-    print->printJson("no ws for", json);
+    print->print("sendDataWs no ws\n");
     return;
   }
   ws->cleanupClients();
@@ -392,7 +392,7 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
 void SysModWeb::addResponse(const char * id, const char * key, const char * value) {
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  responseVariant[id][key] = value;
+  responseVariant[id][key] = (char *)value; //copy!!
 }
 
 void SysModWeb::addResponseV(const char * id, const char * key, const char * format, ...) {

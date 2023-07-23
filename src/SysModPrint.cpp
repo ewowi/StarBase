@@ -2,6 +2,7 @@
 #include "SysModPrint.h"
 #include "SysModUI.h"
 #include "SysModModel.h"
+#include "SysModWeb.h"
 
 SysModPrint::SysModPrint() :Module("Print") {
   print("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -19,7 +20,9 @@ void SysModPrint::setup() {
 
   parentObject = ui->initGroup(parentObject, name);
 
-  ui->initDisplay(parentObject, "log");
+  ui->initDisplay(parentObject, "log", nullptr, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "comment", "WIP");
+  });
 
   print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 }

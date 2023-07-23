@@ -39,7 +39,8 @@ public:
 
   //write json into file
   //name is copied from WLED but better to call it readJsonFrom file
-  bool writeObjectToFile(const char* path, JsonDocument* dest);
+  //candidate for deletion as taken over by LazyJsonRDWS
+  // bool writeObjectToFile(const char* path, JsonDocument* dest);
 
   //remove files meeting filter condition, if no filter, all, if reverse then all but filter
   void removeFiles(const char * filter = nullptr, bool reverse = false);
@@ -61,13 +62,26 @@ class LazyJsonRDWS {
   public:
   bool foundAll = false;
 
-  LazyJsonRDWS(const char * path) {
-    f = files->open(path, "r");
+  LazyJsonRDWS(const char * path, const char * mode = "r") {
+    print->print("LazyJsonRDWS constructing %s %s\n", path, mode);
+    f = files->open(path, mode);
+    if (!f)
+      print->print("LazyJsonRDWS open %s for %s failed", path, mode);
   }
 
   ~LazyJsonRDWS() {
     print->print("LazyJsonRDWS destructing\n");
     f.close();
+  }
+
+  void addExclusion(const char * key) {
+    charList.push_back((char *)key);
+  }
+
+  //serializeJson
+  void writeJsonDocToFile(JsonDocument* dest) {
+    writeJsonVariantToFile(dest->as<JsonVariant>());
+    files->filesChange();
   }
 
   //look for uint8 object
@@ -210,6 +224,51 @@ private:
     foundAll = foundNumber == objects.size();
     if (foundAll)
       print->print("Hooray, LazyJsonRDWS found all what we were looking for, no further search needed\n");
+  }
+
+  //writeJsonVariantToFile calls itself recursively until whole json document has been parsed
+  void writeJsonVariantToFile(JsonVariant variant) {
+    if (variant.is<JsonObject>()) {
+      f.printf("{");
+      char sep[3] = "";
+      for (JsonPair pair: variant.as<JsonObject>()) {
+        bool found = false;
+        for (char *el:charList) {
+          if (strcmp(el, pair.key().c_str())==0) {
+            found = true;
+            break;
+          }
+        }
+        // std::vector<char *>::iterator itr = find(charList.begin(), charList.end(), pair.key().c_str());
+        if (!found) { //not found
+          f.printf("%s\"%s\":", sep, pair.key().c_str());
+          strcpy(sep,",");
+          writeJsonVariantToFile(pair.value());
+        }
+      }
+      f.printf("}");
+    }
+    else if (variant.is<JsonArray>()) {
+      f.printf("[");
+      char sep[3] = "";
+      for (JsonVariant variant2: variant.as<JsonArray>()) {
+        f.print(sep);
+        strcpy(sep,",");
+        writeJsonVariantToFile(variant2);
+      }      
+      f.printf("]");
+    }
+    else if (variant.is<const char *>()) {
+      f.printf("\"%s\"", variant.as<const char *>());      
+    }
+    else if (variant.is<int>()) {
+      f.printf("%d", variant.as<int>());      
+    }
+    else if (variant.is<bool>()) {
+      f.printf("%s", variant.as<bool>()?"true":"false");      
+    }
+    else
+      print->print("%s not supported", variant.as<String>());
   }
 
 };

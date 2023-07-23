@@ -143,6 +143,7 @@ function generateHTML(parentNode, json) {
 
       newNode = cE("canvas");
       newNode.id = json.id;
+      newNode.addEventListener('click', (event) => {console.log(json.type + " click", event);bigCanvas(event.target, true);});
     }
     else { //input
       newNode = cE("p");
@@ -360,6 +361,11 @@ function setDropdown(element) {
 
   requestJson(command);
 }
+
+function bigCanvas(element, doCreate) {
+  console.log("bigCanvas", element, doCreate);
+}
+
 
 function initCap(s) {
   if (typeof s !== 'string') return '';

@@ -73,7 +73,14 @@ void SysModModel::setup() {
   }
   if (doWriteModel) {
     print->println(F("Writing model to /model.json... (serializeConfig)"));
-    files->writeObjectToFile("/model.json", model);
+
+    // files->writeObjectToFile("/model.json", model);
+
+    LazyJsonRDWS ljrdws("/model.json", "w"); //open fileName for deserialize
+    ljrdws.addExclusion("uiFun");
+    ljrdws.addExclusion("chFun");
+    ljrdws.writeJsonDocToFile(model);
+
     print->printJson("Write model", *model);
 
     doWriteModel = false;
@@ -108,6 +115,7 @@ void SysModModel::cleanUpModel(JsonArray objects) {
         object["o"] = -object["o"].as<int>(); //make it possitive
       }
 
+      //recursive call
       if (!object["n"].isNull() && object["n"].is<JsonArray>())
         cleanUpModel(object["n"]);
     } 

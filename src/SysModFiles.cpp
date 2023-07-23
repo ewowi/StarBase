@@ -181,19 +181,20 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
   }
 }
 
-bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
-  File f = open(path, "w");
-  if (f) {
-    print->println(F("  success"));
-    serializeJson(*dest, f);
-    f.close();
-    filesChange();
-    return true;
-  } else {
-    print->println(F("  fail"));
-    return false;
-  }
-}
+//candidate for deletion as taken over by LazyJsonRDWS
+// bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
+//   File f = open(path, "w");
+//   if (f) {
+//     print->println(F("  success"));
+//     serializeJson(*dest, f);
+//     f.close();
+//     filesChange();
+//     return true;
+//   } else {
+//     print->println(F("  fail"));
+//     return false;
+//   }
+// }
 
 void SysModFiles::removeFiles(const char * filter, bool reverse) {
   File root = LittleFS.open("/");

@@ -23,27 +23,27 @@ SysModFiles::SysModFiles() :Module("Files") {
 //setup filesystem
 void SysModFiles::setup() {
   Module::setup();
-  parentObject = ui->initGroup(parentObject, name);
+  parentObject = ui->initModule(parentObject, name);
 
-  JsonObject fileListObject = ui->initMany(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
+  JsonObject fileListObject = ui->initTable(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Files");
     web->addResponse(object["id"], "comment", "List of files");
-    JsonArray rows = web->addResponseA(object["id"], "many");
+    JsonArray rows = web->addResponseA(object["id"], "table");
     dirToJson(rows);
   });
-  ui->initDisplay(fileListObject, "flName", nullptr, [](JsonObject object) { //uiFun
+  ui->initText(fileListObject, "flName", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Name");
   });
-  ui->initDisplay(fileListObject, "flSize", nullptr, [](JsonObject object) { //uiFun
+  ui->initText(fileListObject, "flSize", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Size (B)");
   });
 
-  ui->initDisplay(parentObject, "drsize", nullptr, [](JsonObject object) { //uiFun
+  ui->initText(parentObject, "drsize", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Total FS size");
   });
 
   ui->initButton(parentObject, "deleteFiles", "deleteFiles", [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "All but model.json, temporary");
+    web->addResponse(object["id"], "comment", "All but model.json");
   }, [](JsonObject object) {
     print->print("delete files\n");
     files->removeFiles("model.json", true); //all but model.json
@@ -92,35 +92,21 @@ File SysModFiles::open(const char * path, const char * mode, const bool create) 
 }
 
 // https://techtutorialsx.com/2019/02/24/esp32-arduino-listing-files-in-a-spiffs-file-system-specific-path/
-void SysModFiles::dirToJson(JsonArray array,  const char * filter) {
+void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter) {
   File root = LittleFS.open("/");
   File file = root.openNextFile();
 
   while (file) {
 
     if (filter == nullptr || strstr(file.name(), filter) != nullptr) {
-      JsonArray row = array.createNestedArray();
-      row.add((char *)file.name());  //create a copy!
-      row.add(file.size());
-      // Serial.printf("FILE: %s %d\n", file.name(), file.size());
-    }
-
-    file.close();
-    file = root.openNextFile();
-  }
-
-  root.close();
-}
-
-void SysModFiles::dirToJson2(JsonArray array, const char * filter) {
-  File root = LittleFS.open("/");
-  File file = root.openNextFile();
-
-  while (file) {
-    // array.add(print->fFormat("hoi %s", "file.name()"));
-
-    if (filter == nullptr || strstr(file.name(), filter) != nullptr) {
-      array.add((char *)file.name());
+      if (nameOnly) {
+        array.add((char *)file.name());
+      }
+      else {
+        JsonArray row = array.createNestedArray();
+        row.add((char *)file.name());  //create a copy!
+        row.add(file.size());
+      }
       // Serial.printf("FILE: %s %d\n", file.name(), file.size());
     }
 

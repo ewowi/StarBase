@@ -30,9 +30,9 @@ void SysModModel::setup() {
 
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initGroup(parentObject, name);
+  parentObject = ui->initModule(parentObject, name);
 
-  ui->initDisplay(parentObject, "mSize", nullptr, [](JsonObject object) {
+  ui->initText(parentObject, "mSize", nullptr, true, [](JsonObject object) {
     web->addResponse(object["id"], "label", "Size");
   });
 
@@ -81,7 +81,7 @@ void SysModModel::setup() {
     ljrdws.addExclusion("chFun");
     ljrdws.writeJsonDocToFile(model);
 
-    print->printJson("Write model", *model);
+    // print->printJson("Write model", *model); //this shows the model before exclusion
 
     doWriteModel = false;
   }
@@ -122,13 +122,14 @@ void SysModModel::cleanUpModel(JsonArray objects) {
   }
 }
 
+//tbd: use template T
 //setValue char
 JsonObject SysModModel::setValueC(const char * id, const char * value) {
   JsonObject object = findObject(id);
   if (!object.isNull()) {
     if (object["value"].isNull() || object["value"] != value) {
       // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
-      if (object["type"] == "display") { // do not update object["value"]
+      if (object["ro"]) { // do not update object["value"]
         ui->setChFunAndWs(object, value); //value: bypass object["value"]
       } else {
         object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)

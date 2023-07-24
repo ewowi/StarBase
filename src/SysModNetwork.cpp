@@ -18,8 +18,8 @@ void SysModNetwork::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initGroup(parentObject, name);
-  ui->initInput(parentObject, "ssid", "");
+  parentObject = ui->initModule(parentObject, name);
+  ui->initText(parentObject, "ssid", "", false);
   ui->initPassword(parentObject, "pw", "", [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Password");
   });
@@ -28,9 +28,8 @@ void SysModNetwork::setup() {
   }, [](JsonObject object) {
     forceReconnect = true;
   });
-  ui->initDisplay(parentObject, "nwstatus", nullptr, [](JsonObject object) { //uiFun
+  ui->initText(parentObject, "nwstatus", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Status");
-    web->addResponse(object["id"], "comment", "Not shown for some reason (wip)");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");

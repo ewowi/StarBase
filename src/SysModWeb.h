@@ -59,6 +59,8 @@ public:
   void addResponseB(const char * id, const char * key, bool value);
   JsonArray addResponseA(const char * id, const char * key);
 
+  void clientsToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
+  
 private:
   bool modelUpdated = false;
   static bool clientsChanged;

@@ -24,11 +24,8 @@ public:
 
   void filesChange();
 
-  //get the file names and size in an array of arrays
-  static void dirToJson(JsonArray array, const char * filter = nullptr);
-
-  //get the file names in an array
-  static void dirToJson2(JsonArray array, const char * filter = nullptr);
+  //get the file names and size in an array
+  static void dirToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
 
   //get back the name of a file based on the sequence
   bool seqNrToName(char * fileName, size_t seqNr);

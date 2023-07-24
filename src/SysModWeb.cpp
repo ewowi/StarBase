@@ -32,31 +32,24 @@ void SysModWeb::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initGroup(parentObject, name);
+  parentObject = ui->initModule(parentObject, name);
 
-  parentObject = ui->initMany(parentObject, "clist", nullptr, [](JsonObject object) { //uiFun
+  parentObject = ui->initTable(parentObject, "clist", nullptr, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Clients");
     web->addResponse(object["id"], "comment", "List of clients");
-    JsonArray rows = web->addResponseA(object["id"], "many");
-    for (auto client:ws->getClients()) {
-      // print->print("Client %d %d %s\n", client->id(), client->queueIsFull(), client->remoteIP().toString().c_str());
-      JsonArray row = rows.createNestedArray();
-      row.add(client->id());
-      row.add((char *)client->remoteIP().toString().c_str()); //create a copy!
-      row.add(client->queueIsFull());
-      row.add(client->status());
-    }
+    JsonArray rows = web->addResponseA(object["id"], "table");
+    web->clientsToJson(rows);
   });
-  ui->initDisplay(parentObject, "clNr", nullptr, [](JsonObject object) { //uiFun
+  ui->initText(parentObject, "clNr", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Nr");
   });
-  ui->initDisplay(parentObject, "clIp", nullptr, [](JsonObject object) { //uiFun
+  ui->initText(parentObject, "clIp", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "IP");
   });
-  ui->initDisplay(parentObject, "clIsFull", nullptr, [](JsonObject object) { //uiFun
+  ui->initText(parentObject, "clIsFull", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Is full");
   });
-  ui->initDisplay(parentObject, "clStatus", nullptr, [](JsonObject object) { //uiFun
+  ui->initText(parentObject, "clStatus", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Status");
     JsonArray lov = web->addResponseA(object["id"], "lov");
     lov.add("Disconnected"); //0
@@ -424,4 +417,19 @@ JsonArray SysModWeb::addResponseA(const char * id, const char * key) {
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   return responseVariant[id].createNestedArray(key);
+}
+
+void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {
+  for (auto client:ws->getClients()) {
+    if (nameOnly) {
+      array.add((char *)client->remoteIP().toString().c_str()); //create a copy!
+    } else {
+      // print->print("Client %d %d %s\n", client->id(), client->queueIsFull(), client->remoteIP().toString().c_str());
+      JsonArray row = array.createNestedArray();
+      row.add(client->id());
+      row.add((char *)client->remoteIP().toString().c_str()); //create a copy!
+      row.add(client->queueIsFull());
+      row.add(client->status());
+    }
+  }
 }

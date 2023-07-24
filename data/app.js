@@ -22,6 +22,8 @@ function userFun(userFunId, data) {
       if (!pview3DNode) {
         pview3DNode = cE("canvas");
         pview3DNode.id = "pview3D";
+        pview3DNode.addEventListener('click', (event) => {bigCanvas(event.target, true);});
+
         pviewNode.parentNode.insertBefore(pview3DNode, pviewNode.nextSibling); //create pView3D after pview
       }
       if (pview3DNode) pview3DNode.hidden = false;
@@ -194,20 +196,21 @@ function preview3D(node, leds) {
 }
 
 function previewBoard(node, leds) {
-  // let ctx = node.getContext('2d');
-  // let mW = leds[0]; // matrix width
-  // let mH = leds[1]; // matrix height
-  // let pPL = Math.min(node.width / mW, node.height / mH); // pixels per LED (width of circle)
-  // let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
-  // let i = 4;
-  // ctx.clearRect(0, 0, node.width, node.height);
-  // for (y=0.5;y<mH;y++) for (x=0.5; x<mW; x++) {
-  //   if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
-  //     ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
-  //     ctx.beginPath();
-  //     ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
-  //     ctx.fill();
-  //   }
-  //   i+=3;
-  // }
+  let ctx = node.getContext('2d');
+  //assuming 20 pins
+  let mW = 2; // matrix width
+  let mH = 10; // matrix height
+  let pPL = Math.min(node.width / mW, node.height / mH); // pixels per LED (width of circle)
+  let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
+  let i = 4;
+  ctx.clearRect(0, 0, node.width, node.height);
+  for (y=0.5;y<mH;y++) for (x=0.5; x<mW; x++) {
+    if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
+      ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
+      ctx.beginPath();
+      ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    i+=3;
+  }
 }

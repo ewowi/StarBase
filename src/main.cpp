@@ -11,7 +11,7 @@
 #include "SysModFiles.h"
 #include "SysModModel.h"
 #include "SysModNetwork.h"
-#include "AppModPinManager.h"
+#include "SysModPinManager.h"
 #include "AppModLeds.h"
 
 //setup all modules
@@ -25,7 +25,7 @@ void setup() {
   web = new SysModWeb();
   ui = new SysModUI();
   sys = new SysModSystem();
-  pin = new AppModPinManager();
+  pin = new SysModPinManager();
   lds = new AppModLeds();
 
   mdls->add(print);

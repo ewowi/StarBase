@@ -28,12 +28,12 @@ void SysModUI::setup() {
 
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = initGroup(parentObject, name);
+  parentObject = initModule(parentObject, name);
 
-  JsonObject objectLoopsObject = initMany(parentObject, "oloops", nullptr, [](JsonObject object) { //uiFun
+  JsonObject objectLoopsObject = initTable(parentObject, "oloops", nullptr, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Object loops");
     web->addResponse(object["id"], "comment", "Loops initiated by an object");
-    JsonArray rows = web->addResponseA(object["id"], "many");
+    JsonArray rows = web->addResponseA(object["id"], "table");
 
     for (auto objectLoop = begin (loopFunctions); objectLoop != end (loopFunctions); ++objectLoop) {
       JsonArray row = rows.createNestedArray();
@@ -44,10 +44,10 @@ void SysModUI::setup() {
       objectLoop->counter = 0;
     }
   });
-  initDisplay(objectLoopsObject, "ulObject", nullptr, [](JsonObject object) { //uiFun
+  initText(objectLoopsObject, "ulObject", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Name");
   });
-  initDisplay(objectLoopsObject, "ulLoopps", nullptr, [](JsonObject object) { //uiFun
+  initText(objectLoopsObject, "ulLoopps", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Loops/s");
   });
 
@@ -121,85 +121,7 @@ void SysModUI::loop() {
   }
 }
 
-JsonObject SysModUI::initGroup(JsonObject parent, const char * id, const char * value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "group", uiFun, chFun, loopFun);
-  if (object["value"].isNull() && value) object["value"] = value;
-  if (chFun && value) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initMany(JsonObject parent, const char * id, const char * value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "many", uiFun, chFun, loopFun);
-  if (object["value"].isNull() && value) object["value"] = value;
-  if (chFun && value) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initInput(JsonObject parent, const char * id, const char * value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "input", uiFun, chFun, loopFun);
-  if (object["value"].isNull() && value) object["value"] = value;
-  if (chFun && value) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initPassword(JsonObject parent, const char * id, const char * value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "password", uiFun, chFun, loopFun);
-  if (object["value"].isNull() && value) object["value"] = value;
-  if (chFun && value) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initNumber(JsonObject parent, const char * id, int value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "number", uiFun, chFun, loopFun);
-  if (object["value"].isNull()) object["value"] = value;
-  if (chFun) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initSlider(JsonObject parent, const char * id, int value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "range", uiFun, chFun, loopFun);
-  if (object["value"].isNull()) object["value"] = value;
-  if (chFun) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initCanvas(JsonObject parent, const char * id, int value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "canvas", uiFun, chFun, loopFun);
-  if (object["value"].isNull()) object["value"] = value;
-  if (chFun) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initDisplay(JsonObject parent, const char * id, const char * value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "display", uiFun, chFun, loopFun);
-  if (object["value"].isNull() && value) object["value"] = value;
-  if (chFun && value) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initCheckBox(JsonObject parent, const char * id, bool value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "checkbox", uiFun, chFun, loopFun);
-  if (object["value"].isNull()) object["value"] = value;
-  if (chFun) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initButton(JsonObject parent, const char * id, const char * value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "button", uiFun, chFun, loopFun);
-  if (object["value"].isNull()) object["value"] = value;
-  //no call of fun for buttons!!! 
-  // if (chFun) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initDropdown(JsonObject parent, const char * id, uint8_t value, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = initObject(parent, id, "dropdown", uiFun, chFun, loopFun);
-  if (object["value"].isNull()) object["value"] = value;
-  if (chFun) chFun(object);
-  return object;
-}
-
-JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char * type, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
+JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char * type, bool readOnly, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
   JsonObject object = mdl->findObject(id);
 
   //create new object
@@ -219,7 +141,11 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
     print->print("Object %s already defined\n", id);
 
   if (!object.isNull()) {
-    object["type"] = type;
+    if (object["type"] != type) 
+      object["type"] = type;
+    if (object["ro"] != readOnly) 
+      object["ro"] = readOnly;
+    //readOnly's will be deleted, if not already so
     object["o"] = -objectCounter++; //make order negative to check if not obsolete, see cleanUpModel
     if (uiFun) {
       //if fun already in ucFunctions then reuse, otherwise add new fun in ucFunctions
@@ -242,6 +168,7 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
       }
     }
     if (loopFun) {
+      //no need to check if already in...
       ObjectLoop loop;
       loop.loopFun = loopFun;
       loop.object = object;
@@ -258,6 +185,7 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
   return object;
 }
 
+//tbd: use template T for value
 //run the change function and send response to all? websocket clients
 void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: bypass object["value"]
 
@@ -302,7 +230,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
 
       // commands
       if (pair.key() == "uiFun") { //JsonString can do ==
-        //find the dropdown object and collect it's options...
+        //find the select object and collect it's options...
         JsonObject object = mdl->findObject(value); //value is the id
         if (!object.isNull()) {
           //call ui function...
@@ -312,7 +240,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
               ucFunctions[funNr](object);
             else    
               print->print("processJson function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, ucFunctions.size());
-            if (object["type"] == "dropdown")
+            if (object["type"] == "select")
               web->addResponseI(object["id"], "value", object["value"]); //temp assume int only
 
             // print->printJson("PJ Command", responseDoc);

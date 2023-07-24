@@ -18,10 +18,21 @@ void SysModPrint::setup() {
 
   print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initGroup(parentObject, name);
+  parentObject = ui->initModule(parentObject, name);
 
-  ui->initDisplay(parentObject, "log", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "WIP");
+  ui->initTextArea(parentObject, "log", "WIP", true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "comment", "Show the printed log");
+  });
+
+  ui->initSelect(parentObject, "pOut", 0, false, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Output");
+    web->addResponse(object["id"], "comment", "System log to Serial or Net print (WIP)");
+
+    JsonArray rows = web->addResponseA(object["id"], "lov");
+    rows.add("No");
+    rows.add("Serial");
+
+    web->clientsToJson(rows, true); //ip only
   });
 
   print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");

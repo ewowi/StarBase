@@ -226,7 +226,7 @@ public:
     Module::setup();
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    parentObject = ui->initGroup(parentObject, name);
+    parentObject = ui->initModule(parentObject, name);
 
     ui->initSlider(parentObject, "bri", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "label", "Brightness");
@@ -236,7 +236,7 @@ public:
       print->print("Set Brightness to %d -> %d\n", object["value"].as<int>(), bri);
     });
 
-    ui->initDropdown(parentObject, "fx", 6, [](JsonObject object) { //uiFun. 6: Juggles is default
+    ui->initSelect(parentObject, "fx", 6, false, [](JsonObject object) { //uiFun. 6: Juggles is default
       web->addResponse(object["id"], "label", "Effect");
       web->addResponse(object["id"], "comment", "Effect to show");
       JsonArray lov = web->addResponseA(object["id"], "lov");
@@ -244,7 +244,7 @@ public:
         lov.add(effect->name());
       }
     }, [](JsonObject object) { //chFun
-      print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
+      print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
     });
 
     ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
@@ -263,10 +263,10 @@ public:
       buffer[3] = max(nrOfLeds * web->ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
-    ui->initDropdown(parentObject, "ledFix", 0, [](JsonObject object) { //uiFun
+    ui->initSelect(parentObject, "ledFix", 0, false, [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "label", "LedFix");
       JsonArray lov = web->addResponseA(object["id"], "lov");
-      files->dirToJson2(lov, "lf"); //only files containing lf, alphabetically
+      files->dirToJson(lov, true, "lf"); //only files containing lf, alphabetically
 
       // ui needs to load the file also initially
       char fileName[30] = "";
@@ -274,7 +274,7 @@ public:
         web->addResponse("pview", "file", fileName);
       }
     }, [](JsonObject object) { //chFun
-      print->print("%s Change %s to %d\n", "initDropdown chFun", object["id"].as<const char *>(), object["value"].as<int>());
+      print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
 
       char fileName[30] = "";
       if (files->seqNrToName(fileName, object["value"])) {
@@ -304,19 +304,19 @@ public:
       } //if fileName
     });
 
-    ui->initDisplay(parentObject, "width", nullptr, [](JsonObject object) { //uiFun
+    ui->initText(parentObject, "width", nullptr, true, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Max %dK", 32);
     });
 
-    ui->initDisplay(parentObject, "height", nullptr, [](JsonObject object) { //uiFun
+    ui->initText(parentObject, "height", nullptr, true, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Max %dK", 32);
     });
 
-    ui->initDisplay(parentObject, "depth", nullptr, [](JsonObject object) { //uiFun
+    ui->initText(parentObject, "depth", nullptr, true, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Max %dK", 32);
     });
 
-    ui->initDisplay(parentObject, "nrOfLeds", nullptr, [](JsonObject object) { //uiFun
+    ui->initText(parentObject, "nrOfLeds", nullptr, true, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Max %d (FastLed max %d)", NUM_LEDS_preview, NUM_LEDS_Fastled);
     });
     // mdl->setValueI("nrOfLeds", nrOfLeds); //set here as changeDimensions already called for width/height/depth
@@ -336,8 +336,7 @@ public:
       print->print("fps changed %d\n", fps);
     });
 
-    ui->initDisplay(parentObject, "realFps");
-
+    ui->initText(parentObject, "realFps");
 
     ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
@@ -351,21 +350,21 @@ public:
       R24,
       R35,
       M88,
-      M888,
-      M888h,
+      C888,
+      C885,
       HSC,
       Globe
     };
 
-    ui->initDropdown(parentObject, "ledFixGen", 3, [](JsonObject object) { //uiFun
+    ui->initSelect(parentObject, "ledFixGen", 3, false, [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "label", "Ledfix generator");
       JsonArray lov = web->addResponseA(object["id"], "lov");
       lov.add("Spiral"); //0
       lov.add("R24"); //1
       lov.add("R35"); //2
       lov.add("M88"); //3
-      lov.add("M888"); //4
-      lov.add("M888h"); //5
+      lov.add("C888"); //4
+      lov.add("C885"); //5
       lov.add("HSC"); //6
       lov.add("Globe"); //7
     }, [](JsonObject object) { //chFun
@@ -396,12 +395,12 @@ public:
           name = "M88";
           nrOfLeds = 64;
           break;
-        case M888:
-          name = "M888";
+        case C888:
+          name = "C888";
           nrOfLeds = 512;
           break;
-        case M888h:
-          name = "M888h";
+        case C885:
+          name = "C885";
           nrOfLeds = 320;
           break;
         case HSC:
@@ -481,7 +480,7 @@ public:
           f.printf("]");
 
           break;
-        case M888:
+        case C888:
           diameter = 8; //in cm
 
           f.printf(",\"scale\":\"%s\"", "cm");
@@ -504,7 +503,7 @@ public:
           f.printf("]");
 
           break;
-        case M888h:
+        case C885:
         case HSC:
           if (fix==5) {
             diameter = 8; //in cm
@@ -583,7 +582,7 @@ public:
 
       files->filesChange();
 
-      //reload ledfix dropdown
+      //reload ledfix select
       ui->processUiFun("ledFix");
     }); //ledFixGen
 

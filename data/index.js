@@ -82,23 +82,33 @@ function generateHTML(parentNode, json) {
     let labelNode = cE("label");
     labelNode.innerHTML = initCap(json.id);
 
-    if (json.type == "group") {
+    if (json.type == "module") {
       newNode = cE("div");
       newNode.id = json.id
       newNode.draggable = true;
       newNode.className = "box";
-      let h2 = cE("h2");
-      h2.innerHTML = initCap(json.id);
-      newNode.appendChild(h2);
+        let h2Node = cE("h2");
+        h2Node.innerHTML = initCap(json.id);
+        newNode.appendChild(h2Node);
+          let pNode = cE("p");
+          pNode.innerHTML = "Enable"
+            let checkBoxNode = cE("input");
+            checkBoxNode.id = json.id;
+            checkBoxNode.type = "checkbox";
+          pNode.appendChild(checkBoxNode);
+            let commentNode = cE("comment");
+            commentNode.innerHTML = "WIP"
+          pNode.appendChild(commentNode);
+      newNode.appendChild(pNode);
       setupBox(newNode);
     }
-    else if (json.type == "many") {
-      //add many label
-      let node = cE("p");
-      node.appendChild(labelNode);
-      parentNode.appendChild(node); //add the many label to the parent
+    else if (json.type == "table") {
+      //add label
+      let pNode = cE("p");
+      pNode.appendChild(labelNode);
+      parentNode.appendChild(pNode); //add the table label to the parent
 
-      //add many detail table
+      //add table
       newNode = cE("table");
       newNode.id = json.id;
       newNode.className = "table-style"
@@ -110,76 +120,100 @@ function generateHTML(parentNode, json) {
 
       newNode.appendChild(cE("tbody"));
     }
-    else if (json.type == "display") {
-      if (parentNode.nodeName.toLocaleLowerCase() == "table") { //1:Many: add the id in the header
-        // console.log("display table", parentNode);
-        let tdNode = cE("th");
-        tdNode.id = json.id;
-        tdNode.innerHTML = initCap(json.id); //label uiFun response can change it
-        parentNode.firstChild.firstChild.appendChild(tdNode); //<thead><tr>
+    else if (json.type == "select") {
+      if (json.ro) {
+        newNode = cE("p");
+        newNode.appendChild(labelNode);
+        let spanNode = cE("span");
+        spanNode.id = json.id;
+        if (json.value) spanNode.innerHTML = json.value;
+        newNode.appendChild(spanNode);
       }
       else {
         newNode = cE("p");
         newNode.appendChild(labelNode);
-        let fieldNode = cE("span");
-        fieldNode.id = json.id;
-        if (json.value) fieldNode.innerHTML = json.value;
-        newNode.appendChild(fieldNode);
+        let selectNode = cE("select");
+        selectNode.id = json.id;
+        selectNode.addEventListener('change', (event) => {console.log("select change", event);setSelect(event.target);});
+        newNode.appendChild(selectNode);
+        //(default) value will be set in processUpdate
       }
     }
-    else if (json.type == "dropdown") {
-      newNode = cE("p");
-      newNode.appendChild(labelNode);
-      let fieldNode = cE("select");
-      fieldNode.id = json.id;
-      fieldNode.addEventListener('change', (event) => {console.log("dropdown change", event);setDropdown(event.target);});
-      newNode.appendChild(fieldNode);
-      //(default) value will be set in processUpdate
-    }
     else if (json.type == "canvas") {
-      var node = cE("p");
-      node.appendChild(labelNode);
-      parentNode.appendChild(node); //add the many label to the parent
+      var pNode = cE("p");
+      pNode.appendChild(labelNode);
+      parentNode.appendChild(pNode);
 
       newNode = cE("canvas");
       newNode.id = json.id;
-      newNode.addEventListener('click', (event) => {console.log(json.type + " click", event);bigCanvas(event.target, true);});
+      newNode.addEventListener('click', (event) => {bigCanvas(event.target, true);});
+    }
+    else if (json.type == "textarea") {
+      newNode = cE("p");
+      newNode.appendChild(labelNode);
+      let textareaNode = cE("textarea");
+      textareaNode.id = json.id;
+      textareaNode.readOnly = json.ro;
+      // if (json.ro)
+      //   textareaNode.addAttribute("readonly");
+      // else
+      //   textareaNode.removeAttribute("readonly");
+      if (json.value) textareaNode.innerHTML = json.value;
+      newNode.appendChild(textareaNode);
     }
     else { //input
-      newNode = cE("p");
-      let buttonSaveNode = null;
-      let buttonCancelNode = null;
-      if (json.type != "button") newNode.appendChild(labelNode);
-      let fieldNode = cE("input");
-      fieldNode.id = json.id;
-      fieldNode.type = json.type;
-      if (json.type == "checkbox") {
-        if (json.value) fieldNode.checked = json.value;
-        fieldNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
-      } else if (json.type == "button") {
-        if (json.value) fieldNode.value = json.value;
-        fieldNode.addEventListener('click', (event) => {console.log(json.type + " click", event);setButton(event.target);});
-      } else {
-        //input types: text, search, tel, url, email, and password.
-        if (json.value) fieldNode.value = json.value;
-        fieldNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
-        if (["input", "password", "number"].includes(json.type) ) {
-          buttonSaveNode = cE("text");
-          buttonSaveNode.innerHTML = "✅";
-          buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
-          buttonCancelNode = cE("text");
-          buttonCancelNode.innerHTML = "🛑";
-          buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+      if (json.ro && json.type != "button") { //pka display
+        if (parentNode.nodeName.toLocaleLowerCase() == "table") { //table add the id in the header
+          let tdNode = cE("th");
+          tdNode.id = json.id;
+          tdNode.innerHTML = initCap(json.id); //label uiFun response can change it
+          parentNode.firstChild.firstChild.appendChild(tdNode); //<thead><tr>
         }
-        if (json.type == "number") {
-          fieldNode.setAttribute('size', '4');
-          fieldNode.maxlength = 4;
-          // fieldNode.size = 4;
+        else {
+          newNode = cE("p");
+          newNode.appendChild(labelNode);
+          let spanNode = cE("span");
+          spanNode.id = json.id;
+          if (json.value) spanNode.innerHTML = json.value;
+          newNode.appendChild(spanNode);
         }
       }
-      newNode.appendChild(fieldNode);
-      if (buttonSaveNode) newNode.appendChild(buttonSaveNode);
-      if (buttonCancelNode) newNode.appendChild(buttonCancelNode);
+      else { //not ro
+        newNode = cE("p");
+        let buttonSaveNode = null;
+        let buttonCancelNode = null;
+        if (json.type != "button") newNode.appendChild(labelNode);
+        let inputNode = cE("input");
+        inputNode.id = json.id;
+        inputNode.type = json.type;
+        if (json.type == "checkbox") {
+          if (json.value) inputNode.checked = json.value;
+          inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
+        } else if (json.type == "button") {
+          if (json.value) inputNode.value = json.value;
+          inputNode.addEventListener('click', (event) => {console.log(json.type + " click", event);setButton(event.target);});
+        } else {
+          //input types: text, search, tel, url, email, and password.
+          if (json.value) inputNode.value = json.value;
+          inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
+          if (["text", "password", "number"].includes(json.type) ) {
+            buttonSaveNode = cE("text");
+            buttonSaveNode.innerHTML = "✅";
+            buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+            buttonCancelNode = cE("text");
+            buttonCancelNode.innerHTML = "🛑";
+            buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+          }
+          if (json.type == "number") {
+            inputNode.setAttribute('size', '4');
+            inputNode.maxlength = 4;
+            // inputNode.size = 4;
+          }
+        }
+        newNode.appendChild(inputNode);
+        if (buttonSaveNode) newNode.appendChild(buttonSaveNode);
+        if (buttonCancelNode) newNode.appendChild(buttonCancelNode);
+      }
     }
 
     if (newNode) parentNode.appendChild(newNode); //add new node to parent
@@ -191,7 +225,7 @@ function generateHTML(parentNode, json) {
       requestJson(command);
     }
 
-    if (json.n) generateHTML(newNode, json.n); //details (e.g. group)
+    if (json.n) generateHTML(newNode, json.n); //details (e.g. module)
 
   }
 }
@@ -203,17 +237,18 @@ function processUpdate(json) {
     if (key != "uiFun") { //was the request
       // let id = gId(key);
       if (gId(key)) {
+        let overruleValue = false;
 
         if (json[key].label) {
           console.log("processUpdate label", key, json[key].label);
-          let node;
+          let labelNode;
           if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
-            node = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
+            labelNode = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
           else if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
-            node = gId(key); //the <th>
+            labelNode = gId(key); //the <th>
           else
-            node = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
-          node.innerHTML = json[key].label;
+            labelNode = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
+          labelNode.innerHTML = json[key].label;
         }
         if (json[key].comment) {
           console.log("processUpdate comment", key, json[key].comment);
@@ -227,7 +262,7 @@ function processUpdate(json) {
             parentNode = gId(key).parentNode;
           let commentNode = parentNode.querySelector('comment');
           // console.log("commentNode", commentNode);
-          if (!commentNode) {
+          if (!commentNode) { //create if not exist
             commentNode = cE("comment");
             parentNode.appendChild(commentNode);
           }
@@ -235,25 +270,41 @@ function processUpdate(json) {
         }
         if (json[key].lov) {
           console.log("processUpdate lov", key, json[key].lov);
-          var index = 0;
-          //remove all old options first
-          while (gId(key).options && gId(key).options.length > 0) {
-            gId(key).remove(0);
+          if (gId(key).nodeName.toLocaleLowerCase() == "span") { //readonly tbd: only the displayed value needs to be in the lov
+            var index = 0;
+            for (var value of json[key].lov) {
+              if (parseInt(gId(key).textContent) == index) {
+                // console.log("processUpdate lov1", value, gId(key), gId(key).textContent, index);
+                gId(key).textContent = value; //replace the id by its value TBD: THIS DOES NOT WORK FOR SOME REASON
+                // console.log("processUpdate lov2", value, gId(key), gId(key).textContent, index);
+              }
+              index++;
+            }
+            overruleValue = true; //in this case we do not want the value set
           }
-          for (var value of json[key].lov) {
-            let optNode = cE("option");
-            optNode.value = index;
-            optNode.text = value;
-            gId(key).appendChild(optNode);
-            index++;
+          else { //select
+            var index = 0;
+            //remove all old options first
+            while (gId(key).options && gId(key).options.length > 0) {
+              gId(key).remove(0);
+            }
+            for (var value of json[key].lov) {
+              if (key=="reset0")
+                console.log("processUpdate lov3", value, gId(key), gId(key).textContent, index);
+              let optNode = cE("option");
+              optNode.value = index;
+              optNode.text = value;
+              gId(key).appendChild(optNode);
+              index++;
+            }
           }
         }
-        if (json[key].many) {
-          console.log("processUpdate many", key, json[key].many);
+        if (json[key].table) {
+          console.log("processUpdate table", key, json[key].table);
           //remove table rows
           let tbodyNode = cE('tbody');
   
-          for (var row of json[key].many) {
+          for (var row of json[key].table) {
             let trNode = cE("tr");
             for (var columnRow of row) {
               let tdNode = cE("td");
@@ -264,8 +315,8 @@ function processUpdate(json) {
           }
           gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
         }
-        if (json[key].value) { //after lov, in case used
-          if (key=="ledFix" || key =="ledFixGen")
+        if (json[key].value && !overruleValue) { //after lov, in case used
+          if (key=="ledFix" || key =="ledFixGen" || key =="reset0")
             console.log("processUpdate value", key, json[key].value, gId(key));
           if (gId(key).nodeName.toLocaleLowerCase() == "span") //display
             gId(key).textContent = json[key].value;
@@ -296,7 +347,7 @@ function processUpdate(json) {
         }
       }
       else
-        console.log("Id not found", key);
+        console.log("processUpdate id not found in json", key, json);
     } //key != uiFun
   } //for keys
 } //processUpdate
@@ -354,7 +405,7 @@ function setButton(element) {
   requestJson(command);
 }
 
-function setDropdown(element) {
+function setSelect(element) {
   var command = {};
   command[element.id] = element.value;
   // console.log("setInput", command);
@@ -364,8 +415,10 @@ function setDropdown(element) {
 
 function bigCanvas(element, doCreate) {
   console.log("bigCanvas", element, doCreate);
+  // element.width = document.body.clientWidth; //document.width is obsolete
+  // element.height = document.body.clientHeight; //document.height is obsolete
 }
-
+// https://stackoverflow.com/questions/324303/cut-and-paste-moving-nodes-in-the-dom-with-javascript
 
 function initCap(s) {
   if (typeof s !== 'string') return '';

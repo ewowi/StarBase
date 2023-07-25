@@ -20,7 +20,7 @@ public:
 
   void connected2() {
     print->print("UserModE131::connected\n");
-    if(e131Created) {
+    if(e131Created) { // TODO: crashes here - no idea why!
       print->print("UserModE131 - ESPAsyncE131 created already\n");
       return;
     }

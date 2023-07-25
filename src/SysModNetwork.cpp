@@ -1,5 +1,6 @@
 #include "SysModNetwork.h"
 #include "Module.h"
+// #include "Modules.h"
 
 #include "SysModPrint.h"
 #include "SysModWeb.h"
@@ -17,16 +18,18 @@ void SysModNetwork::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initGroup(parentObject, name);
-  ui->initInput(parentObject, "ssid", "MilliWatt");
-  ui->initPassword(parentObject, "pw", "BigTitties73!", [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Password");
+  parentObject = ui->initModule(parentObject, name);
+  ui->initText(parentObject, "ssid", "", false);
+  ui->initPassword(parentObject, "pw", "", [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Password");
   });
-  ui->initButton(parentObject, "connect", "Connect", nullptr, [](JsonObject object) {
+  ui->initButton(parentObject, "connect", "Connect", [](JsonObject object) {
+    web->addResponse(object["id"], "comment", "Force reconnect (you loose current connection)");
+  }, [](JsonObject object) {
     forceReconnect = true;
   });
-  ui->initDisplay(parentObject, "nwstatus", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Status");
+  ui->initText(parentObject, "nwstatus", nullptr, true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Status");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -68,6 +71,7 @@ void SysModNetwork::handleConnection() {
 
     interfacesInited = true;
 
+    // mdls->connected(); //causes crash
     web->connected2();
 
     // shut down AP
@@ -95,7 +99,7 @@ void SysModNetwork::initConnection() {
   }
 
   WiFi.setSleep(!noWifiSleep);
-  WiFi.setHostname("LedFix");
+  WiFi.setHostname("StarMod");
 
   const char* ssid = mdl->getValue("ssid");
   const char* password = mdl->getValue("pw");
@@ -118,6 +122,7 @@ void SysModNetwork::initAP() {
     mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
     // send all modules connect notification
+    // mdls->connected();  //causes crash
     web->connected2();
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);

@@ -1,11 +1,12 @@
 #include "SysModNetwork.h"
 #include "Module.h"
-// #include "Modules.h"
+#include "Modules.h"
 
 #include "SysModPrint.h"
 #include "SysModWeb.h"
 #include "SysModUI.h"
 #include "SysModModel.h"
+#include "UserModE131.h"
 
 #include <WiFi.h>
 
@@ -73,6 +74,7 @@ void SysModNetwork::handleConnection() {
 
     // mdls->connected(); //causes crash
     web->connected2();
+    e131mod->connected2();
 
     // shut down AP
     if (apActive) { //apBehavior != AP_BEHAVIOR_ALWAYS
@@ -124,6 +126,7 @@ void SysModNetwork::initAP() {
     // send all modules connect notification
     // mdls->connected();  //causes crash
     web->connected2();
+    e131mod->connected2();
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());

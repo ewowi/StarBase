@@ -31,6 +31,7 @@ void SysModPrint::setup() {
     JsonArray rows = web->addResponseA(object["id"], "lov");
     rows.add("No");
     rows.add("Serial");
+    rows.add("UI");
 
     web->clientsToJson(rows, true); //ip only
   });
@@ -53,6 +54,7 @@ size_t SysModPrint::print(const char * format, ...) {
   
   // if (setupsDone) mdl->setValueI("log", (int)millis()/1000);
   //this function looks very sensitive, any chance causes crashes!
+  //reason could (very well...) be that setValue also issues print commands...
 
   return len;
 }

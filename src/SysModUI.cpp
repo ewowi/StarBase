@@ -86,7 +86,7 @@ void SysModUI::loop() {
           // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), objectLoop->interval, objectLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
           for (auto client:web->ws->getClients()) {
-            if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
+            if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
               client->binary(wsBuf);
             else {
               // web->clientsChanged = true; tbd: changed also if full status changes

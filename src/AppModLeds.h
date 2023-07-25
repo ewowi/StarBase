@@ -195,7 +195,7 @@ public:
 
     diameter = 2.0+sinf(interval/3.0);
 
-                    // CRGBPalette256 pal;
+    // CRGBPalette256 pal;
     for (int x=0; x<mW; x++) {
         for (int y=0; y<mH; y++) {
             for (int z=0; z<mD; z++) {
@@ -249,6 +249,7 @@ public:
 
     ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "label", "Preview");
+      // web->addResponse(object["id"], "comment", "Click to enlarge");
     }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
       // send leds preview to clients
       for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
@@ -425,10 +426,13 @@ public:
         print->print("ledFixGen Could not open file %s for writing\n", fileName);
       
       char sep[3]="";
+      char sep2[3]="";
+
+      uint8_t pin = 10;
 
       f.printf("\"name\":\"%s\"", name);
       f.printf(",\"nrOfLeds\":%d", nrOfLeds);
-      f.printf(",\"pin\":%d",16);
+      // f.printf(",\"pin\":%d",16);
       switch (fix) {
         case Spiral:
         case R24:
@@ -445,7 +449,7 @@ public:
           f.printf(",\"height\":%d", height);
           f.printf(",\"depth\":%d", depth);
 
-          f.printf(",\"leds\":[");
+          f.printf(",\"outputs\":[{\"pin\":10,\"leds\":[");
           strcpy(sep, "");
           for (int i=0; i<nrOfLeds; i++) {
             float radians = i*360/nrOfLeds * (M_PI / 180);
@@ -453,7 +457,7 @@ public:
             uint8_t y = diameter/2 * (1+ cosf(radians));
             f.printf("%s[%d,%d]", sep, x,y); strcpy(sep, ",");
           }
-          f.printf("]");
+          f.printf("]}]");
           break;
         case M88:
           diameter = 8; //in cm
@@ -468,7 +472,7 @@ public:
           f.printf(",\"height\":%d", height);
           f.printf(",\"depth\":%d", depth);
 
-          f.printf(",\"leds\":[");
+          f.printf(",\"outputs\":[{\"pin\":10,\"leds\":[");
           strcpy(sep,"");
           for (uint8_t y = 0; y<8; y++)
             for (uint16_t x = 0; x<8 ; x++) {
@@ -477,7 +481,7 @@ public:
               // depth = 1;
               f.printf("%s[%d,%d]", sep, x,y); strcpy(sep, ",");
             }
-          f.printf("]");
+          f.printf("]}]");
 
           break;
         case C888:
@@ -493,14 +497,14 @@ public:
           f.printf(",\"height\":%d", height);
           f.printf(",\"depth\":%d", depth);
 
-          f.printf(",\"leds\":[");
+          f.printf(",\"outputs\":[{\"pin\":10,\"leds\":[");
           strcpy(sep,"");
           for (uint8_t z = 0; z<depth; z++)
             for (uint8_t y = 0; y<height; y++)
               for (uint16_t x = 0; x<width ; x++) {
                 f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
               }
-          f.printf("]");
+          f.printf("]}]");
 
           break;
         case C885:
@@ -526,27 +530,41 @@ public:
           f.printf(",\"height\":%d", height);
           f.printf(",\"depth\":%d", depth);
 
-          f.printf(",\"leds\":[");
+          f.printf(",\"outputs\":[");
           strcpy(sep,"");
 
           //front and back
-          for (uint8_t z = 0; z<depth; z+=depth-1)
+          for (uint8_t z = 0; z<depth; z+=depth-1) {
+            f.printf("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+            strcpy(sep2,"");
             for (uint8_t y = 0; y<height; y++)
               for (uint16_t x = 0; x<width ; x++) {
-                f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
+                f.printf("%s[%d,%d,%d]", sep2, x,y,z); strcpy(sep2, ",");
               }
+            f.printf("]}");
+          }
           //NO botom and top
-          for (uint8_t z = 0; z<depth; z++)
-            for (uint8_t y = height-1; y<height; y+=height-1)
+          for (uint8_t y = height-1; y<height; y+=height-1) {
+            f.printf("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+            strcpy(sep2,"");
+            for (uint8_t z = 0; z<depth; z++)
               for (uint16_t x = 0; x<width ; x++) {
-                f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
+                f.printf("%s[%d,%d,%d]", sep2, x,y,z); strcpy(sep2, ",");
               }
+            f.printf("]}");
+          }
+
           //left and right
-          for (uint8_t z = 0; z<depth; z++)
-            for (uint8_t y = 0; y<height; y++)
-              for (uint16_t x = 0; x<width ; x+=width-1) {
-                f.printf("%s[%d,%d,%d]", sep, x,y,z); strcpy(sep, ",");
+          for (uint16_t x = 0; x<width ; x+=width-1) {
+            f.printf("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+            strcpy(sep2,"");
+            for (uint8_t z = 0; z<depth; z++)
+              for (uint8_t y = 0; y<height; y++) {
+                f.printf("%s[%d,%d,%d]", sep2, x,y,z); strcpy(sep2, ",");
               }
+            f.printf("]}");
+          }
+       
           f.printf("]");
 
           break;

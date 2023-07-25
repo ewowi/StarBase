@@ -146,20 +146,21 @@ function generateHTML(parentNode, json) {
 
       newNode = cE("canvas");
       newNode.id = json.id;
-      newNode.addEventListener('click', (event) => {bigCanvas(event.target, true);});
+      newNode.addEventListener('click', (event) => {toggleModal(event.target);});
+      // pNode.appendChild(newNode);
+      pNode.innerText += "🔍";
     }
     else if (json.type == "textarea") {
-      newNode = cE("p");
-      newNode.appendChild(labelNode);
-      let textareaNode = cE("textarea");
-      textareaNode.id = json.id;
-      textareaNode.readOnly = json.ro;
-      // if (json.ro)
-      //   textareaNode.addAttribute("readonly");
-      // else
-      //   textareaNode.removeAttribute("readonly");
-      if (json.value) textareaNode.innerHTML = json.value;
-      newNode.appendChild(textareaNode);
+      pNode = cE("p");
+      pNode.appendChild(labelNode);
+      parentNode.appendChild(pNode);
+      newNode = cE("textarea");
+      newNode.id = json.id;
+      newNode.readOnly = json.ro;
+      newNode.addEventListener('click', (event) => {toggleModal(event.target);});
+      if (json.value) newNode.innerHTML = json.value;
+      // newNode.appendChild(textareaNode);
+      pNode.innerText += "🔍";
     }
     else { //input
       if (json.ro && json.type != "button") { //pka display
@@ -413,10 +414,40 @@ function setSelect(element) {
   requestJson(command);
 }
 
-function bigCanvas(element, doCreate) {
-  console.log("bigCanvas", element, doCreate);
-  // element.width = document.body.clientWidth; //document.width is obsolete
-  // element.height = document.body.clientHeight; //document.height is obsolete
+let isModal = false;
+let modalPlaceHolder;
+
+function toggleModal(element) {
+  // console.log("toggleModal", element);
+  isModal = !isModal;
+
+	if (isModal) {
+
+    modalPlaceHolder = cE(element.nodeName.toLocaleLowerCase());
+    modalPlaceHolder.width = element.width;
+    modalPlaceHolder.height = element.height;
+
+    console.log("replaceChild", element, element.parentNode, modalPlaceHolder);
+    element.parentNode.replaceChild(modalPlaceHolder, element);
+
+    gId('modalView').appendChild(element);
+    element.width = window.innerWidth;;
+    element.height = window.innerHeight;
+    // console.log("toggleModal +", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
+	}
+  else {    
+    element.width = modalPlaceHolder.getBoundingClientRect().width;
+    element.height = modalPlaceHolder.getBoundingClientRect().height;
+    // if (renderer) renderer.setSize( element.width, element.height);
+
+    // console.log("toggleModal -", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
+    
+    modalPlaceHolder.parentNode.replaceChild(element, modalPlaceHolder); //modalPlaceHolder loses rect
+  }
+
+	gId('modalView').style.transform = (isModal) ? "translateY(0px)":"translateY(100%)";
+
+
 }
 // https://stackoverflow.com/questions/324303/cut-and-paste-moving-nodes-in-the-dom-with-javascript
 

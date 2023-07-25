@@ -214,7 +214,7 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
       wsBuf->lock();
       serializeJson(json, (char *)wsBuf->get(), len);
       if (client) {
-        if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
+        if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
           client->text(wsBuf);
         else 
           printClient("sendDataWs client full or not connected", client);
@@ -222,7 +222,7 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
         // DEBUG_PRINTLN(F("to a single client."));
       } else {
         for (auto client:ws->getClients()) {
-          if (!client->queueIsFull() && client->status() == WS_CONNECTED) 
+          if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
             client->text(wsBuf);
           else 
             printClient("sendDataWs client full or not connected", client);

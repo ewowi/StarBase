@@ -73,8 +73,8 @@ public:
   template <typename Type>
   JsonObject initObjectAndUpdate(JsonObject parent, const char * id, const char * type, Type value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
     JsonObject object = initObject(parent, id, type, readOnly, uiFun, chFun, loopFun);
-    bool isChar = std::is_same<Type, const char *>::value;
-    if (object["value"].isNull() && (!isChar || value)) object["value"] = value; //only chars do need to have a value defined before
+    bool isPointer = std::is_pointer<Type>::value;
+    if (object["value"].isNull() && (!isPointer || value)) object["value"] = value; //if value is a pointer, it needs to have a value
     //tbd check if value in case of constchar* needs to be copied using (char *)...
     //no call of fun for buttons otherwise all buttons will be fired including restart delete model.json and all that jazz!!! 
     if (strcmp(type,"button")!=0 && chFun && value) chFun(object);

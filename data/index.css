@@ -112,3 +112,18 @@ text { /*currently onlu for buttonSaveNode and buttonCancelNode*/
 	z-index: -2;
 }
 
+/* for toggleModal */
+.modal {
+	position:fixed;
+	left: 0px;
+	bottom: 0px;
+	right: 0px;
+	top: 0px;
+	/* calc(var(--th) - 1px); */
+	background-color: var(--c-o);
+	transform: translateY(100%);
+	transition: transform 0.4s;
+	padding: 8px;
+	font-size: 18px; /* WLEDMM: smaller is better (was 20px)*/
+	overflow: auto;
+}

@@ -19,7 +19,7 @@ SysModModel::SysModModel() :Module("Model") {
   print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     print->printJson("Read model", *model);
-    web->sendDataWs(nullptr, false); //send new data: all clients, no def
+    web->sendDataWs(nullptr, false); //send new data: all clients, no def, no ws here yet!!!
   }
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -30,35 +30,35 @@ void SysModModel::setup() {
 
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initGroup(parentObject, name);
+  parentObject = ui->initModule(parentObject, name);
 
-  ui->initDisplay(parentObject, "mSize", nullptr, [](JsonObject object) {
-    web->addResponse(object, "label", "Size");
+  ui->initText(parentObject, "mSize", nullptr, true, [](JsonObject object) {
+    web->addResponse(object["id"], "label", "Size");
   });
 
-  ui->initButton(parentObject, "saveModel", "SaveModel", nullptr, [](JsonObject object) {
+  ui->initButton(parentObject, "saveModel", "SaveModel", [](JsonObject object) {
+    web->addResponse(object["id"], "comment", "Write to model.json (manual save only currently)");
+  }, [](JsonObject object) {
     doWriteModel = true;
   });
 
   ui->initCheckBox(parentObject, "showObsolete", false, [](JsonObject object) {
-    web->addResponse(object, "comment", "Show in UI (refresh)");
+    web->addResponse(object["id"], "comment", "Show in UI (refresh)");
   }, [](JsonObject object) {
     doShowObsolete = object["value"];
   });
 
   ui->initButton(parentObject, "deleteObsolete", "DeleteObsolete", [](JsonObject object) {
-    web->addResponse(object, "label", "Delete obsolete objects");
+    web->addResponse(object["id"], "label", "Delete obsolete objects");
+    web->addResponse(object["id"], "comment", "WIP");
   }, [](JsonObject object) {
   });
 
-  ui->initButton(parentObject, "deleteModel", "DeleteModel", nullptr, [](JsonObject object) {
+  ui->initButton(parentObject, "deleteModel", "DeleteModel", [](JsonObject object) {
+    web->addResponse(object["id"], "comment", "Back to defaults");
+  }, [](JsonObject object) {
     print->print("delete model json\n");
     files->remove("/model.json");
-  });
-
-  ui->initButton(parentObject, "deleteLedMap", "DeleteLedMap", nullptr, [](JsonObject object) {
-    print->print("delete ledmap json\n");
-    files->remove("/ledmap1.json");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -73,8 +73,15 @@ void SysModModel::setup() {
   }
   if (doWriteModel) {
     print->println(F("Writing model to /model.json... (serializeConfig)"));
-    files->writeObjectToFile("/model.json", model);
-    print->printJson("Write model", *model);
+
+    // files->writeObjectToFile("/model.json", model);
+
+    LazyJsonRDWS ljrdws("/model.json", "w"); //open fileName for deserialize
+    ljrdws.addExclusion("uiFun");
+    ljrdws.addExclusion("chFun");
+    ljrdws.writeJsonDocToFile(model);
+
+    // print->printJson("Write model", *model); //this shows the model before exclusion
 
     doWriteModel = false;
   }
@@ -85,10 +92,10 @@ void SysModModel::setup() {
   }
 
   if (model->memoryUsage() / model->capacity() > 0.95) {
-    print->print("model  %u / %u (%u%%) (%u %u %u)\n", model->memoryUsage(), model->capacity(), 100 * model->memoryUsage() / model->capacity(), model->size(), model->overflowed(), model->nesting());
+    print->printJDocInfo("model", *model);
     size_t memBefore = model->memoryUsage();
     model->garbageCollect();
-    print->print("garbageCollect %u / %u%% -> %u / %u%%\n", memBefore, 100 * memBefore / model->capacity(), model->memoryUsage(), 100 * model->memoryUsage() / model->capacity());
+    print->printJDocInfo("garbageCollect", *model);
   }
 }
 
@@ -108,19 +115,21 @@ void SysModModel::cleanUpModel(JsonArray objects) {
         object["o"] = -object["o"].as<int>(); //make it possitive
       }
 
+      //recursive call
       if (!object["n"].isNull() && object["n"].is<JsonArray>())
         cleanUpModel(object["n"]);
     } 
   }
 }
 
+//tbd: use template T
 //setValue char
-JsonObject SysModModel::setValue(const char * id, const char * value) {
+JsonObject SysModModel::setValueC(const char * id, const char * value) {
   JsonObject object = findObject(id);
   if (!object.isNull()) {
     if (object["value"].isNull() || object["value"] != value) {
       // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
-      if (object["type"] == "display") { // do not update object["value"]
+      if (object["ro"]) { // do not update object["value"]
         ui->setChFunAndWs(object, value); //value: bypass object["value"]
       } else {
         object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
@@ -134,7 +143,7 @@ JsonObject SysModModel::setValue(const char * id, const char * value) {
 }
 
 //setValue int
-JsonObject SysModModel::setValue(const char * id, int value) {
+JsonObject SysModModel::setValueI(const char * id, int value) {
   JsonObject object = findObject(id);
   if (!object.isNull()) {
     if (object["value"].isNull() || object["value"] != value) {
@@ -149,7 +158,7 @@ JsonObject SysModModel::setValue(const char * id, int value) {
   return object;
 }
 
-JsonObject SysModModel::setValue(const char * id, bool value) {
+JsonObject SysModModel::setValueB(const char * id, bool value) {
   JsonObject object = findObject(id);
   if (!object.isNull()) {
     if (object["value"].isNull() || object["value"] != value) {
@@ -174,7 +183,7 @@ JsonObject SysModModel::setValueV(const char * id, const char * format, ...) { /
 
   va_end(args);
 
-  return setValue(id, value);
+  return setValueC(id, value);
 }
 
 JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
@@ -188,7 +197,7 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
 
   va_end(args);
 
-  return setValue(id, value);
+  return setValueC(id, value);
 }
 
 JsonVariant SysModModel::getValue(const char * id) {

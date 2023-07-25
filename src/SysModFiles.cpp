@@ -23,26 +23,35 @@ SysModFiles::SysModFiles() :Module("Files") {
 //setup filesystem
 void SysModFiles::setup() {
   Module::setup();
-  parentObject = ui->initGroup(parentObject, name);
+  parentObject = ui->initModule(parentObject, name);
 
-  JsonObject fileListObject = ui->initMany(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Files");
-    web->addResponse(object, "comment", "List of files");
-    JsonArray rows = web->addResponseArray(object, "many");
+  JsonObject fileListObject = ui->initTable(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Files");
+    web->addResponse(object["id"], "comment", "List of files");
+    JsonArray rows = web->addResponseA(object["id"], "table");
     dirToJson(rows);
   });
-  ui->initDisplay(fileListObject, "flName", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Name");
+  ui->initText(fileListObject, "flName", nullptr, true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Name");
   });
-  ui->initDisplay(fileListObject, "flSize", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Size (B)");
+  ui->initText(fileListObject, "flSize", nullptr, true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Size (B)");
   });
 
-  ui->initDisplay(parentObject, "drsize", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Total FS size");
+  ui->initText(parentObject, "drsize", nullptr, true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Total FS size");
+  });
+
+  ui->initButton(parentObject, "deleteFiles", "deleteFiles", [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "comment", "All but model.json");
+  }, [](JsonObject object) {
+    print->print("delete files\n");
+    files->removeFiles("model.json", true); //all but model.json
   });
 
   web->addUpload("/upload");
+
+  web->addFileServer("/file");
 
 }
 
@@ -65,7 +74,8 @@ void SysModFiles::loop(){
 }
 
 bool SysModFiles::remove(const char * path) {
-  filesChanged = true;
+  filesChange();
+  print->print("File remove %s\n", path);
   return LittleFS.remove(path);
 }
 
@@ -82,69 +92,57 @@ File SysModFiles::open(const char * path, const char * mode, const bool create) 
 }
 
 // https://techtutorialsx.com/2019/02/24/esp32-arduino-listing-files-in-a-spiffs-file-system-specific-path/
-void SysModFiles::dirToJson(JsonArray array) {
+void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter) {
   File root = LittleFS.open("/");
-
   File file = root.openNextFile();
 
   while (file) {
 
-    JsonArray row = array.createNestedArray();
-    row.add((char *)file.name());  //create a copy!
-    row.add(file.size());
-
-    Serial.printf("FILE: %s %d\n", file.name(), file.size());
-
-    file.close();
-
-    file = root.openNextFile();
-  }
-  root.close();
-}
-
-void SysModFiles::dirToJson2(JsonArray array) {
-  File root = LittleFS.open("/");
-
-  File file = root.openNextFile();
-
-  while (file) {
-
-    // array.add(print->fFormat("hoi %s", "file.name()"));
-    array.add((char *)file.name());
-
-    Serial.printf("FILE: %s %d\n", file.name(), file.size());
+    if (filter == nullptr || strstr(file.name(), filter) != nullptr) {
+      if (nameOnly) {
+        array.add((char *)file.name());
+      }
+      else {
+        JsonArray row = array.createNestedArray();
+        row.add((char *)file.name());  //create a copy!
+        row.add(file.size());
+      }
+      // Serial.printf("FILE: %s %d\n", file.name(), file.size());
+    }
 
     file.close();
-
     file = root.openNextFile();
   }
+
   root.close();
 }
 
 void SysModFiles::filesChange() {
   filesChanged = true;
 }
-char * SysModFiles::seqNrToName(size_t seqNr) {
-  File root = LittleFS.open("/");
 
+bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
+
+  File root = LittleFS.open("/");
   File file = root.openNextFile();
 
   size_t counter = 0;
   while (file) {
-
     if (counter == seqNr) {
-      Serial.printf("FILE: %s %d\n", file.name(), file.size());
-      // file.close();
+      // Serial.printf("FILE: %s %d\n", file.name(), file.size());
       root.close();
-      return (char *)file.name();
+      strcat(fileName, "/"); //add root prefix
+      strcat(fileName, file.name());
+      return true;
     }
 
     file.close();
     file = root.openNextFile();
     counter++;
   }
+
   root.close();
-  return nullptr;
+  return false;
 }
 
 bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
@@ -158,6 +156,7 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
     print->print(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
     DeserializationError error = deserializeJson(*dest, f);
     if (error) {
+      print->printJDocInfo("readObjectFromFile", *dest);
       print->print("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
       f.close();
       return false;
@@ -168,17 +167,53 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
   }
 }
 
-bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
-  File f = open(path, "w");
-  if (f) {
-    print->println(F("  success"));
-    serializeJson(*dest, f);
-    filesChanged = true;
-    return true;
-  } else {
-    f.close();
-    print->println(F("  fail"));
-    return false;
+//candidate for deletion as taken over by LazyJsonRDWS
+// bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
+//   File f = open(path, "w");
+//   if (f) {
+//     print->println(F("  success"));
+//     serializeJson(*dest, f);
+//     f.close();
+//     filesChange();
+//     return true;
+//   } else {
+//     print->println(F("  fail"));
+//     return false;
+//   }
+// }
+
+void SysModFiles::removeFiles(const char * filter, bool reverse) {
+  File root = LittleFS.open("/");
+  File file = root.openNextFile();
+
+  while (file) {
+    if (filter == nullptr || reverse?strstr(file.name(), filter) == nullptr: strstr(file.name(), filter) != nullptr) {
+      char fileName[30] = "/";
+      strcat(fileName, file.name());
+      file.close(); //close otherwise not removeable
+      remove(fileName);
+    }
+    else
+      file.close();
+
+    file = root.openNextFile();
   }
+
+  root.close();
 }
 
+bool SysModFiles::readFile(const char * path) {
+  File f = open(path, "r");
+  if (f) {
+
+    while(f.available()) {
+      Serial.print((char)f.read());
+    }
+    Serial.println();
+
+    f.close();
+    return true;
+  }
+  else 
+    return false;
+}

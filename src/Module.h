@@ -20,13 +20,11 @@ public:
     // Serial.printf("Constructor %s %s\n", __PRETTY_FUNCTION__, name);
   }
 
-  virtual void setup() {
-  }
+  virtual void setup() {}
 
-  virtual void loop() {
-  }
+  virtual void loop() {}
 
-  virtual void connected() {}
+  virtual void connected() {Serial.println("Module connected");}
 
   virtual void testManager() {}
   virtual void performanceManager() {}

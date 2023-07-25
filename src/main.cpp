@@ -11,13 +11,14 @@
 #include "SysModFiles.h"
 #include "SysModModel.h"
 #include "SysModNetwork.h"
-#include "AppModPinManager.h"
+#include "SysModPinManager.h"
 #include "AppModLeds.h"
 #include "UserModE131.h"
 
 //setup all modules
 void setup() {
   mdls = new Modules();
+  
   print = new SysModPrint();
   files = new SysModFiles();
   mdl = new SysModModel();
@@ -25,7 +26,7 @@ void setup() {
   web = new SysModWeb();
   ui = new SysModUI();
   sys = new SysModSystem();
-  pin = new AppModPinManager();
+  pin = new SysModPinManager();
   lds = new AppModLeds();
   e131mod = new UserModE131();
 

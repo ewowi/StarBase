@@ -1,6 +1,8 @@
 #include "Module.h"
 #include "SysModPrint.h"
 #include "SysModUI.h"
+#include "SysModModel.h"
+#include "SysModWeb.h"
 
 SysModPrint::SysModPrint() :Module("Print") {
   print("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -16,15 +18,29 @@ void SysModPrint::setup() {
 
   print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initGroup(parentObject, name);
+  parentObject = ui->initModule(parentObject, name);
 
-  ui->initDisplay(parentObject, "log");
+  ui->initTextArea(parentObject, "log", "WIP", true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "comment", "Show the printed log");
+  });
+
+  ui->initSelect(parentObject, "pOut", 0, false, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Output");
+    web->addResponse(object["id"], "comment", "System log to Serial or Net print (WIP)");
+
+    JsonArray rows = web->addResponseA(object["id"], "lov");
+    rows.add("No");
+    rows.add("Serial");
+
+    web->clientsToJson(rows, true); //ip only
+  });
 
   print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 }
 
 void SysModPrint::loop() {
   // Module::loop();
+  if (!setupsDone) setupsDone = true;
 }
 
 size_t SysModPrint::print(const char * format, ...) {
@@ -35,7 +51,8 @@ size_t SysModPrint::print(const char * format, ...) {
 
   va_end(args);
   
-  // mdl->setValueV("log", "%lu", millis());
+  // if (setupsDone) mdl->setValueI("log", (int)millis()/1000);
+  //this function looks very sensitive, any chance causes crashes!
 
   return len;
 }
@@ -70,5 +87,9 @@ char * SysModPrint::fFormat(const char * format, ...) {
   va_end(args);
 
   return msgbuf;
+}
+
+void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
+  print("%s  %u / %u (%u%%) (%u %u %u)\n", text, source.memoryUsage(), source.capacity(), 100 * source.memoryUsage() / source.capacity(), source.size(), source.overflowed(), source.nesting());
 }
 

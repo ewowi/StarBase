@@ -40,6 +40,7 @@ public:
 
 // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
   bool addUpload(const char * uri);
+  bool addFileServer(const char * uri);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
@@ -50,14 +51,16 @@ public:
 
   bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &));
 
-  void addResponse(JsonObject object, const char * key, const char * value);
+  void addResponse(const char * id, const char * key, const char * value);
 
-  void addResponseV(JsonObject object, const char * key, const char * format, ...);
+  void addResponseV(const char * id, const char * key, const char * format, ...);
 
-  void addResponseInt(JsonObject object, const char * key, int value);
-  void addResponseBool(JsonObject object, const char * key, bool value);
-  JsonArray addResponseArray(JsonObject object, const char * key);
+  void addResponseI(const char * id, const char * key, int value);
+  void addResponseB(const char * id, const char * key, bool value);
+  JsonArray addResponseA(const char * id, const char * key);
 
+  void clientsToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
+  
 private:
   bool modelUpdated = false;
   static bool clientsChanged;

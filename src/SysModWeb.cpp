@@ -32,33 +32,26 @@ void SysModWeb::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initGroup(parentObject, name);
+  parentObject = ui->initModule(parentObject, name);
 
-  parentObject = ui->initMany(parentObject, "clist", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Clients");
-    web->addResponse(object, "comment", "List of clients");
-    JsonArray rows = web->addResponseArray(object, "many");
-    for (auto client:ws->getClients()) {
-      // print->print("Client %d %d %s\n", client->id(), client->queueIsFull(), client->remoteIP().toString().c_str());
-      JsonArray row = rows.createNestedArray();
-      row.add(client->id());
-      row.add((char *)client->remoteIP().toString().c_str()); //create a copy!
-      row.add(client->queueIsFull());
-      row.add(client->status());
-    }
+  parentObject = ui->initTable(parentObject, "clist", nullptr, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Clients");
+    web->addResponse(object["id"], "comment", "List of clients");
+    JsonArray rows = web->addResponseA(object["id"], "table");
+    web->clientsToJson(rows);
   });
-  ui->initDisplay(parentObject, "clNr", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Nr");
+  ui->initText(parentObject, "clNr", nullptr, true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Nr");
   });
-  ui->initDisplay(parentObject, "clIp", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "IP");
+  ui->initText(parentObject, "clIp", nullptr, true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "IP");
   });
-  ui->initDisplay(parentObject, "clIsFull", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Is full");
+  ui->initText(parentObject, "clIsFull", nullptr, true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Is full");
   });
-  ui->initDisplay(parentObject, "clStatus", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object, "label", "Status");
-    JsonArray lov = web->addResponseArray(object, "lov");
+  ui->initText(parentObject, "clStatus", nullptr, true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "label", "Status");
+    JsonArray lov = web->addResponseA(object["id"], "lov");
     lov.add("Disconnected"); //0
     lov.add("Connected"); //1
     lov.add("Disconnecting"); //2
@@ -87,8 +80,8 @@ void SysModWeb::loop() {
     }
 
     for (auto client:web->ws->getClients()) {
-      mdl->setValue("clIsFull", client->queueIsFull());
-      mdl->setValue("clStatus", client->status());
+      mdl->setValueB("clIsFull", client->queueIsFull());
+      mdl->setValueI("clStatus", client->status());
     }
 
   }
@@ -100,7 +93,8 @@ void SysModWeb::connected2() {
 
     server->begin();
 
-    // print->print("%s server (re)started\n", name); //causes crass for some reason...
+    // print->print("%s server (re)started\n", name); //causes crash for some reason...
+    print->print("server (re)started\n"); //and this not causes crash ??? whats with name?
 }
 
 //WebSocket connection to 'ws://192.168.8.152/ws' failed: The operation couldn’t be completed. Protocol error
@@ -207,7 +201,7 @@ void SysModWeb::printClient(const char * text, AsyncWebSocketClient * client) {
 
 void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
   if (!ws) {
-    print->print("no ws\n");
+    print->print("sendDataWs no ws\n");
     return;
   }
   ws->cleanupClients();
@@ -340,6 +334,23 @@ bool SysModWeb::addUpload(const char * uri) {
   return true;
 }
 
+bool SysModWeb::addFileServer(const char * uri) {
+
+  // AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler("/json", [](AsyncWebServerRequest *request) {
+  // });
+  // server->addHandler(handler);
+
+  server->on(uri, HTTP_GET, [uri](AsyncWebServerRequest *request){
+    const char * ddd = request->url().c_str();
+    const char * path = ddd + strlen(uri); //remove the uri from the path (skip their positions)
+    print->print("fileServer request %s %s %s\n", uri, request->url().c_str(), path);
+    if(LittleFS.exists(path)) {
+      request->send(LittleFS, path, "text/plain");//"application/json");
+    }
+  });
+  return true;
+}
+
 //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
 //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
 //curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
@@ -371,15 +382,13 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
   return true;
 }
 
-void SysModWeb::addResponse(JsonObject object, const char * key, const char * value) {
-  const char * id = object["id"];
+void SysModWeb::addResponse(const char * id, const char * key, const char * value) {
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  responseVariant[id][key] = value;
+  responseVariant[id][key] = (char *)value; //copy!!
 }
 
-void SysModWeb::addResponseV(JsonObject object, const char * key, const char * format, ...) {
-  const char * id = object["id"];
+void SysModWeb::addResponseV(const char * id, const char * key, const char * format, ...) {
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   va_list args;
@@ -394,21 +403,33 @@ void SysModWeb::addResponseV(JsonObject object, const char * key, const char * f
   responseVariant[id][key] = value;
 }
 
-void SysModWeb::addResponseInt(JsonObject object, const char * key, int value) { //temporary, use overloading
-  const char * id = object["id"];
+void SysModWeb::addResponseI(const char * id, const char * key, int value) { //temporary, use overloading
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   responseVariant[id][key] = value;
 }
-void SysModWeb::addResponseBool(JsonObject object, const char * key, bool value) { //temporary, use overloading
-  const char * id = object["id"];
+void SysModWeb::addResponseB(const char * id, const char * key, bool value) { //temporary, use overloading
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   responseVariant[id][key] = value;
 }
-JsonArray SysModWeb::addResponseArray(JsonObject object, const char * key) {
-  const char * id = object["id"];
+JsonArray SysModWeb::addResponseA(const char * id, const char * key) {
   JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?responseDoc0:responseDoc1)->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   return responseVariant[id].createNestedArray(key);
+}
+
+void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {
+  for (auto client:ws->getClients()) {
+    if (nameOnly) {
+      array.add((char *)client->remoteIP().toString().c_str()); //create a copy!
+    } else {
+      // print->print("Client %d %d %s\n", client->id(), client->queueIsFull(), client->remoteIP().toString().c_str());
+      JsonArray row = array.createNestedArray();
+      row.add(client->id());
+      row.add((char *)client->remoteIP().toString().c_str()); //create a copy!
+      row.add(client->queueIsFull());
+      row.add(client->status());
+    }
+  }
 }

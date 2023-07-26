@@ -15,7 +15,7 @@ public:
 
   void loop();
 
-  void connected2();
+  void connected();
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 

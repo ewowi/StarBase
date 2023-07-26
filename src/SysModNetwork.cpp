@@ -1,6 +1,6 @@
 #include "SysModNetwork.h"
 #include "Module.h"
-// #include "Modules.h"
+#include "Modules.h"
 
 #include "SysModPrint.h"
 #include "SysModWeb.h"
@@ -71,8 +71,7 @@ void SysModNetwork::handleConnection() {
 
     interfacesInited = true;
 
-    // mdls->connected(); //causes crash
-    web->connected2();
+    mdls->newConnection = true; // send all modules connect notification
 
     // shut down AP
     if (apActive) { //apBehavior != AP_BEHAVIOR_ALWAYS
@@ -121,9 +120,7 @@ void SysModNetwork::initAP() {
   {
     mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
-    // send all modules connect notification
-    // mdls->connected();  //causes crash
-    web->connected2();
+    mdls->newConnection = true; // send all modules connect notification
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());

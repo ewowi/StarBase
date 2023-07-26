@@ -239,9 +239,9 @@ public:
     ui->initSelect(parentObject, "fx", 6, false, [](JsonObject object) { //uiFun. 6: Juggles is default
       web->addResponse(object["id"], "label", "Effect");
       web->addResponse(object["id"], "comment", "Effect to show");
-      JsonArray lov = web->addResponseA(object["id"], "lov");
+      JsonArray select = web->addResponseA(object["id"], "select");
       for (Effect *effect:effects) {
-        lov.add(effect->name());
+        select.add(effect->name());
       }
     }, [](JsonObject object) { //chFun
       print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
@@ -266,8 +266,8 @@ public:
 
     ui->initSelect(parentObject, "ledFix", 0, false, [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "label", "LedFix");
-      JsonArray lov = web->addResponseA(object["id"], "lov");
-      files->dirToJson(lov, true, "lf"); //only files containing lf, alphabetically
+      JsonArray select = web->addResponseA(object["id"], "select");
+      files->dirToJson(select, true, "lf"); //only files containing lf, alphabetically
 
       // ui needs to load the file also initially
       char fileName[30] = "";
@@ -339,7 +339,9 @@ public:
       print->print("fps changed %d\n", fps);
     });
 
-    ui->initText(parentObject, "realFps");
+    ui->initText(parentObject, "realFps", nullptr, true, [](JsonObject object) { //uiFun
+      web->addResponse(object["id"], "comment", "Depends on how much leds fastled has configured");
+    });
 
     ui->initNumber(parentObject, "dataPin", dataPin, [](JsonObject object) { //uiFun
       web->addResponseV(object["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
@@ -361,15 +363,15 @@ public:
 
     ui->initSelect(parentObject, "ledFixGen", 3, false, [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "label", "Ledfix generator");
-      JsonArray lov = web->addResponseA(object["id"], "lov");
-      lov.add("Spiral"); //0
-      lov.add("R24"); //1
-      lov.add("R35"); //2
-      lov.add("M88"); //3
-      lov.add("C888"); //4
-      lov.add("C885"); //5
-      lov.add("HSC"); //6
-      lov.add("Globe"); //7
+      JsonArray select = web->addResponseA(object["id"], "select");
+      select.add("Spiral"); //0
+      select.add("R24"); //1
+      select.add("R35"); //2
+      select.add("M88"); //3
+      select.add("C888"); //4
+      select.add("C885"); //5
+      select.add("HSC"); //6
+      select.add("Globe"); //7
     }, [](JsonObject object) { //chFun
 
       const char * name = "TT";

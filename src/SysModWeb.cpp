@@ -51,10 +51,10 @@ void SysModWeb::setup() {
   });
   ui->initText(parentObject, "clStatus", nullptr, true, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Status");
-    JsonArray lov = web->addResponseA(object["id"], "lov");
-    lov.add("Disconnected"); //0
-    lov.add("Connected"); //1
-    lov.add("Disconnecting"); //2
+    JsonArray select = web->addResponseA(object["id"], "select");
+    select.add("Disconnected"); //0
+    select.add("Connected"); //1
+    select.add("Disconnecting"); //2
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -87,7 +87,7 @@ void SysModWeb::loop() {
   }
 }
 
-void SysModWeb::connected2() {
+void SysModWeb::connected() {
     ws->onEvent(wsEvent);
     server->addHandler(ws);
 

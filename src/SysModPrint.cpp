@@ -20,20 +20,20 @@ void SysModPrint::setup() {
 
   parentObject = ui->initModule(parentObject, name);
 
-  ui->initTextArea(parentObject, "log", "WIP", true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "Show the printed log");
-  });
-
-  ui->initSelect(parentObject, "pOut", 0, false, [](JsonObject object) { //uiFun
+  ui->initSelect(parentObject, "pOut", 1, false, [](JsonObject object) { //uiFun default 1 (Serial)
     web->addResponse(object["id"], "label", "Output");
     web->addResponse(object["id"], "comment", "System log to Serial or Net print (WIP)");
 
-    JsonArray rows = web->addResponseA(object["id"], "lov");
+    JsonArray rows = web->addResponseA(object["id"], "select");
     rows.add("No");
     rows.add("Serial");
     rows.add("UI");
 
     web->clientsToJson(rows, true); //ip only
+  });
+
+  ui->initTextArea(parentObject, "log", "WIP", true, [](JsonObject object) { //uiFun
+    web->addResponse(object["id"], "comment", "Show the printed log");
   });
 
   print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");

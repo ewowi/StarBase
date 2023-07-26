@@ -15,6 +15,7 @@ private:
   unsigned long loopCounter = 0;
 
   void addResetReasonsLov(JsonArray lov);
+  void addRestartReasonsLov(JsonArray lov);
 
 };
 

@@ -87,8 +87,9 @@ public:
   static void setChFunAndWs(JsonObject object, const char * value = nullptr);
 
   //interpret json and run commands or set values
-  static const char * processJson(JsonVariant &json);
+  static const char * processJson(JsonVariant &json); //static for setupJsonHandlers
 
+  //called to rebuild selects and tables (tbd: also label and comments is done again, that is not needed)
   void processUiFun(const char * id);
 
 private:

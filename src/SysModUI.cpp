@@ -197,8 +197,9 @@ void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: b
       print->print("setChFunAndWs function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, ucFunctions.size());
   }
 
-  JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
-  (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
+  JsonDocument *responseDoc = web->getResponseDoc();
+  responseDoc->clear(); //needed for deserializeJson?
+  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
   if (value)
     web->addResponse(object["id"], "value", value);
@@ -221,7 +222,7 @@ void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: b
   web->sendDataWs(responseVariant);
 }
 
-const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHandlers
+const char * SysModUI::processJson(JsonVariant &json) {
   if (json.is<JsonObject>()) //should be
   {
     for (JsonPair pair : json.as<JsonObject>()) { //iterate json elements
@@ -231,23 +232,28 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
       // commands
       if (pair.key() == "uiFun") { //JsonString can do ==
         //find the select object and collect it's options...
-        JsonObject object = mdl->findObject(value); //value is the id
-        if (!object.isNull()) {
-          //call ui function...
-          if (!object["uiFun"].isNull()) {//isnull needed here!
-            size_t funNr = object["uiFun"];
-            if (funNr < ucFunctions.size()) 
-              ucFunctions[funNr](object);
-            else    
-              print->print("processJson function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, ucFunctions.size());
-            if (object["type"] == "select")
-              web->addResponseI(object["id"], "value", object["value"]); //temp assume int only
+        if (value.is<JsonArray>()) { //should be
+          for (JsonVariant value2: value.as<JsonArray>()) {
+            JsonObject object = mdl->findObject(value2); //value is the id
+            if (!object.isNull()) {
+              //call ui function...
+              if (!object["uiFun"].isNull()) {//isnull needed here!
+                size_t funNr = object["uiFun"];
+                if (funNr < ucFunctions.size()) 
+                  ucFunctions[funNr](object);
+                else    
+                  print->print("processJson function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, ucFunctions.size());
+                if (object["type"] == "select")
+                  web->addResponseI(object["id"], "value", object["value"]); //temp assume int only
 
-            // print->printJson("PJ Command", responseDoc);
+                // print->printJson("PJ Command", responseDoc);
+              }
+            }
+            else
+              print->print("processJson Command %s object %s not found\n", key, value2.as<String>().c_str());
           }
-        }
-        else
-          print->print("PJ Command %s object %s not found\n", key, value.as<String>().c_str());
+        } else
+          print->print("processJson value not array?\n", key, value.as<String>().c_str());
       } 
       else { //normal change
         if (!value.is<JsonObject>()) { //no objects (inserted by uiFun responses)
@@ -283,13 +289,14 @@ const char * SysModUI::processJson(JsonVariant &json) { //static for setupJsonHa
 }
 
 void SysModUI::processUiFun(const char * id) {
-  JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
-  (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear(); //needed for deserializeJson?
+  JsonDocument *responseDoc = web->getResponseDoc();
+  responseDoc->clear(); //needed for deserializeJson?
+  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
-  responseVariant["uiFun"] = id;
+  JsonArray array = responseVariant.createNestedArray("uiFun");
+  array.add(id);
   processJson(responseVariant); //this calls uiFun command, which might change objectLoopsChanged
   //this also updates uiFun stuff - not needed!
 
-  // print->printJson("oloops change response", responseVariant);
-  web->sendDataWs(responseVariant);
+  web->sendDataWs(*responseDoc);
 }

@@ -6,6 +6,7 @@ let nrOfColumns = 4;
 let userFunId = "";
 let htmlGenerated = false;
 let jsonValues = {};
+let uiFunCommands = [];
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -41,6 +42,10 @@ function makeWS() {
           console.log("WS receive generateHTML", json);
           generateHTML(null, json); //no parentNode
           htmlGenerated = true;
+          //send request for uiFun
+          if (uiFunCommands.length) { //flush commands not already send
+            flushUIFunCommands();
+          }
         }
         else
           console.log("Error: no array", json);
@@ -179,7 +184,7 @@ function generateHTML(parentNode, json) {
           newNode.appendChild(spanNode);
         }
       }
-      else { //not ro
+      else { //not ro or button
         newNode = cE("p");
         let buttonSaveNode = null;
         let buttonCancelNode = null;
@@ -221,14 +226,22 @@ function generateHTML(parentNode, json) {
 
     //call ui Functionality, if defined (to set label, comment, lov etc)
     if (json.uiFun >= 0) { //>=0 as element in object
-      var command = {};
-      command["uiFun"] = json.id; //ask to run uiFun for object (to add the options)
-      requestJson(command);
+      uiFunCommands.push(json.id);
+      if (uiFunCommands.length > 8) { //every 10 objects (to respect responseDoc size) check WS_EVT_DATA info
+        flushUIFunCommands();
+      }
     }
-
+    
     if (json.n) generateHTML(newNode, json.n); //details (e.g. module)
-
   }
+}
+
+function flushUIFunCommands() {
+  var command = {};
+  command["uiFun"] = uiFunCommands; //ask to run uiFun for object (to add the options)
+  console.log("uiFunCommands", command);
+  requestJson(command);
+  uiFunCommands = [];
 }
 
 function processUpdate(json) {
@@ -271,7 +284,7 @@ function processUpdate(json) {
         }
         if (json[key].lov) {
           console.log("processUpdate lov", key, json[key].lov);
-          if (gId(key).nodeName.toLocaleLowerCase() == "span") { //readonly tbd: only the displayed value needs to be in the lov
+          if (gId(key).nodeName.toLocaleLowerCase() == "span") { //readonly. tbd: only the displayed value needs to be in the lov
             var index = 0;
             for (var value of json[key].lov) {
               if (parseInt(gId(key).textContent) == index) {
@@ -290,8 +303,6 @@ function processUpdate(json) {
               gId(key).remove(0);
             }
             for (var value of json[key].lov) {
-              if (key=="reset0")
-                console.log("processUpdate lov3", value, gId(key), gId(key).textContent, index);
               let optNode = cE("option");
               optNode.value = index;
               optNode.text = value;
@@ -317,9 +328,9 @@ function processUpdate(json) {
           gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
         }
         if (json[key].value && !overruleValue) { //after lov, in case used
-          if (key=="ledFix" || key =="ledFixGen" || key =="reset0")
+          if (key=="ledFix" || key =="ledFixGen")
             console.log("processUpdate value", key, json[key].value, gId(key));
-          if (gId(key).nodeName.toLocaleLowerCase() == "span") //display
+          if (gId(key).nodeName.toLocaleLowerCase() == "span") //read only objects
             gId(key).textContent = json[key].value;
           else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
             userFunId = key; //prepare for websocket data
@@ -337,7 +348,7 @@ function processUpdate(json) {
         
           //we need to send a request which the server can handle using request variable
           let url = `http://${window.location.hostname}/file`;
-          fetchAndExecute(url, json[key].file, jsonValues, function(jsonValues,text) {
+          fetchAndExecute(url, json[key].file, key, function(key,text) { //send key as parameter
             // console.log("fetchAndExecute", text); //in case of invalid json
             var ledmapJson = JSON.parse(text);
             jsonValues[key] = ledmapJson;
@@ -427,7 +438,6 @@ function toggleModal(element) {
     modalPlaceHolder.width = element.width;
     modalPlaceHolder.height = element.height;
 
-    console.log("replaceChild", element, element.parentNode, modalPlaceHolder);
     element.parentNode.replaceChild(modalPlaceHolder, element);
 
     gId('modalView').appendChild(element);

@@ -296,8 +296,10 @@ public:
           mdl->setValueI("nrOfLeds", nrOfLeds);
 
           //send to pview a message to get file filename
-          JsonVariant responseVariant = (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->as<JsonVariant>();
-          (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1)->clear();
+          JsonDocument *responseDoc = web->getResponseDoc();
+          responseDoc->clear(); //needed for deserializeJson?
+          JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+
           web->addResponse("pview", "file", fileName);
           web->sendDataWs(responseVariant);
           print->printJson("ledfix chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this

@@ -174,7 +174,8 @@ function preview3D(node, leds) {
   }
 
   if (jsonValues.pview) {
-    renderer.setSize( gId("pview").width, gId("pview").height);
+    if (renderer.width != gId("pview").width || renderer.height != gId("pview").height)
+      renderer.setSize( gId("pview").width, gId("pview").height);
     //light up the cube
     let firstLed = 4;
     var i = 1;

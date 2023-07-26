@@ -8,8 +8,6 @@ class SysModWeb:public Module {
 public:
 // TODO: which of these fields should be private?
   static AsyncWebSocket *ws;
-  static DynamicJsonDocument *responseDoc0;
-  static DynamicJsonDocument *responseDoc1;
 
   SysModWeb();
 
@@ -60,6 +58,9 @@ public:
   JsonArray addResponseA(const char * id, const char * key);
 
   void clientsToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
+
+  //gets the right responseDoc, depending on which task you are in
+  JsonDocument * getResponseDoc();
   
 private:
   bool modelUpdated = false;
@@ -67,6 +68,9 @@ private:
 
   static AsyncWebServer *server;
   static const char * (*processWSFunc)(JsonVariant &);
+
+  static DynamicJsonDocument *responseDoc0;
+  static DynamicJsonDocument *responseDoc1;
 
 };
 

@@ -68,7 +68,6 @@ void SysModFiles::loop(){
       filesChanged = false;
 
       ui->processUiFun("flist");
-
     }
   }
 }

@@ -18,16 +18,16 @@ public:
   void cleanUpModel(JsonArray objects);
 
   //sets the value of object with id
-  static JsonObject setValue(const char * id, const char * value);
+  static JsonObject setValueC(const char * id, const char * value);
 
   //setValue int
-  static JsonObject setValue(const char * id, int value);
+  static JsonObject setValueI(const char * id, int value);
 
   //setValue bool
-  static JsonObject setValue(const char * id, bool value);
+  static JsonObject setValueB(const char * id, bool value);
 
   //Set value with argument list
-  static JsonObject setValueV(const char * id, const char * format, ...);
+  static JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun
 
   //Set value with argument list and print
   JsonObject setValueP(const char * id, const char * format, ...);
@@ -35,7 +35,7 @@ public:
   JsonVariant getValue(const char * id);
 
   //returns the object defined by id (parent to recursively call findObject)
-  static JsonObject findObject(const char * id, JsonArray parent = JsonArray());
+  static JsonObject findObject(const char * id, JsonArray parent = JsonArray()); //static for processJson
   
 private:
   static bool doWriteModel;

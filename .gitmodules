@@ -1,9 +1,0 @@
-[submodule "lib/FastLed"]
-	path = lib/FastLed
-	url = https://github.com/FastLED/FastLED.git
-[submodule "lib/Arduinojson"]
-	path = lib/Arduinojson
-	url = https://github.com/bblanchon/ArduinoJson.git
-[submodule "lib/ESPAsyncWebServer"]
-	path = lib/ESPAsyncWebServer
-	url = https://github.com/me-no-dev/ESPAsyncWebServer.git

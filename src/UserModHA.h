@@ -36,9 +36,8 @@ public:
 
       sender->setRGBColor(color); // report color back to the Home Assistant
   }
-  //setup filesystem
-  void setup() {
-    Module::setup();
+
+  void connected() {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
     // set device's details (optional)
     device.setName("Playground");

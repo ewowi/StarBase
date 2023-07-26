@@ -1,4 +1,6 @@
 #pragma once
+// #include "SysModPrint.h"
+#include "Module.h"
 
 #include <vector>
 
@@ -7,30 +9,15 @@ class Modules {
     std::vector<Module *> modules;
 
   public:
+    static bool newConnection; //need to be static otherwise crash
 
-  void setup() {
-      for (Module *module:modules) module->setup();
-  }
+  void setup();
 
-  void loop() {
-    for (Module *module:modules) {
-      if (module->enabled && module->success) {
-        module->loop();
-        // module->testManager();
-        // module->performanceManager();
-        // module->dataSizeManager();
-        // module->codeSizeManager();
-      }
-    }
-  }
+  void loop();
 
-  void add (Module* module) {
-    modules.push_back(module);
-  }
+  void add(Module* module);
 
-  void connected() {
-    for (Module *module:modules) module->connected();
-  }
+  void connected();
 
 };
 

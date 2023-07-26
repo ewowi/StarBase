@@ -3,23 +3,29 @@ SysModFiles::SysModFiles() Files
 SysModFiles::SysModFiles() Files success
 SysModModel::SysModModel() Model
 Reading model from /model.json... (deserializeConfigFromFS)
-File /model.json open to read, size 2719 bytes
-Read model [{"id":"Files","type":"group","n":[{"id":"flist","type":"many","uiFun":0,"n":[{"id":"fName","type":"display","uiFun":1},{"id":"fSize","type":"display","uiFun":2},{"id":"flName","s":true,"type":"display","uiFun":1},{"id":"flSize","s":true,"type":"display","uiFun":2}]},{"id":"dsize","type":"display","uiFun":3},{"id":"drsize","s":true,"type":"display","uiFun":3}],"incldef":true},{"id":"Model","type":"group","n":[{"id":"mSize","type":"display","uiFun":4,"s":true},{"id":"saveModel","type":"button","chFun":7,"value":"SaveModel"},{"id":"deleteModel","type":"button","chFun":10,"value":"DeleteModel"},{"id":"showObsolete","type":"checkbox","uiFun":5,"chFun":6,"value":false},{"id":"deleteObsolete","type":"button","uiFun":8,"chFun":9,"value":"DeleteObsolete"}]},{"id":"Network","type":"group","n":[{"id":"ssid","type":"input","value":"ewtr"},{"id":"pw","type":"password","uiFun":11,"value":"zonledmod"},{"id":"connect","type":"button","chFun":12,"value":"Connect"},{"id":"status","type":"display"},{"id":"nwstatus","s":true,"type":"display","uiFun":13}]},{"id":"UI","type":"group","n":[{"id":"uloops","type":"many","uiFun":14,"n":[{"id":"ulObject","s":true,"type":"display","uiFun":15},{"id":"ulLoopps","s":true,"type":"display","uiFun":16}]}]},{"id":"System","type":"group","n":[{"id":"upTime","type":"display","uiFun":17,"s":true},{"id":"loops","type":"display","s":true},{"id":"heap","type":"display","uiFun":18,"s":true},{"id":"stack","type":"display","s":true},{"id":"restart","type":"button","chFun":19,"value":"Restart"}]},{"id":"Web","type":"group","n":[{"id":"clist","type":"many","uiFun":20,"n":[{"id":"cNr","type":"display","uiFun":14},{"id":"cIp","type":"display","uiFun":15},{"id":"cIsFull","type":"display","uiFun":16},{"id":"clNr","s":true,"type":"display","uiFun":21},{"id":"clIp","s":true,"type":"display","uiFun":22},{"id":"clIsFull","s":true,"type":"display","uiFun":23}]}]},{"id":"Pin Manager","type":"group","n":[{"id":"pin2","type":"checkbox","chFun":24,"value":true},{"id":"pin4","type":"checkbox","value":false},{"id":"pin33","type":"checkbox","value":true}]},{"id":"Leds","type":"group","n":[{"id":"bri","type":"range","uiFun":25,"chFun":26,"value":1},{"id":"fx","type":"dropdown","uiFun":27,"chFun":28,"value":3},{"id":"pview","type":"canvas","uiFun":29,"loopFun":0,"value":1},{"id":"width","type":"number","uiFun":30,"chFun":31,"value":8},{"id":"height","type":"number","uiFun":32,"chFun":33,"value":8},{"id":"depth","type":"number","uiFun":34,"chFun":35,"value":1},{"id":"fps","type":"number","uiFun":36,"chFun":37,"value":40},{"id":"realFps","type":"display","s":true},{"id":"dataPin","type":"number","uiFun":39,"chFun":40,"value":16},{"id":"nrOfLeds","s":true,"type":"display","uiFun":38}]}]
+File /model.json open to read, size 2702 bytes
+Read model [{"id":"Print","type":"group","o":1,"n":[{"id":"log","type":"display","o":2}]},{"id":"Files","type":"group","o":3,"n":[{"id":"flist","type":"many","o":4,"n":[{"id":"flName","type":"display","o":5},{"id":"flSize","type":"display","o":6}]},{"id":"drsize","type":"display","o":7},{"id":"deleteFiles","type":"button","o":8,"value":"deleteFiles"}]},{"id":"Model","type":"group","o":9,"n":[{"id":"mSize","type":"display","o":10},{"id":"saveModel","type":"button","o":11,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","o":12,"value":false},{"id":"deleteObsolete","type":"button","o":13,"value":"DeleteObsolete"},{"id":"deleteModel","type":"button","o":14,"value":"DeleteModel"}]},{"id":"Network","type":"group","o":15,"n":[{"id":"ssid","type":"input","o":16,"value":"ewtr"},{"id":"pw","type":"password","o":17,"value":"zonledmod"},{"id":"connect","type":"button","o":18,"value":"Connect"},{"id":"nwstatus","type":"display","o":19}]},{"id":"Web","type":"group","o":20,"n":[{"id":"clist","type":"many","o":21,"n":[{"id":"clNr","type":"display","o":22},{"id":"clIp","type":"display","o":23},{"id":"clIsFull","type":"display","o":24,"value":false},{"id":"clStatus","type":"display","o":25,"value":1}]}]},{"id":"UI","type":"group","o":26,"n":[{"id":"uloops","type":"many","o":27,"n":[{"id":"ulObject","type":"display","o":28},{"id":"ulLoopps","type":"display","o":29}]}]},{"id":"System","type":"group","o":30,"n":[{"id":"upTime","type":"display","o":31},{"id":"loops","type":"display","o":32},{"id":"heap","type":"display","o":33},{"id":"stack","type":"display","o":34},{"id":"restart","type":"button","o":35,"value":"Restart"},{"id":"reset0","type":"dropdown","o":36,"value":1},{"id":"reset1","type":"dropdown","o":37,"value":14},{"id":"restartReason","type":"dropdown","o":38,"value":1}]},{"id":"Pin Manager","type":"group","o":39,"n":[{"id":"board","type":"canvas","o":40,"loopFun":0,"value":1},{"id":"pin2","type":"checkbox","o":41,"value":true},{"id":"pin4","type":"checkbox","o":42,"value":false},{"id":"pin33","type":"checkbox","o":43,"value":true}]},{"id":"Leds","type":"group","o":44,"n":[{"id":"bri","type":"range","o":45,"value":1},{"id":"fx","type":"dropdown","o":46,"value":6},{"id":"pview","type":"canvas","o":47,"loopFun":1,"value":1},{"id":"ledFix","type":"dropdown","o":48,"value":"4"},{"id":"width","type":"display","o":49,"value":10},{"id":"height","type":"display","o":50,"value":10},{"id":"depth","type":"display","o":51,"value":1},{"id":"fps","type":"number","o":53,"value":40},{"id":"realFps","type":"display","o":54},{"id":"nrOfLeds","type":"display","o":52,"value":35},{"id":"dataPin","type":"number","o":55,"value":16},{"id":"ledFixGen","type":"dropdown","o":56,"value":3}]}]
+no ws for [{"id":"Print","type":"group","o":1,"n":[{"id":"log","type":"display","o":2}]},{"id":"Files","type":"group","o":3,"n":[{"id":"flist","type":"many","o":4,"n":[{"id":"flName","type":"display","o":5},{"id":"flSize","type":"display","o":6}]},{"id":"drsize","type":"display","o":7},{"id":"deleteFiles","type":"button","o":8,"value":"deleteFiles"}]},{"id":"Model","type":"group","o":9,"n":[{"id":"mSize","type":"display","o":10},{"id":"saveModel","type":"button","o":11,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","o":12,"value":false},{"id":"deleteObsolete","type":"button","o":13,"value":"DeleteObsolete"},{"id":"deleteModel","type":"button","o":14,"value":"DeleteModel"}]},{"id":"Network","type":"group","o":15,"n":[{"id":"ssid","type":"input","o":16,"value":"ewtr"},{"id":"pw","type":"password","o":17,"value":"zonledmod"},{"id":"connect","type":"button","o":18,"value":"Connect"},{"id":"nwstatus","type":"display","o":19}]},{"id":"Web","type":"group","o":20,"n":[{"id":"clist","type":"many","o":21,"n":[{"id":"clNr","type":"display","o":22},{"id":"clIp","type":"display","o":23},{"id":"clIsFull","type":"display","o":24,"value":false},{"id":"clStatus","type":"display","o":25,"value":1}]}]},{"id":"UI","type":"group","o":26,"n":[{"id":"uloops","type":"many","o":27,"n":[{"id":"ulObject","type":"display","o":28},{"id":"ulLoopps","type":"display","o":29}]}]},{"id":"System","type":"group","o":30,"n":[{"id":"upTime","type":"display","o":31},{"id":"loops","type":"display","o":32},{"id":"heap","type":"display","o":33},{"id":"stack","type":"display","o":34},{"id":"restart","type":"button","o":35,"value":"Restart"},{"id":"reset0","type":"dropdown","o":36,"value":1},{"id":"reset1","type":"dropdown","o":37,"value":14},{"id":"restartReason","type":"dropdown","o":38,"value":1}]},{"id":"Pin Manager","type":"group","o":39,"n":[{"id":"board","type":"canvas","o":40,"loopFun":0,"value":1},{"id":"pin2","type":"checkbox","o":41,"value":true},{"id":"pin4","type":"checkbox","o":42,"value":false},{"id":"pin33","type":"checkbox","o":43,"value":true}]},{"id":"Leds","type":"group","o":44,"n":[{"id":"bri","type":"range","o":45,"value":1},{"id":"fx","type":"dropdown","o":46,"value":6},{"id":"pview","type":"canvas","o":47,"loopFun":1,"value":1},{"id":"ledFix","type":"dropdown","o":48,"value":"4"},{"id":"width","type":"display","o":49,"value":10},{"id":"height","type":"display","o":50,"value":10},{"id":"depth","type":"display","o":51,"value":1},{"id":"fps","type":"number","o":53,"value":40},{"id":"realFps","type":"display","o":54},{"id":"nrOfLeds","type":"display","o":52,"value":35},{"id":"dataPin","type":"number","o":55,"value":16},{"id":"ledFixGen","type":"dropdown","o":56,"value":3}]}]
 SysModModel::SysModModel() Model success
 SysModUI::SysModUI() UI
 SysModUI::SysModUI() UI success
 AppModPinManager::AppModPinManager() Pin Manager
 AppModPinManager::AppModPinManager() Pin Manager success
+virtual void SysModPrint::setup() Print
+Object Print already defined
+Object log already defined
+virtual void SysModPrint::setup() Print success
 Object Files already defined
 Object flist already defined
 Object flName already defined
 Object flSize already defined
 Object drsize already defined
+Object deleteFiles already defined
 virtual void SysModModel::setup() Model
 Object Model already defined
 Object mSize already defined
-Object showObsolete already defined
 Object saveModel already defined
+Object showObsolete already defined
 Object deleteObsolete already defined
 Object deleteModel already defined
 virtual void SysModModel::setup() Model success
@@ -31,10 +37,18 @@ Object connect already defined
 Object nwstatus already defined
 virtual void SysModNetwork::setup() Network success
 virtual void SysModWeb::setup() Web
+Object Web already defined
+Object clist already defined
+Object clNr already defined
+Object clIp already defined
+Object clIsFull already defined
+Object clStatus already defined
 virtual void SysModWeb::setup() Web success
 virtual void SysModUI::setup() UI
 Object UI already defined
-Object uloops already defined
+initObject create new many: oloops
+Object ulObject already defined
+Object ulLoopps already defined
 virtual void SysModUI::setup() UI success
 virtual void SysModSystem::setup() System
 Object System already defined
@@ -43,14 +57,13 @@ Object loops already defined
 Object heap already defined
 Object stack already defined
 Object restart already defined
-Object Web already defined
-Object clist already defined
-Object clNr already defined
-Object clIp already defined
-Object clIsFull already defined
+Object reset0 already defined
+Object reset1 already defined
+Object restartReason already defined
 virtual void SysModSystem::setup() System success
 virtual void AppModPinManager::setup() Pin Manager
 Object Pin Manager already defined
+Object board already defined
 Object pin2 already defined
 updateGPIO pin2:=1
 Object pin4 already defined
@@ -61,90 +74,117 @@ Object Leds already defined
 Object bri already defined
 Set Brightness to 1 -> 2
 Object fx already defined
-initDropdown chFun Change fx to 3
+initDropdown chFun Change fx to 6
 Object pview already defined
+Object ledFix already defined
+initDropdown chFun Change ledFix to 4
+LazyJsonRDWS constructing /lfR35.json r
+Object []
+String name: [R35]
+Number nrOfLeds: [35]
+LazyJsonRDWS found nrOfLeds: 35
+Number pin: [16]
+String scale: [mm]
+Number size: [100]
+Number width: [10]
+LazyJsonRDWS found width: 10
+Number height: [10]
+LazyJsonRDWS found height: 10
+Number depth: [1]
+LazyJsonRDWS found depth: 1
+Hooray, LazyJsonRDWS found all what we were looking for, no further search needed
+ljrdws whd 10 10 1 and 35
+ledfix send ws done {"pview":{"file":"/lfR35.json"}}
+LazyJsonRDWS destructing
 Object width already defined
-changeDimensions 8 x 8 x 1 = 64
 Object height already defined
-changeDimensions 8 x 8 x 1 = 64
 Object depth already defined
-changeDimensions 8 x 8 x 1 = 64
+Object nrOfLeds already defined
 Object fps already defined
 fps changed 40
 Object realFps already defined
-Object nrOfLeds already defined
 Object dataPin already defined
 Set data pin to 16
-Size of Rainbow is 4
-Size of Rainbow with glitter is 4
-Size of Sinelon is 4
-Size of Running is 4
-Size of Confetti is 4
-Size of Beats per minute is 4
-Size of Juggle is 4
-Size of Ripples 3D is 4
-Size of SphereMove 3D is 4
+Object ledFixGen already defined
 virtual void AppModLeds::setup() Leds success
 lastReconnectAttempt == 0
 Access point disabled (init).
 Connecting to WiFi ewtr / *********
-not initAP 0.0.0.0
-Connected 192.168.8.152
-Web server (re)started
+Connected 192.168.8.213
+server (re)started
 Webserver: client request / /index.htm text/html!
-WS client connected 1WS event data 1 1 0 0=17? 0 17
-FILE: model.json 2719
-WS_EVT_DATA send response {"uiFun":"flist","flist":{"label":"Files","comment":"List of files","many":[["model.json",2719]]}}
-WS event data 1 1 0 0=18? 0 18
+WS client connected client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"log","log":{"comment":"WIP"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"flist","flist":{"label":"Files","comment":"List of files","many":[["lfGlobe.json",5433],["lfHSC.json",19305],["lfM88.json",483],["lfM888h.json",2662],["lfR35.json",369],["model.json",2702],["model2.json",2702]]}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"flName","flName":{"label":"Name"}}
-WS event data 1 1 0 0=18? 0 18
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"flSize","flSize":{"label":"Size (B)"}}
-WS event data 1 1 0 0=18? 0 18
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"drsize","drsize":{"label":"Total FS size"}}
-WS event data 1 1 0 0=17? 0 17
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"deleteFiles","deleteFiles":{"comment":"All but model.json, temporary"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"mSize","mSize":{"label":"Size"}}
-WS event data 1 1 0 0=24? 0 24
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"saveModel","saveModel":{"comment":"Write to model.json (manual save only currently)"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"showObsolete","showObsolete":{"comment":"Show in UI (refresh)"}}
-WS event data 1 1 0 0=26? 0 26
-WS_EVT_DATA send response {"uiFun":"deleteObsolete","deleteObsolete":{"label":"Delete obsolete objects"}}
-WS event data 1 1 0 0=14? 0 14
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"deleteObsolete","deleteObsolete":{"label":"Delete obsolete objects","comment":"WIP"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"deleteModel","deleteModel":{"comment":"Back to defaults"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"pw","pw":{"label":"Password"}}
-WS event data 1 1 0 0=20? 0 20
-WS_EVT_DATA send response {"uiFun":"nwstatus","nwstatus":{"label":"Status"}}
-WS event data 1 1 0 0=18? 0 18
-WS_EVT_DATA send response {"uiFun":"uloops","uloops":{"label":"User loops"}}
-WS event data 1 1 0 0=20? 0 20
-WS_EVT_DATA send response {"uiFun":"ulObject","ulObject":{"comment":"Uptime of board"}}
-WS event data 1 1 0 0=20? 0 20
-WS_EVT_DATA send response {"uiFun":"ulLoopps","ulLoopps":{"comment":"Free / Total (largest free)"}}
-WS event data 1 1 0 0=18? 0 18
-WS_EVT_DATA send response {"uiFun":"upTime","upTime":{"comment":"Uptime of board"}}
-WS event data 1 1 0 0=16? 0 16
-WS_EVT_DATA send response {"uiFun":"heap","heap":{"comment":"Free / Total (largest free)"}}
-WS event data 1 1 0 0=17? 0 17
-WS_EVT_DATA send response {"uiFun":{"value":true}}
-WS event data 1 1 0 0=16? 0 16
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"connect","connect":{"comment":"Force reconnect (you loose current connection)"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"nwstatus","nwstatus":{"label":"Status","comment":"Not shown for some reason (wip)"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"clist","clist":{"label":"Clients","comment":"List of clients","many":[[1,"192.168.8.126",false,1]]}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"clNr","clNr":{"label":"Nr"}}
-WS event data 1 1 0 0=16? 0 16
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"clIp","clIp":{"label":"IP"}}
-WS event data 1 1 0 0=20? 0 20
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"clIsFull","clIsFull":{"label":"Is full"}}
-WS event data 1 1 0 0=15? 0 15
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"clStatus","clStatus":{"label":"Status","lov":["Disconnected","Connected","Disconnecting"]}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"oloops","oloops":{"label":"Object loops","comment":"Loops initiated by an object","many":[["board",0],["pview",1]]}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"upTime","upTime":{"comment":"Uptime of board"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"heap","heap":{"comment":"Free / Total (largest free)"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"reset0","reset0":{"comment":"Reset reason core 0 (to do readonly)","lov":["NO_MEAN","POWERON_RESET","SW_RESET","OWDT_RESET","DEEPSLEEP_RESET","SDIO_RESET","TG0WDT_SYS_RESET","TG1WDT_SYS_RESET","RTCWDT_SYS_RESET","INTRUSION_RESET","TGWDT_CPU_RESET","SW_CPU_RESET","RTCWDT_CPU_RESET","EXT_CPU_RESET","RTCWDT_BROWN_OUT_RESET","RTCWDT_RTC_RESET"],"value":1}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"reset1","reset1":{"comment":"Reset reason core 1 (to do readonly)","lov":["NO_MEAN","POWERON_RESET","SW_RESET","OWDT_RESET","DEEPSLEEP_RESET","SDIO_RESET","TG0WDT_SYS_RESET","TG1WDT_SYS_RESET","RTCWDT_SYS_RESET","INTRUSION_RESET","TGWDT_CPU_RESET","SW_CPU_RESET","RTCWDT_CPU_RESET","EXT_CPU_RESET","RTCWDT_BROWN_OUT_RESET","RTCWDT_RTC_RESET"],"value":14}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"restartReason","restartReason":{"comment":"Restart reason (to do readonly)","lov":["ESP_RST_UNKNOWN","ESP_RST_POWERON","ESP_RST_EXT","ESP_RST_SW","ESP_RST_PANIC","ESP_RST_INT_WDT","ESP_RST_TASK_WDT","ESP_RST_WDT","ESP_RST_DEEPSLEEP","ESP_RST_BROWNOUT","ESP_RST_SDIO"],"value":1}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"board","board":{"label":"Board layout","comment":"WIP"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"bri","bri":{"label":"Brightness"}}
-WS event data 1 1 0 0=14? 0 14
-WS_EVT_DATA send response {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Running","Confetti","Beats per minute","Juggle","Ripples 3D","SphereMove 3D"],"value":3}}
-WS event data 1 1 0 0=17? 0 17
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Running","Confetti","Beats per minute","Juggle","Ripples 3D","SphereMove 3D"],"value":6}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"pview","pview":{"label":"Preview"}}
-WS event data 1 1 0 0=17? 0 17
-WS_EVT_DATA send response {"uiFun":"width","width":{"comment":"Max 256"}}
-WS event data 1 1 0 0=18? 0 18
-WS_EVT_DATA send response {"uiFun":"height","height":{"comment":"Max 64"}}
-WS event data 1 1 0 0=17? 0 17
-WS_EVT_DATA send response {"uiFun":"depth","depth":{"comment":"Max 16"}}
-WS event data 1 1 0 0=15? 0 15
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"ledFix","ledFix":{"label":"LedFix","lov":["lfGlobe.json","lfHSC.json","lfM88.json","lfM888h.json","lfR35.json"],"value":4}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"width","width":{"comment":"Max 32K"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"height","height":{"comment":"Max 32K"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"depth","depth":{"comment":"Max 32K"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"nrOfLeds","nrOfLeds":{"comment":"Max 2000 (FastLed max 1024)"}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"fps","fps":{"comment":"Frames per second"}}
-WS event data 1 1 0 0=19? 0 19
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS_EVT_DATA send response {"uiFun":"dataPin","dataPin":{"comment":"Not implemented yet (fixed to 16)"}}
-WS event data 1 1 0 0=20? 0 20
-WS_EVT_DATA send response {"uiFun":"nrOfLeds","nrOfLeds":{"comment":"Max 1024"}}
-clist change response {"uiFun":"clist","clist":{"label":"Clients","comment":"List of clients","many":[[1,"192.168.8.126",false]]}}
+WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
+WS_EVT_DATA send response {"uiFun":"ledFixGen","ledFixGen":{"label":"Ledfix generator","lov":["Spiral","R24","R35","M88","M888","M888h","HSC","Globe"],"value":3}}

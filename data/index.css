@@ -9,10 +9,32 @@ comment {
   margin-left: 6px; /*space before*/
 }
 
-text { /*currently onlu for buttonSaveNode and buttonCancelNode*/
+text { /*currently only for buttonSaveNode and buttonCancelNode*/
 	font-size: 10px;
 }
-  
+
+/* For textarea objects */
+textarea {
+	width: 100%;
+	height: 100%;
+}
+
+/* for toggleModal */
+.modal {
+	position:fixed;
+	left: 0px;
+	bottom: 0px;
+	right: 0px;
+	top: 0px;
+	/* calc(var(--th) - 1px); */
+	background-color: var(--c-o);
+	transform: translateY(100%);
+	transition: transform 0.4s;
+	padding: 8px;
+	font-size: 18px; /* WLEDMM: smaller is better (was 20px)*/
+	overflow: auto;
+}
+
 /*table layout */
 .table-style {
   font-family: Arial, Helvetica, sans-serif;
@@ -87,7 +109,7 @@ text { /*currently onlu for buttonSaveNode and buttonCancelNode*/
 	--c-l: #48a;
 	--c-y: #a90;
 	--t-b: 0.5;
-	--c-o: rgba(34, 34, 34, 0.9);
+	--c-o: rgba(195, 145, 145, 0.9); /* used for modal background, changed to more readable*/
 	--c-tb : rgba(34, 34, 34, var(--t-b));
 	--c-tba: rgba(102, 102, 102, var(--t-b));
 	--c-tbh: rgba(51, 51, 51, var(--t-b));

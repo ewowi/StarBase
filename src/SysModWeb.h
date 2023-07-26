@@ -8,8 +8,6 @@ class SysModWeb:public Module {
 public:
 // TODO: which of these fields should be private?
   static AsyncWebSocket *ws;
-  static DynamicJsonDocument *responseDoc0;
-  static DynamicJsonDocument *responseDoc1;
 
   SysModWeb();
 
@@ -17,7 +15,7 @@ public:
 
   void loop();
 
-  void connected2();
+  void connected();
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
@@ -40,6 +38,7 @@ public:
 
 // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
   bool addUpload(const char * uri);
+  bool addFileServer(const char * uri);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
@@ -50,20 +49,28 @@ public:
 
   bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &));
 
-  void addResponse(JsonObject object, const char * key, const char * value);
+  void addResponse(const char * id, const char * key, const char * value);
 
-  void addResponseV(JsonObject object, const char * key, const char * format, ...);
+  void addResponseV(const char * id, const char * key, const char * format, ...);
 
-  void addResponseInt(JsonObject object, const char * key, int value);
-  void addResponseBool(JsonObject object, const char * key, bool value);
-  JsonArray addResponseArray(JsonObject object, const char * key);
+  void addResponseI(const char * id, const char * key, int value);
+  void addResponseB(const char * id, const char * key, bool value);
+  JsonArray addResponseA(const char * id, const char * key);
 
+  void clientsToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
+
+  //gets the right responseDoc, depending on which task you are in
+  JsonDocument * getResponseDoc();
+  
 private:
   bool modelUpdated = false;
   static bool clientsChanged;
 
   static AsyncWebServer *server;
   static const char * (*processWSFunc)(JsonVariant &);
+
+  static DynamicJsonDocument *responseDoc0;
+  static DynamicJsonDocument *responseDoc1;
 
 };
 

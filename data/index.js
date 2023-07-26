@@ -6,6 +6,7 @@ let nrOfColumns = 4;
 let userFunId = "";
 let htmlGenerated = false;
 let jsonValues = {};
+let uiFunCommands = [];
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -41,6 +42,10 @@ function makeWS() {
           console.log("WS receive generateHTML", json);
           generateHTML(null, json); //no parentNode
           htmlGenerated = true;
+          //send request for uiFun
+          if (uiFunCommands.length) { //flush commands not already send
+            flushUIFunCommands();
+          }
         }
         else
           console.log("Error: no array", json);
@@ -146,20 +151,21 @@ function generateHTML(parentNode, json) {
 
       newNode = cE("canvas");
       newNode.id = json.id;
-      newNode.addEventListener('click', (event) => {bigCanvas(event.target, true);});
+      newNode.addEventListener('click', (event) => {toggleModal(event.target);});
+      // pNode.appendChild(newNode);
+      pNode.innerText += "🔍";
     }
     else if (json.type == "textarea") {
-      newNode = cE("p");
-      newNode.appendChild(labelNode);
-      let textareaNode = cE("textarea");
-      textareaNode.id = json.id;
-      textareaNode.readOnly = json.ro;
-      // if (json.ro)
-      //   textareaNode.addAttribute("readonly");
-      // else
-      //   textareaNode.removeAttribute("readonly");
-      if (json.value) textareaNode.innerHTML = json.value;
-      newNode.appendChild(textareaNode);
+      pNode = cE("p");
+      pNode.appendChild(labelNode);
+      parentNode.appendChild(pNode);
+      newNode = cE("textarea");
+      newNode.id = json.id;
+      newNode.readOnly = json.ro;
+      newNode.addEventListener('click', (event) => {toggleModal(event.target);});
+      if (json.value) newNode.innerHTML = json.value;
+      // newNode.appendChild(textareaNode);
+      pNode.innerText += "🔍";
     }
     else { //input
       if (json.ro && json.type != "button") { //pka display
@@ -178,7 +184,7 @@ function generateHTML(parentNode, json) {
           newNode.appendChild(spanNode);
         }
       }
-      else { //not ro
+      else { //not ro or button
         newNode = cE("p");
         let buttonSaveNode = null;
         let buttonCancelNode = null;
@@ -218,16 +224,24 @@ function generateHTML(parentNode, json) {
 
     if (newNode) parentNode.appendChild(newNode); //add new node to parent
 
-    //call ui Functionality, if defined (to set label, comment, lov etc)
+    //call ui Functionality, if defined (to set label, comment, select etc)
     if (json.uiFun >= 0) { //>=0 as element in object
-      var command = {};
-      command["uiFun"] = json.id; //ask to run uiFun for object (to add the options)
-      requestJson(command);
+      uiFunCommands.push(json.id);
+      if (uiFunCommands.length > 8) { //every 10 objects (to respect responseDoc size) check WS_EVT_DATA info
+        flushUIFunCommands();
+      }
     }
-
+    
     if (json.n) generateHTML(newNode, json.n); //details (e.g. module)
-
   }
+}
+
+function flushUIFunCommands() {
+  var command = {};
+  command["uiFun"] = uiFunCommands; //ask to run uiFun for object (to add the options)
+  console.log("uiFunCommands", command);
+  requestJson(command);
+  uiFunCommands = [];
 }
 
 function processUpdate(json) {
@@ -268,15 +282,15 @@ function processUpdate(json) {
           }
           commentNode.innerHTML = json[key].comment;        
         }
-        if (json[key].lov) {
-          console.log("processUpdate lov", key, json[key].lov);
-          if (gId(key).nodeName.toLocaleLowerCase() == "span") { //readonly tbd: only the displayed value needs to be in the lov
+        if (json[key].select) {
+          console.log("processUpdate select", key, json[key].select);
+          if (gId(key).nodeName.toLocaleLowerCase() == "span") { //readonly. tbd: only the displayed value needs to be in the select
             var index = 0;
-            for (var value of json[key].lov) {
+            for (var value of json[key].select) {
               if (parseInt(gId(key).textContent) == index) {
-                // console.log("processUpdate lov1", value, gId(key), gId(key).textContent, index);
+                // console.log("processUpdate select1", value, gId(key), gId(key).textContent, index);
                 gId(key).textContent = value; //replace the id by its value TBD: THIS DOES NOT WORK FOR SOME REASON
-                // console.log("processUpdate lov2", value, gId(key), gId(key).textContent, index);
+                // console.log("processUpdate select2", value, gId(key), gId(key).textContent, index);
               }
               index++;
             }
@@ -288,9 +302,7 @@ function processUpdate(json) {
             while (gId(key).options && gId(key).options.length > 0) {
               gId(key).remove(0);
             }
-            for (var value of json[key].lov) {
-              if (key=="reset0")
-                console.log("processUpdate lov3", value, gId(key), gId(key).textContent, index);
+            for (var value of json[key].select) {
               let optNode = cE("option");
               optNode.value = index;
               optNode.text = value;
@@ -315,10 +327,10 @@ function processUpdate(json) {
           }
           gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
         }
-        if (json[key].value && !overruleValue) { //after lov, in case used
-          if (key=="ledFix" || key =="ledFixGen" || key =="reset0")
+        if (json[key].value && !overruleValue) { //after select, in case used
+          if (key=="ledFix" || key =="ledFixGen")
             console.log("processUpdate value", key, json[key].value, gId(key));
-          if (gId(key).nodeName.toLocaleLowerCase() == "span") //display
+          if (gId(key).nodeName.toLocaleLowerCase() == "span") //read only objects
             gId(key).textContent = json[key].value;
           else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
             userFunId = key; //prepare for websocket data
@@ -336,7 +348,7 @@ function processUpdate(json) {
         
           //we need to send a request which the server can handle using request variable
           let url = `http://${window.location.hostname}/file`;
-          fetchAndExecute(url, json[key].file, jsonValues, function(jsonValues,text) {
+          fetchAndExecute(url, json[key].file, key, function(key,text) { //send key as parameter
             // console.log("fetchAndExecute", text); //in case of invalid json
             var ledmapJson = JSON.parse(text);
             jsonValues[key] = ledmapJson;
@@ -413,10 +425,39 @@ function setSelect(element) {
   requestJson(command);
 }
 
-function bigCanvas(element, doCreate) {
-  console.log("bigCanvas", element, doCreate);
-  // element.width = document.body.clientWidth; //document.width is obsolete
-  // element.height = document.body.clientHeight; //document.height is obsolete
+let isModal = false;
+let modalPlaceHolder;
+
+function toggleModal(element) {
+  // console.log("toggleModal", element);
+  isModal = !isModal;
+
+	if (isModal) {
+
+    modalPlaceHolder = cE(element.nodeName.toLocaleLowerCase());
+    modalPlaceHolder.width = element.width;
+    modalPlaceHolder.height = element.height;
+
+    element.parentNode.replaceChild(modalPlaceHolder, element);
+
+    gId('modalView').appendChild(element);
+    element.width = window.innerWidth;;
+    element.height = window.innerHeight;
+    // console.log("toggleModal +", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
+	}
+  else {    
+    element.width = modalPlaceHolder.getBoundingClientRect().width;
+    element.height = modalPlaceHolder.getBoundingClientRect().height;
+    // if (renderer) renderer.setSize( element.width, element.height);
+
+    // console.log("toggleModal -", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
+    
+    modalPlaceHolder.parentNode.replaceChild(element, modalPlaceHolder); //modalPlaceHolder loses rect
+  }
+
+	gId('modalView').style.transform = (isModal) ? "translateY(0px)":"translateY(100%)";
+
+
 }
 // https://stackoverflow.com/questions/324303/cut-and-paste-moving-nodes-in-the-dom-with-javascript
 

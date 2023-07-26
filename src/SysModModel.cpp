@@ -173,7 +173,7 @@ JsonObject SysModModel::setValueB(const char * id, bool value) {
 }
 
 //Set value with argument list
-JsonObject SysModModel::setValueV(const char * id, const char * format, ...) { //static to use in *Fun
+JsonObject SysModModel::setValueV(const char * id, const char * format, ...) {
   va_list args;
   va_start(args, format);
 
@@ -210,7 +210,7 @@ JsonVariant SysModModel::getValue(const char * id) {
   }
 }
 
-JsonObject SysModModel::findObject(const char * id, JsonArray parent) { //static for processJson
+JsonObject SysModModel::findObject(const char * id, JsonArray parent) {
   JsonArray root;
   // print ->print("findObject %s %s\n", id, parent.isNull()?"root":"n");
   if (parent.isNull()) {

@@ -27,7 +27,7 @@ public:
   static JsonObject setValueB(const char * id, bool value);
 
   //Set value with argument list
-  static JsonObject setValueV(const char * id, const char * format, ...);
+  static JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun
 
   //Set value with argument list and print
   JsonObject setValueP(const char * id, const char * format, ...);
@@ -35,7 +35,7 @@ public:
   JsonVariant getValue(const char * id);
 
   //returns the object defined by id (parent to recursively call findObject)
-  static JsonObject findObject(const char * id, JsonArray parent = JsonArray());
+  static JsonObject findObject(const char * id, JsonArray parent = JsonArray()); //static for processJson
   
 private:
   static bool doWriteModel;

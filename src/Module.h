@@ -24,7 +24,7 @@ public:
 
   virtual void loop() {}
 
-  virtual void connected() {Serial.println("Module connected");}
+  virtual void connected() {}
 
   virtual void testManager() {}
   virtual void performanceManager() {}

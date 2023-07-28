@@ -23,7 +23,7 @@ void SysModNetwork::setup() {
   ui->initPassword(parentObject, "pw", "", [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "label", "Password");
   });
-  ui->initButton(parentObject, "connect", "Connect", [](JsonObject object) {
+  ui->initButton(parentObject, "connect", nullptr, [](JsonObject object) {
     web->addResponse(object["id"], "comment", "Force reconnect (you loose current connection)");
   }, [](JsonObject object) {
     forceReconnect = true;
@@ -100,8 +100,8 @@ void SysModNetwork::initConnection() {
   WiFi.setSleep(!noWifiSleep);
   WiFi.setHostname("StarMod");
 
-  const char* ssid = mdl->getValue("ssid");
-  const char* password = mdl->getValue("pw");
+  const char * ssid = mdl->getValue("ssid");
+  const char * password = mdl->getValue("pw");
   if (ssid && strlen(ssid)>0) {
     char passXXX [20] = "";
     for (int i = 0; i < strlen(password); i++) strcat(passXXX, "*");

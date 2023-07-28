@@ -243,7 +243,6 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
       ws->cleanupClients(0); //disconnect all clients to release memory
       ws->_cleanBuffers();
     }
-
   }
 }
 
@@ -382,7 +381,6 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
     }
     else
       request->send(200, "text/plain", "OKOK");
-
   });
   server->addHandler(handler);
   return true;

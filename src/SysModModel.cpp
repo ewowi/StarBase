@@ -36,7 +36,7 @@ void SysModModel::setup() {
     web->addResponse(object["id"], "label", "Size");
   });
 
-  ui->initButton(parentObject, "saveModel", "SaveModel", [](JsonObject object) {
+  ui->initButton(parentObject, "saveModel", nullptr, [](JsonObject object) {
     web->addResponse(object["id"], "comment", "Write to model.json (manual save only currently)");
   }, [](JsonObject object) {
     doWriteModel = true;
@@ -48,13 +48,13 @@ void SysModModel::setup() {
     doShowObsolete = object["value"];
   });
 
-  ui->initButton(parentObject, "deleteObsolete", "DeleteObsolete", [](JsonObject object) {
+  ui->initButton(parentObject, "deleteObsolete", nullptr, [](JsonObject object) {
     web->addResponse(object["id"], "label", "Delete obsolete objects");
     web->addResponse(object["id"], "comment", "WIP");
   }, [](JsonObject object) {
   });
 
-  ui->initButton(parentObject, "deleteModel", "DeleteModel", [](JsonObject object) {
+  ui->initButton(parentObject, "deleteModel", nullptr, [](JsonObject object) {
     web->addResponse(object["id"], "comment", "Back to defaults");
   }, [](JsonObject object) {
     print->print("delete model json\n");
@@ -76,10 +76,10 @@ void SysModModel::setup() {
 
     // files->writeObjectToFile("/model.json", model);
 
-    LazyJsonRDWS ljrdws("/model.json", "w"); //open fileName for deserialize
-    ljrdws.addExclusion("uiFun");
-    ljrdws.addExclusion("chFun");
-    ljrdws.writeJsonDocToFile(model);
+    JsonRDWS jrdws("/model.json", "w"); //open fileName for deserialize
+    jrdws.addExclusion("uiFun");
+    jrdws.addExclusion("chFun");
+    jrdws.writeJsonDocToFile(model);
 
     // print->printJson("Write model", *model); //this shows the model before exclusion
 
@@ -105,6 +105,8 @@ void SysModModel::cleanUpModel(JsonArray objects) {
     if (objectV->is<JsonObject>()) {
       JsonObject object = objectV->as<JsonObject>();
 
+      //for each object:
+
       if (object["o"].isNull() || object["o"] >= 0) { //not set negative in initObject
         if (!doShowObsolete)
         //   object["d"] = true;
@@ -114,6 +116,10 @@ void SysModModel::cleanUpModel(JsonArray objects) {
       else {
         object["o"] = -object["o"].as<int>(); //make it possitive
       }
+
+      // //for previous not ro values
+      // if (object["ro"] && !object["value"].isNull())
+      //   object.remove("value");
 
       //recursive call
       if (!object["n"].isNull() && object["n"].is<JsonArray>())

@@ -25,7 +25,7 @@ void SysModSystem::setup() {
   });
   ui->initText(parentObject, "stack");
 
-  ui->initButton(parentObject, "restart", "Restart", nullptr, [](JsonObject object) {  //chFun
+  ui->initButton(parentObject, "restart", nullptr, nullptr, [](JsonObject object) {  //chFun
     web->ws->closeAll(1012);
     ESP.restart();
   });

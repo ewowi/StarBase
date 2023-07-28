@@ -147,6 +147,8 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
       object["ro"] = readOnly;
     //readOnly's will be deleted, if not already so
     object["o"] = -objectCounter++; //make order negative to check if not obsolete, see cleanUpModel
+
+    //if uiFun, add it to the list
     if (uiFun) {
       //if fun already in ucFunctions then reuse, otherwise add new fun in ucFunctions
       std::vector<void(*)(JsonObject object)>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), uiFun);
@@ -157,6 +159,8 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
         object["uiFun"] = ucFunctions.size()-1;
       }
     }
+
+    //if chFun, add it to the list
     if (chFun) {
       //if fun already in ucFunctions then reuse, otherwise add new fun in ucFunctions
       std::vector<void(*)(JsonObject object)>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), chFun);
@@ -167,6 +171,8 @@ JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char *
         object["chFun"] = ucFunctions.size()-1;
       }
     }
+
+    //if loopFun, add it to the list
     if (loopFun) {
       //no need to check if already in...
       ObjectLoop loop;

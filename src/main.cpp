@@ -28,15 +28,16 @@ void setup() {
   pin = new SysModPinManager();
   lds = new AppModLeds();
 
-  mdls->add(print);
+  //prefered default order in the UI
+  mdls->add(lds);
   mdls->add(files);
-  mdls->add(mdl);
-  mdls->add(net);
-  mdls->add(web);
-  mdls->add(ui);
   mdls->add(sys);
   mdls->add(pin);
-  mdls->add(lds);
+  mdls->add(print);
+  mdls->add(mdl);
+  mdls->add(ui);
+  mdls->add(web);
+  mdls->add(net);
 
   mdls->setup();
 }
@@ -44,4 +45,5 @@ void setup() {
 //loop all modules
 void loop() {
   mdls->loop();
+  // delay(1);//feed the watchdog
 }

@@ -85,7 +85,7 @@ function generateHTML(parentNode, json) {
     }
     var newNode = null;
     let labelNode = cE("label");
-    labelNode.innerHTML = initCap(json.id);
+    labelNode.innerText = initCap(json.id);
 
     if (json.type == "module") {
       newNode = cE("div");
@@ -93,16 +93,16 @@ function generateHTML(parentNode, json) {
       newNode.draggable = true;
       newNode.className = "box";
         let h2Node = cE("h2");
-        h2Node.innerHTML = initCap(json.id);
+        h2Node.innerText = initCap(json.id);
         newNode.appendChild(h2Node);
           let pNode = cE("p");
-          pNode.innerHTML = "Enable"
+          pNode.innerText = "Enable"
             let checkBoxNode = cE("input");
             checkBoxNode.id = json.id;
             checkBoxNode.type = "checkbox";
           pNode.appendChild(checkBoxNode);
             let commentNode = cE("comment");
-            commentNode.innerHTML = "WIP"
+            commentNode.innerText = "WIP"
           pNode.appendChild(commentNode);
       newNode.appendChild(pNode);
       setupBox(newNode);
@@ -131,7 +131,7 @@ function generateHTML(parentNode, json) {
         newNode.appendChild(labelNode);
         let spanNode = cE("span");
         spanNode.id = json.id;
-        if (json.value) spanNode.innerHTML = json.value;
+        if (json.value) spanNode.innerText = json.value;
         newNode.appendChild(spanNode);
       }
       else {
@@ -163,7 +163,7 @@ function generateHTML(parentNode, json) {
       newNode.id = json.id;
       newNode.readOnly = json.ro;
       newNode.addEventListener('click', (event) => {toggleModal(event.target);});
-      if (json.value) newNode.innerHTML = json.value;
+      if (json.value) newNode.innerText = json.value;
       // newNode.appendChild(textareaNode);
       pNode.innerText += "🔍";
     }
@@ -172,7 +172,7 @@ function generateHTML(parentNode, json) {
         if (parentNode.nodeName.toLocaleLowerCase() == "table") { //table add the id in the header
           let tdNode = cE("th");
           tdNode.id = json.id;
-          tdNode.innerHTML = initCap(json.id); //label uiFun response can change it
+          tdNode.innerText = initCap(json.id); //label uiFun response can change it
           parentNode.firstChild.firstChild.appendChild(tdNode); //<thead><tr>
         }
         else {
@@ -180,7 +180,7 @@ function generateHTML(parentNode, json) {
           newNode.appendChild(labelNode);
           let spanNode = cE("span");
           spanNode.id = json.id;
-          if (json.value) spanNode.innerHTML = json.value;
+          if (json.value) spanNode.innerText = json.value;
           newNode.appendChild(spanNode);
         }
       }
@@ -196,7 +196,7 @@ function generateHTML(parentNode, json) {
           if (json.value) inputNode.checked = json.value;
           inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
         } else if (json.type == "button") {
-          if (json.value) inputNode.value = json.value;
+          inputNode.value = initCap(json.id);
           inputNode.addEventListener('click', (event) => {console.log(json.type + " click", event);setButton(event.target);});
         } else {
           //input types: text, search, tel, url, email, and password.
@@ -204,10 +204,10 @@ function generateHTML(parentNode, json) {
           inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
           if (["text", "password", "number"].includes(json.type) ) {
             buttonSaveNode = cE("text");
-            buttonSaveNode.innerHTML = "✅";
+            buttonSaveNode.innerText = "✅";
             buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
             buttonCancelNode = cE("text");
-            buttonCancelNode.innerHTML = "🛑";
+            buttonCancelNode.innerText = "🛑";
             buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
           }
           if (json.type == "number") {
@@ -255,14 +255,19 @@ function processUpdate(json) {
 
         if (json[key].label) {
           console.log("processUpdate label", key, json[key].label);
-          let labelNode;
-          if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
-            labelNode = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
-          else if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
-            labelNode = gId(key); //the <th>
-          else
-            labelNode = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
-          labelNode.innerHTML = json[key].label;
+          if (gId(key).nodeName.toLocaleLowerCase() == "input" && gId(key).type == "button") {
+            gId(key).value = initCap(json[key].label);
+          }
+          else {
+            let labelNode;
+            if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
+              labelNode = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
+            else if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
+              labelNode = gId(key); //the <th>
+            else
+              labelNode = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
+            labelNode.innerText = initCap(json[key].label);
+          }
         }
         if (json[key].comment) {
           console.log("processUpdate comment", key, json[key].comment);
@@ -280,7 +285,7 @@ function processUpdate(json) {
             commentNode = cE("comment");
             parentNode.appendChild(commentNode);
           }
-          commentNode.innerHTML = json[key].comment;        
+          commentNode.innerText = json[key].comment;        
         }
         if (json[key].select) {
           console.log("processUpdate select", key, json[key].select);
@@ -289,12 +294,12 @@ function processUpdate(json) {
             for (var value of json[key].select) {
               if (parseInt(gId(key).textContent) == index) {
                 // console.log("processUpdate select1", value, gId(key), gId(key).textContent, index);
-                gId(key).textContent = value; //replace the id by its value TBD: THIS DOES NOT WORK FOR SOME REASON
+                gId(key).textContent = value; //replace the id by its value
                 // console.log("processUpdate select2", value, gId(key), gId(key).textContent, index);
+                overruleValue = true; //in this case we do not want the value set
               }
               index++;
             }
-            overruleValue = true; //in this case we do not want the value set
           }
           else { //select
             var index = 0;
@@ -320,7 +325,7 @@ function processUpdate(json) {
             let trNode = cE("tr");
             for (var columnRow of row) {
               let tdNode = cE("td");
-              tdNode.innerHTML = columnRow;
+              tdNode.innerText = columnRow;
               trNode.appendChild(tdNode);
             }
             tbodyNode.appendChild(trNode);
@@ -328,8 +333,8 @@ function processUpdate(json) {
           gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
         }
         if (json[key].value && !overruleValue) { //after select, in case used
-          if (key=="ledFix" || key =="ledFixGen")
-            console.log("processUpdate value", key, json[key].value, gId(key));
+          // if (key=="ledFix" || key =="ledFixGen"|| key =="reset0")
+          //   console.log("processUpdate value", key, json[key].value, gId(key));
           if (gId(key).nodeName.toLocaleLowerCase() == "span") //read only objects
             gId(key).textContent = json[key].value;
           else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
@@ -518,7 +523,7 @@ function handleDragStart(e) {
   dragSrcEl = this;
 
   e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/html', this.innerHTML);
+  e.dataTransfer.setData('text/html', this.innerText);
   console.log("handleDragStart", this, e, e.dataTransfer);
   e.dataTransfer.setData('text/plain', this.id);
 }

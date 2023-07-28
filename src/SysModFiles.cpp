@@ -42,7 +42,7 @@ void SysModFiles::setup() {
     web->addResponse(object["id"], "label", "Total FS size");
   });
 
-  ui->initButton(parentObject, "deleteFiles", "deleteFiles", [](JsonObject object) { //uiFun
+  ui->initButton(parentObject, "deleteFiles", nullptr, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "comment", "All but model.json");
   }, [](JsonObject object) {
     print->print("delete files\n");
@@ -128,7 +128,7 @@ bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
   size_t counter = 0;
   while (file) {
     if (counter == seqNr) {
-      // Serial.printf("FILE: %s %d\n", file.name(), file.size());
+      Serial.printf("seqNrToName: %s %d\n", file.name(), file.size());
       root.close();
       strcat(fileName, "/"); //add root prefix
       strcat(fileName, file.name());
@@ -166,7 +166,7 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
   }
 }
 
-//candidate for deletion as taken over by LazyJsonRDWS
+//candidate for deletion as taken over by JsonRDWS
 // bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
 //   File f = open(path, "w");
 //   if (f) {

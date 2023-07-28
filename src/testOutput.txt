@@ -1,55 +1,88 @@
-SysModPrint::SysModPrint() Print success
+SysModPrint::SSysModPrint::SysModPrint() Print success
 SysModFiles::SysModFiles() Files
 SysModFiles::SysModFiles() Files success
 SysModModel::SysModModel() Model
 Reading model from /model.json... (deserializeConfigFromFS)
-File /model.json open to read, size 2702 bytes
-Read model [{"id":"Print","type":"group","o":1,"n":[{"id":"log","type":"display","o":2}]},{"id":"Files","type":"group","o":3,"n":[{"id":"flist","type":"many","o":4,"n":[{"id":"flName","type":"display","o":5},{"id":"flSize","type":"display","o":6}]},{"id":"drsize","type":"display","o":7},{"id":"deleteFiles","type":"button","o":8,"value":"deleteFiles"}]},{"id":"Model","type":"group","o":9,"n":[{"id":"mSize","type":"display","o":10},{"id":"saveModel","type":"button","o":11,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","o":12,"value":false},{"id":"deleteObsolete","type":"button","o":13,"value":"DeleteObsolete"},{"id":"deleteModel","type":"button","o":14,"value":"DeleteModel"}]},{"id":"Network","type":"group","o":15,"n":[{"id":"ssid","type":"input","o":16,"value":"ewtr"},{"id":"pw","type":"password","o":17,"value":"zonledmod"},{"id":"connect","type":"button","o":18,"value":"Connect"},{"id":"nwstatus","type":"display","o":19}]},{"id":"Web","type":"group","o":20,"n":[{"id":"clist","type":"many","o":21,"n":[{"id":"clNr","type":"display","o":22},{"id":"clIp","type":"display","o":23},{"id":"clIsFull","type":"display","o":24,"value":false},{"id":"clStatus","type":"display","o":25,"value":1}]}]},{"id":"UI","type":"group","o":26,"n":[{"id":"uloops","type":"many","o":27,"n":[{"id":"ulObject","type":"display","o":28},{"id":"ulLoopps","type":"display","o":29}]}]},{"id":"System","type":"group","o":30,"n":[{"id":"upTime","type":"display","o":31},{"id":"loops","type":"display","o":32},{"id":"heap","type":"display","o":33},{"id":"stack","type":"display","o":34},{"id":"restart","type":"button","o":35,"value":"Restart"},{"id":"reset0","type":"dropdown","o":36,"value":1},{"id":"reset1","type":"dropdown","o":37,"value":14},{"id":"restartReason","type":"dropdown","o":38,"value":1}]},{"id":"Pin Manager","type":"group","o":39,"n":[{"id":"board","type":"canvas","o":40,"loopFun":0,"value":1},{"id":"pin2","type":"checkbox","o":41,"value":true},{"id":"pin4","type":"checkbox","o":42,"value":false},{"id":"pin33","type":"checkbox","o":43,"value":true}]},{"id":"Leds","type":"group","o":44,"n":[{"id":"bri","type":"range","o":45,"value":1},{"id":"fx","type":"dropdown","o":46,"value":6},{"id":"pview","type":"canvas","o":47,"loopFun":1,"value":1},{"id":"ledFix","type":"dropdown","o":48,"value":"4"},{"id":"width","type":"display","o":49,"value":10},{"id":"height","type":"display","o":50,"value":10},{"id":"depth","type":"display","o":51,"value":1},{"id":"fps","type":"number","o":53,"value":40},{"id":"realFps","type":"display","o":54},{"id":"nrOfLeds","type":"display","o":52,"value":35},{"id":"dataPin","type":"number","o":55,"value":16},{"id":"ledFixGen","type":"dropdown","o":56,"value":3}]}]
-no ws for [{"id":"Print","type":"group","o":1,"n":[{"id":"log","type":"display","o":2}]},{"id":"Files","type":"group","o":3,"n":[{"id":"flist","type":"many","o":4,"n":[{"id":"flName","type":"display","o":5},{"id":"flSize","type":"display","o":6}]},{"id":"drsize","type":"display","o":7},{"id":"deleteFiles","type":"button","o":8,"value":"deleteFiles"}]},{"id":"Model","type":"group","o":9,"n":[{"id":"mSize","type":"display","o":10},{"id":"saveModel","type":"button","o":11,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","o":12,"value":false},{"id":"deleteObsolete","type":"button","o":13,"value":"DeleteObsolete"},{"id":"deleteModel","type":"button","o":14,"value":"DeleteModel"}]},{"id":"Network","type":"group","o":15,"n":[{"id":"ssid","type":"input","o":16,"value":"ewtr"},{"id":"pw","type":"password","o":17,"value":"zonledmod"},{"id":"connect","type":"button","o":18,"value":"Connect"},{"id":"nwstatus","type":"display","o":19}]},{"id":"Web","type":"group","o":20,"n":[{"id":"clist","type":"many","o":21,"n":[{"id":"clNr","type":"display","o":22},{"id":"clIp","type":"display","o":23},{"id":"clIsFull","type":"display","o":24,"value":false},{"id":"clStatus","type":"display","o":25,"value":1}]}]},{"id":"UI","type":"group","o":26,"n":[{"id":"uloops","type":"many","o":27,"n":[{"id":"ulObject","type":"display","o":28},{"id":"ulLoopps","type":"display","o":29}]}]},{"id":"System","type":"group","o":30,"n":[{"id":"upTime","type":"display","o":31},{"id":"loops","type":"display","o":32},{"id":"heap","type":"display","o":33},{"id":"stack","type":"display","o":34},{"id":"restart","type":"button","o":35,"value":"Restart"},{"id":"reset0","type":"dropdown","o":36,"value":1},{"id":"reset1","type":"dropdown","o":37,"value":14},{"id":"restartReason","type":"dropdown","o":38,"value":1}]},{"id":"Pin Manager","type":"group","o":39,"n":[{"id":"board","type":"canvas","o":40,"loopFun":0,"value":1},{"id":"pin2","type":"checkbox","o":41,"value":true},{"id":"pin4","type":"checkbox","o":42,"value":false},{"id":"pin33","type":"checkbox","o":43,"value":true}]},{"id":"Leds","type":"group","o":44,"n":[{"id":"bri","type":"range","o":45,"value":1},{"id":"fx","type":"dropdown","o":46,"value":6},{"id":"pview","type":"canvas","o":47,"loopFun":1,"value":1},{"id":"ledFix","type":"dropdown","o":48,"value":"4"},{"id":"width","type":"display","o":49,"value":10},{"id":"height","type":"display","o":50,"value":10},{"id":"depth","type":"display","o":51,"value":1},{"id":"fps","type":"number","o":53,"value":40},{"id":"realFps","type":"display","o":54},{"id":"nrOfLeds","type":"display","o":52,"value":35},{"id":"dataPin","type":"number","o":55,"value":16},{"id":"ledFixGen","type":"dropdown","o":56,"value":3}]}]
+File /model.json open to read, size 3226 bytes
+Read model [{"id":"Print","type":"module","ro":true,"o":35,"n":[{"id":"log","type":"textarea","ro":true,"o":37,"value":"WIP"},{"id":"pOut","type":"select","ro":false,"o":36,"value":"1"}]},{"id":"Files","type":"module","ro":true,"o":15,"n":[{"id":"flist","type":"table","ro":false,"o":16,"n":[{"id":"flName","type":"text","ro":true,"o":17},{"id":"flSize","type":"text","ro":true,"o":18}]},{"id":"drsize","type":"text","ro":true,"o":19},{"id":"deleteFiles","type":"button","ro":true,"o":20}]},{"id":"Model","type":"module","ro":true,"o":38,"n":[{"id":"mSize","type":"text","ro":true,"o":39},{"id":"saveModel","type":"button","ro":true,"o":40},{"id":"showObsolete","type":"checkbox","ro":false,"o":41,"value":false},{"id":"deleteObsolete","type":"button","ro":true,"o":42},{"id":"deleteModel","type":"button","ro":true,"o":43}]},{"id":"Network","type":"module","ro":true,"o":54,"n":[{"id":"ssid","type":"text","ro":false,"o":55,"value":"ewtr"},{"id":"pw","type":"password","ro":false,"o":56,"value":"zonledmod"},{"id":"connect","type":"button","ro":true,"o":57},{"id":"nwstatus","type":"text","ro":true,"o":58}]},{"id":"Web","type":"module","ro":true,"o":48,"n":[{"id":"clist","type":"table","ro":false,"o":49,"n":[{"id":"clNr","type":"text","ro":true,"o":50},{"id":"clIp","type":"text","ro":true,"o":51},{"id":"clIsFull","type":"text","ro":true,"o":52,"value":false},{"id":"clStatus","type":"text","ro":true,"o":53,"value":1}]}]},{"id":"UI","type":"module","ro":true,"o":44,"n":[{"id":"oloops","type":"table","ro":false,"o":45,"n":[{"id":"ulObject","type":"text","ro":true,"o":46},{"id":"ulLoopps","type":"text","ro":true,"o":47}]}]},{"id":"System","type":"module","ro":true,"o":21,"n":[{"id":"upTime","type":"text","ro":true,"o":22},{"id":"loops","type":"text","ro":true,"o":23},{"id":"heap","type":"text","ro":true,"o":24},{"id":"stack","type":"text","ro":true,"o":25},{"id":"restart","type":"button","ro":true,"o":26},{"id":"reset0","type":"select","ro":true,"o":27,"value":12},{"id":"reset1","type":"select","ro":true,"o":28,"value":12},{"id":"restartReason","type":"select","ro":true,"o":29,"value":4}]},{"id":"Pin Manager","type":"module","ro":true,"o":30,"n":[{"id":"board","type":"canvas","ro":false,"o":31,"loopFun":1,"value":1},{"id":"pin2","type":"checkbox","ro":false,"o":32,"value":true},{"id":"pin4","type":"checkbox","ro":false,"o":33,"value":false},{"id":"pin33","type":"checkbox","ro":false,"o":34,"value":true}]},{"id":"Leds","type":"module","ro":true,"o":1,"n":[{"id":"bri","type":"range","ro":false,"o":2,"value":1},{"id":"fx","type":"select","ro":false,"o":3,"value":"3"},{"id":"pview","type":"canvas","ro":false,"o":5,"loopFun":0,"value":1},{"id":"ledFix","type":"select","ro":false,"o":6,"value":"0"},{"id":"width","type":"text","ro":true,"o":7,"value":8},{"id":"height","type":"text","ro":true,"o":8,"value":8},{"id":"depth","type":"text","ro":true,"o":9,"value":1},{"id":"nrOfLeds","type":"text","ro":true,"o":10},{"id":"fps","type":"number","ro":false,"o":11,"value":40},{"id":"realFps","type":"text","ro":true,"o":12},{"id":"dataPin","type":"number","ro":false,"o":13,"value":16},{"id":"ledFixGen","type":"select","ro":false,"o":14,"value":"5"},{"id":"projection","type":"select","ro":false,"o":4,"value":"1"}]}]
+sendDataWs no ws
 SysModModel::SysModModel() Model success
 SysModUI::SysModUI() UI
 SysModUI::SysModUI() UI success
-AppModPinManager::AppModPinManager() Pin Manager
-AppModPinManager::AppModPinManager() Pin Manager success
-virtual void SysModPrint::setup() Print
-Object Print already defined
-Object log already defined
-virtual void SysModPrint::setup() Print success
+SysModPinManager::SysModPinManager() Pin Manager
+SysModPinManager::SysModPinManager() Pin Manager success
+virtual void AppModLeds::setup() Leds
+Object Leds already defined
+Object bri already defined
+Set Brightness to 1 -> 2
+Object fx already defined
+initSelect chFun Change fx to 3
+Object projection already defined
+initSelect chFun Change projection to 1
+seqNrToName: 2DMatrix88.json 504
+JsonRDWS constructing /2DMatrix88.json r
+Object push  1
+String name: [2DMatrix88]
+String scale: [cm]
+Object push  3
+Object pop  3
+JsonRDWS found all what it was looking for 69 >= 5
+led 0 mapping:  0
+led 1 mapping:  1 8 9
+led 2 mapping:  2 10 16 17 18
+led 3 mapping:  3 11 19 24 25 26
+led 4 mapping:  4 12 20 27 32 33 34
+led 5 mapping:  5 13 21 28 29 35 36 40 41 42 43
+led 6 mapping:  6 14 22 30 37 44 48 49 50 51
+led 7 mapping:  7 15 23 31 38 45 46 52 53 56 57 58 59
+led 8 mapping:  39 47 54 60 61
+led 9 mapping:  55 62 63
+jrdws whd 8 8 1 and P:64 V:10
+ledfix chFun send ws done {"pview":{"file":"/2DMatrix88.json"}}
+JsonRDWS destructing
+Object pview already defined
+Object ledFix already defined
+initSelect chFun Change ledFix to 0
+seqNrToName: 2DMatrix88.json 504
+JsonRDWS constructing /2DMatrix88.json r
+Object push  1
+String name: [2DMatrix88]
+String scale: [cm]
+Object push  3
+Object pop  3
+JsonRDWS found all what it was looking for 69 >= 5
+led 0 mapping:  0
+led 1 mapping:  1 8 9
+led 2 mapping:  2 10 16 17 18
+led 3 mapping:  3 11 19 24 25 26
+led 4 mapping:  4 12 20 27 32 33 34
+led 5 mapping:  5 13 21 28 29 35 36 40 41 42 43
+led 6 mapping:  6 14 22 30 37 44 48 49 50 51
+led 7 mapping:  7 15 23 31 38 45 46 52 53 56 57 58 59
+led 8 mapping:  39 47 54 60 61
+led 9 mapping:  55 62 63
+jrdws whd 8 8 1 and P:64 V:10
+ledfix chFun send ws done {"pview":{"file":"/2DMatrix88.json"}}
+JsonRDWS destructing
+Object width already defined
+Object height already defined
+Object depth already defined
+Object nrOfLeds already defined
+post whd 8 8 1 and P:64 V:10
+Object fps already defined
+fps changed 40
+Object realFps already defined
+Object dataPin already defined
+Set data pin to 16
+Object ledFixGen already defined
+seqNrToName: 2DMatrix88.json 504
+virtual void AppModLeds::setup() Leds success
 Object Files already defined
 Object flist already defined
 Object flName already defined
 Object flSize already defined
 Object drsize already defined
 Object deleteFiles already defined
-virtual void SysModModel::setup() Model
-Object Model already defined
-Object mSize already defined
-Object saveModel already defined
-Object showObsolete already defined
-Object deleteObsolete already defined
-Object deleteModel already defined
-virtual void SysModModel::setup() Model success
-virtual void SysModNetwork::setup() Network
-Object Network already defined
-Object ssid already defined
-Object pw already defined
-Object connect already defined
-Object nwstatus already defined
-virtual void SysModNetwork::setup() Network success
-virtual void SysModWeb::setup() Web
-Object Web already defined
-Object clist already defined
-Object clNr already defined
-Object clIp already defined
-Object clIsFull already defined
-Object clStatus already defined
-virtual void SysModWeb::setup() Web success
-virtual void SysModUI::setup() UI
-Object UI already defined
-initObject create new many: oloops
-Object ulObject already defined
-Object ulLoopps already defined
-virtual void SysModUI::setup() UI success
 virtual void SysModSystem::setup() System
 Object System already defined
 Object upTime already defined
@@ -61,52 +94,48 @@ Object reset0 already defined
 Object reset1 already defined
 Object restartReason already defined
 virtual void SysModSystem::setup() System success
-virtual void AppModPinManager::setup() Pin Manager
+virtual void SysModPinManager::setup() Pin Manager
 Object Pin Manager already defined
 Object board already defined
 Object pin2 already defined
 updateGPIO pin2:=1
 Object pin4 already defined
 Object pin33 already defined
-virtual void AppModPinManager::setup() Pin Manager success
-virtual void AppModLeds::setup() Leds
-Object Leds already defined
-Object bri already defined
-Set Brightness to 1 -> 2
-Object fx already defined
-initDropdown chFun Change fx to 6
-Object pview already defined
-Object ledFix already defined
-initDropdown chFun Change ledFix to 4
-LazyJsonRDWS constructing /lfR35.json r
-Object []
-String name: [R35]
-Number nrOfLeds: [35]
-LazyJsonRDWS found nrOfLeds: 35
-Number pin: [16]
-String scale: [mm]
-Number size: [100]
-Number width: [10]
-LazyJsonRDWS found width: 10
-Number height: [10]
-LazyJsonRDWS found height: 10
-Number depth: [1]
-LazyJsonRDWS found depth: 1
-Hooray, LazyJsonRDWS found all what we were looking for, no further search needed
-ljrdws whd 10 10 1 and 35
-ledfix send ws done {"pview":{"file":"/lfR35.json"}}
-LazyJsonRDWS destructing
-Object width already defined
-Object height already defined
-Object depth already defined
-Object nrOfLeds already defined
-Object fps already defined
-fps changed 40
-Object realFps already defined
-Object dataPin already defined
-Set data pin to 16
-Object ledFixGen already defined
-virtual void AppModLeds::setup() Leds success
+virtual void SysModPinManager::setup() Pin Manager success
+virtual void SysModPrint::setup() Print
+Object Print already defined
+Object pOut already defined
+Object log already defined
+virtual void SysModPrint::setup() Print success
+virtual void SysModModel::setup() Model
+Object Model already defined
+Object mSize already defined
+Object saveModel already defined
+Object showObsolete already defined
+Object deleteObsolete already defined
+Object deleteModel already defined
+virtual void SysModModel::setup() Model success
+virtual void SysModUI::setup() UI
+Object UI already defined
+Object oloops already defined
+Object ulObject already defined
+Object ulLoopps already defined
+virtual void SysModUI::setup() UI success
+virtual void SysModWeb::setup() Web
+Object Web already defined
+Object clist already defined
+Object clNr already defined
+Object clIp already defined
+Object clIsFull already defined
+Object clStatus already defined
+virtual void SysModWeb::setup() Web success
+virtual void SysModNetwork::setup() Network
+Object Network already defined
+Object ssid already defined
+Object pw already defined
+Object connect already defined
+Object nwstatus already defined
+virtual void SysModNetwork::setup() Network success
 lastReconnectAttempt == 0
 Access point disabled (init).
 Connecting to WiFi ewtr / *********
@@ -115,76 +144,121 @@ server (re)started
 Webserver: client request / /index.htm text/html!
 WS client connected client: 1 192.168.8.126 q:0 s:1 (w:1)
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"log","log":{"comment":"WIP"}}
+seqNrToName: 2DMatrix88.json 504
+WS_EVT_DATA json {"uiFun":["bri","fx","projection","pview","ledFix","width","height","depth","nrOfLeds"],"bri":{"label":"Brightness"},"fx":{"label":"Effect","comment":"Effect to show","select":["Rainbow","Rainbow with glitter","Sinelon","Running","Confetti","Beats per minute","Juggle","Ripples 3D","SphereMove 3D"],"value":3},"projection":{"comment":"How to project fx to fixture","select":["None","Distance from point","Random"],"value":1},"pview":{"label":"Preview","file":"/2DMatrix88.json"},"ledFix":{"label":"LedFix","select":["2DMatrix88.json","2DRing35.json","3DCube885.json","3DCube888.json","3DHumanSizedCube.json"],"value":0},"width":{"comment":"Max 32K"},"height":{"comment":"Max 32K"},"depth":{"comment":"Max 32K"},"nrOfLeds":{"comment":"Max 2000 (1024 by FastLed)"}}
+WS_EVT_DATA info  1059 / 2048 (51%) (10 0 3)
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"flist","flist":{"label":"Files","comment":"List of files","many":[["lfGlobe.json",5433],["lfHSC.json",19305],["lfM88.json",483],["lfM888h.json",2662],["lfR35.json",369],["model.json",2702],["model2.json",2702]]}}
+WS_EVT_DATA json {"uiFun":["fps","realFps","dataPin","ledFixGen","flist","flName","flSize","drsize","deleteFiles"],"fps":{"comment":"Frames per second"},"realFps":{"comment":"Depends on how much leds fastled has configured"},"dataPin":{"comment":"Not implemented yet (fixed to 16)"},"ledFixGen":{"label":"Ledfix generator","select":["1DSpiral","2DMatrix88","2DRing24","2DRing35","3DCube885","3DCube888","3DGlobe","3DHumanSizedCube"],"value":5},"flist":{"label":"Files","comment":"List of files","table":[["2DMatrix88.json",504],["2DRing35.json",388],["3DCube885.json",2760],["3DCube888.json",4216],["3DHumanSizedCube.json",19412],["model.json",3226]]},"flName":{"label":"Name"},"flSize":{"label":"Size (B)"},"drsize":{"label":"Total FS size"},"deleteFiles":{"comment":"All but model.json"}}
+WS_EVT_DATA info  1205 / 2048 (58%) (10 0 4)
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"flName","flName":{"label":"Name"}}
+WS_EVT_DATA json {"uiFun":["upTime","heap","reset0","reset1","restartReason","board","pOut","log","mSize"],"upTime":{"comment":"Uptime of board"},"heap":{"comment":"Free / Total (largest free)"},"reset0":{"label":"Reset 0","comment":"Reason Core 0","select":["NO_MEAN","POWERON_RESET","SW_RESET (2)","SW_RESET (3)","OWDT_RESET","DEEPSLEEP_RESET","SDIO_RESET","TG0WDT_SYS_RESET","TG1WDT_SYS_RESET","RTCWDT_SYS_RESET","INTRUSION_RESET","TGWDT_CPU_RESET","SW reset CPU (12)","RTCWDT_CPU_RESET","EXT_CPU_RESET","RTCWDT_BROWN_OUT_RESET","RTCWDT_RTC_RESET"],"value":12},"reset1":{"label":"Reset 1","comment":"Reason Core 1","select":["NO_MEAN","POWERON_RESET","SW_RESET (2)","SW_RESET (3)","OWDT_RESET","DEEPSLEEP_RESET","SDIO_RESET","TG0WDT_SYS_RESET","TG1WDT_SYS_RESET","RTCWDT_SYS_RESET","INTRUSION_RESET","TGWDT_CPU_RESET","SW reset CPU (12)","RTCWDT_CPU_RESET","EXT_CPU_RESET","RTCWDT_BROWN_OUT_RESET","RTCWDT_RTC_RESET"],"value":12},"restartReason":{"label":"Restart","comment":"Reason restart","select":["ESP_RST_UNKNOWN","ESP_RST_POWERON","ESP_RST_EXT","ESP_RST_SW","SW reset due to exception/panic (4)","ESP_RST_INT_WDT","ESP_RST_TASK_WDT","ESP_RST_WDT","ESP_RST_DEEPSLEEP","ESP_RST_BROWNOUT","ESP_RST_SDIO"],"value":4},"board":{"label":"Board layout","comment":"WIP"},"pOut":{"label":"Output","comment":"System log to Serial or Net print (WIP)","select":["No","Serial","UI","192.168.8.126"],"value":1},"log":{"comment":"Show the printed log"},"mSize":{"label":"Size"}}
+WS_EVT_DATA info  1655 / 2048 (80%) (10 0 3)
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"flSize","flSize":{"label":"Size (B)"}}
+WS_EVT_DATA json {"uiFun":["saveModel","showObsolete","deleteObsolete","deleteModel","oloops","ulObject","ulLoopps","clist","clNr"],"saveModel":{"comment":"Write to model.json (manual save only currently)"},"showObsolete":{"comment":"Show in UI (refresh)"},"deleteObsolete":{"label":"Delete obsolete objects","comment":"WIP"},"deleteModel":{"comment":"Back to defaults"},"oloops":{"label":"Object loops","comment":"Loops initiated by an object","table":[["pview",3941],["board",3941]]},"ulObject":{"label":"Name"},"ulLoopps":{"label":"Loops/s"},"clist":{"label":"Clients","comment":"List of clients","table":[[1,"192.168.8.126",false,1]]},"clNr":{"label":"Nr"}}
+WS_EVT_DATA info  927 / 2048 (45%) (10 0 4)
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"drsize","drsize":{"label":"Total FS size"}}
+WS_EVT_DATA json {"uiFun":["clIp","clIsFull","clStatus","pw","connect","nwstatus"],"clIp":{"label":"IP"},"clIsFull":{"label":"Is full"},"clStatus":{"label":"Status","select":["Disconnected","Connected","Disconnecting"]},"pw":{"label":"Password"},"connect":{"comment":"Force reconnect (you loose current connection)"},"nwstatus":{"label":"Status"}}
+WS_EVT_DATA info  442 / 2048 (21%) (7 0 3)
+fileServer request /file /file/2DMatrix88.json /2DMatrix88.json
 WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"deleteFiles","deleteFiles":{"comment":"All but model.json, temporary"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"mSize","mSize":{"label":"Size"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"saveModel","saveModel":{"comment":"Write to model.json (manual save only currently)"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"showObsolete","showObsolete":{"comment":"Show in UI (refresh)"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"deleteObsolete","deleteObsolete":{"label":"Delete obsolete objects","comment":"WIP"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"deleteModel","deleteModel":{"comment":"Back to defaults"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"pw","pw":{"label":"Password"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"connect","connect":{"comment":"Force reconnect (you loose current connection)"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"nwstatus","nwstatus":{"label":"Status","comment":"Not shown for some reason (wip)"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"clist","clist":{"label":"Clients","comment":"List of clients","many":[[1,"192.168.8.126",false,1]]}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"clNr","clNr":{"label":"Nr"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"clIp","clIp":{"label":"IP"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"clIsFull","clIsFull":{"label":"Is full"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"clStatus","clStatus":{"label":"Status","lov":["Disconnected","Connected","Disconnecting"]}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"oloops","oloops":{"label":"Object loops","comment":"Loops initiated by an object","many":[["board",0],["pview",1]]}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"upTime","upTime":{"comment":"Uptime of board"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"heap","heap":{"comment":"Free / Total (largest free)"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"reset0","reset0":{"comment":"Reset reason core 0 (to do readonly)","lov":["NO_MEAN","POWERON_RESET","SW_RESET","OWDT_RESET","DEEPSLEEP_RESET","SDIO_RESET","TG0WDT_SYS_RESET","TG1WDT_SYS_RESET","RTCWDT_SYS_RESET","INTRUSION_RESET","TGWDT_CPU_RESET","SW_CPU_RESET","RTCWDT_CPU_RESET","EXT_CPU_RESET","RTCWDT_BROWN_OUT_RESET","RTCWDT_RTC_RESET"],"value":1}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"reset1","reset1":{"comment":"Reset reason core 1 (to do readonly)","lov":["NO_MEAN","POWERON_RESET","SW_RESET","OWDT_RESET","DEEPSLEEP_RESET","SDIO_RESET","TG0WDT_SYS_RESET","TG1WDT_SYS_RESET","RTCWDT_SYS_RESET","INTRUSION_RESET","TGWDT_CPU_RESET","SW_CPU_RESET","RTCWDT_CPU_RESET","EXT_CPU_RESET","RTCWDT_BROWN_OUT_RESET","RTCWDT_RTC_RESET"],"value":14}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"restartReason","restartReason":{"comment":"Restart reason (to do readonly)","lov":["ESP_RST_UNKNOWN","ESP_RST_POWERON","ESP_RST_EXT","ESP_RST_SW","ESP_RST_PANIC","ESP_RST_INT_WDT","ESP_RST_TASK_WDT","ESP_RST_WDT","ESP_RST_DEEPSLEEP","ESP_RST_BROWNOUT","ESP_RST_SDIO"],"value":1}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"board","board":{"label":"Board layout","comment":"WIP"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"bri","bri":{"label":"Brightness"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"fx","fx":{"label":"Effect","comment":"Effect to show","lov":["Rainbow","Rainbow with glitter","Sinelon","Running","Confetti","Beats per minute","Juggle","Ripples 3D","SphereMove 3D"],"value":6}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"pview","pview":{"label":"Preview"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"ledFix","ledFix":{"label":"LedFix","lov":["lfGlobe.json","lfHSC.json","lfM88.json","lfM888h.json","lfR35.json"],"value":4}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"width","width":{"comment":"Max 32K"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"height","height":{"comment":"Max 32K"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"depth","depth":{"comment":"Max 32K"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"nrOfLeds","nrOfLeds":{"comment":"Max 2000 (FastLed max 1024)"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"fps","fps":{"comment":"Frames per second"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"dataPin","dataPin":{"comment":"Not implemented yet (fixed to 16)"}}
-WS event data client: 1 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA send response {"uiFun":"ledFixGen","ledFixGen":{"label":"Ledfix generator","lov":["Spiral","R24","R35","M88","M888","M888h","HSC","Globe"],"value":3}}
+initSelect chFun Change ledFix to 2
+seqNrToName: 3DCube885.json 2760
+JsonRDWS constructing /3DCube885.json r
+Object push  1
+String name: [3DCube885]
+String scale: [cm]
+Object push  3
+Object pop  3
+Object push  3
+Object pop  3
+Object push  3
+Object pop  3
+Object push  3
+Object pop  3
+Object push  3
+Object pop  3
+JsonRDWS found all what it was looking for 329 >= 5
+led 0 mapping:  0 192
+led 1 mapping:  1 8 9 193 200 201
+led 2 mapping:  2 10 16 17 18 194 202 208 209 210
+led 3 mapping:  3 11 19 24 25 26 195 203 211 216 217 218
+led 4 mapping:  4 12 20 27 32 33 34 196 204 212 219 224 225 226
+led 5 mapping:  5 13 21 28 29 35 36 40 41 42 43 197 205 213 220 221 227 228 232 233 234 235
+led 6 mapping:  6 14 22 30 37 44 48 49 50 51 198 206 214 222 229 236 240 241 242 243
+led 7 mapping:  7 15 23 31 38 45 46 52 53 56 57 58 59 64 65 66 67 72 73 74 75 80 81 82 83 88 89 90 128 129 130 131 136 137 138 139 144 145 146 147 152 153 154 199 207 215 223 230 237 238 244 245 248 249 250 251 256 257 258 259 264 265 266 267 272 273 274 275 280 281 282
+led 8 mapping:  39 47 54 60 61 68 69 76 77 84 85 91 92 96 97 98 99 104 105 106 132 133 140 141 148 149 155 156 160 161 162 163 168 169 170 231 239 246 252 253 260 261 268 269 276 277 283 284 288 289 290 291 296 297 298
+led 9 mapping:  55 62 63 70 71 78 79 86 93 94 100 101 107 108 109 112 113 114 115 120 121 134 135 142 143 150 157 158 164 165 171 172 173 176 177 178 179 184 185 247 254 255 262 263 270 271 278 285 286 292 293 299 300 301 304 305 306 307 312 313
+led 10 mapping:  87 95 102 103 110 116 117 122 123 124 151 159 166 167 174 180 181 186 187 188 279 287 294 295 302 308 309 314 315 316
+led 11 mapping:  111 118 119 125 126 175 182 183 189 190 303 310 311 317 318
+led 12 mapping:  127 191 319
+jrdws whd 8 8 8 and P:320 V:13
+ledfix chFun send ws done {"pview":{"file":"/3DCube885.json"}}
+JsonRDWS destructing
+WS_EVT_DATA json {"ledFix":{"value":"2"}}
+WS_EVT_DATA info  34 / 2048 (1%) (1 0 2)
+fileServer request /file /file/3DCube885.json /3DCube885.json
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+sendDataWs client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)
+loopFun client full or not connected client: 1 192.168.8.126 q:1 s:1 (w:1)

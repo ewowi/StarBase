@@ -32,7 +32,25 @@ public:
   //Set value with argument list and print
   JsonObject setValueP(const char * id, const char * format, ...);
 
+  //tbd
+  // template <typename Type>
+  // static JsonObject setValue(const char * id, Type value) {
+  //   if (std::is_same<Type, const char *>::value)
+  //     return setValueC(id, (const char *)value);
+  //   if (std::is_same<Type, int>::value)
+  //     return setValueI(id, value);
+  //   if (std::is_same<Type, bool>::value)
+  //     return setValueB(id, value);
+  //   return JsonObject();
+  // };
+
   JsonVariant getValue(const char * id);
+
+  // //tbd
+  // template <typename Type>
+  // Type getValue2(const char * id) {
+  //   return getValue(id).as<Type>();
+  // };
 
   //returns the object defined by id (parent to recursively call findObject)
   static JsonObject findObject(const char * id, JsonArray parent = JsonArray()); //static for processJson

@@ -1,20 +1,30 @@
+/*
+   @title     StarMod
+   @file      main.cpp
+   @date      20230729
+   @repo      https://github.com/ewoudwijma/StarMod
+   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @Copyright (c) 2023 Github StarMod Commit Authors
+   @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+*/
+
 // remove latest commit
 // git reset --hard HEAD^
 // git push origin -f
 
 #include "Module.h"
 #include "Modules.h"
-#include "sys/SysModPrint.h"
-#include "sys/SysModWeb.h"
-#include "sys/SysModUI.h"
-#include "sys/SysModSystem.h"
-#include "sys/SysModFiles.h"
-#include "sys/SysModModel.h"
-#include "sys/SysModNetwork.h"
-#include "sys/SysModPins.h"
-#include "app/AppModLeds.h"
-#include "app/AppModLedFixGen.h"
-#include "UserModE131.h"
+#include "Sys/SysModPrint.h"
+#include "Sys/SysModWeb.h"
+#include "Sys/SysModUI.h"
+#include "Sys/SysModSystem.h"
+#include "Sys/SysModFiles.h"
+#include "Sys/SysModModel.h"
+#include "Sys/SysModNetwork.h"
+#include "Sys/SysModPins.h"
+#include "App/AppModLeds.h"
+#include "App/AppModLedFixGen.h"
+#include "User/UserModE131.h"
 
 //setup all modules
 void setup() {

@@ -1,5 +1,15 @@
+/*
+   @title     StarMod
+   @file      Modules.cpp
+   @date      20230729
+   @repo      https://github.com/ewoudwijma/StarMod
+   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @Copyright (c) 2023 Github StarMod Commit Authors
+   @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+*/
+
 #include "Modules.h"
-#include "sys/SysModPrint.h"
+#include "Sys/SysModPrint.h"
 
 bool Modules::newConnection = false;
 

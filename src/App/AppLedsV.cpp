@@ -10,11 +10,11 @@
 
 #include "AppLedsV.h"
 
-#include "../sys/SysModPrint.h"
-#include "../sys/SysModModel.h"
-#include "../sys/SysModFiles.h"
-#include "../sys/SysModWeb.h"
-#include "../sys/SysJsonRDWS.h"
+#include "../Sys/SysModPrint.h"
+#include "../Sys/SysModModel.h"
+#include "../Sys/SysModFiles.h"
+#include "../Sys/SysModWeb.h"
+#include "../Sys/SysJsonRDWS.h"
 
 std::vector<std::vector<uint16_t>> LedsV::mappingTable;
 uint16_t LedsV::mappingTableLedCounter = 0;

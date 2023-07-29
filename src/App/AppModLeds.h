@@ -57,27 +57,18 @@ public:
     print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
   });
 
-  ui->initSelect(parentObject, "projection", 1, false, [](JsonObject object) { //uiFun. 1:  is default
+  ui->initSelect(parentObject, "projection", 0, false, [](JsonObject object) { //uiFun. 1:  is default
     // web->addResponse(object["id"], "label", "Effect");
     web->addResponse(object["id"], "comment", "How to project fx to fixture");
     JsonArray select = web->addResponseA(object["id"], "select");
     select.add("None");
-    select.add("Distance from point");
     select.add("Random");
+    select.add("Distance from point");
   }, [](JsonObject object) { //chFun
-
     print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
 
-    //
-    uint8_t projection = object["value"];
-    switch (projection) {
-    case 1:
-      // calculate mapping table
-      break;
-    }
-
-    ledsV.ledFixProjectAndMap(mdl->findObject("ledFix"), object);
-
+    ledsV.projectionNr = object["value"];
+    ledsV.ledFixProjectAndMap();
   });
 
   ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
@@ -110,21 +101,14 @@ public:
   }, [](JsonObject object) { //chFun
     print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
 
-    ledsV.ledFixProjectAndMap(object, mdl->findObject("projection"));
+    ledsV.ledFixNr = object["value"];
+    ledsV.ledFixProjectAndMap();
 
 
   }); //ledFix
 
-  ui->initText(parentObject, "width", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponseV(object["id"], "comment", "Max %dK", 32);
-  });
-
-  ui->initText(parentObject, "height", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponseV(object["id"], "comment", "Max %dK", 32);
-  });
-
-  ui->initText(parentObject, "depth", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponseV(object["id"], "comment", "Max %dK", 32);
+  ui->initText(parentObject, "dimensions", nullptr, true, [](JsonObject object) { //uiFun
+    // web->addResponseV(object["id"], "comment", "Max %dK", 32);
   });
 
   ui->initText(parentObject, "nrOfLeds", nullptr, true, [](JsonObject object) { //uiFun
@@ -132,19 +116,10 @@ public:
   });
 
   //set the values by chFun
+  //to do: add page reload event (as these values should be given each time a page reloads, and they are not included in model.json as they are readonly...
   print->print("post whd %d %d %d and P:%d V:%d\n", ledsV.width, ledsV.height, ledsV.depth, ledsV.nrOfLedsP, ledsV.nrOfLedsV);
-  mdl->setValueI("width", ledsV.width);
-  mdl->setValueI("height", ledsV.height);
-  mdl->setValueI("depth", ledsV.depth);
+  mdl->setValueV("dimensions", "%dx%dx%d", ledsV.width, ledsV.height, ledsV.depth);
   mdl->setValueV("nrOfLeds", "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
-
-  // if (!leds)
-  //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
-  // else
-  //   leds = (CRGB*)reallocarray(leds, nrOfLeds, sizeof(CRGB));
-  // if (leds) free(leds);
-  // leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
-  // leds = (CRGB*)reallocarray
 
   ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
     web->addResponse(object["id"], "comment", "Frames per second");
@@ -172,6 +147,7 @@ public:
   effects.push_back(new JuggleEffect);
   effects.push_back(new Ripples3DEffect);
   effects.push_back(new SphereMove3DEffect);
+  effects.push_back(new Frizzles2D);
 
   // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(ledsP, NUM_LEDS_FastLed); 

@@ -199,6 +199,28 @@ public:
         }
     }
   }
-}; // 3DSphereMove
+}; // SphereMove3DEffect
+
+class Frizzles2D:public Effect {
+public:
+  const char * name() {
+    return "Frizzles2D";
+  }
+  void setup() {} //not implemented yet
+  void loop() {
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 16);
+    CRGBPalette16 palette = PartyColors_p;
+
+    for (size_t i = 8; i > 0; i--) {
+      uint8_t x = beatsin8(128/8 + i, 0, ledsV.width - 1);
+      uint8_t y = beatsin8(128/8 - i, 0, ledsV.height - 1);
+      CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
+      ledsV[x + y * ledsV.width] = color;
+    }
+    // blur2d(ledsP, ledsV.width, ledsV.height, 255);
+    // SEGMENT.blur(SEGMENT.custom1>>3);
+
+  }
+}; // Frizzles2D
 
 static std::vector<Effect *> effects;

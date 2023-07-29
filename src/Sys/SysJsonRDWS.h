@@ -142,21 +142,15 @@ private:
       // print->print("Array pop %s %d %d\n", lastObjectId, objectStack.size(), uint16CollectList.size());
       check(lastObjectId);
 
-      // print->print("1\n");
       //check the parent array, if exists
       if (objectStack.size()-2 >=0) {
-      // print->print("2\n");
         // print->print("  Parent check %s\n", objectStack[objectStack.size()-2].c_str());
         strcpy(beforeLastObjectId, objectStack[objectStack.size()-2].c_str());
         check(beforeLastObjectId);
-      // print->print("3\n");
       }
       objectStack.pop_back(); //remove objectid of this array
-      // print->print("4\n");
       collectNumbers = false;
-      // print->print("5\n");
       uint16CollectList.clear();
-      // print->print("6\n");
       f.read(&character, sizeof(byte));
     }
     else if (character=='"') { //parse String
@@ -222,25 +216,20 @@ private:
   } //next
 
   void check(char * objectId, char * value = nullptr) {
-      // print->print("2.1\n");
     for (std::vector<ObjectDetails>::iterator od=objectDetails.begin(); od!=objectDetails.end(); ++od) {
-      // print->print("2.2\n");
       // print->print("check %s %s %s\n", od->id, object, value);
       if (strcmp(od->id, objectId)==0) {
-      // print->print("2.3\n");
         // print->print("JsonRDWS found %s:%s %d %s\n", objectId, od->type, od->index, value?value:"", uint16CollectList.size());
         if (strcmp(od->type, "uint8") ==0) *uint8List[od->index] = atoi(value);
         if (strcmp(od->type, "uint16") ==0) *uint16List[od->index] = atoi(value);
         if (strcmp(od->type, "char") ==0) strcpy(charList[od->index], value);
         if (strcmp(od->type, "fun") ==0) funList[od->index](uint16CollectList);
         foundCounter++;
-      // print->print("2.4\n");
       }
     }
     // foundAll = foundCounter >= objectDetails.size();
     // if (foundAll)
     //   print->print("Hooray, LazyJsonRDWS found all what we were looking for, no further search needed\n");
-      // print->print("2.5\n");
   }
 
   //writeJsonVariantToFile calls itself recursively until whole json document has been parsed

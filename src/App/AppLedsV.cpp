@@ -24,11 +24,18 @@ uint16_t LedsV::width = 8;
 uint16_t LedsV::height = 8; 
 uint16_t LedsV::depth = 1; 
 
+enum Projections
+{
+  p_None,
+  p_Random,
+  p_DistanceFromPoint
+};
+
 //load ledfix json file, parse it and depending on the projection, create a mapping for it
-void LedsV::ledFixProjectAndMap(JsonObject ledFixObject, JsonObject projectionObject) {
+void LedsV::ledFixProjectAndMap() {
   char fileName[30] = "";
 
-  if (files->seqNrToName(fileName, ledFixObject["value"])) {
+  if (files->seqNrToName(fileName, ledFixNr)) {
     JsonRDWS jrdws(fileName); //open fileName for deserialize
 
     mappingTableLedCounter = 0;
@@ -40,8 +47,7 @@ void LedsV::ledFixProjectAndMap(JsonObject ledFixObject, JsonObject projectionOb
     jrdws.lookFor("depth", &depth);
     jrdws.lookFor("nrOfLeds", &nrOfLedsP);
 
-    uint8_t projection = mdl->getValue("projection");
-    if (true || projectionObject["value"] != 0) { //not None
+    if (projectionNr > p_Random) { //0 and 1 (none, random have no mapping)
       jrdws.lookFor("leds", [](std::vector<uint16_t> uint16CollectList) {
         // print->print("funList ");
         // for (uint16_t num:uint16CollectList)
@@ -78,20 +84,20 @@ void LedsV::ledFixProjectAndMap(JsonObject ledFixObject, JsonObject projectionOb
     } //projection != 0
     if (jrdws.deserialize()) { //find all the objects
 
-      if (true || projectionObject["value"] != 0) { //not None
+      if (projectionNr > p_Random) {
         nrOfLedsV = mappingTable.size();
 
-        uint16_t x=0;
-        uint16_t y=0;
-        for (std::vector<uint16_t>physMap:mappingTable) {
-          print->print("led %d mapping: ", x);
-          for (uint16_t pos:physMap) {
-            print->print(" %d", pos);
-            y++;
-          }
-          print->print("\n");
-          x++;
-        }
+        // uint16_t x=0;
+        // uint16_t y=0;
+        // for (std::vector<uint16_t>physMap:mappingTable) {
+        //   print->print("led %d mapping: ", x);
+        //   for (uint16_t pos:physMap) {
+        //     print->print(" %d", pos);
+        //     y++;
+        //   }
+        //   print->print("\n");
+        //   x++;
+        // }
       }
       else
         nrOfLedsV = nrOfLedsP;
@@ -99,26 +105,17 @@ void LedsV::ledFixProjectAndMap(JsonObject ledFixObject, JsonObject projectionOb
       print->print("jrdws whd %d %d %d and P:%d V:%d\n", width, height, depth, nrOfLedsP, nrOfLedsV);
 
       //at page refresh, done before these objects have been initialized...
-      mdl->setValueI("width", width);
-      // print->print("1.1\n");
-      mdl->setValueI("height", height);
-      // print->print("1.2\n");
-      mdl->setValueI("depth", depth);
-      // print->print("1.3\n");
+      mdl->setValueV("dimensions", "%dx%dx%d", ledsV.width, ledsV.height, ledsV.depth);
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
-
-      // print->print("1\n");
 
       //send to pview a message to get file filename
       JsonDocument *responseDoc = web->getResponseDoc();
       responseDoc->clear(); //needed for deserializeJson?
       JsonVariant responseVariant = responseDoc->as<JsonVariant>();
-      // print->print("2\n");
 
       web->addResponse("pview", "file", fileName);
       web->sendDataWs(responseVariant);
       print->printJson("ledfix chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
-      // print->print("3\n");
     } // if deserialize
   } //if fileName
 }
@@ -143,19 +140,26 @@ LedsV& LedsV::operator=(const CRGB color) {
 
 // maps the virtual led to the physical led(s) and assign a color to it
 void LedsV::setPixelColor(int indexV, CRGB color) {
-  // if (indexV > mappingTable.size()) return;
-  if (!mappingTable.size() || indexV >= mappingTable.size()) return;
-  for (uint16_t indexP:mappingTable[indexV]) {
-    if (indexP < NUM_LEDS_Preview)
-      ledsP[indexP] = color;
+  if (mappingTable.size()) {
+    if (indexV >= mappingTable.size()) return;
+    for (uint16_t indexP:mappingTable[indexV]) {
+      if (indexP < NUM_LEDS_Preview)
+        ledsP[indexP] = color;
+    }
   }
+  else //no projection
+    ledsP[projectionNr==p_Random?random(nrOfLedsP):indexV] = color;
 }
 
 CRGB LedsV::getPixelColor(int indexV) {
-  if (!mappingTable.size() || indexV >= mappingTable.size()) return CRGB::Black;
-  if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Preview) return CRGB::Black;
+  if (mappingTable.size()) {
+    if (indexV >= mappingTable.size()) return CRGB::Black;
+    if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Preview) return CRGB::Black;
 
-  return ledsP[mappingTable[indexV][0]]; //any would do as they are all the same
+    return ledsP[mappingTable[indexV][0]]; //any would do as they are all the same
+  }
+  else //no projection
+    return ledsP[indexV];
 }
 
 // LedsV& operator+=(const CRGB color) {

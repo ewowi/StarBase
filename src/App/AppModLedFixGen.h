@@ -22,10 +22,22 @@ public:
 
     parentObject = ui->initModule(parentObject, name);
 
+    ui->initText(parentObject, "width", nullptr, false, [](JsonObject object) { //uiFun
+      // web->addResponseV(object["id"], "comment", "Max %dK", 32);
+    });
+
+    ui->initText(parentObject, "height", nullptr, false, [](JsonObject object) { //uiFun
+      // web->addResponseV(object["id"], "comment", "Max %dK", 32);
+    });
+
+    ui->initText(parentObject, "depth", nullptr, false, [](JsonObject object) { //uiFun
+      // web->addResponseV(object["id"], "comment", "Max %dK", 32);
+    });
+
     enum Fixtures
     {
       f_1DSpiral,
-      f_2DM88,
+      f_2DMatrix,
       f_2DR24,
       f_2DR35,
       f_3DC885,
@@ -34,11 +46,11 @@ public:
       f_3DHumanSizedCube
     };
 
-    ui->initSelect(parentObject, "ledFixGen", 3, false, [](JsonObject object) { //uiFun
+    ui->initSelect(parentObject, "ledFixGen", 0, false, [](JsonObject object) { //uiFun
       web->addResponse(object["id"], "label", "Ledfix generator");
       JsonArray select = web->addResponseA(object["id"], "select");
       select.add("1DSpiral"); //0
-      select.add("2DMatrix88"); //1
+      select.add("2DMatrix"); //1
       select.add("2DRing24"); //2
       select.add("2DRing35"); //3
       select.add("3DCube885"); //4
@@ -47,7 +59,15 @@ public:
       select.add("3DHumanSizedCube"); //7
     }, [](JsonObject object) { //chFun
 
-      const char * name = "TT";
+    }); //ledFixGen
+
+    ui->initButton(parentObject, "generate", nullptr, [](JsonObject object) { //uiFun
+      // web->addResponse(object["id"], "comment", "All but model.json");
+    }, [](JsonObject object) {
+
+      uint8_t fix = mdl->getValue("ledFixGen").as<int>();
+
+      char name[32] = "TT";
       uint16_t nrOfLeds = 64; //default
       uint16_t diameter = 100; //in mm
 
@@ -55,38 +75,43 @@ public:
       uint16_t height = 0;
       uint16_t depth = 0;
 
-      uint8_t fix = object["value"];
       switch (fix) {
         case f_1DSpiral:
-          name = "1DSpiral";
+          strcpy(name, "1DSpiral");
           nrOfLeds = 64;
           break;
-        case f_2DM88:
-          name = "2DMatrix88";
-          nrOfLeds = 64;
+        case f_2DMatrix:
+          width = mdl->getValue("width");
+          height = mdl->getValue("height");
+          depth = 1;
+          nrOfLeds = width * height;
+          strcpy(name, "2DMatrix");
+          char post[10];
+          snprintf(post, sizeof(post), "%02d%02d", width, height);
+          strcat(name, post);
           break;
         case f_2DR24:
-          name = "2DRing24";
+          strcpy(name, "2DRing24");
           nrOfLeds = 24;
           break;
         case f_2DR35:
-          name = "2DRing35";
+          strcpy(name, "2DRing35");
           nrOfLeds = 35;
           break;
         case f_3DC885:
-          name = "3DCube885";
+          strcpy(name, "3DCube885");
           nrOfLeds = 320;
           break;
         case f_3DC888:
-          name = "3DCube888";
+          strcpy(name, "3DCube888");
           nrOfLeds = 512;
           break;
         case f_3DGlobe:
-          name = "3DGlobe";
+          strcpy(name, "3DGlobe");
           nrOfLeds = 512;
           break;
         case f_3DHumanSizedCube:
-          name = "3DHumanSizedCube";
+          strcpy(name, "3DHumanSizedCube");
           nrOfLeds = 2000;
           break;
       }
@@ -136,23 +161,20 @@ public:
           }
           f.printf("]}]");
           break;
-        case f_2DM88:
-          diameter = 8; //in cm
-
-          f.printf(",\"scale\":\"%s\"", "cm");
-          f.printf(",\"size\":%d", diameter);
-
-          width = 8;
-          height = 8;
-          depth = 1;
+        case f_2DMatrix:
           f.printf(",\"width\":%d", width);
           f.printf(",\"height\":%d", height);
           f.printf(",\"depth\":%d", depth);
 
+          diameter = width; //in cm
+
+          f.printf(",\"scale\":\"%s\"", "cm");
+          f.printf(",\"size\":%d", diameter);
+
           f.printf(",\"outputs\":[{\"pin\":10,\"leds\":[");
           strcpy(sep,"");
-          for (uint8_t y = 0; y<8; y++)
-            for (uint16_t x = 0; x<8 ; x++) {
+          for (uint8_t y = 0; y<height; y++)
+            for (uint16_t x = 0; x<width ; x++) {
               // width = max(width, x);
               // height = max(height, y);
               // depth = 1;
@@ -279,7 +301,7 @@ public:
 
       //reload ledfix select
       ui->processUiFun("ledFix");
-    }); //ledFixGen
+    });
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }

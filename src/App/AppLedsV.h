@@ -13,7 +13,7 @@
 #include "ArduinoJson.h"
 
 #define NUM_LEDS_FastLed 1024
-#define NUM_LEDS_Preview 2000
+#define NUM_LEDS_Preview 4096
 
 //keep them global for the time being as FastLed effects refer to them and want to keep that code as unchanged as possible
 //(so maybe move there?)
@@ -27,6 +27,13 @@ class LedsV {
 public:
   // CRGB *leds = nullptr;
   CRGB ledsP[NUM_LEDS_Preview];
+    // if (!leds)
+  //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
+  // else
+  //   leds = (CRGB*)reallocarray(leds, nrOfLeds, sizeof(CRGB));
+  // if (leds) free(leds);
+  // leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
+  // leds = (CRGB*)reallocarray
 
   static uint16_t nrOfLedsP; //amount of physical leds
   static uint16_t nrOfLedsV;  //amount of virtual leds (calculated by projection)
@@ -39,7 +46,10 @@ public:
   static std::vector<std::vector<uint16_t>> mappingTable;
   static uint16_t mappingTableLedCounter;
 
-  void ledFixProjectAndMap(JsonObject ledFixObject, JsonObject projectionObject);
+  uint8_t projectionNr = -1;
+  uint8_t ledFixNr = -1;
+
+  void ledFixProjectAndMap();
 
   uint16_t indexVLocal = 0;
 

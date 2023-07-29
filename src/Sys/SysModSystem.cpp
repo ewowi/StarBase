@@ -1,3 +1,13 @@
+/*
+   @title     StarMod
+   @file      SysModSystem.cpp
+   @date      20230729
+   @repo      https://github.com/ewoudwijma/StarMod
+   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @Copyright (c) 2023 Github StarMod Commit Authors
+   @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+*/
+
 #include "SysModSystem.h"
 #include "Module.h"
 #include "SysModPrint.h"
@@ -109,7 +119,7 @@ void SysModSystem::addRestartReasonsSelect(JsonArray select) {
   select.add("ESP_RST_UNKNOWN");//  //!< Reset reason can not be determined
   select.add("ESP_RST_POWERON");//  //!< Reset due to power-on event
   select.add("ESP_RST_EXT");//      //!< Reset by external pin (not applicable for ESP32)
-  select.add("ESP_RST_SW");//       //!< Software reset via esp_restart
+  select.add("Software reset via esp_restart (3)");//ESP_RST_SW");//       //!< Software reset via esp_restart
   select.add("SW reset due to exception/panic (4)");//ESP_RST_PANIC");//    //!< 
   select.add("ESP_RST_INT_WDT");//  //!< Reset (software or hardware) due to interrupt watchdog
   select.add("ESP_RST_TASK_WDT");// //!< Reset due to task watchdog

@@ -1,9 +1,19 @@
-#include "SysModPinManager.h"
+/*
+   @title     StarMod
+   @file      SysModPins.cpp
+   @date      20230729
+   @repo      https://github.com/ewoudwijma/StarMod
+   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @Copyright (c) 2023 Github StarMod Commit Authors
+   @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+ */
+
+#include "SysModPins.h"
 #include "SysModPrint.h"
 #include "SysModUI.h"
 #include "SysModWeb.h"
 
-SysModPinManager::SysModPinManager() :Module("Pin Manager") {
+SysModPins::SysModPins() :Module("Pins") {
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   pinMode(2, OUTPUT);
@@ -13,7 +23,7 @@ SysModPinManager::SysModPinManager() :Module("Pin Manager") {
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
-void SysModPinManager::setup() {
+void SysModPins::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
@@ -43,11 +53,11 @@ void SysModPinManager::setup() {
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
-void SysModPinManager::loop(){
+void SysModPins::loop(){
   // Module::loop();
 }
 
-void SysModPinManager::updateGPIO(JsonObject object) {
+void SysModPins::updateGPIO(JsonObject object) {
   if (object["value"].is<bool>()) {
     bool pin = object["value"];
     JsonString id = object["id"];
@@ -60,6 +70,6 @@ void SysModPinManager::updateGPIO(JsonObject object) {
   }
 }
 
-void SysModPinManager::registerPin(uint8_t pinNr) {
+void SysModPins::registerPin(uint8_t pinNr) {
   
 }

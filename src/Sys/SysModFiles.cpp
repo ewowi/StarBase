@@ -1,3 +1,13 @@
+/*
+   @title     StarMod
+   @file      SysModFiles.cpp
+   @date      20230729
+   @repo      https://github.com/ewoudwijma/StarMod
+   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @Copyright (c) 2023 Github StarMod Commit Authors
+   @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+ */
+
 #include "SysModFiles.h"
 #include "SysModUI.h"
 #include "SysModWeb.h"

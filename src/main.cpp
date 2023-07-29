@@ -4,15 +4,16 @@
 
 #include "Module.h"
 #include "Modules.h"
-#include "SysModPrint.h"
-#include "SysModWeb.h"
-#include "SysModUI.h"
-#include "SysModSystem.h"
-#include "SysModFiles.h"
-#include "SysModModel.h"
-#include "SysModNetwork.h"
-#include "SysModPinManager.h"
-#include "AppModLeds.h"
+#include "sys/SysModPrint.h"
+#include "sys/SysModWeb.h"
+#include "sys/SysModUI.h"
+#include "sys/SysModSystem.h"
+#include "sys/SysModFiles.h"
+#include "sys/SysModModel.h"
+#include "sys/SysModNetwork.h"
+#include "sys/SysModPins.h"
+#include "app/AppModLeds.h"
+#include "app/AppModLedFixGen.h"
 
 //setup all modules
 void setup() {
@@ -25,8 +26,9 @@ void setup() {
   web = new SysModWeb();
   ui = new SysModUI();
   sys = new SysModSystem();
-  pin = new SysModPinManager();
+  pin = new SysModPins();
   lds = new AppModLeds();
+  lfg = new AppModLedFixGen();
 
   //prefered default order in the UI
   mdls->add(lds);
@@ -34,10 +36,11 @@ void setup() {
   mdls->add(sys);
   mdls->add(pin);
   mdls->add(print);
-  mdls->add(mdl);
+  mdls->add(lfg);
   mdls->add(ui);
   mdls->add(web);
   mdls->add(net);
+  mdls->add(mdl);
 
   mdls->setup();
 }
@@ -45,5 +48,4 @@ void setup() {
 //loop all modules
 void loop() {
   mdls->loop();
-  // delay(1);//feed the watchdog
 }

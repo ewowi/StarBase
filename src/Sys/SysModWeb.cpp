@@ -42,26 +42,27 @@ void SysModWeb::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initModule(parentObject, name);
+  parentVar = ui->initModule(parentVar, name);
 
-  parentObject = ui->initTable(parentObject, "clist", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Clients");
-    web->addResponse(object["id"], "comment", "List of clients");
-    JsonArray rows = web->addResponseA(object["id"], "table");
+  JsonObject tableVar = ui->initTable(parentVar, "clist", nullptr, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Clients");
+    web->addResponse(var["id"], "comment", "List of clients");
+    JsonArray rows = web->addResponseA(var["id"], "table");
     web->clientsToJson(rows);
   });
-  ui->initText(parentObject, "clNr", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Nr");
+  ui->initText(tableVar, "clNr", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Nr");
   });
-  ui->initText(parentObject, "clIp", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "IP");
+  ui->initText(tableVar, "clIp", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "IP");
   });
-  ui->initText(parentObject, "clIsFull", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Is full");
+  ui->initText(tableVar, "clIsFull", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Is full");
   });
-  ui->initText(parentObject, "clStatus", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Status");
-    JsonArray select = web->addResponseA(object["id"], "select");
+  ui->initText(tableVar, "clStatus", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Status");
+    //tbd: not working yet in ui
+    JsonArray select = web->addResponseA(var["id"], "select");
     select.add("Disconnected"); //0
     select.add("Connected"); //1
     select.add("Disconnecting"); //2

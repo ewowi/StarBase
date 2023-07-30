@@ -24,7 +24,9 @@
 #include "Sys/SysModPins.h"
 #include "App/AppModLeds.h"
 #include "App/AppModLedFixGen.h"
-#include "User/UserModE131.h"
+#ifdef USERMOD_E131
+  #include "User/UserModE131.h"
+#endif
 
 //setup all modules
 void setup() {
@@ -40,7 +42,9 @@ void setup() {
   pin = new SysModPins();
   lds = new AppModLeds();
   lfg = new AppModLedFixGen();
-  e131mod = new UserModE131();
+  #ifdef USERMOD_E131
+    e131mod = new UserModE131();
+  #endif
 
   //prefered default order in the UI
   mdls->add(lds);
@@ -53,7 +57,9 @@ void setup() {
   mdls->add(web);
   mdls->add(net);
   mdls->add(mdl);
-  mdls->add(e131mod);
+  #ifdef USERMOD_E131
+    mdls->add(e131mod);
+  #endif
 
   mdls->setup();
 }

@@ -14,11 +14,11 @@
 #include "SysModModel.h"
 
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-std::vector<void(*)(JsonObject object)> SysModUI::ucFunctions;
-std::vector<ObjectLoop> SysModUI::loopFunctions;
-int SysModUI::objectCounter = 1; //start with 1 so it can be negative, see object["o"]
+std::vector<void(*)(JsonObject var)> SysModUI::ucFunctions;
+std::vector<VarLoop> SysModUI::loopFunctions;
+int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 
-bool SysModUI::objectLoopsChanged = false;;
+bool SysModUI::varLoopsChanged = false;;
 
 SysModUI::SysModUI() :Module("UI") {
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -38,27 +38,27 @@ void SysModUI::setup() {
 
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = initModule(parentObject, name);
+  parentVar = initModule(parentVar, name);
 
-  JsonObject objectLoopsObject = initTable(parentObject, "oloops", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Object loops");
-    web->addResponse(object["id"], "comment", "Loops initiated by an object");
-    JsonArray rows = web->addResponseA(object["id"], "table");
+  JsonObject tableVar = initTable(parentVar, "oloops", nullptr, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Object loops");
+    web->addResponse(var["id"], "comment", "Loops initiated by an var");
+    JsonArray rows = web->addResponseA(var["id"], "table");
 
-    for (auto objectLoop = begin (loopFunctions); objectLoop != end (loopFunctions); ++objectLoop) {
+    for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
       JsonArray row = rows.createNestedArray();
-      row.add(objectLoop->object["id"]);
-      row.add(objectLoop->counter);
-      objectLoopsChanged = objectLoop->counter != objectLoop->prevCounter;
-      objectLoop->prevCounter = objectLoop->counter;
-      objectLoop->counter = 0;
+      row.add(varLoop->var["id"]);
+      row.add(varLoop->counter);
+      varLoopsChanged = varLoop->counter != varLoop->prevCounter;
+      varLoop->prevCounter = varLoop->counter;
+      varLoop->counter = 0;
     }
   });
-  initText(objectLoopsObject, "ulObject", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Name");
+  initText(tableVar, "ulObject", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Name");
   });
-  initText(objectLoopsObject, "ulLoopps", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Loops/s");
+  initText(tableVar, "ulLoopps", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Loops/s");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -67,33 +67,33 @@ void SysModUI::setup() {
 void SysModUI::loop() {
   // Module::loop();
 
-  for (auto objectLoop = begin (loopFunctions); objectLoop != end (loopFunctions); ++objectLoop) {
-    if (millis() - objectLoop->lastMillis >= objectLoop->interval) {
-      objectLoop->lastMillis = millis();
+  for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
+    if (millis() - varLoop->lastMillis >= varLoop->interval) {
+      varLoop->lastMillis = millis();
 
       web->ws->cleanupClients();
       if (web->ws->count()) {
 
-        //send object to notify client data coming is for object (client then knows it is canvas and expects data for it)
-        setChFunAndWs(objectLoop->object, "new");
+        //send var to notify client data coming is for var (client then knows it is canvas and expects data for it)
+        setChFunAndWs(varLoop->var, "new");
 
         //send leds info in binary data format
-        AsyncWebSocketMessageBuffer * wsBuf = web->ws->makeBuffer(objectLoop->bufSize * 3 + 4);
+        AsyncWebSocketMessageBuffer * wsBuf = web->ws->makeBuffer(varLoop->bufSize * 3 + 4);
         if (wsBuf) {//out of memory
           wsBuf->lock();
           uint8_t* buffer = wsBuf->get();
 
           //to loop over old size
-          buffer[0] = objectLoop->bufSize / 256;
-          buffer[1] = objectLoop->bufSize % 256;
+          buffer[0] = varLoop->bufSize / 256;
+          buffer[1] = varLoop->bufSize % 256;
           //buffer[2] can be removed
-          // print->print("interval1 %u %d %d %d %d %d %d\n", millis(), objectLoop->interval, objectLoop->bufSize, buffer[0], buffer[1]);
+          // print->print("interval1 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1]);
 
-          objectLoop->loopFun(objectLoop->object, buffer); //call the function and fill the buffer
+          varLoop->loopFun(varLoop->var, buffer); //call the function and fill the buffer
 
-          objectLoop->bufSize = buffer[0] * 256 + buffer[1];
-          objectLoop->interval = buffer[3]*10; //from cs to ms
-          // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), objectLoop->interval, objectLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
+          varLoop->bufSize = buffer[0] * 256 + buffer[1];
+          varLoop->interval = buffer[3]*10; //from cs to ms
+          // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
           for (auto client:web->ws->getClients()) {
             if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
@@ -114,8 +114,8 @@ void SysModUI::loop() {
         }
       }
 
-      objectLoop->counter++;
-      // print->print("%s %u %u %d %d\n", objectLoop->object["id"].as<const char *>(), objectLoop->lastMillis, millis(), objectLoop->interval, objectLoop->counter);
+      varLoop->counter++;
+      // print->print("%s %u %u %d %d\n", varLoop->var["id"].as<const char *>(), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
     }
   }
 
@@ -123,94 +123,94 @@ void SysModUI::loop() {
     secondMillis = millis();
 
     //if something changed in oloops
-    if (objectLoopsChanged) {
-      objectLoopsChanged = false;
+    if (varLoopsChanged) {
+      varLoopsChanged = false;
 
       processUiFun("oloops");
     }
   }
 }
 
-JsonObject SysModUI::initObject(JsonObject parent, const char * id, const char * type, bool readOnly, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
-  JsonObject object = mdl->findObject(id);
+JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
+  JsonObject var = mdl->findVar(id);
 
-  //create new object
-  if (object.isNull()) {
-    print->print("initObject create new %s: %s\n", type, id);
+  //create new var
+  if (var.isNull()) {
+    print->print("initVar create new %s: %s\n", type, id);
     if (parent.isNull()) {
-      JsonArray objects = mdl->model->as<JsonArray>();
-      object = objects.createNestedObject();
+      JsonArray vars = mdl->model->as<JsonArray>();
+      var = vars.createNestedObject();
     } else {
       if (parent["n"].isNull()) parent.createNestedArray("n"); //if parent exist and no "n" array, create it
-      object = parent["n"].createNestedObject();
+      var = parent["n"].createNestedObject();
       // serializeJson(model, Serial);Serial.println();
     }
-    object["id"] = id;
+    var["id"] = id;
   }
   else
     print->print("Object %s already defined\n", id);
 
-  if (!object.isNull()) {
-    if (object["type"] != type) 
-      object["type"] = type;
-    if (object["ro"] != readOnly) 
-      object["ro"] = readOnly;
+  if (!var.isNull()) {
+    if (var["type"] != type) 
+      var["type"] = type;
+    if (var["ro"] != readOnly) 
+      var["ro"] = readOnly;
     //readOnly's will be deleted, if not already so
-    object["o"] = -objectCounter++; //make order negative to check if not obsolete, see cleanUpModel
+    var["o"] = -varCounter++; //make order negative to check if not obsolete, see cleanUpModel
 
     //if uiFun, add it to the list
     if (uiFun) {
       //if fun already in ucFunctions then reuse, otherwise add new fun in ucFunctions
-      std::vector<void(*)(JsonObject object)>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), uiFun);
+      std::vector<void(*)(JsonObject var)>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), uiFun);
       if (itr!=ucFunctions.end()) //found
-        object["uiFun"] = distance(ucFunctions.begin(), itr); //assign found function
+        var["uiFun"] = distance(ucFunctions.begin(), itr); //assign found function
       else { //not found
         ucFunctions.push_back(uiFun); //add new function
-        object["uiFun"] = ucFunctions.size()-1;
+        var["uiFun"] = ucFunctions.size()-1;
       }
     }
 
     //if chFun, add it to the list
     if (chFun) {
       //if fun already in ucFunctions then reuse, otherwise add new fun in ucFunctions
-      std::vector<void(*)(JsonObject object)>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), chFun);
+      std::vector<void(*)(JsonObject var)>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), chFun);
       if (itr!=ucFunctions.end()) //found
-        object["chFun"] = distance(ucFunctions.begin(), itr); //assign found function
+        var["chFun"] = distance(ucFunctions.begin(), itr); //assign found function
       else { //not found
         ucFunctions.push_back(chFun); //add new function
-        object["chFun"] = ucFunctions.size()-1;
+        var["chFun"] = ucFunctions.size()-1;
       }
     }
 
     //if loopFun, add it to the list
     if (loopFun) {
       //no need to check if already in...
-      ObjectLoop loop;
+      VarLoop loop;
       loop.loopFun = loopFun;
-      loop.object = object;
+      loop.var = var;
 
       loopFunctions.push_back(loop);
-      object["loopFun"] = loopFunctions.size()-1;
-      objectLoopsChanged = true;
-      // print->print("iObject loopFun %s %u %u %d %d\n", object["id"].as<const char *>());
+      var["loopFun"] = loopFunctions.size()-1;
+      varLoopsChanged = true;
+      // print->print("iObject loopFun %s %u %u %d %d\n", var["id"].as<const char *>());
     }
   }
   else
-    print->print("initObject could not find or create object %s with %s\n", id, type);
+    print->print("initVar could not find or create var %s with %s\n", id, type);
 
-  return object;
+  return var;
 }
 
 //tbd: use template T for value
 //run the change function and send response to all? websocket clients
-void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: bypass object["value"]
+void SysModUI::setChFunAndWs(JsonObject var, const char * value) { //value: bypass var["value"]
 
-  if (!object["chFun"].isNull()) {//isNull needed here!
-    size_t funNr = object["chFun"];
+  if (!var["chFun"].isNull()) {//isNull needed here!
+    size_t funNr = var["chFun"];
     if (funNr < ucFunctions.size()) 
-      ucFunctions[funNr](object);
+      ucFunctions[funNr](var);
     else    
-      print->print("setChFunAndWs function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, ucFunctions.size());
+      print->print("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
   }
 
   JsonDocument *responseDoc = web->getResponseDoc();
@@ -218,19 +218,19 @@ void SysModUI::setChFunAndWs(JsonObject object, const char * value) { //value: b
   JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
   if (value)
-    web->addResponse(object["id"], "value", value);
+    web->addResponse(var["id"], "value", value);
   else {
-    if (object["value"].is<int>())
-      web->addResponseI(object["id"], "value", object["value"].as<int>());
-    else if (object["value"].is<bool>())
-      web->addResponseB(object["id"], "value", object["value"].as<bool>());
-    else if (object["value"].is<const char *>())
-      web->addResponse(object["id"], "value", object["value"].as<const char *>());
+    if (var["value"].is<int>())
+      web->addResponseI(var["id"], "value", var["value"].as<int>());
+    else if (var["value"].is<bool>())
+      web->addResponseB(var["id"], "value", var["value"].as<bool>());
+    else if (var["value"].is<const char *>())
+      web->addResponse(var["id"], "value", var["value"].as<const char *>());
     else {
-      print->print("unknown type for %s\n", object["value"].as<String>().c_str());
-      web->addResponse(object["id"], "value", object["value"]);
+      print->print("unknown type for %s\n", var["value"].as<String>().c_str());
+      web->addResponse(var["id"], "value", var["value"]);
     }
-    // if (object["id"] == "pview" || object["id"] == "fx") {
+    // if (var["id"] == "pview" || var["id"] == "fx") {
     //   print->printJson("setChFunAndWs response", responseDoc);
     // }
   }
@@ -247,37 +247,37 @@ const char * SysModUI::processJson(JsonVariant &json) {
 
       // commands
       if (pair.key() == "uiFun") { //JsonString can do ==
-        //find the select object and collect it's options...
+        //find the select var and collect it's options...
         if (value.is<JsonArray>()) { //should be
           for (JsonVariant value2: value.as<JsonArray>()) {
-            JsonObject object = mdl->findObject(value2); //value is the id
-            if (!object.isNull()) {
+            JsonObject var = mdl->findVar(value2); //value is the id
+            if (!var.isNull()) {
               //call ui function...
-              if (!object["uiFun"].isNull()) {//isnull needed here!
-                size_t funNr = object["uiFun"];
+              if (!var["uiFun"].isNull()) {//isnull needed here!
+                size_t funNr = var["uiFun"];
                 if (funNr < ucFunctions.size()) 
-                  ucFunctions[funNr](object);
+                  ucFunctions[funNr](var);
                 else    
-                  print->print("processJson function nr %s outside bounds %d >= %d\n", object["id"].as<const char *>(), funNr, ucFunctions.size());
-                if (object["type"] == "select")
-                  web->addResponseI(object["id"], "value", object["value"]); //temp assume int only
+                  print->print("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
+                if (var["type"] == "select")
+                  web->addResponseI(var["id"], "value", var["value"]); //temp assume int only
 
                 // print->printJson("PJ Command", responseDoc);
               }
             }
             else
-              print->print("processJson Command %s object %s not found\n", key, value2.as<String>().c_str());
+              print->print("processJson Command %s var %s not found\n", key, value2.as<String>().c_str());
           }
         } else
           print->print("processJson value not array?\n", key, value.as<String>().c_str());
       } 
       else { //normal change
-        if (!value.is<JsonObject>()) { //no objects (inserted by uiFun responses)
-          JsonObject object = mdl->findObject(key);
-          if (!object.isNull())
+        if (!value.is<JsonObject>()) { //no vars (inserted by uiFun responses)
+          JsonObject var = mdl->findVar(key);
+          if (!var.isNull())
           {
-            if (object["value"] != value) { // if changed
-              // print->print("processJson %s %s->%s\n", key, object["value"].as<String>().c_str(), value.as<String>().c_str());
+            if (var["value"] != value) { // if changed
+              // print->print("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 
               //set new value
               if (value.is<const char *>())
@@ -287,11 +287,11 @@ const char * SysModUI::processJson(JsonVariant &json) {
               else if (value.is<int>())
                 mdl->setValueI(key, value.as<int>());
               else {
-                print->print("processJson %s %s->%s not a supported type yet\n", key, object["value"].as<String>().c_str(), value.as<String>().c_str());
+                print->print("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
               }
             }
-            else if (object["type"] == "button") //button always
-              setChFunAndWs(object); //setValue without assignment
+            else if (var["type"] == "button") //button always
+              setChFunAndWs(var); //setValue without assignment
           }
           else
             print->print("Object %s not found\n", key);
@@ -311,7 +311,7 @@ void SysModUI::processUiFun(const char * id) {
 
   JsonArray array = responseVariant.createNestedArray("uiFun");
   array.add(id);
-  processJson(responseVariant); //this calls uiFun command, which might change objectLoopsChanged
+  processJson(responseVariant); //this calls uiFun command, which might change varLoopsChanged
   //this also updates uiFun stuff - not needed!
 
   web->sendDataWs(*responseDoc);

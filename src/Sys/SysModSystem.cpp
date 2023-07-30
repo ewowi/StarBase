@@ -24,54 +24,54 @@ void SysModSystem::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initModule(parentObject, name);
+  parentVar = ui->initModule(parentVar, name);
 
-  ui->initText(parentObject, "upTime", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "Uptime of board");
+  ui->initText(parentVar, "upTime", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "comment", "Uptime of board");
   });
-  ui->initText(parentObject, "loops");
-  ui->initText(parentObject, "heap", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "Free / Total (largest free)");
+  ui->initText(parentVar, "loops");
+  ui->initText(parentVar, "heap", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "comment", "Free / Total (largest free)");
   });
-  ui->initText(parentObject, "stack");
+  ui->initText(parentVar, "stack");
 
-  ui->initButton(parentObject, "restart", nullptr, nullptr, [](JsonObject object) {  //chFun
+  ui->initButton(parentVar, "restart", nullptr, nullptr, [](JsonObject var) {  //chFun
     web->ws->closeAll(1012);
     ESP.restart();
   });
 
-  ui->initSelect(parentObject, "reset0", (int)rtc_get_reset_reason(0), true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Reset 0");
-    web->addResponse(object["id"], "comment", "Reason Core 0");
-    sys->addResetReasonsSelect(web->addResponseA(object["id"], "select"));
+  ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Reset 0");
+    web->addResponse(var["id"], "comment", "Reason Core 0");
+    sys->addResetReasonsSelect(web->addResponseA(var["id"], "select"));
   });
   if (ESP.getChipCores() > 1)
-    ui->initSelect(parentObject, "reset1", (int)rtc_get_reset_reason(1), true, [](JsonObject object) { //uiFun
-      web->addResponse(object["id"], "label", "Reset 1");
-      web->addResponse(object["id"], "comment", "Reason Core 1");
-      sys->addResetReasonsSelect(web->addResponseA(object["id"], "select"));
+    ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), true, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Reset 1");
+      web->addResponse(var["id"], "comment", "Reason Core 1");
+      sys->addResetReasonsSelect(web->addResponseA(var["id"], "select"));
     });
-  ui->initSelect(parentObject, "restartReason", (int)esp_reset_reason(), true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Restart");
-    web->addResponse(object["id"], "comment", "Reason restart");
-    sys->addRestartReasonsSelect(web->addResponseA(object["id"], "select"));
+  ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Restart");
+    web->addResponse(var["id"], "comment", "Reason restart");
+    sys->addRestartReasonsSelect(web->addResponseA(var["id"], "select"));
   });
 
   // static char msgbuf[32];
   // snprintf(msgbuf, sizeof(msgbuf)-1, "%s rev.%d", ESP.getChipModel(), ESP.getChipRevision());
-  // ui->initText(parentObject, "e32model")] = msgbuf;
-  // ui->initText(parentObject, "e32cores")] = ESP.getChipCores();
-  // ui->initText(parentObject, "e32speed")] = ESP.getCpuFreqMHz();
-  // ui->initText(parentObject, "e32flash")] = int((ESP.getFlashChipSize()/1024)/1024);
-  // ui->initText(parentObject, "e32flashspeed")] = int(ESP.getFlashChipSpeed()/1000000);
-  // ui->initText(parentObject, "e32flashmode")] = int(ESP.getFlashChipMode());
+  // ui->initText(parentVar, "e32model")] = msgbuf;
+  // ui->initText(parentVar, "e32cores")] = ESP.getChipCores();
+  // ui->initText(parentVar, "e32speed")] = ESP.getCpuFreqMHz();
+  // ui->initText(parentVar, "e32flash")] = int((ESP.getFlashChipSize()/1024)/1024);
+  // ui->initText(parentVar, "e32flashspeed")] = int(ESP.getFlashChipSpeed()/1000000);
+  // ui->initText(parentVar, "e32flashmode")] = int(ESP.getFlashChipMode());
   // switch (ESP.getFlashChipMode()) {
   //   // missing: Octal modes
-  //   case FM_QIO:  ui->initText(parentObject, "e32flashtext")] = F(" (QIO)"); break;
-  //   case FM_QOUT: ui->initText(parentObject, "e32flashtext")] = F(" (QOUT)");break;
-  //   case FM_DIO:  ui->initText(parentObject, "e32flashtext")] = F(" (DIO)"); break;
-  //   case FM_DOUT: ui->initText(parentObject, "e32flashtext")] = F(" (DOUT or other)");break;
-  //   default: ui->initText(parentObject, "e32flashtext")] = F(" (other)"); break;
+  //   case FM_QIO:  ui->initText(parentVar, "e32flashtext")] = F(" (QIO)"); break;
+  //   case FM_QOUT: ui->initText(parentVar, "e32flashtext")] = F(" (QOUT)");break;
+  //   case FM_DIO:  ui->initText(parentVar, "e32flashtext")] = F(" (DIO)"); break;
+  //   case FM_DOUT: ui->initText(parentVar, "e32flashtext")] = F(" (DOUT or other)");break;
+  //   default: ui->initText(parentVar, "e32flashtext")] = F(" (other)"); break;
   // }
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");

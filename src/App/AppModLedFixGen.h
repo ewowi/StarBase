@@ -20,18 +20,18 @@ public:
     Module::setup();
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    parentObject = ui->initModule(parentObject, name);
+    parentVar = ui->initModule(parentVar, name);
 
-    ui->initText(parentObject, "width", nullptr, false, [](JsonObject object) { //uiFun
-      // web->addResponseV(object["id"], "comment", "Max %dK", 32);
+    ui->initText(parentVar, "width", nullptr, false, [](JsonObject var) { //uiFun
+      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
     });
 
-    ui->initText(parentObject, "height", nullptr, false, [](JsonObject object) { //uiFun
-      // web->addResponseV(object["id"], "comment", "Max %dK", 32);
+    ui->initText(parentVar, "height", nullptr, false, [](JsonObject var) { //uiFun
+      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
     });
 
-    ui->initText(parentObject, "depth", nullptr, false, [](JsonObject object) { //uiFun
-      // web->addResponseV(object["id"], "comment", "Max %dK", 32);
+    ui->initText(parentVar, "depth", nullptr, false, [](JsonObject var) { //uiFun
+      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
     });
 
     enum Fixtures
@@ -46,9 +46,9 @@ public:
       f_3DHumanSizedCube
     };
 
-    ui->initSelect(parentObject, "ledFixGen", 0, false, [](JsonObject object) { //uiFun
-      web->addResponse(object["id"], "label", "Ledfix generator");
-      JsonArray select = web->addResponseA(object["id"], "select");
+    ui->initSelect(parentVar, "ledFixGen", 0, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Ledfix generator");
+      JsonArray select = web->addResponseA(var["id"], "select");
       select.add("1DSpiral"); //0
       select.add("2DMatrix"); //1
       select.add("2DRing24"); //2
@@ -57,13 +57,13 @@ public:
       select.add("3DCube888"); //5
       select.add("3DGlobe"); //6
       select.add("3DHumanSizedCube"); //7
-    }, [](JsonObject object) { //chFun
+    }, [](JsonObject var) { //chFun
 
     }); //ledFixGen
 
-    ui->initButton(parentObject, "generate", nullptr, [](JsonObject object) { //uiFun
-      // web->addResponse(object["id"], "comment", "All but model.json");
-    }, [](JsonObject object) {
+    ui->initButton(parentVar, "generate", nullptr, [](JsonObject var) { //uiFun
+      // web->addResponse(var["id"], "comment", "All but model.json");
+    }, [](JsonObject var) {
 
       uint8_t fix = mdl->getValue("ledFixGen").as<int>();
 

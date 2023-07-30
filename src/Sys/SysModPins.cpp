@@ -27,12 +27,12 @@ void SysModPins::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initModule(parentObject, name);
+  parentVar = ui->initModule(parentVar, name);
 
-  ui->initCanvas(parentObject, "board", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Board layout");
-    web->addResponse(object["id"], "comment", "WIP");
-  }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
+  ui->initCanvas(parentVar, "board", map(5, 0, 255, 0, 100), [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Board layout");
+    web->addResponse(var["id"], "comment", "WIP");
+  }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
     // send leds preview to clients
     for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
     {
@@ -46,9 +46,9 @@ void SysModPins::setup() {
     buffer[3] = 10*10; //every 10 sec 
   });
 
-  ui->initCheckBox(parentObject, "pin2", true, nullptr, updateGPIO);
-  ui->initCheckBox(parentObject, "pin4", false);
-  ui->initCheckBox(parentObject, "pin33", true);
+  ui->initCheckBox(parentVar, "pin2", true, nullptr, updateGPIO);
+  ui->initCheckBox(parentVar, "pin4", false);
+  ui->initCheckBox(parentVar, "pin33", true);
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
@@ -57,10 +57,10 @@ void SysModPins::loop(){
   // Module::loop();
 }
 
-void SysModPins::updateGPIO(JsonObject object) {
-  if (object["value"].is<bool>()) {
-    bool pin = object["value"];
-    JsonString id = object["id"];
+void SysModPins::updateGPIO(JsonObject var) {
+  if (var["value"].is<bool>()) {
+    bool pin = var["value"];
+    JsonString id = var["id"];
 
     print->print("updateGPIO %s:=%d\n", id.c_str(), pin);
 

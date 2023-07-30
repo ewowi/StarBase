@@ -22,7 +22,7 @@ public:
 
   void registerPin(uint8_t pinNr);
 
-  static void updateGPIO(JsonObject object);
+  static void updateGPIO(JsonObject var);
 
 };
 

@@ -40,7 +40,7 @@ void Modules::add(Module* module) {
 }
 
 void Modules::connected() {
-  for (Module *module:modules) { //this causes crash!!! why???
+  for (Module *module:modules) {
     module->connected();
   }
 }

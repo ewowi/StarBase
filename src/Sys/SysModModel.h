@@ -24,10 +24,10 @@ public:
   void setup();
   void loop();
 
-  //scan all objects in the model and remove the s element 
-  void cleanUpModel(JsonArray objects);
+  //scan all vars in the model and remove the s element 
+  void cleanUpModel(JsonArray vars);
 
-  //sets the value of object with id
+  //sets the value of var with id
   static JsonObject setValueC(const char * id, const char * value);
 
   //setValue int
@@ -62,8 +62,8 @@ public:
   //   return getValue(id).as<Type>();
   // };
 
-  //returns the object defined by id (parent to recursively call findObject)
-  static JsonObject findObject(const char * id, JsonArray parent = JsonArray()); //static for processJson
+  //returns the var defined by id (parent to recursively call findVar)
+  static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
   
 private:
   static bool doWriteModel;

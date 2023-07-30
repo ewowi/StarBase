@@ -37,7 +37,7 @@ function makeWS() {
     else {
       gId('connind').style.backgroundColor = "var(--c-l)";
       let json = JSON.parse(e.data);
-      if (!htmlGenerated) { //generate array of objects
+      if (!htmlGenerated) { //generate array of variables
         if (Array.isArray(json)) {
           console.log("WS receive generateHTML", json);
           generateHTML(null, json); //no parentNode
@@ -75,7 +75,7 @@ function generateHTML(parentNode, json) {
       // to get a value that is either negative, positive, or zero.
       return a.o - b.o; //o is order nr
     });
-    for (var element of json) //if isArray then objects of array
+    for (var element of json) //if isArray then variables of array
       generateHTML(parentNode, element);
   }
   else {
@@ -225,9 +225,9 @@ function generateHTML(parentNode, json) {
     if (newNode) parentNode.appendChild(newNode); //add new node to parent
 
     //call ui Functionality, if defined (to set label, comment, select etc)
-    if (json.uiFun >= 0) { //>=0 as element in object
+    if (json.uiFun >= 0) { //>=0 as element in var
       uiFunCommands.push(json.id);
-      if (uiFunCommands.length > 8) { //every 10 objects (to respect responseDoc size) check WS_EVT_DATA info
+      if (uiFunCommands.length > 8) { //every 10 vars (to respect responseDoc size) check WS_EVT_DATA info
         flushUIFunCommands();
       }
     }
@@ -238,7 +238,7 @@ function generateHTML(parentNode, json) {
 
 function flushUIFunCommands() {
   var command = {};
-  command["uiFun"] = uiFunCommands; //ask to run uiFun for object (to add the options)
+  command["uiFun"] = uiFunCommands; //ask to run uiFun for vars (to add the options)
   console.log("uiFunCommands", command);
   requestJson(command);
   uiFunCommands = [];
@@ -335,7 +335,7 @@ function processUpdate(json) {
         if (json[key].value && !overruleValue) { //after select, in case used
           // if (key=="ledFix" || key =="ledFixGen"|| key =="reset0")
           //   console.log("processUpdate value", key, json[key].value, gId(key));
-          if (gId(key).nodeName.toLocaleLowerCase() == "span") //read only objects
+          if (gId(key).nodeName.toLocaleLowerCase() == "span") //read only vars
             gId(key).textContent = json[key].value;
           else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
             userFunId = key; //prepare for websocket data

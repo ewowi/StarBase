@@ -41,33 +41,33 @@ void SysModModel::setup() {
 
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initModule(parentObject, name);
+  parentVar = ui->initModule(parentVar, name);
 
-  ui->initText(parentObject, "mSize", nullptr, true, [](JsonObject object) {
-    web->addResponse(object["id"], "label", "Size");
+  ui->initText(parentVar, "mSize", nullptr, true, [](JsonObject var) {
+    web->addResponse(var["id"], "label", "Size");
   });
 
-  ui->initButton(parentObject, "saveModel", nullptr, [](JsonObject object) {
-    web->addResponse(object["id"], "comment", "Write to model.json (manual save only currently)");
-  }, [](JsonObject object) {
+  ui->initButton(parentVar, "saveModel", nullptr, [](JsonObject var) {
+    web->addResponse(var["id"], "comment", "Write to model.json (manual save only currently)");
+  }, [](JsonObject var) {
     doWriteModel = true;
   });
 
-  ui->initCheckBox(parentObject, "showObsolete", false, [](JsonObject object) {
-    web->addResponse(object["id"], "comment", "Show in UI (refresh)");
-  }, [](JsonObject object) {
-    doShowObsolete = object["value"];
+  ui->initCheckBox(parentVar, "showObsolete", false, [](JsonObject var) {
+    web->addResponse(var["id"], "comment", "Show in UI (refresh)");
+  }, [](JsonObject var) {
+    doShowObsolete = var["value"];
   });
 
-  ui->initButton(parentObject, "deleteObsolete", nullptr, [](JsonObject object) {
-    web->addResponse(object["id"], "label", "Delete obsolete objects");
-    web->addResponse(object["id"], "comment", "WIP");
-  }, [](JsonObject object) {
+  ui->initButton(parentVar, "deleteObsolete", nullptr, [](JsonObject var) {
+    web->addResponse(var["id"], "label", "Delete obsolete variables");
+    web->addResponse(var["id"], "comment", "WIP");
+  }, [](JsonObject var) {
   });
 
-  ui->initButton(parentObject, "deleteModel", nullptr, [](JsonObject object) {
-    web->addResponse(object["id"], "comment", "Back to defaults");
-  }, [](JsonObject object) {
+  ui->initButton(parentVar, "deleteModel", nullptr, [](JsonObject var) {
+    web->addResponse(var["id"], "comment", "Back to defaults");
+  }, [](JsonObject var) {
     print->print("delete model json\n");
     files->remove("/model.json");
   });
@@ -110,31 +110,31 @@ void SysModModel::setup() {
   }
 }
 
-void SysModModel::cleanUpModel(JsonArray objects) {
-  for (JsonArray::iterator objectV=objects.begin(); objectV!=objects.end(); ++objectV) {
-  // for (JsonVariant objectV : objects) {
-    if (objectV->is<JsonObject>()) {
-      JsonObject object = objectV->as<JsonObject>();
+void SysModModel::cleanUpModel(JsonArray vars) {
+  for (JsonArray::iterator varV=vars.begin(); varV!=vars.end(); ++varV) {
+  // for (JsonVariant varV : vars) {
+    if (varV->is<JsonObject>()) {
+      JsonObject var = varV->as<JsonObject>();
 
-      //for each object:
+      //for each var:
 
-      if (object["o"].isNull() || object["o"] >= 0) { //not set negative in initObject
+      if (var["o"].isNull() || var["o"] >= 0) { //not set negative in initVar
         if (!doShowObsolete)
-        //   object["d"] = true;
+        //   var["d"] = true;
         // else
-          objects.remove(objectV);
+          vars.remove(varV);
       }
       else {
-        object["o"] = -object["o"].as<int>(); //make it possitive
+        var["o"] = -var["o"].as<int>(); //make it possitive
       }
 
       // //for previous not ro values
-      // if (object["ro"] && !object["value"].isNull())
-      //   object.remove("value");
+      // if (var["ro"] && !var["value"].isNull())
+      //   var.remove("value");
 
       //recursive call
-      if (!object["n"].isNull() && object["n"].is<JsonArray>())
-        cleanUpModel(object["n"]);
+      if (!var["n"].isNull() && var["n"].is<JsonArray>())
+        cleanUpModel(var["n"]);
     } 
   }
 }
@@ -142,51 +142,51 @@ void SysModModel::cleanUpModel(JsonArray objects) {
 //tbd: use template T
 //setValue char
 JsonObject SysModModel::setValueC(const char * id, const char * value) {
-  JsonObject object = findObject(id);
-  if (!object.isNull()) {
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
-      if (object["ro"]) { // do not update object["value"]
-        ui->setChFunAndWs(object, value); //value: bypass object["value"]
+  JsonObject var = findVar(id);
+  if (!var.isNull()) {
+    if (var["value"].isNull() || var["value"] != value) {
+      // print->print("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
+      if (var["ro"]) { // do not update var["value"]
+        ui->setChFunAndWs(var, value); //value: bypass var["value"]
       } else {
-        object["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-        ui->setChFunAndWs(object);
+        var["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
+        ui->setChFunAndWs(var);
       }
     }
   }
   else
-    print->print("setValue Object %s not found\n", id);
-  return object;
+    print->print("setValue Var %s not found\n", id);
+  return var;
 }
 
 //setValue int
 JsonObject SysModModel::setValueI(const char * id, int value) {
-  JsonObject object = findObject(id);
-  if (!object.isNull()) {
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value);
-      object["value"] = value;
-      ui->setChFunAndWs(object);
+  JsonObject var = findVar(id);
+  if (!var.isNull()) {
+    if (var["value"].isNull() || var["value"] != value) {
+      // print->print("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
+      var["value"] = value;
+      ui->setChFunAndWs(var);
     }
   }
   else
-    print->print("setValue Object %s not found\n", id);
+    print->print("setValue Var %s not found\n", id);
 
-  return object;
+  return var;
 }
 
 JsonObject SysModModel::setValueB(const char * id, bool value) {
-  JsonObject object = findObject(id);
-  if (!object.isNull()) {
-    if (object["value"].isNull() || object["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, object["value"].as<String>().c_str(), value?"true":"false");
-      object["value"] = value;
-      ui->setChFunAndWs(object);
+  JsonObject var = findVar(id);
+  if (!var.isNull()) {
+    if (var["value"].isNull() || var["value"] != value) {
+      // print->print("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value?"true":"false");
+      var["value"] = value;
+      ui->setChFunAndWs(var);
     }
   }
   else
-    print->print("setValue Object %s not found\n", id);
-  return object;
+    print->print("setValue Var %s not found\n", id);
+  return var;
 }
 
 //Set value with argument list
@@ -218,32 +218,32 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
 }
 
 JsonVariant SysModModel::getValue(const char * id) {
-  JsonObject object = findObject(id);
-  if (!object.isNull())
-    return object["value"];
+  JsonObject var = findVar(id);
+  if (!var.isNull())
+    return var["value"];
   else {
-    print->print("Value of %s does not exist!!\n", id);
+    print->print("Value of Var %s does not exist!!\n", id);
     return JsonVariant();
   }
 }
 
-JsonObject SysModModel::findObject(const char * id, JsonArray parent) {
+JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
   JsonArray root;
-  // print ->print("findObject %s %s\n", id, parent.isNull()?"root":"n");
+  // print ->print("findVar %s %s\n", id, parent.isNull()?"root":"n");
   if (parent.isNull()) {
     root = model->as<JsonArray>();
   }
   else {
     root = parent;
   }
-  JsonObject foundObject;
-  for(JsonObject object : root) {
-    if (foundObject.isNull()) {
-      if (object["id"] == id)
-        foundObject = object;
-      else if (!object["n"].isNull())
-        foundObject = findObject(id, object["n"]);
+  JsonObject foundVar;
+  for(JsonObject var : root) {
+    if (foundVar.isNull()) {
+      if (var["id"] == id)
+        foundVar = var;
+      else if (!var["n"].isNull())
+        foundVar = findVar(id, var["n"]);
     }
   }
-  return foundObject;
+  return foundVar;
 }

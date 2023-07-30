@@ -24,7 +24,7 @@ public:
 
   size_t println(const __FlashStringHelper * x);
 
-  void printObject(JsonObject object);
+  void printVar(JsonObject var);
 
   size_t printJson(const char * text, JsonVariantConst source);
 

@@ -33,28 +33,28 @@ SysModFiles::SysModFiles() :Module("Files") {
 //setup filesystem
 void SysModFiles::setup() {
   Module::setup();
-  parentObject = ui->initModule(parentObject, name);
+  parentVar = ui->initModule(parentVar, name);
 
-  JsonObject fileListObject = ui->initTable(parentObject, "flist", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Files");
-    web->addResponse(object["id"], "comment", "List of files");
-    JsonArray rows = web->addResponseA(object["id"], "table");
+  JsonObject tableVar = ui->initTable(parentVar, "flist", nullptr, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Files");
+    web->addResponse(var["id"], "comment", "List of files");
+    JsonArray rows = web->addResponseA(var["id"], "table");
     dirToJson(rows);
   });
-  ui->initText(fileListObject, "flName", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Name");
+  ui->initText(tableVar, "flName", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Name");
   });
-  ui->initText(fileListObject, "flSize", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Size (B)");
-  });
-
-  ui->initText(parentObject, "drsize", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Total FS size");
+  ui->initText(tableVar, "flSize", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Size (B)");
   });
 
-  ui->initButton(parentObject, "deleteFiles", nullptr, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "All but model.json");
-  }, [](JsonObject object) {
+  ui->initText(parentVar, "drsize", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Total FS size");
+  });
+
+  ui->initButton(parentVar, "deleteFiles", nullptr, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "comment", "All but model.json");
+  }, [](JsonObject var) {
     print->print("delete files\n");
     files->removeFiles("model.json", true); //all but model.json
   });

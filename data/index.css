@@ -13,7 +13,7 @@ text { /*currently only for buttonSaveNode and buttonCancelNode*/
 	font-size: 10px;
 }
 
-/* For textarea objects */
+/* For textarea variables */
 textarea {
 	width: 100%;
 	height: 100%;

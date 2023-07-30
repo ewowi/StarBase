@@ -82,7 +82,7 @@ void LedsV::ledFixProjectAndMap() {
       }); //create the right type, otherwise crash
 
     } //projection != 0
-    if (jrdws.deserialize()) { //find all the objects
+    if (jrdws.deserialize()) { //find all the vars
 
       if (projectionNr > p_Random) {
         nrOfLedsV = mappingTable.size();
@@ -104,7 +104,7 @@ void LedsV::ledFixProjectAndMap() {
 
       print->print("jrdws whd %d %d %d and P:%d V:%d\n", width, height, depth, nrOfLedsP, nrOfLedsV);
 
-      //at page refresh, done before these objects have been initialized...
+      //at page refresh, done before these vars have been initialized...
       mdl->setValueV("dimensions", "%dx%dx%d", ledsV.width, ledsV.height, ledsV.depth);
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
 

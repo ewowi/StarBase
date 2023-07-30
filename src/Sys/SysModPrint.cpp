@@ -28,13 +28,13 @@ void SysModPrint::setup() {
 
   print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initModule(parentObject, name);
+  parentVar = ui->initModule(parentVar, name);
 
-  ui->initSelect(parentObject, "pOut", 1, false, [](JsonObject object) { //uiFun default 1 (Serial)
-    web->addResponse(object["id"], "label", "Output");
-    web->addResponse(object["id"], "comment", "System log to Serial or Net print (WIP)");
+  ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var) { //uiFun default 1 (Serial)
+    web->addResponse(var["id"], "label", "Output");
+    web->addResponse(var["id"], "comment", "System log to Serial or Net print (WIP)");
 
-    JsonArray rows = web->addResponseA(object["id"], "select");
+    JsonArray rows = web->addResponseA(var["id"], "select");
     rows.add("No");
     rows.add("Serial");
     rows.add("UI");
@@ -42,8 +42,8 @@ void SysModPrint::setup() {
     web->clientsToJson(rows, true); //ip only
   });
 
-  ui->initTextArea(parentObject, "log", "WIP", true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "Show the printed log");
+  ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "comment", "Show the printed log");
   });
 
   print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
@@ -73,9 +73,9 @@ size_t SysModPrint::println(const __FlashStringHelper * x) {
   return Serial.println(x);
 }
 
-void SysModPrint::printObject(JsonObject object) {
+void SysModPrint::printVar(JsonObject var) {
   char sep[3] = "";
-  for (JsonPair pair: object) {
+  for (JsonPair pair: var) {
     print("%s%s: %s", sep, pair.key(), pair.value().as<String>().c_str());
     strcpy(sep, ", ");
   }

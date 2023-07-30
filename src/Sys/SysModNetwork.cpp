@@ -28,18 +28,18 @@ void SysModNetwork::setup() {
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initModule(parentObject, name);
-  ui->initText(parentObject, "ssid", "", false);
-  ui->initPassword(parentObject, "pw", "", [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Password");
+  parentVar = ui->initModule(parentVar, name);
+  ui->initText(parentVar, "ssid", "", false);
+  ui->initPassword(parentVar, "pw", "", [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Password");
   });
-  ui->initButton(parentObject, "connect", nullptr, [](JsonObject object) {
-    web->addResponse(object["id"], "comment", "Force reconnect (you loose current connection)");
-  }, [](JsonObject object) {
+  ui->initButton(parentVar, "connect", nullptr, [](JsonObject var) {
+    web->addResponse(var["id"], "comment", "Force reconnect (you loose current connection)");
+  }, [](JsonObject var) {
     forceReconnect = true;
   });
-  ui->initText(parentObject, "nwstatus", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Status");
+  ui->initText(parentVar, "nwstatus", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Status");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");

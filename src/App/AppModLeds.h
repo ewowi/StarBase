@@ -36,45 +36,45 @@ public:
   Module::setup();
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentObject = ui->initModule(parentObject, name);
+  parentVar = ui->initModule(parentVar, name);
 
-  ui->initSlider(parentObject, "bri", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Brightness");
-  }, [](JsonObject object) { //chFun
-    uint8_t bri = map(object["value"], 0, 100, 0, 255);
+  ui->initSlider(parentVar, "bri", map(5, 0, 255, 0, 100), [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Brightness");
+  }, [](JsonObject var) { //chFun
+    uint8_t bri = map(var["value"], 0, 100, 0, 255);
     FastLED.setBrightness(bri);
-    print->print("Set Brightness to %d -> %d\n", object["value"].as<int>(), bri);
+    print->print("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
   });
 
-  ui->initSelect(parentObject, "fx", 6, false, [](JsonObject object) { //uiFun. 6: Juggles is default
-    web->addResponse(object["id"], "label", "Effect");
-    web->addResponse(object["id"], "comment", "Effect to show");
-    JsonArray select = web->addResponseA(object["id"], "select");
+  ui->initSelect(parentVar, "fx", 6, false, [](JsonObject var) { //uiFun. 6: Juggles is default
+    web->addResponse(var["id"], "label", "Effect");
+    web->addResponse(var["id"], "comment", "Effect to show");
+    JsonArray select = web->addResponseA(var["id"], "select");
     for (Effect *effect:effects) {
       select.add(effect->name());
     }
-  }, [](JsonObject object) { //chFun
-    print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
+  }, [](JsonObject var) { //chFun
+    print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
   });
 
-  ui->initSelect(parentObject, "projection", 0, false, [](JsonObject object) { //uiFun. 1:  is default
-    // web->addResponse(object["id"], "label", "Effect");
-    web->addResponse(object["id"], "comment", "How to project fx to fixture");
-    JsonArray select = web->addResponseA(object["id"], "select");
+  ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun. 1:  is default
+    // web->addResponse(var["id"], "label", "Effect");
+    web->addResponse(var["id"], "comment", "How to project fx to fixture");
+    JsonArray select = web->addResponseA(var["id"], "select");
     select.add("None");
     select.add("Random");
     select.add("Distance from point");
-  }, [](JsonObject object) { //chFun
-    print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
+  }, [](JsonObject var) { //chFun
+    print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-    ledsV.projectionNr = object["value"];
+    ledsV.projectionNr = var["value"];
     ledsV.ledFixProjectAndMap();
   });
 
-  ui->initCanvas(parentObject, "pview", map(5, 0, 255, 0, 100), [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "Preview");
-    // web->addResponse(object["id"], "comment", "Click to enlarge");
-  }, nullptr, [](JsonObject object, uint8_t* buffer) { //loopFun
+  ui->initCanvas(parentVar, "pview", map(5, 0, 255, 0, 100), [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Preview");
+    // web->addResponse(var["id"], "comment", "Click to enlarge");
+  }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
     // send leds preview to clients
     for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
     {
@@ -88,31 +88,31 @@ public:
     buffer[3] = max(ledsV.nrOfLedsP * web->ws->count()/200, 16U); //interval in ms * 10, not too fast
   });
 
-  ui->initSelect(parentObject, "ledFix", 0, false, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "label", "LedFix");
-    JsonArray select = web->addResponseA(object["id"], "select");
+  ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "LedFix");
+    JsonArray select = web->addResponseA(var["id"], "select");
     files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
 
     // ui needs to load the file also initially
     char fileName[30] = "";
-    if (files->seqNrToName(fileName, object["value"])) {
+    if (files->seqNrToName(fileName, var["value"])) {
       web->addResponse("pview", "file", fileName);
     }
-  }, [](JsonObject object) { //chFun
-    print->print("%s Change %s to %d\n", "initSelect chFun", object["id"].as<const char *>(), object["value"].as<int>());
+  }, [](JsonObject var) { //chFun
+    print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-    ledsV.ledFixNr = object["value"];
+    ledsV.ledFixNr = var["value"];
     ledsV.ledFixProjectAndMap();
 
 
   }); //ledFix
 
-  ui->initText(parentObject, "dimensions", nullptr, true, [](JsonObject object) { //uiFun
-    // web->addResponseV(object["id"], "comment", "Max %dK", 32);
+  ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
+    // web->addResponseV(var["id"], "comment", "Max %dK", 32);
   });
 
-  ui->initText(parentObject, "nrOfLeds", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponseV(object["id"], "comment", "Max %d (%d by FastLed)", NUM_LEDS_Preview, NUM_LEDS_FastLed);
+  ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponseV(var["id"], "comment", "Max %d (%d by FastLed)", NUM_LEDS_Preview, NUM_LEDS_FastLed);
   });
 
   //set the values by chFun
@@ -121,21 +121,21 @@ public:
   mdl->setValueV("dimensions", "%dx%dx%d", ledsV.width, ledsV.height, ledsV.depth);
   mdl->setValueV("nrOfLeds", "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
 
-  ui->initNumber(parentObject, "fps", fps, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "Frames per second");
-  }, [](JsonObject object) { //chFun
-    fps = object["value"];
+  ui->initNumber(parentVar, "fps", fps, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "comment", "Frames per second");
+  }, [](JsonObject var) { //chFun
+    fps = var["value"];
     print->print("fps changed %d\n", fps);
   });
 
-  ui->initText(parentObject, "realFps", nullptr, true, [](JsonObject object) { //uiFun
-    web->addResponse(object["id"], "comment", "Depends on how much leds fastled has configured");
+  ui->initText(parentVar, "realFps", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
   });
 
-  ui->initNumber(parentObject, "dataPin", DATA_PIN, [](JsonObject object) { //uiFun
-    web->addResponseV(object["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
-  }, [](JsonObject object) { //chFun
-    print->print("Set data pin to %d\n", object["value"].as<int>());
+  ui->initNumber(parentVar, "dataPin", DATA_PIN, [](JsonObject var) { //uiFun
+    web->addResponseV(var["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
+  }, [](JsonObject var) { //chFun
+    print->print("Set data pin to %d\n", var["value"].as<int>());
   });
 
   effects.push_back(new RainbowEffect);

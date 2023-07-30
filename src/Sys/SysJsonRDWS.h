@@ -10,7 +10,7 @@
 
 //Lazy Json Read Deserialize Write Serialize (write / serialize not implemented yet)
 //ArduinoJson won't work on very large LedFix.json, this does
-//only support what is currently needed: read / deserialize uint8/16/char object elements (arrays not yet)
+//only support what is currently needed: read / deserialize uint8/16/char var elements (arrays not yet)
 class JsonRDWS {
 
   public:
@@ -37,51 +37,51 @@ class JsonRDWS {
     files->filesChange();
   }
 
-  //look for uint8 object
+  //look for uint8 var
   void lookFor(const char * id, uint8_t * value) {
     // const char *p = (const char*)&value; //pointer trick
     uint8List.push_back(value);
-    addToObjects(id, "uint8", uint8List.size()-1);
+    addToVars(id, "uint8", uint8List.size()-1);
   }
 
-  //look for uint16 object
+  //look for uint16 var
   void lookFor(const char * id, uint16_t * value) {
     // const char *p = (const char*)&value; //pointer trick
     uint16List.push_back(value);
-    addToObjects(id, "uint16", uint16List.size()-1);
+    addToVars(id, "uint16", uint16List.size()-1);
   }
 
-  //look for char object
+  //look for char var
   void lookFor(const char * id, char * value) {
     // const char *p = (const char*)&value; //pointer trick
     charList.push_back(value);
-    addToObjects(id, "char", charList.size()-1);
+    addToVars(id, "char", charList.size()-1);
   }
 
   //look for array of integers
   void lookFor(const char * id, void(*fun)(std::vector<uint16_t>)) {
     // const char *p = (const char*)&value; //pointer trick
     funList.push_back(fun);
-    addToObjects(id, "fun", funList.size()-1);
+    addToVars(id, "fun", funList.size()-1);
   }
 
-  //reads from file until all objects have been found (then stops reading)
-  //returns false if not all objects to look for are found
+  //reads from file until all vars have been found (then stops reading)
+  //returns false if not all vars to look for are found
   bool deserialize() {
     f.read(&character, sizeof(byte));
     while (f.available()) // && !foundAll
       next();
-    bool foundAll = foundCounter >= objectDetails.size();
+    bool foundAll = foundCounter >= varDetails.size();
     if (foundAll)
-      print->print("JsonRDWS found all what it was looking for %d >= %d\n", foundCounter, objectDetails.size());
+      print->print("JsonRDWS found all what it was looking for %d >= %d\n", foundCounter, varDetails.size());
     else
-      print->print("JsonRDWS Not all objects looked for where found %d < %d\n", foundCounter, objectDetails.size());
+      print->print("JsonRDWS Not all vars looked for where found %d < %d\n", foundCounter, varDetails.size());
     f.close();
     return foundAll;
   }
 
 private:
-  struct ObjectDetails {
+  struct VarDetails {
     const char * id;
     const char * type;
     size_t index;
@@ -89,47 +89,47 @@ private:
 
   File f;
   uint8_t character; //the last character parsed
-  std::vector<ObjectDetails> objectDetails; //details of objects looking for
-  std::vector<uint8_t *> uint8List; //pointer of uint8 to assign found values to (index of list stored in objectDetails)
+  std::vector<VarDetails> varDetails; //details of vars looking for
+  std::vector<uint8_t *> uint8List; //pointer of uint8 to assign found values to (index of list stored in varDetails)
   std::vector<uint16_t *> uint16List; //same for uint16
   std::vector<char *> charList; //same for char
   std::vector<void(*)(std::vector<uint16_t>)> funList; //same for function calls
-  std::vector<String> objectStack; //objects and arrays store their names in a stack
+  std::vector<String> varStack; //objects and arrays store their names in a stack
   bool collectNumbers = false; //array can ask to store all numbers found in array (now used for x,y,z coordinates)
   std::vector<uint16_t> uint16CollectList; //collected numbers
-  char lastObjectId[100] = ""; //last found object id in json
-  char beforeLastObjectId[100] = ""; //last found object id in json
+  char lastVarId[100] = ""; //last found var id in json
+  char beforeLastVarId[100] = ""; //last found var id in json
   size_t foundCounter = 0; //count how many of the id's to lookFor have been actually found
 
-  //called by lookedFor, store the object details in objectDetails
-  void addToObjects(const char * id, const char * type, size_t index) {
-    ObjectDetails od;
-    od.id = id;
-    od.type = type;
-    od.index = index;
-    objectDetails.push_back(od);
+  //called by lookedFor, store the var details in varDetails
+  void addToVars(const char * id, const char * type, size_t index) {
+    VarDetails vd;
+    vd.id = id;
+    vd.type = type;
+    vd.index = index;
+    varDetails.push_back(vd);
   }
 
   void next() {
     if (character=='{') { //object begin
       // print->print("Object %c\n", character);
-      objectStack.push_back(lastObjectId); //copy!!
-      print->print("Object push %s %d\n", lastObjectId, objectStack.size());
-      strcpy(lastObjectId, "");
+      varStack.push_back(lastVarId); //copy!!
+      print->print("Object push %s %d\n", lastVarId, varStack.size());
+      strcpy(lastVarId, "");
       f.read(&character, sizeof(byte));
     }
     else if (character=='}') { //object end
-      strcpy(lastObjectId, objectStack[objectStack.size()-1].c_str());
-      print->print("Object pop %s %d\n", lastObjectId, objectStack.size());
-      check(lastObjectId);
-      objectStack.pop_back();
+      strcpy(lastVarId, varStack[varStack.size()-1].c_str());
+      print->print("Object pop %s %d\n", lastVarId, varStack.size());
+      check(lastVarId);
+      varStack.pop_back();
       f.read(&character, sizeof(byte));
     }
     else if (character=='[') { //array begin
       // print->print("Array %c\n", character);
-      objectStack.push_back(lastObjectId); //copy!!
-      // print->print("Array push %s %d\n", lastObjectId, objectStack.size());
-      strcpy(lastObjectId, "");
+      varStack.push_back(lastVarId); //copy!!
+      // print->print("Array push %s %d\n", lastVarId, varStack.size());
+      strcpy(lastVarId, "");
       f.read(&character, sizeof(byte));
 
       //now we want to collect the array elements
@@ -137,18 +137,18 @@ private:
       uint16CollectList.clear(); //to be sure not to have old numbers (e.g. pin)
     }
     else if (character==']') { //array end
-      //assign back the popped object id from [
-      strcpy(lastObjectId, objectStack[objectStack.size()-1].c_str());
-      // print->print("Array pop %s %d %d\n", lastObjectId, objectStack.size(), uint16CollectList.size());
-      check(lastObjectId);
+      //assign back the popped var id from [
+      strcpy(lastVarId, varStack[varStack.size()-1].c_str());
+      // print->print("Array pop %s %d %d\n", lastVarId, varStack.size(), uint16CollectList.size());
+      check(lastVarId);
 
       //check the parent array, if exists
-      if (objectStack.size()-2 >=0) {
-        // print->print("  Parent check %s\n", objectStack[objectStack.size()-2].c_str());
-        strcpy(beforeLastObjectId, objectStack[objectStack.size()-2].c_str());
-        check(beforeLastObjectId);
+      if (varStack.size()-2 >=0) {
+        // print->print("  Parent check %s\n", varStack[varStack.size()-2].c_str());
+        strcpy(beforeLastVarId, varStack[varStack.size()-2].c_str());
+        check(beforeLastVarId);
       }
-      objectStack.pop_back(); //remove objectid of this array
+      varStack.pop_back(); //remove var id of this array
       collectNumbers = false;
       uint16CollectList.clear();
       f.read(&character, sizeof(byte));
@@ -157,14 +157,14 @@ private:
       char value[100] = "";
       f.readBytesUntil('"', value, sizeof(value));
     
-      if (strcmp(lastObjectId, "") == 0) {
+      if (strcmp(lastVarId, "") == 0) {
         // print->print("Element [%s]\n", value);
-        strcpy(lastObjectId, value);
+        strcpy(lastVarId, value);
       }
       else {
-        print->print("String %s: [%s]\n", lastObjectId, value);
-        check(lastObjectId, value);
-        strcpy(lastObjectId, "");
+        print->print("String %s: [%s]\n", lastVarId, value);
+        check(lastVarId, value);
+        strcpy(lastVarId, "");
       }
 
       f.read(&character, sizeof(byte));
@@ -181,13 +181,13 @@ private:
       }
       value[len++] = '\0';
 
-      // print->print("Number %s: [%s]\n", lastObjectId, value);
+      // print->print("Number %s: [%s]\n", lastVarId, value);
       if (collectNumbers)
         uint16CollectList.push_back(atoi(value));
 
-      check(lastObjectId, value);
+      check(lastVarId, value);
   
-      strcpy(lastObjectId, "");
+      strcpy(lastVarId, "");
     }
     else if (character==':') {
       // print->print("semicolon %c\n", character);
@@ -215,19 +215,19 @@ private:
     }
   } //next
 
-  void check(char * objectId, char * value = nullptr) {
-    for (std::vector<ObjectDetails>::iterator od=objectDetails.begin(); od!=objectDetails.end(); ++od) {
-      // print->print("check %s %s %s\n", od->id, object, value);
-      if (strcmp(od->id, objectId)==0) {
-        // print->print("JsonRDWS found %s:%s %d %s\n", objectId, od->type, od->index, value?value:"", uint16CollectList.size());
-        if (strcmp(od->type, "uint8") ==0) *uint8List[od->index] = atoi(value);
-        if (strcmp(od->type, "uint16") ==0) *uint16List[od->index] = atoi(value);
-        if (strcmp(od->type, "char") ==0) strcpy(charList[od->index], value);
-        if (strcmp(od->type, "fun") ==0) funList[od->index](uint16CollectList);
+  void check(char * varId, char * value = nullptr) {
+    for (std::vector<VarDetails>::iterator vd=varDetails.begin(); vd!=varDetails.end(); ++vd) {
+      // print->print("check %s %s %s\n", vd->id, varId, value);
+      if (strcmp(vd->id, varId)==0) {
+        // print->print("JsonRDWS found %s:%s %d %s\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size());
+        if (strcmp(vd->type, "uint8") ==0) *uint8List[vd->index] = atoi(value);
+        if (strcmp(vd->type, "uint16") ==0) *uint16List[vd->index] = atoi(value);
+        if (strcmp(vd->type, "char") ==0) strcpy(charList[vd->index], value);
+        if (strcmp(vd->type, "fun") ==0) funList[vd->index](uint16CollectList);
         foundCounter++;
       }
     }
-    // foundAll = foundCounter >= objectDetails.size();
+    // foundAll = foundCounter >= varDetails.size();
     // if (foundAll)
     //   print->print("Hooray, LazyJsonRDWS found all what we were looking for, no further search needed\n");
   }

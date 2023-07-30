@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModPins.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -29,7 +29,7 @@ void SysModPins::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
-  ui->initCanvas(parentVar, "board", map(5, 0, 255, 0, 100), [](JsonObject var) { //uiFun
+  ui->initCanvas(parentVar, "board", -1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Board layout");
     web->addResponse(var["id"], "comment", "WIP");
   }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
@@ -46,9 +46,9 @@ void SysModPins::setup() {
     buffer[3] = 10*10; //every 10 sec 
   });
 
-  ui->initCheckBox(parentVar, "pin2", true, nullptr, updateGPIO);
-  ui->initCheckBox(parentVar, "pin4", false);
-  ui->initCheckBox(parentVar, "pin33", true);
+  ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);
+  ui->initCheckBox(parentVar, "pin4", false, false);
+  ui->initCheckBox(parentVar, "pin33", true, false);
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModNetwork.h
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -37,10 +37,10 @@ private:
   byte apChannel = 1; // 2.4GHz WiFi AP channel (1-13)
   byte apHide    = 0; // hidden AP SSID
   bool interfacesInited = false;
-  static bool forceReconnect;
   DNSServer dnsServer;
   bool noWifiSleep = true;
 
+  static bool forceReconnect;
 };
   
 static SysModNetwork *net;

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModUI.h
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -36,40 +36,40 @@ public:
 
   void loop();
 
-  JsonObject initModule(JsonObject parent, const char * id, const char * value = nullptr, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "module", value, true, uiFun, chFun, loopFun);
+  JsonObject initModule(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "module", value, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initTable(JsonObject parent, const char * id, const char * value = nullptr, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "table", value, false, uiFun, chFun, loopFun);
+  JsonObject initTable(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "table", value, readOnly, uiFun, chFun, loopFun);
   }
 
   JsonObject initText(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<const char *>(parent, id, "text", value, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "password", value, false, uiFun, chFun, loopFun);
+  JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "password", value, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initNumber(JsonObject parent, const char * id, int value, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "number", value, false, uiFun, chFun, loopFun);
+  JsonObject initNumber(JsonObject parent, const char * id, int value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "number", value, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initSlider(JsonObject parent, const char * id, int value, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "range", value, false, uiFun, chFun, loopFun);
+  JsonObject initSlider(JsonObject parent, const char * id, int value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "range", value, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initCanvas(JsonObject parent, const char * id, int value, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "canvas", value, false, uiFun, chFun, loopFun);
+  JsonObject initCanvas(JsonObject parent, const char * id, int value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "canvas", value, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initCheckBox(JsonObject parent, const char * id, bool value, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<bool>(parent, id, "checkbox", value, false, uiFun, chFun, loopFun);
+  JsonObject initCheckBox(JsonObject parent, const char * id, bool value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<bool>(parent, id, "checkbox", value, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initButton(JsonObject parent, const char * id, const char * value = nullptr, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "button", value, true, uiFun, chFun, loopFun);
+  JsonObject initButton(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "button", value, readOnly, uiFun, chFun, loopFun);
   }
 
   JsonObject initSelect(JsonObject parent, const char * id, uint8_t value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {

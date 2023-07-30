@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysJsonRDWS.h
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -114,13 +114,13 @@ private:
     if (character=='{') { //object begin
       // print->print("Object %c\n", character);
       varStack.push_back(lastVarId); //copy!!
-      print->print("Object push %s %d\n", lastVarId, varStack.size());
+      // print->print("Object push %s %d\n", lastVarId, varStack.size());
       strcpy(lastVarId, "");
       f.read(&character, sizeof(byte));
     }
     else if (character=='}') { //object end
       strcpy(lastVarId, varStack[varStack.size()-1].c_str());
-      print->print("Object pop %s %d\n", lastVarId, varStack.size());
+      // print->print("Object pop %s %d\n", lastVarId, varStack.size());
       check(lastVarId);
       varStack.pop_back();
       f.read(&character, sizeof(byte));

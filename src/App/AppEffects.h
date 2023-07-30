@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppEffects.h
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -11,7 +11,7 @@
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 static unsigned long call = 0;
 
-//should not contain bytes to keep mem as small as possible
+//should not contain variables/bytes to keep mem as small as possible!!
 class Effect {
 public:
   virtual const char * name() { return nullptr;}
@@ -28,7 +28,7 @@ public:
   void setup() {} //not implemented yet
   void loop() {
     // FastLED's built-in rainbow generator
-    fill_rainbow( ledsP, ledsV.nrOfLedsP, gHue, 7);
+    fill_rainbow( ledsP, LedsV::nrOfLedsP, gHue, 7);
   }
 };
 
@@ -46,7 +46,7 @@ public:
   static void addGlitter( fract8 chanceOfGlitter) 
   {
     if( random8() < chanceOfGlitter) {
-      ledsP[ random16(ledsV.nrOfLedsP) ] += CRGB::White;
+      ledsP[ random16(LedsV::nrOfLedsP) ] += CRGB::White;
     }
   }
 };
@@ -59,8 +59,8 @@ public:
   void setup() {} //not implemented yet
   void loop() {
     // a colored dot sweeping back and forth, with fading trails
-    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 20);
-    int pos = beatsin16( 13, 0, ledsV.nrOfLedsV-1 );
+    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
+    int pos = beatsin16( 13, 0, LedsV::nrOfLedsV-1 );
     // ledsV[pos] += CHSV( gHue, 255, 192);
     ledsV[pos] = ledsV.getPixelColor(pos) + CHSV( gHue, 255, 192);
     // CRGB x = ledsV[pos];
@@ -75,10 +75,10 @@ public:
   void setup() {} //not implemented yet
   void loop() {
     // a colored dot sweeping back and forth, with fading trails
-    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 70); //physical leds
+    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 70); //physical leds
     // int pos0 = (call-1)%ledsV.nrOfLeds;
     // leds[pos0] = CHSV( 0,0,0);
-    int pos = call%ledsV.nrOfLedsV; //Virtual leds
+    int pos = call%LedsV::nrOfLedsV; //Virtual leds
     ledsV[pos] = CHSV( gHue, 255, 192); //make sore the right physical leds get their value
   }
 };
@@ -91,8 +91,8 @@ public:
   void setup() {} //not implemented yet
   void loop() {
     // random colored speckles that blink in and fade smoothly
-    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 10);
-    int pos = random16(ledsV.nrOfLedsP);
+    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 10);
+    int pos = random16(LedsV::nrOfLedsP);
     ledsP[pos] += CHSV( gHue + random8(64), 200, 255);
   }
 };
@@ -108,7 +108,7 @@ public:
     uint8_t BeatsPerMinute = 62;
     CRGBPalette16 palette = PartyColors_p;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-    for( int i = 0; i < ledsV.nrOfLedsV; i++) { //9948
+    for( int i = 0; i < LedsV::nrOfLedsV; i++) { //9948
       ledsV[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
     }
   }
@@ -125,10 +125,10 @@ public:
   void setup() {} //not implemented yet
   void loop() {
     // eight colored dots, weaving in and out of sync with each other
-    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 20);
+    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
     uint8_t dothue = 0;
     for( int i = 0; i < 8; i++) {
-      ledsP[beatsin16( i+7, 0, ledsV.nrOfLedsP-1 )] |= CHSV(dothue, 200, 255);
+      ledsP[beatsin16( i+7, 0, LedsV::nrOfLedsP-1 )] |= CHSV(dothue, 200, 255);
       dothue += 32;
     }
   }
@@ -143,12 +143,12 @@ public:
   void loop() {
     float ripple_interval = 1.3;// * (SEGMENT.intensity/128.0);
 
-    fill_solid(ledsP, ledsV.nrOfLedsP, CRGB::Black);
+    fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
     // fill(CRGB::Black);
 
-    uint16_t mW = ledsV.width;
-    uint16_t mH = ledsV.height;
-    uint16_t mD = ledsV.depth;
+    uint16_t mW = LedsV::width;
+    uint16_t mH = LedsV::height;
+    uint16_t mD = LedsV::depth;
 
     for (int z=0; z<mD; z++) {
         for (int x=0; x<mW; x++) {
@@ -171,14 +171,14 @@ public:
     uint16_t origin_x, origin_y, origin_z, d;
     float diameter;
 
-    fill_solid(ledsP, ledsV.nrOfLedsP, CRGB::Black);
+    fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
     // fill(CRGB::Black);
 
     uint32_t interval = call/((256.0-128.0)/20.0);
 
-    uint16_t mW = ledsV.width;
-    uint16_t mH = ledsV.height;
-    uint16_t mD = ledsV.depth;
+    uint16_t mW = LedsV::width;
+    uint16_t mH = LedsV::height;
+    uint16_t mD = LedsV::depth;
 
     origin_x = 3.5+sinf(interval)*2.5;
     origin_y = 3.5+cosf(interval)*2.5;
@@ -193,7 +193,7 @@ public:
                 d = distance(x, y, z, origin_x, origin_y, origin_z);
 
                 if (d>diameter && d<diameter+1) {
-                    ledsV[x + ledsV.height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+                    ledsV[x + LedsV::height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
                 }
             }
         }
@@ -208,16 +208,16 @@ public:
   }
   void setup() {} //not implemented yet
   void loop() {
-    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 16);
+    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
     CRGBPalette16 palette = PartyColors_p;
 
     for (size_t i = 8; i > 0; i--) {
-      uint8_t x = beatsin8(128/8 + i, 0, ledsV.width - 1);
-      uint8_t y = beatsin8(128/8 - i, 0, ledsV.height - 1);
+      uint8_t x = beatsin8(128/8 + i, 0, LedsV::width - 1);
+      uint8_t y = beatsin8(128/8 - i, 0, LedsV::height - 1);
       CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
-      ledsV[x + y * ledsV.width] = color;
+      ledsV[x + y * LedsV::width] = color;
     }
-    // blur2d(ledsP, ledsV.width, ledsV.height, 255);
+    // blur2d(ledsP, LedsV::width, LedsV::height, 255);
     // SEGMENT.blur(SEGMENT.custom1>>3);
 
   }

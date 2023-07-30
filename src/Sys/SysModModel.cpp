@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModModel.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -47,25 +47,25 @@ void SysModModel::setup() {
     web->addResponse(var["id"], "label", "Size");
   });
 
-  ui->initButton(parentVar, "saveModel", nullptr, [](JsonObject var) {
+  ui->initButton(parentVar, "saveModel", nullptr, false, [](JsonObject var) {
     web->addResponse(var["id"], "comment", "Write to model.json (manual save only currently)");
   }, [](JsonObject var) {
     doWriteModel = true;
   });
 
-  ui->initCheckBox(parentVar, "showObsolete", false, [](JsonObject var) {
+  ui->initCheckBox(parentVar, "showObsolete", false, false, [](JsonObject var) {
     web->addResponse(var["id"], "comment", "Show in UI (refresh)");
   }, [](JsonObject var) {
     doShowObsolete = var["value"];
   });
 
-  ui->initButton(parentVar, "deleteObsolete", nullptr, [](JsonObject var) {
+  ui->initButton(parentVar, "deleteObsolete", nullptr, false, [](JsonObject var) {
     web->addResponse(var["id"], "label", "Delete obsolete variables");
     web->addResponse(var["id"], "comment", "WIP");
   }, [](JsonObject var) {
   });
 
-  ui->initButton(parentVar, "deleteModel", nullptr, [](JsonObject var) {
+  ui->initButton(parentVar, "deleteModel", nullptr, false, [](JsonObject var) {
     web->addResponse(var["id"], "comment", "Back to defaults");
   }, [](JsonObject var) {
     print->print("delete model json\n");

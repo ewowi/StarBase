@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModLeds.h
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -38,7 +38,7 @@ public:
 
   parentVar = ui->initModule(parentVar, name);
 
-  ui->initSlider(parentVar, "bri", map(5, 0, 255, 0, 100), [](JsonObject var) { //uiFun
+  ui->initSlider(parentVar, "bri", map(5, 0, 255, 0, 100), false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Brightness");
   }, [](JsonObject var) { //chFun
     uint8_t bri = map(var["value"], 0, 100, 0, 255);
@@ -71,7 +71,7 @@ public:
     ledsV.ledFixProjectAndMap();
   });
 
-  ui->initCanvas(parentVar, "pview", map(5, 0, 255, 0, 100), [](JsonObject var) { //uiFun
+  ui->initCanvas(parentVar, "pview", -1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Preview");
     // web->addResponse(var["id"], "comment", "Click to enlarge");
   }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
@@ -83,9 +83,9 @@ public:
       buffer[i*3+4+2] = ledsP[i].blue;
     }
     //new values
-    buffer[0] = ledsV.nrOfLedsP/256;
-    buffer[1] = ledsV.nrOfLedsP%256;
-    buffer[3] = max(ledsV.nrOfLedsP * web->ws->count()/200, 16U); //interval in ms * 10, not too fast
+    buffer[0] = LedsV::nrOfLedsP/256;
+    buffer[1] = LedsV::nrOfLedsP%256;
+    buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
   });
 
   ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
@@ -117,22 +117,22 @@ public:
 
   //set the values by chFun
   //to do: add page reload event (as these values should be given each time a page reloads, and they are not included in model.json as they are readonly...
-  print->print("post whd %d %d %d and P:%d V:%d\n", ledsV.width, ledsV.height, ledsV.depth, ledsV.nrOfLedsP, ledsV.nrOfLedsV);
-  mdl->setValueV("dimensions", "%dx%dx%d", ledsV.width, ledsV.height, ledsV.depth);
-  mdl->setValueV("nrOfLeds", "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
+  print->print("post whd %d %d %d and P:%d V:%d\n", LedsV::width, LedsV::height, LedsV::depth, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+  mdl->setValueV("dimensions", "%dx%dx%d", LedsV::width, LedsV::height, LedsV::depth);
+  mdl->setValueV("nrOfLeds", "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
 
-  ui->initNumber(parentVar, "fps", fps, [](JsonObject var) { //uiFun
+  ui->initNumber(parentVar, "fps", fps, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Frames per second");
   }, [](JsonObject var) { //chFun
-    fps = var["value"];
-    print->print("fps changed %d\n", fps);
+    AppModLeds::fps = var["value"];
+    print->print("fps changed %d\n", AppModLeds::fps);
   });
 
   ui->initText(parentVar, "realFps", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
   });
 
-  ui->initNumber(parentVar, "dataPin", DATA_PIN, [](JsonObject var) { //uiFun
+  ui->initNumber(parentVar, "dataPin", DATA_PIN, false, [](JsonObject var) { //uiFun
     web->addResponseV(var["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
   }, [](JsonObject var) { //chFun
     print->print("Set data pin to %d\n", var["value"].as<int>());

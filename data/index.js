@@ -95,16 +95,16 @@ function generateHTML(parentNode, json) {
         let h2Node = cE("h2");
         h2Node.innerText = initCap(json.id);
         newNode.appendChild(h2Node);
-          let pNode = cE("p");
-          pNode.innerText = "Enable"
-            let checkBoxNode = cE("input");
-            checkBoxNode.id = json.id;
-            checkBoxNode.type = "checkbox";
-          pNode.appendChild(checkBoxNode);
-            let commentNode = cE("comment");
-            commentNode.innerText = "WIP"
-          pNode.appendChild(commentNode);
-      newNode.appendChild(pNode);
+          // let pNode = cE("p");
+          // pNode.innerText = "Enable"
+          //   let checkBoxNode = cE("input");
+          //   checkBoxNode.id = json.id;
+          //   checkBoxNode.type = "checkbox";
+          // pNode.appendChild(checkBoxNode);
+          // let commentNode = cE("comment");
+          // commentNode.innerText = "WIP"
+          // pNode.appendChild(commentNode);
+          // newNode.appendChild(pNode);
       setupBox(newNode);
     }
     else if (json.type == "table") {
@@ -168,14 +168,14 @@ function generateHTML(parentNode, json) {
       pNode.innerText += "🔍";
     }
     else { //input
-      if (json.ro && json.type != "button") { //pka display
-        if (parentNode.nodeName.toLocaleLowerCase() == "table") { //table add the id in the header
-          let tdNode = cE("th");
-          tdNode.id = json.id;
-          tdNode.innerText = initCap(json.id); //label uiFun response can change it
-          parentNode.firstChild.firstChild.appendChild(tdNode); //<thead><tr>
-        }
-        else {
+      if (parentNode.nodeName.toLocaleLowerCase() == "table") { //table add the id in the header
+        let tdNode = cE("th");
+        tdNode.id = json.id;
+        tdNode.innerText = initCap(json.id); //label uiFun response can change it
+        parentNode.firstChild.firstChild.appendChild(tdNode); //<thead><tr>
+      }
+      else {
+        if (json.ro && json.type != "button") { //pka display
           newNode = cE("p");
           newNode.appendChild(labelNode);
           let spanNode = cE("span");
@@ -183,42 +183,42 @@ function generateHTML(parentNode, json) {
           if (json.value) spanNode.innerText = json.value;
           newNode.appendChild(spanNode);
         }
-      }
-      else { //not ro or button
-        newNode = cE("p");
-        let buttonSaveNode = null;
-        let buttonCancelNode = null;
-        if (json.type != "button") newNode.appendChild(labelNode);
-        let inputNode = cE("input");
-        inputNode.id = json.id;
-        inputNode.type = json.type;
-        if (json.type == "checkbox") {
-          if (json.value) inputNode.checked = json.value;
-          inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
-        } else if (json.type == "button") {
-          inputNode.value = initCap(json.id);
-          inputNode.addEventListener('click', (event) => {console.log(json.type + " click", event);setButton(event.target);});
-        } else {
-          //input types: text, search, tel, url, email, and password.
-          if (json.value) inputNode.value = json.value;
-          inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
-          if (["text", "password", "number"].includes(json.type) ) {
-            buttonSaveNode = cE("text");
-            buttonSaveNode.innerText = "✅";
-            buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
-            buttonCancelNode = cE("text");
-            buttonCancelNode.innerText = "🛑";
-            buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+        else { //not ro or button
+          newNode = cE("p");
+          let buttonSaveNode = null;
+          let buttonCancelNode = null;
+          if (json.type != "button") newNode.appendChild(labelNode);
+          let inputNode = cE("input");
+          inputNode.id = json.id;
+          inputNode.type = json.type;
+          if (json.type == "checkbox") {
+            if (json.value) inputNode.checked = json.value;
+            inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
+          } else if (json.type == "button") {
+            inputNode.value = initCap(json.id);
+            inputNode.addEventListener('click', (event) => {console.log(json.type + " click", event);setButton(event.target);});
+          } else {
+            //input types: text, search, tel, url, email, and password.
+            if (json.value) inputNode.value = json.value;
+            inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
+            if (["text", "password", "number"].includes(json.type) ) {
+              buttonSaveNode = cE("text");
+              buttonSaveNode.innerText = "✅";
+              buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+              buttonCancelNode = cE("text");
+              buttonCancelNode.innerText = "🛑";
+              buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+            }
+            if (json.type == "number") {
+              inputNode.setAttribute('size', '4');
+              inputNode.maxlength = 4;
+              // inputNode.size = 4;
+            }
           }
-          if (json.type == "number") {
-            inputNode.setAttribute('size', '4');
-            inputNode.maxlength = 4;
-            // inputNode.size = 4;
-          }
+          newNode.appendChild(inputNode);
+          if (buttonSaveNode) newNode.appendChild(buttonSaveNode);
+          if (buttonCancelNode) newNode.appendChild(buttonCancelNode);
         }
-        newNode.appendChild(inputNode);
-        if (buttonSaveNode) newNode.appendChild(buttonSaveNode);
-        if (buttonCancelNode) newNode.appendChild(buttonCancelNode);
       }
     }
 
@@ -323,9 +323,17 @@ function processUpdate(json) {
   
           for (var row of json[key].table) {
             let trNode = cE("tr");
-            for (var columnRow of row) {
+            for (var columnRow of row) {              
               let tdNode = cE("td");
-              tdNode.innerText = columnRow;
+              if (typeof(columnRow) == "boolean") { //if column is a checkbox
+                let checkBoxNode = cE("input");
+                checkBoxNode.type = "checkbox";
+                checkBoxNode.checked = columnRow;
+                tdNode.appendChild(checkBoxNode);
+              }
+              else {
+                tdNode.innerText = columnRow;
+              }
               trNode.appendChild(tdNode);
             }
             tbodyNode.appendChild(trNode);

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      main.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -13,7 +13,7 @@
 // git push origin -f
 
 #include "Module.h"
-#include "Modules.h"
+#include "Sys/SysModModules.h"
 #include "Sys/SysModPrint.h"
 #include "Sys/SysModWeb.h"
 #include "Sys/SysModUI.h"
@@ -60,6 +60,7 @@ void setup() {
   #ifdef USERMOD_E131
     mdls->add(e131mod);
   #endif
+  //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
 
   mdls->setup();
 }

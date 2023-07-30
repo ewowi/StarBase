@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModSystem.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -35,8 +35,8 @@ void SysModSystem::setup() {
   });
   ui->initText(parentVar, "stack");
 
-  ui->initButton(parentVar, "restart", nullptr, nullptr, [](JsonObject var) {  //chFun
-    web->ws->closeAll(1012);
+  ui->initButton(parentVar, "restart", nullptr, false, nullptr, [](JsonObject var) {  //chFun
+    SysModWeb::ws->closeAll(1012);
     ESP.restart();
   });
 

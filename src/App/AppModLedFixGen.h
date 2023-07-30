@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModLedFixGen.h
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -61,7 +61,7 @@ public:
 
     }); //ledFixGen
 
-    ui->initButton(parentVar, "generate", nullptr, [](JsonObject var) { //uiFun
+    ui->initButton(parentVar, "generate", nullptr, false, [](JsonObject var) { //uiFun
       // web->addResponse(var["id"], "comment", "All but model.json");
     }, [](JsonObject var) {
 

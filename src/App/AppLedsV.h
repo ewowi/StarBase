@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppLedsV.h
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -42,10 +42,6 @@ public:
   static uint16_t height; 
   static uint16_t depth; 
 
-  //need to make these static as they are called in lambda functions
-  static std::vector<std::vector<uint16_t>> mappingTable;
-  static uint16_t mappingTableLedCounter;
-
   uint8_t projectionNr = -1;
   uint8_t ledFixNr = -1;
 
@@ -85,6 +81,10 @@ public:
   //   return *this;
   // }
 
+private:
+  //need to make these static as they are called in lambda functions
+  static std::vector<std::vector<uint16_t>> mappingTable;
+  static uint16_t mappingTableLedCounter;
 };
 
 //after header split they all needs to be static otherwise multiple definition link error

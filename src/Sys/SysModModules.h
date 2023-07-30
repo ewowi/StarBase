@@ -1,7 +1,7 @@
 /*
    @title     StarMod
-   @file      Modules.h
-   @date      20230729
+   @file      SysModModules.h
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -13,12 +13,11 @@
 
 #include <vector>
 
-class Modules {
-  private:
-    std::vector<Module *> modules;
+class Modules:public Module {
+public:
+  static bool newConnection; //need to be static otherwise crash
 
-  public:
-    static bool newConnection; //need to be static otherwise crash
+  Modules();
 
   void setup();
 
@@ -28,6 +27,8 @@ class Modules {
 
   void connected();
 
+private:
+  static std::vector<Module *> modules;
 };
 
 static Modules *mdls;

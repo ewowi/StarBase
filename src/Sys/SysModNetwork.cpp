@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModNetwork.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -10,7 +10,7 @@
 
 #include "SysModNetwork.h"
 #include "Module.h"
-#include "Modules.h"
+#include "SysModModules.h"
 
 #include "SysModPrint.h"
 #include "SysModWeb.h"
@@ -21,6 +21,7 @@
 
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 bool SysModNetwork::forceReconnect = false;
+
 SysModNetwork::SysModNetwork() :Module("Network") {};
 
 //setup wifi an async webserver
@@ -30,10 +31,10 @@ void SysModNetwork::setup() {
 
   parentVar = ui->initModule(parentVar, name);
   ui->initText(parentVar, "ssid", "", false);
-  ui->initPassword(parentVar, "pw", "", [](JsonObject var) { //uiFun
+  ui->initPassword(parentVar, "pw", "", false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Password");
   });
-  ui->initButton(parentVar, "connect", nullptr, [](JsonObject var) {
+  ui->initButton(parentVar, "connect", nullptr, false, [](JsonObject var) {
     web->addResponse(var["id"], "comment", "Force reconnect (you loose current connection)");
   }, [](JsonObject var) {
     forceReconnect = true;
@@ -81,7 +82,7 @@ void SysModNetwork::handleConnection() {
 
     interfacesInited = true;
 
-    mdls->newConnection = true; // send all modules connect notification
+    Modules::newConnection = true; // send all modules connect notification
 
     // shut down AP
     if (apActive) { //apBehavior != AP_BEHAVIOR_ALWAYS
@@ -130,7 +131,7 @@ void SysModNetwork::initAP() {
   {
     mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
-    mdls->newConnection = true; // send all modules connect notification
+    Modules::newConnection = true; // send all modules connect notification
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());

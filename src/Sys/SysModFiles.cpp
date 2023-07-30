@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModFiles.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -35,7 +35,7 @@ void SysModFiles::setup() {
   Module::setup();
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "flist", nullptr, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "flist", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Files");
     web->addResponse(var["id"], "comment", "List of files");
     JsonArray rows = web->addResponseA(var["id"], "table");
@@ -52,7 +52,7 @@ void SysModFiles::setup() {
     web->addResponse(var["id"], "label", "Total FS size");
   });
 
-  ui->initButton(parentVar, "deleteFiles", nullptr, [](JsonObject var) { //uiFun
+  ui->initButton(parentVar, "deleteFiles", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "All but model.json");
   }, [](JsonObject var) {
     print->print("delete files\n");

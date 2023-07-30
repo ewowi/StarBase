@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModLeds.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -87,17 +87,17 @@ void LedsV::ledFixProjectAndMap() {
       if (projectionNr > p_Random) {
         nrOfLedsV = mappingTable.size();
 
-        // uint16_t x=0;
-        // uint16_t y=0;
-        // for (std::vector<uint16_t>physMap:mappingTable) {
-        //   print->print("led %d mapping: ", x);
-        //   for (uint16_t pos:physMap) {
-        //     print->print(" %d", pos);
-        //     y++;
-        //   }
-        //   print->print("\n");
-        //   x++;
-        // }
+        uint16_t x=0;
+        uint16_t y=0;
+        for (std::vector<uint16_t>physMap:mappingTable) {
+          print->print("led %d mapping: first %d size %d", x, physMap[0], physMap.size());
+          // for (uint16_t pos:physMap) {
+          //   print->print(" %d", pos);
+          //   y++;
+          // }
+          print->print("\n");
+          x++;
+        }
       }
       else
         nrOfLedsV = nrOfLedsP;
@@ -105,7 +105,7 @@ void LedsV::ledFixProjectAndMap() {
       print->print("jrdws whd %d %d %d and P:%d V:%d\n", width, height, depth, nrOfLedsP, nrOfLedsV);
 
       //at page refresh, done before these vars have been initialized...
-      mdl->setValueV("dimensions", "%dx%dx%d", ledsV.width, ledsV.height, ledsV.depth);
+      mdl->setValueV("dimensions", "%dx%dx%d", LedsV::width, LedsV::height, LedsV::depth);
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
 
       //send to pview a message to get file filename

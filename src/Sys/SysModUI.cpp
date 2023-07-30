@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModUI.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -40,7 +40,7 @@ void SysModUI::setup() {
 
   parentVar = initModule(parentVar, name);
 
-  JsonObject tableVar = initTable(parentVar, "oloops", nullptr, [](JsonObject var) { //uiFun
+  JsonObject tableVar = initTable(parentVar, "oloops", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Object loops");
     web->addResponse(var["id"], "comment", "Loops initiated by an var");
     JsonArray rows = web->addResponseA(var["id"], "table");
@@ -71,14 +71,14 @@ void SysModUI::loop() {
     if (millis() - varLoop->lastMillis >= varLoop->interval) {
       varLoop->lastMillis = millis();
 
-      web->ws->cleanupClients();
-      if (web->ws->count()) {
+      SysModWeb::ws->cleanupClients();
+      if (SysModWeb::ws->count()) {
 
         //send var to notify client data coming is for var (client then knows it is canvas and expects data for it)
         setChFunAndWs(varLoop->var, "new");
 
         //send leds info in binary data format
-        AsyncWebSocketMessageBuffer * wsBuf = web->ws->makeBuffer(varLoop->bufSize * 3 + 4);
+        AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 4);
         if (wsBuf) {//out of memory
           wsBuf->lock();
           uint8_t* buffer = wsBuf->get();
@@ -95,7 +95,7 @@ void SysModUI::loop() {
           varLoop->interval = buffer[3]*10; //from cs to ms
           // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
-          for (auto client:web->ws->getClients()) {
+          for (auto client:SysModWeb::ws->getClients()) {
             if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
               client->binary(wsBuf);
             else {
@@ -104,13 +104,13 @@ void SysModUI::loop() {
             }
           }
           wsBuf->unlock();
-          web->ws->_cleanBuffers();
+          SysModWeb::ws->_cleanBuffers();
         }
         else {
           print->print("loopFun WS buffer allocation failed\n");
-          web->ws->closeAll(1013); //code 1013 = temporary overload, try again later
-          web->ws->cleanupClients(0); //disconnect all clients to release memory
-          web->ws->_cleanBuffers();
+          SysModWeb::ws->closeAll(1013); //code 1013 = temporary overload, try again later
+          SysModWeb::ws->cleanupClients(0); //disconnect all clients to release memory
+          SysModWeb::ws->_cleanBuffers();
         }
       }
 
@@ -138,7 +138,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
   if (var.isNull()) {
     print->print("initVar create new %s: %s\n", type, id);
     if (parent.isNull()) {
-      JsonArray vars = mdl->model->as<JsonArray>();
+      JsonArray vars = SysModModel::model->as<JsonArray>();
       var = vars.createNestedObject();
     } else {
       if (parent["n"].isNull()) parent.createNestedArray("n"); //if parent exist and no "n" array, create it

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModWeb.cpp
-   @date      20230729
+   @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -44,7 +44,7 @@ void SysModWeb::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "clist", nullptr, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "clist", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Clients");
     web->addResponse(var["id"], "comment", "List of clients");
     JsonArray rows = web->addResponseA(var["id"], "table");
@@ -90,7 +90,7 @@ void SysModWeb::loop() {
       ui->processUiFun("clist");
     }
 
-    for (auto client:web->ws->getClients()) {
+    for (auto client:SysModWeb::ws->getClients()) {
       mdl->setValueB("clIsFull", client->queueIsFull());
       mdl->setValueI("clStatus", client->status());
     }
@@ -264,7 +264,7 @@ void SysModWeb::sendDataWs(JsonVariant json) {
 
 void SysModWeb::sendDataWs(AsyncWebSocketClient * client, bool inclDef) {
   //tbd: remove inclDef paramater (now only used to type overload sendDataWS)
-  sendDataWs(client, *mdl->model);
+  sendDataWs(client, *SysModModel::model);
 }
 
 //add an url to the webserver to listen to

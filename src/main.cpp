@@ -27,7 +27,9 @@
 #ifdef USERMOD_E131
   #include "User/UserModE131.h"
 #endif
-#include "UserModHA.h"
+#ifdef USERMOD_HA
+  #include "User/UserModHA.h"
+#endif
 
 //setup all modules
 void setup() {
@@ -46,7 +48,9 @@ void setup() {
   #ifdef USERMOD_E131
     e131mod = new UserModE131();
   #endif
-  hamod = new UserModHA();
+  #ifdef USERMOD_HA
+    hamod = new UserModHA();
+  #endif
 
   //prefered default order in the UI
   mdls->add(lds);
@@ -62,9 +66,11 @@ void setup() {
   #ifdef USERMOD_E131
     mdls->add(e131mod);
   #endif
-  //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
-  mdls->add(hamod);
+  #ifdef USERMOD_HA
+    mdls->add(hamod);
+  #endif
 
+  //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();
 }
 

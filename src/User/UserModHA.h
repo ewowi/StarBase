@@ -1,3 +1,13 @@
+/*
+   @title     StarMod
+   @file      UserModHA.h
+   @date      20230731
+   @repo      https://github.com/ewoudwijma/StarMod
+   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @Copyright (c) 2023 Github StarMod Commit Authors
+   @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+*/
+
 #include <WiFi.h>
 #include <ArduinoHA.h>
 
@@ -12,6 +22,7 @@ public:
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
+
   static void onStateCommand(bool state, HALight* sender) {
       Serial.print("State: ");
       Serial.println(state);
@@ -40,7 +51,7 @@ public:
   void connected() {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
     // set device's details (optional)
-    device.setName("Playground");
+    device.setName("StarMod");
     device.setSoftwareVersion("0.0.1");
 
 
@@ -75,7 +86,7 @@ public:
     WiFiClient client;
     HADevice device;
     HAMqtt* mqtt = new HAMqtt(client, device);
-    HALight* light = new HALight("playgroud", HALight::BrightnessFeature | HALight::RGBFeature);
+    HALight* light = new HALight("starmod", HALight::BrightnessFeature | HALight::RGBFeature);
 };
 
 static UserModHA *hamod;

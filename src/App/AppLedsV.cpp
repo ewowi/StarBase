@@ -20,16 +20,16 @@ std::vector<std::vector<uint16_t>> LedsV::mappingTable;
 uint16_t LedsV::mappingTableLedCounter = 0;
 uint16_t LedsV::nrOfLedsP = 64; //amount of physical leds
 uint16_t LedsV::nrOfLedsV = 64;  //amount of virtual leds (calculated by projection)
-uint16_t LedsV::width = 8; 
-uint16_t LedsV::height = 8; 
-uint16_t LedsV::depth = 1; 
+uint16_t LedsV::widthP = 8; 
+uint16_t LedsV::heightP = 8; 
+uint16_t LedsV::depthP = 1; 
+uint16_t LedsV::widthV = 8; 
+uint16_t LedsV::heightV = 8; 
+uint16_t LedsV::depthV = 1; 
 
-enum Projections
-{
-  p_None,
-  p_Random,
-  p_DistanceFromPoint
-};
+uint8_t LedsV::projectionNr = -1;
+uint8_t LedsV::ledFixNr = -1;
+uint8_t LedsV::fxDimension = -1;
 
 //load ledfix json file, parse it and depending on the projection, create a mapping for it
 void LedsV::ledFixProjectAndMap() {
@@ -42,38 +42,65 @@ void LedsV::ledFixProjectAndMap() {
     mappingTable.clear();
 
     //what to deserialize
-    jrdws.lookFor("width", &width);
-    jrdws.lookFor("height", &height);
-    jrdws.lookFor("depth", &depth);
+    jrdws.lookFor("width", &widthP);
+    jrdws.lookFor("height", &heightP);
+    jrdws.lookFor("depth", &depthP);
     jrdws.lookFor("nrOfLeds", &nrOfLedsP);
 
+    //defaults
+    widthV = widthP;
+    heightV = heightP;
+    depthV = depthP;
+    nrOfLedsV = nrOfLedsP;
+
     if (projectionNr > p_Random) { //0 and 1 (none, random have no mapping)
-      jrdws.lookFor("leds", [](std::vector<uint16_t> uint16CollectList) {
+      jrdws.lookFor("leds", [](std::vector<uint16_t> uint16CollectList) { //this will be called for each tuple of coordinates!
         // print->print("funList ");
         // for (uint16_t num:uint16CollectList)
         //   print->print(" %d", num);
         // print->print("\n");
 
         if (uint16CollectList.size()>=1 && uint16CollectList.size()<=3) { //we only comprehend 1D, 2D, 3D 
-          uint16_t dist;
+          // print->print("projectionNr p:%d f:%d s:%d\n", LedsV::projectionNr, LedsV::fxDimension, uint16CollectList.size());
+          if (LedsV::projectionNr == p_DistanceFromPoint) {
+            uint16_t bucket;// = -1;
+            if (LedsV::fxDimension == 1) { //we do distance from point
+              //if effect is 1D
 
-          if (uint16CollectList.size() == 1)
-            dist = uint16CollectList[0];
-          else if (uint16CollectList.size() == 2)
-            dist = distance(uint16CollectList[0],uint16CollectList[1],0,0,0,0);
-          else if (uint16CollectList.size() == 3)
-            dist = distance(uint16CollectList[0],uint16CollectList[1],uint16CollectList[2],0,0,0);
+              if (uint16CollectList.size() == 1) //ledfix is 1D
+                bucket = uint16CollectList[0];
+              else if (uint16CollectList.size() == 2) //ledfix is 2D
+                bucket = distance(uint16CollectList[0],uint16CollectList[1],0,0,0,0);
+              else if (uint16CollectList.size() == 3) //ledfix is 3D
+                bucket = distance(uint16CollectList[0],uint16CollectList[1],uint16CollectList[2],0,0,0);
 
-          //add physical tables if not present
-          if (dist >= mappingTable.size()) {
-            for (int i = mappingTable.size(); i<=dist;i++) {
-              // print->print("mapping add physMap %d %d\n", dist, mappingTable.size());
-              std::vector<uint16_t> physMap;
-              mappingTable.push_back(physMap);
+            }
+            else if (LedsV::fxDimension == 2) { //we do distance from x, y+z
+              depthV = 1;
+              if (uint16CollectList.size() == 1) //ledfix is 1D
+                bucket = uint16CollectList[0];
+              else if (uint16CollectList.size() == 2) //ledfix is 2D
+                bucket = distance(uint16CollectList[0],uint16CollectList[1],0,0,0,0);
+              else if (uint16CollectList.size() == 3) {//ledfix is 3D
+                widthV = widthP + heightP;
+                bucket = uint16CollectList[0] + uint16CollectList[1] + uint16CollectList[2] * widthV;
+                // print->print("2D to 3D bucket %d %d\n", bucket, widthV);
+              }
+            }
+
+            if (bucket != -1) {
+              //add physical tables if not present
+              if (bucket >= mappingTable.size()) {
+                for (int i = mappingTable.size(); i<=bucket;i++) {
+                  // print->print("mapping add physMap %d %d\n", bucket, mappingTable.size());
+                  std::vector<uint16_t> physMap;
+                  mappingTable.push_back(physMap);
+                }
+              }
+
+              mappingTable[bucket].push_back(mappingTableLedCounter++);
             }
           }
-
-          mappingTable[dist].push_back(mappingTableLedCounter++);
 
           // print->print("mapping %d V:%d P:%d\n", dist, mappingTable.size(), mappingTableLedCounter);
 
@@ -90,32 +117,23 @@ void LedsV::ledFixProjectAndMap() {
         uint16_t x=0;
         uint16_t y=0;
         for (std::vector<uint16_t>physMap:mappingTable) {
-          print->print("led %d mapping: first %d size %d", x, physMap[0], physMap.size());
-          // for (uint16_t pos:physMap) {
-          //   print->print(" %d", pos);
-          //   y++;
-          // }
-          print->print("\n");
+          if (physMap.size()) {
+            print->print("ledV %d mapping: firstLedP: %d #ledsP: %d", x, physMap[0], physMap.size());
+            // for (uint16_t pos:physMap) {
+            //   print->print(" %d", pos);
+            //   y++;
+            // }
+            print->print("\n");
+          }
           x++;
         }
       }
-      else
-        nrOfLedsV = nrOfLedsP;
 
-      print->print("jrdws whd %d %d %d and P:%d V:%d\n", width, height, depth, nrOfLedsP, nrOfLedsV);
+      print->print("jrdws whd P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLedsV);
 
       //at page refresh, done before these vars have been initialized...
-      mdl->setValueV("dimensions", "%dx%dx%d", LedsV::width, LedsV::height, LedsV::depth);
+      mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
-
-      //send to pview a message to get file filename
-      JsonDocument *responseDoc = web->getResponseDoc();
-      responseDoc->clear(); //needed for deserializeJson?
-      JsonVariant responseVariant = responseDoc->as<JsonVariant>();
-
-      web->addResponse("pview", "file", fileName);
-      web->sendDataWs(responseVariant);
-      print->printJson("ledfix chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
     } // if deserialize
   } //if fileName
 }

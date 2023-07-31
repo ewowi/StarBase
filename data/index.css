@@ -1,3 +1,13 @@
+/*
+   @title     StarMod
+   @file      index.css
+   @date      20230730
+   @repo      https://github.com/ewoudwijma/StarMod
+   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @Copyright (c) 2023 Github StarMod Commit Authors
+   @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+*/
+
 /* default nodes */
 label {
   margin-right: 6px; /*space after*/
@@ -33,6 +43,11 @@ textarea {
 	padding: 8px;
 	font-size: 18px; /* WLEDMM: smaller is better (was 20px)*/
 	overflow: auto;
+}
+
+.ndiv {
+	border: 2px solid black;
+	margin-left: 50px;
 }
 
 /*table layout */

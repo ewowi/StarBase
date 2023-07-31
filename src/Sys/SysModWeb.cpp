@@ -129,16 +129,17 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
     clientsChanged = true;
   } else if(type == WS_EVT_DATA){
     AwsFrameInfo * info = (AwsFrameInfo*)arg;
-    printClient("WS event data", client);
     // print->print("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
-    if (info->final && info->index == 0 && info->len == len){
+    if (info->final && info->index == 0 && info->len == len) { //not multipart
+      printClient("WS event data", client);
       // the whole message is in a single frame and we got all of its data (max. 1450 bytes)
       if (info->opcode == WS_TEXT)
       {
         if (len > 0 && len < 10 && data[0] == 'p') {
           // application layer ping/pong heartbeat.
           // client-side socket layer ping packets are unresponded (investigate)
-          printClient("WS client pong", client);
+          // printClient("WS client pong", client); //crash?
+          print->print("pong\n");
           client->text(F("pong"));
           return;
         }
@@ -155,7 +156,6 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
             client->text(F("{\"success\":true}")); // we have to send something back otherwise WS connection closes
           } else {
             const char * error = processWSFunc(responseVariant); //processJson, adds to responsedoc
-
 
             if (responseVariant.size()) {
               print->printJson("WS_EVT_DATA json", responseVariant);
@@ -197,17 +197,19 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
           }
         }
       }
-      print->print("WS multipart message.\n");
+      print->print("WS multipart message f:%d i:%d len:%d == %d\n", info->final, info->index, info->len, len);
     }
   } else if (type == WS_EVT_ERROR){
     //error was received from the other end
-    printClient("WS error", client);
-    Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+    // printClient("WS error", client); //crashes
+    print->print("WS error\n");
+    // Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
 
   } else if (type == WS_EVT_PONG){
     //pong message was received (in response to a ping request maybe)
-    printClient("WS pong", client);
-    Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
+    // printClient("WS pong", client); //crashes!
+    print->print("WS pong\n");
+    // Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
   }
 }
 
@@ -241,7 +243,8 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
           if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
             client->text(wsBuf);
           else 
-            printClient("sendDataWs client full or not connected", client);
+            // printClient("sendDataWs client full or not connected", client); //crash??
+            print->print("sendDataWs client full or not connected\n");
         }
         // DEBUG_PRINTLN(F("to multiple clients."));
       }

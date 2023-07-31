@@ -40,9 +40,9 @@ void SysModUI::setup() {
 
   parentVar = initModule(parentVar, name);
 
-  JsonObject tableVar = initTable(parentVar, "oloops", nullptr, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Object loops");
-    web->addResponse(var["id"], "comment", "Loops initiated by an var");
+  JsonObject tableVar = initTable(parentVar, "vloops", nullptr, false, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Variable loops");
+    web->addResponse(var["id"], "comment", "Loops initiated by a variable");
     JsonArray rows = web->addResponseA(var["id"], "table");
 
     for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
@@ -78,6 +78,7 @@ void SysModUI::loop() {
         setChFunAndWs(varLoop->var, "new");
 
         //send leds info in binary data format
+        //tbd: this can crash on 64*64 matrices...
         AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 4);
         if (wsBuf) {//out of memory
           wsBuf->lock();
@@ -122,11 +123,11 @@ void SysModUI::loop() {
   if (millis() - secondMillis >= 1000 || !secondMillis) {
     secondMillis = millis();
 
-    //if something changed in oloops
+    //if something changed in vloops
     if (varLoopsChanged) {
       varLoopsChanged = false;
 
-      processUiFun("oloops");
+      processUiFun("vloops");
     }
   }
 }
@@ -145,14 +146,14 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       var = parent["n"].createNestedObject();
       // serializeJson(model, Serial);Serial.println();
     }
-    var["id"] = id;
+    var["id"] = (char *)id; //copy!!
   }
   else
     print->print("Object %s already defined\n", id);
 
   if (!var.isNull()) {
     if (var["type"] != type) 
-      var["type"] = type;
+      var["type"] = (char *)type; //copy!!
     if (var["ro"] != readOnly) 
       var["ro"] = readOnly;
     //readOnly's will be deleted, if not already so

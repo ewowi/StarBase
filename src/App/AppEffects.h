@@ -146,9 +146,9 @@ public:
     fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
     // fill(CRGB::Black);
 
-    uint16_t mW = LedsV::width;
-    uint16_t mH = LedsV::height;
-    uint16_t mD = LedsV::depth;
+    uint16_t mW = LedsV::widthV;
+    uint16_t mH = LedsV::heightV;
+    uint16_t mD = LedsV::depthV;
 
     for (int z=0; z<mD; z++) {
         for (int x=0; x<mW; x++) {
@@ -176,9 +176,9 @@ public:
 
     uint32_t interval = call/((256.0-128.0)/20.0);
 
-    uint16_t mW = LedsV::width;
-    uint16_t mH = LedsV::height;
-    uint16_t mD = LedsV::depth;
+    uint16_t mW = LedsV::widthV;
+    uint16_t mH = LedsV::heightV;
+    uint16_t mD = LedsV::depthV;
 
     origin_x = 3.5+sinf(interval)*2.5;
     origin_y = 3.5+cosf(interval)*2.5;
@@ -193,7 +193,7 @@ public:
                 d = distance(x, y, z, origin_x, origin_y, origin_z);
 
                 if (d>diameter && d<diameter+1) {
-                    ledsV[x + LedsV::height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+                    ledsV[x + LedsV::heightV * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
                 }
             }
         }
@@ -212,10 +212,10 @@ public:
     CRGBPalette16 palette = PartyColors_p;
 
     for (size_t i = 8; i > 0; i--) {
-      uint8_t x = beatsin8(128/8 + i, 0, LedsV::width - 1);
-      uint8_t y = beatsin8(128/8 - i, 0, LedsV::height - 1);
+      uint8_t x = beatsin8(128/8 + i, 0, LedsV::widthV - 1);
+      uint8_t y = beatsin8(128/8 - i, 0, LedsV::heightV - 1);
       CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
-      ledsV[x + y * LedsV::width] = color;
+      ledsV[x + y * LedsV::widthV] = color;
     }
     // blur2d(ledsP, LedsV::width, LedsV::height, 255);
     // SEGMENT.blur(SEGMENT.custom1>>3);

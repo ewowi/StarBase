@@ -22,6 +22,13 @@ static float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16
     return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
 }
 
+enum Projections
+{
+  p_None,
+  p_Random,
+  p_DistanceFromPoint
+};
+
 class LedsV {
 
 public:
@@ -38,12 +45,16 @@ public:
   static uint16_t nrOfLedsP; //amount of physical leds
   static uint16_t nrOfLedsV;  //amount of virtual leds (calculated by projection)
 
-  static uint16_t width; 
-  static uint16_t height; 
-  static uint16_t depth; 
+  static uint16_t widthP; 
+  static uint16_t heightP; 
+  static uint16_t depthP; 
+  static uint16_t widthV; 
+  static uint16_t heightV; 
+  static uint16_t depthV; 
 
-  uint8_t projectionNr = -1;
-  uint8_t ledFixNr = -1;
+  static uint8_t projectionNr;
+  static uint8_t ledFixNr;
+  static uint8_t fxDimension;
 
   void ledFixProjectAndMap();
 
@@ -83,7 +94,7 @@ public:
 
 private:
   //need to make these static as they are called in lambda functions
-  static std::vector<std::vector<uint16_t>> mappingTable;
+  static std::vector<std::vector<uint16_t>> mappingTable; //not customMappingTable, just MappingTable
   static uint16_t mappingTableLedCounter;
 };
 

@@ -22,18 +22,6 @@ public:
 
     parentVar = ui->initModule(parentVar, name);
 
-    ui->initText(parentVar, "width", nullptr, false, [](JsonObject var) { //uiFun
-      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
-    });
-
-    ui->initText(parentVar, "height", nullptr, false, [](JsonObject var) { //uiFun
-      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
-    });
-
-    ui->initText(parentVar, "depth", nullptr, false, [](JsonObject var) { //uiFun
-      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
-    });
-
     enum Fixtures
     {
       f_1DSpiral,
@@ -58,6 +46,23 @@ public:
       select.add("3DGlobe"); //6
       select.add("3DHumanSizedCube"); //7
     }, [](JsonObject var) { //chFun
+      JsonObject parentVar = mdl->findVar(var["id"]);
+      parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+      if (var["value"].as<int>() == f_2DMatrix) {
+        ui->initText(parentVar, "width", nullptr, false);//, [](JsonObject var) { //uiFun
+        // });
+
+        ui->initText(parentVar, "height", nullptr, false);//, [](JsonObject var) { //uiFun
+        // });
+
+        ui->initSelect(parentVar, "top", 0, false, [](JsonObject var) { //uiFun
+          // web->addResponse(var["id"], "label", "Ledfix generator");
+          JsonArray select = web->addResponseA(var["id"], "select");
+          select.add("Top"); //0
+          select.add("Bottom"); //1
+        });
+      }
+      web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
 
     }); //ledFixGen
 

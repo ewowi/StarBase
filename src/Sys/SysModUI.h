@@ -56,6 +56,7 @@ public:
     return initVarAndUpdate<int>(parent, id, "number", value, readOnly, uiFun, chFun, loopFun);
   }
 
+  //init a range slider, range between 0 and 255!
   JsonObject initSlider(JsonObject parent, const char * id, int value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "range", value, readOnly, uiFun, chFun, loopFun);
   }

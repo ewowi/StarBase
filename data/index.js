@@ -1,3 +1,11 @@
+// @title     StarMod
+// @file      index.css
+// @date      20230730
+// @repo      https://github.com/ewoudwijma/StarMod
+// @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+// @Copyright (c) 2023 Github StarMod Commit Authors
+// @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+
 let d = document;
 let ws = null;
 
@@ -36,6 +44,7 @@ function makeWS() {
     } 
     else {
       gId('connind').style.backgroundColor = "var(--c-l)";
+      // console.log("onmessage", e.data);
       let json = JSON.parse(e.data);
       if (!htmlGenerated) { //generate array of variables
         if (Array.isArray(json)) {
@@ -75,8 +84,8 @@ function generateHTML(parentNode, json) {
       // to get a value that is either negative, positive, or zero.
       return a.o - b.o; //o is order nr
     });
-    for (var element of json) //if isArray then variables of array
-      generateHTML(parentNode, element);
+    for (var node of json) //if isArray then variables of array
+      generateHTML(parentNode, node);
   }
   else {
     if (parentNode == null) {
@@ -87,7 +96,10 @@ function generateHTML(parentNode, json) {
     let labelNode = cE("label");
     labelNode.innerText = initCap(json.id);
 
+    let ndivNeeded = true;
+
     if (json.type == "module") {
+      ndivNeeded = false;
       newNode = cE("div");
       newNode.id = json.id
       newNode.draggable = true;
@@ -185,6 +197,7 @@ function generateHTML(parentNode, json) {
         }
         else { //not ro or button
           newNode = cE("p");
+          let rangeValueNode = null;
           let buttonSaveNode = null;
           let buttonCancelNode = null;
           if (json.type != "button") newNode.appendChild(labelNode);
@@ -200,22 +213,36 @@ function generateHTML(parentNode, json) {
           } else {
             //input types: text, search, tel, url, email, and password.
             if (json.value) inputNode.value = json.value;
-            inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
-            if (["text", "password", "number"].includes(json.type) ) {
-              buttonSaveNode = cE("text");
-              buttonSaveNode.innerText = "✅";
-              buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
-              buttonCancelNode = cE("text");
-              buttonCancelNode.innerText = "🛑";
-              buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
-            }
-            if (json.type == "number") {
-              inputNode.setAttribute('size', '4');
-              inputNode.maxlength = 4;
-              // inputNode.size = 4;
+            if (json.type == "range") {
+              inputNode.max = 255;
+              // inputNode.addEventListener('input', (event) => {console.log(json.type + " input", event);gId(json.id + "_rv").innerText = this.value;});
+              inputNode.addEventListener('change', (event) => {
+                console.log(json.type + " change", event.target, json.id);
+                gId(json.id + "_rv").innerText = event.target.value;
+                setInput(event.target);
+              });
+              rangeValueNode = cE("span");
+              rangeValueNode.id = json.id + "_rv"; //rangeValue
+              if (json.value) rangeValueNode.innerText = json.value;
+            } else {
+              inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
+              if (["text", "password", "number"].includes(json.type) ) {
+                buttonSaveNode = cE("text");
+                buttonSaveNode.innerText = "✅";
+                buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+                buttonCancelNode = cE("text");
+                buttonCancelNode.innerText = "🛑";
+                buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+              }
+              if (json.type == "number") {
+                inputNode.setAttribute('size', '4');
+                inputNode.maxlength = 4;
+                // inputNode.size = 4;
+              }
             }
           }
           newNode.appendChild(inputNode);
+          if (rangeValueNode) newNode.appendChild(rangeValueNode);
           if (buttonSaveNode) newNode.appendChild(buttonSaveNode);
           if (buttonCancelNode) newNode.appendChild(buttonCancelNode);
         }
@@ -232,149 +259,175 @@ function generateHTML(parentNode, json) {
       }
     }
     
-    if (json.n) generateHTML(newNode, json.n); //details (e.g. module)
+    if (json.n) {
+      if (ndivNeeded) {
+        divNode = cE("div");
+        divNode.id = json.id + "_n";
+        divNode.classList.add("ndiv");
+        newNode.appendChild(divNode);
+        generateHTML(divNode, json.n);
+      }
+      else
+        generateHTML(newNode, json.n); //details (e.g. module)
+    }
   }
 }
 
 function flushUIFunCommands() {
-  var command = {};
-  command["uiFun"] = uiFunCommands; //ask to run uiFun for vars (to add the options)
-  console.log("uiFunCommands", command);
-  requestJson(command);
-  uiFunCommands = [];
+  if (uiFunCommands.length > 0) { //if something to flush
+    var command = {};
+    command["uiFun"] = uiFunCommands; //ask to run uiFun for vars (to add the options)
+    console.log("uiFunCommands", command);
+    requestJson(command);
+    uiFunCommands = [];
+  }
 }
 
 function processUpdate(json) {
   // console.log("processUpdate", json);
-  for (var key of Object.keys(json)) {
-    // console.log("processUpdate", key, json[key]);
-    if (key != "uiFun") { //was the request
-      // let id = gId(key);
-      if (gId(key)) {
-        let overruleValue = false;
-
-        if (json[key].label) {
-          console.log("processUpdate label", key, json[key].label);
-          if (gId(key).nodeName.toLocaleLowerCase() == "input" && gId(key).type == "button") {
-            gId(key).value = initCap(json[key].label);
-          }
-          else {
-            let labelNode;
-            if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
-              labelNode = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
-            else if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
-              labelNode = gId(key); //the <th>
-            else
-              labelNode = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
-            labelNode.innerText = initCap(json[key].label);
-          }
-        }
-        if (json[key].comment) {
-          console.log("processUpdate comment", key, json[key].comment);
-          // normal: <p><label><input id><comment></p>
-          // table or canvas <p><label><comment></p><canvas id>
-          // 1) if exist then replace else add
-          let parentNode;
-          if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
-            parentNode = gId(key).previousSibling; //<p><label> before <canvas>/<table>
-          else
-            parentNode = gId(key).parentNode;
-          let commentNode = parentNode.querySelector('comment');
-          // console.log("commentNode", commentNode);
-          if (!commentNode) { //create if not exist
-            commentNode = cE("comment");
-            parentNode.appendChild(commentNode);
-          }
-          commentNode.innerText = json[key].comment;        
-        }
-        if (json[key].select) {
-          console.log("processUpdate select", key, json[key].select);
-          if (gId(key).nodeName.toLocaleLowerCase() == "span") { //readonly. tbd: only the displayed value needs to be in the select
-            var index = 0;
-            for (var value of json[key].select) {
-              if (parseInt(gId(key).textContent) == index) {
-                // console.log("processUpdate select1", value, gId(key), gId(key).textContent, index);
-                gId(key).textContent = value; //replace the id by its value
-                // console.log("processUpdate select2", value, gId(key), gId(key).textContent, index);
-                overruleValue = true; //in this case we do not want the value set
-              }
-              index++;
-            }
-          }
-          else { //select
-            var index = 0;
-            //remove all old options first
-            while (gId(key).options && gId(key).options.length > 0) {
-              gId(key).remove(0);
-            }
-            for (var value of json[key].select) {
-              let optNode = cE("option");
-              optNode.value = index;
-              optNode.text = value;
-              gId(key).appendChild(optNode);
-              index++;
-            }
-          }
-        }
-        if (json[key].table) {
-          console.log("processUpdate table", key, json[key].table);
-          //remove table rows
-          let tbodyNode = cE('tbody');
+  if (json.id) { //this is a var object
+    console.log("processUpdate variable", gId(json.id), json.n);
+    if (gId(json.id + "_n")) 
+      gId(json.id + "_n").remove();
+    if (json.n) {
+      divNode = cE("div");
+      divNode.id = json.id + "_n";
+      divNode.classList.add("ndiv");
+      gId(json.id).parentNode.appendChild(divNode);
+      generateHTML(divNode, json.n);
+    }
+    flushUIFunCommands(); //make sure uiFuns of new elements are called
+  }
+  else {
+    for (var key of Object.keys(json)) {
+      if (key != "uiFun") { //was the request
+        // let id = gId(key);
+        if (gId(key)) {
+          let overruleValue = false;
   
-          for (var row of json[key].table) {
-            let trNode = cE("tr");
-            for (var columnRow of row) {              
-              let tdNode = cE("td");
-              if (typeof(columnRow) == "boolean") { //if column is a checkbox
-                let checkBoxNode = cE("input");
-                checkBoxNode.type = "checkbox";
-                checkBoxNode.checked = columnRow;
-                tdNode.appendChild(checkBoxNode);
-              }
-              else {
-                tdNode.innerText = columnRow;
-              }
-              trNode.appendChild(tdNode);
+          if (json[key].label) {
+            console.log("processUpdate label", key, json[key].label);
+            if (gId(key).nodeName.toLocaleLowerCase() == "input" && gId(key).type == "button") {
+              gId(key).value = initCap(json[key].label);
             }
-            tbodyNode.appendChild(trNode);
+            else {
+              let labelNode;
+              if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
+                labelNode = gId(key).previousSibling.firstChild; //<p><label> before <canvas>/<table>
+              else if (gId(key).nodeName.toLocaleLowerCase() == "th") //table header
+                labelNode = gId(key); //the <th>
+              else
+                labelNode = gId(key).parentNode.firstChild; //<label> before <span or input> within <p>
+              labelNode.innerText = initCap(json[key].label);
+            }
           }
-          gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
+          if (json[key].comment) {
+            console.log("processUpdate comment", key, json[key].comment);
+            // normal: <p><label><input id><comment></p>
+            // table or canvas <p><label><comment></p><canvas id>
+            // 1) if exist then replace else add
+            let parentNode;
+            if (gId(key).nodeName.toLocaleLowerCase() == "canvas" || gId(key).nodeName.toLocaleLowerCase() == "table")
+              parentNode = gId(key).previousSibling; //<p><label> before <canvas>/<table>
+            else
+              parentNode = gId(key).parentNode;
+            let commentNode = parentNode.querySelector('comment');
+            // console.log("commentNode", commentNode);
+            if (!commentNode) { //create if not exist
+              commentNode = cE("comment");
+              parentNode.appendChild(commentNode);
+            }
+            commentNode.innerText = json[key].comment;        
+          }
+          if (json[key].select) {
+            console.log("processUpdate select", key, json[key].select);
+            if (gId(key).nodeName.toLocaleLowerCase() == "span") { //readonly. tbd: only the displayed value needs to be in the select
+              var index = 0;
+              for (var value of json[key].select) {
+                if (parseInt(gId(key).textContent) == index) {
+                  // console.log("processUpdate select1", value, gId(key), gId(key).textContent, index);
+                  gId(key).textContent = value; //replace the id by its value
+                  // console.log("processUpdate select2", value, gId(key), gId(key).textContent, index);
+                  overruleValue = true; //in this case we do not want the value set
+                }
+                index++;
+              }
+            }
+            else { //select
+              var index = 0;
+              //remove all old options first
+              while (gId(key).options && gId(key).options.length > 0) {
+                gId(key).remove(0);
+              }
+              for (var value of json[key].select) {
+                let optNode = cE("option");
+                optNode.value = index;
+                optNode.text = value;
+                gId(key).appendChild(optNode);
+                index++;
+              }
+            }
+          }
+          if (json[key].table) {
+            console.log("processUpdate table", key, json[key].table);
+            //remove table rows
+            let tbodyNode = cE('tbody');
+    
+            for (var row of json[key].table) {
+              let trNode = cE("tr");
+              for (var columnRow of row) {              
+                let tdNode = cE("td");
+                if (typeof(columnRow) == "boolean") { //if column is a checkbox
+                  let checkBoxNode = cE("input");
+                  checkBoxNode.type = "checkbox";
+                  checkBoxNode.checked = columnRow;
+                  tdNode.appendChild(checkBoxNode);
+                }
+                else {
+                  tdNode.innerText = columnRow;
+                }
+                trNode.appendChild(tdNode);
+              }
+              tbodyNode.appendChild(trNode);
+            }
+            gId(key).replaceChild(tbodyNode, gId(key).lastChild); //replace <table><tbody>
+          }
+          if (json[key].value && !overruleValue) { //after select, in case used
+            // if (key=="ledFix" || key =="ledFixGen"|| key =="reset0")
+            //   console.log("processUpdate value", key, json[key].value, gId(key));
+            if (gId(key).nodeName.toLocaleLowerCase() == "span") //read only vars
+              gId(key).textContent = json[key].value;
+            else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
+              userFunId = key; //prepare for websocket data
+            } else if (gId(key).type == "checkbox") //checkbox
+              gId(key).checked = json[key].value;
+            else //inputs
+              gId(key).value = json[key].value;
+          }
+          if (json[key].json) { //json send html nodes cannot process, store in jsonValues array
+            console.log("processUpdate json", key, json[key].json, gId(key));
+            jsonValues[key] = json[key].json;
+          }
+          if (json[key].file) { //json send html nodes cannot process, store in jsonValues array
+            console.log("processUpdate file", key, json[key].file, gId(key));
+          
+            //we need to send a request which the server can handle using request variable
+            let url = `http://${window.location.hostname}/file`;
+            fetchAndExecute(url, json[key].file, key, function(key,text) { //send key as parameter
+              // console.log("fetchAndExecute", text); //in case of invalid json
+              var ledmapJson = JSON.parse(text);
+              jsonValues[key] = ledmapJson;
+              jsonValues[key].new = true;
+              console.log("fetchAndExecute", jsonValues);
+            }); 
+  
+          }
         }
-        if (json[key].value && !overruleValue) { //after select, in case used
-          // if (key=="ledFix" || key =="ledFixGen"|| key =="reset0")
-          //   console.log("processUpdate value", key, json[key].value, gId(key));
-          if (gId(key).nodeName.toLocaleLowerCase() == "span") //read only vars
-            gId(key).textContent = json[key].value;
-          else if (gId(key).nodeName.toLocaleLowerCase() == "canvas") {
-            userFunId = key; //prepare for websocket data
-          } else if (gId(key).type == "checkbox") //checkbox
-            gId(key).checked = json[key].value;
-          else //inputs
-            gId(key).value = json[key].value;
-        }
-        if (json[key].json) { //json send html nodes cannot process, store in jsonValues array
-          console.log("processUpdate json", key, json[key].json, gId(key));
-          jsonValues[key] = json[key].json;
-        }
-        if (json[key].file) { //json send html nodes cannot process, store in jsonValues array
-          console.log("processUpdate file", key, json[key].file, gId(key));
-        
-          //we need to send a request which the server can handle using request variable
-          let url = `http://${window.location.hostname}/file`;
-          fetchAndExecute(url, json[key].file, key, function(key,text) { //send key as parameter
-            // console.log("fetchAndExecute", text); //in case of invalid json
-            var ledmapJson = JSON.parse(text);
-            jsonValues[key] = ledmapJson;
-            jsonValues[key].new = true;
-            console.log("fetchAndExecute", jsonValues);
-          }); 
-
-        }
-      }
-      else
-        console.log("processUpdate id not found in json", key, json);
-    } //key != uiFun
-  } //for keys
+        else
+          console.log("processUpdate id not found in json", key, json);
+      } //key != uiFun
+    } //for keys
+  } //not id
 } //processUpdate
 
 function requestJson(command) {

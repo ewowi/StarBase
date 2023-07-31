@@ -38,10 +38,10 @@ public:
 
   parentVar = ui->initModule(parentVar, name);
 
-  ui->initSlider(parentVar, "bri", map(5, 0, 255, 0, 100), false, [](JsonObject var) { //uiFun
+  ui->initSlider(parentVar, "bri", 5, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Brightness");
   }, [](JsonObject var) { //chFun
-    uint8_t bri = map(var["value"], 0, 100, 0, 255);
+    uint8_t bri = var["value"];
     FastLED.setBrightness(bri);
     print->print("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
   });
@@ -55,6 +55,71 @@ public:
     }
   }, [](JsonObject var) { //chFun
     print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+    // if (LedsV::projectionNr == p_DistanceFromPoint) {
+      if (var["value"].as<int>() == 9 && LedsV::fxDimension != 2) { // 9 = "Frizzles2D"
+        LedsV::fxDimension = 2;
+        ledsV.ledFixProjectAndMap();
+      }
+      if (var["value"].as<int>() != 9 && LedsV::fxDimension != 1) { // 9 = "Frizzles2D"
+        LedsV::fxDimension = 1;
+        ledsV.ledFixProjectAndMap();
+      }
+
+      // if (false) {
+      JsonObject parentVar = mdl->findVar(var["id"]);
+      parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+
+      for (int i=0; i<5; i++) {
+        uint8_t nameNr = random8(6);  
+        uint8_t typeNr = random8(5);  
+        char name[12];
+        switch (nameNr) {
+          case 0:
+            strcpy(name, "lorum");
+            break;
+          case 1:
+            strcpy(name, "ipsum");
+            break;
+          case 2:
+            strcpy(name, "dolor");
+            break;
+          case 3:
+            strcpy(name, "sit");
+            break;
+          case 4:
+            strcpy(name, "amet");
+            break;
+          case 5:
+            strcpy(name, "consectetur");
+            break;
+        }
+        
+        switch (typeNr) {
+          case 0:
+            ui->initText(parentVar, name, name, false);
+            break;
+          case 1:
+            ui->initNumber(parentVar, name, random8(255), false);
+            break;
+          case 2:
+            ui->initSlider(parentVar, name, random8(255), false);
+            break;
+          case 3:
+            ui->initCheckBox(parentVar, name, random8(2), false);
+            break;
+          case 4:
+            ui->initSelect(parentVar, name, random8(2), false, [](JsonObject var) { //uiFun
+              JsonArray select = web->addResponseA(var["id"], "select");
+              select.add("Oui"); //0
+              select.add("Non"); //1
+            });
+            break;
+        }
+      }
+      print->printJson("parentVar", parentVar);
+      web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
+      // }
+    // }
   });
 
   ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun. 1:  is default
@@ -67,7 +132,7 @@ public:
   }, [](JsonObject var) { //chFun
     print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-    ledsV.projectionNr = var["value"];
+    LedsV::projectionNr = var["value"];
     ledsV.ledFixProjectAndMap();
   });
 
@@ -101,10 +166,20 @@ public:
   }, [](JsonObject var) { //chFun
     print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-    ledsV.ledFixNr = var["value"];
+    LedsV::ledFixNr = var["value"];
     ledsV.ledFixProjectAndMap();
 
+    char fileName[30] = "";
+    if (files->seqNrToName(fileName, LedsV::ledFixNr)) {
+      //send to pview a message to get file filename
+      JsonDocument *responseDoc = web->getResponseDoc();
+      responseDoc->clear(); //needed for deserializeJson?
+      JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
+      web->addResponse("pview", "file", fileName);
+      web->sendDataWs(responseVariant);
+      print->printJson("ledfix chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
+    }
   }); //ledFix
 
   ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
@@ -116,9 +191,10 @@ public:
   });
 
   //set the values by chFun
-  //to do: add page reload event (as these values should be given each time a page reloads, and they are not included in model.json as they are readonly...
-  print->print("post whd %d %d %d and P:%d V:%d\n", LedsV::width, LedsV::height, LedsV::depth, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
-  mdl->setValueV("dimensions", "%dx%dx%d", LedsV::width, LedsV::height, LedsV::depth);
+  //tbd: add page reload event (as these values should be given each time a page reloads, and they are not included in model.json as they are readonly...
+  // print->print("post whd P:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+  print->print("post whd P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+  mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
   mdl->setValueV("nrOfLeds", "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
 
   ui->initNumber(parentVar, "fps", fps, false, [](JsonObject var) { //uiFun

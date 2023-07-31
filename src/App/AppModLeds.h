@@ -155,6 +155,7 @@ public:
 
   ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "LedFix");
+    web->addResponse(var["id"], "comment", "Fixture to display effect on");
     JsonArray select = web->addResponseA(var["id"], "select");
     files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
 

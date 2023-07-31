@@ -120,6 +120,7 @@ function generateHTML(parentNode, json) {
       setupBox(newNode);
     }
     else if (json.type == "table") {
+      ndivNeeded = false;
       //add label
       let pNode = cE("p");
       pNode.appendChild(labelNode);
@@ -424,7 +425,7 @@ function processUpdate(json) {
           }
         }
         else
-          console.log("processUpdate id not found in json", key, json);
+          console.log("processUpdate id not found in json", key, json[key]);
       } //key != uiFun
     } //for keys
   } //not id

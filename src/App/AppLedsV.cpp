@@ -83,7 +83,9 @@ void LedsV::ledFixProjectAndMap() {
                 bucket = distance(uint16CollectList[0],uint16CollectList[1],0,0,0,0);
               else if (uint16CollectList.size() == 3) {//ledfix is 3D
                 widthV = widthP + heightP;
-                bucket = uint16CollectList[0] + uint16CollectList[1] + uint16CollectList[2] * widthV;
+                heightV = depthP;
+                depthV = 1;
+                bucket = (uint16CollectList[0] + uint16CollectList[1] + 1)  + uint16CollectList[2] * widthV;
                 // print->print("2D to 3D bucket %d %d\n", bucket, widthV);
               }
             }
@@ -136,6 +138,8 @@ void LedsV::ledFixProjectAndMap() {
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
     } // if deserialize
   } //if fileName
+  else
+    print->print("ledFixProjectAndMap: Filename for ledfix %d not found\n", ledFixNr);
 }
 
 // ledsV[indexV] stores indexV locally

@@ -58,11 +58,11 @@ public:
     // if (LedsV::projectionNr == p_DistanceFromPoint) {
       if (var["value"].as<int>() == 9 && LedsV::fxDimension != 2) { // 9 = "Frizzles2D"
         LedsV::fxDimension = 2;
-        ledsV.ledFixProjectAndMap();
+        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
       }
       if (var["value"].as<int>() != 9 && LedsV::fxDimension != 1) { // 9 = "Frizzles2D"
         LedsV::fxDimension = 1;
-        ledsV.ledFixProjectAndMap();
+        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
       }
 
       // if (false) {
@@ -122,7 +122,7 @@ public:
     // }
   });
 
-  ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun. 1:  is default
+  ui->initSelect(parentVar, "projection", -1, false, [](JsonObject var) { //uiFun. 1:  is default
     // web->addResponse(var["id"], "label", "Effect");
     web->addResponse(var["id"], "comment", "How to project fx to fixture");
     JsonArray select = web->addResponseA(var["id"], "select");
@@ -133,11 +133,12 @@ public:
     print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
     LedsV::projectionNr = var["value"];
-    ledsV.ledFixProjectAndMap();
+    ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
   });
 
-  ui->initCanvas(parentVar, "pview", -1, true, [](JsonObject var) { //uiFun
+  ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Preview");
+    web->addResponse(var["id"], "comment", "Shows the preview");
     // web->addResponse(var["id"], "comment", "Click to enlarge");
   }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
     // send leds preview to clients
@@ -153,7 +154,7 @@ public:
     buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
   });
 
-  ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
+  ui->initSelect(parentVar, "ledFix", -1, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "LedFix");
     web->addResponse(var["id"], "comment", "Fixture to display effect on");
     JsonArray select = web->addResponseA(var["id"], "select");
@@ -185,6 +186,7 @@ public:
 
   ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
     // web->addResponseV(var["id"], "comment", "Max %dK", 32);
+  }, [](JsonObject var) { //chFun
   });
 
   ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun

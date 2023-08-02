@@ -45,31 +45,39 @@ function makeWS() {
     else {
       gId('connind').style.backgroundColor = "var(--c-l)";
       // console.log("onmessage", e.data);
-      let json = JSON.parse(e.data);
-      if (!htmlGenerated) { //generate array of variables
-        if (Array.isArray(json)) {
-          console.log("WS receive generateHTML", json);
-          generateHTML(null, json); //no parentNode
-          htmlGenerated = true;
-          //send request for uiFun
-          if (uiFunCommands.length) { //flush commands not already send
-            flushUIFunCommands();
-          }
-        }
-        else
-          console.log("Error: no array", json);
+      let json = null;
+      try {
+        json = JSON.parse(e.data);
+      } catch (error) {
+          json = null;
+          console.error("makeWS json error", error, e.data); // error in the above string (in this case, yes)!
       }
-      else { //update
-        // console.log("WS receive update", json);
-        processUpdate(json);
+      if (json) {
+        if (!htmlGenerated) { //generate array of variables
+          if (Array.isArray(json)) {
+            console.log("WS receive generateHTML", json);
+            generateHTML(null, json); //no parentNode
+            htmlGenerated = true;
+            //send request for uiFun
+            if (uiFunCommands.length) { //flush commands not already send
+              flushUIFunCommands();
+            }
+          }
+          else
+            console.log("Error: no array", json);
+        }
+        else { //update
+          // console.log("WS receive update", json);
+          processUpdate(json);
+        }
       }
     }
   }
   ws.onclose = (e)=>{
     console.log("WS close and retry", e);
-		gId('connind').style.backgroundColor = "var(--c-r)";
+    gId('connind').style.backgroundColor = "var(--c-r)";
     setTimeout(makeWS,1500); // retry WS connection
-		ws = null;
+    ws = null;
   }
   ws.onopen = (e)=>{
     console.log("WS open", e);
@@ -88,15 +96,19 @@ function generateHTML(parentNode, json) {
       generateHTML(parentNode, node);
   }
   else {
+    //if root (type module) add the html to one of the screen columns
     if (parentNode == null) {
       parentNode = gId("column" + columnNr);
       columnNr = (columnNr +1)%nrOfColumns;
     }
-    var newNode = null;
+
+    var newNode = null; //newNode will be appended to the parentNode after if then else
+
+    //set labelNode before if, will be used in if then else
     let labelNode = cE("label");
     labelNode.innerText = initCap(json.id);
 
-    let ndivNeeded = true;
+    let ndivNeeded = true; //for details ("n"), module and table do not need an extra div for details
 
     if (json.type == "module") {
       ndivNeeded = false;
@@ -104,19 +116,11 @@ function generateHTML(parentNode, json) {
       newNode.id = json.id
       newNode.draggable = true;
       newNode.className = "box";
-        let h2Node = cE("h2");
-        h2Node.innerText = initCap(json.id);
-        newNode.appendChild(h2Node);
-          // let pNode = cE("p");
-          // pNode.innerText = "Enable"
-          //   let checkBoxNode = cE("input");
-          //   checkBoxNode.id = json.id;
-          //   checkBoxNode.type = "checkbox";
-          // pNode.appendChild(checkBoxNode);
-          // let commentNode = cE("comment");
-          // commentNode.innerText = "WIP"
-          // pNode.appendChild(commentNode);
-          // newNode.appendChild(pNode);
+
+      let h2Node = cE("h2");
+      h2Node.innerText = initCap(json.id);
+      newNode.appendChild(h2Node);
+
       setupBox(newNode);
     }
     else if (json.type == "table") {
@@ -139,7 +143,7 @@ function generateHTML(parentNode, json) {
       newNode.appendChild(cE("tbody"));
     }
     else if (json.type == "select") {
-      if (json.ro) {
+      if (json.ro) { //e.g. for reset/restart reason: do not show a select but only show the selected option
         newNode = cE("p");
         newNode.appendChild(labelNode);
         let spanNode = cE("span");
@@ -148,34 +152,43 @@ function generateHTML(parentNode, json) {
         newNode.appendChild(spanNode);
       }
       else {
+        //<p> with <label><select> (<comment> in processUpdate)
         newNode = cE("p");
         newNode.appendChild(labelNode);
+
         let selectNode = cE("select");
         selectNode.id = json.id;
         selectNode.addEventListener('change', (event) => {console.log("select change", event);setSelect(event.target);});
+
         newNode.appendChild(selectNode);
         //(default) value will be set in processUpdate
       }
     }
     else if (json.type == "canvas") {
+      //<p><label><span><canvas>
       var pNode = cE("p");
       pNode.appendChild(labelNode);
+
+      spanNode = cE("span");
+      spanNode.innerText= "🔍";
+      pNode.appendChild(spanNode);
+      
       parentNode.appendChild(pNode);
 
       newNode = cE("canvas");
       newNode.id = json.id;
       newNode.addEventListener('click', (event) => {toggleModal(event.target);});
-      // pNode.appendChild(newNode);
-      pNode.innerText += "🔍";
     }
     else if (json.type == "textarea") {
       pNode = cE("p");
       pNode.appendChild(labelNode);
       parentNode.appendChild(pNode);
+
       newNode = cE("textarea");
       newNode.id = json.id;
       newNode.readOnly = json.ro;
       newNode.addEventListener('click', (event) => {toggleModal(event.target);});
+
       if (json.value) newNode.innerText = json.value;
       // newNode.appendChild(textareaNode);
       pNode.innerText += "🔍";
@@ -191,10 +204,18 @@ function generateHTML(parentNode, json) {
         if (json.ro && json.type != "button") { //pka display
           newNode = cE("p");
           newNode.appendChild(labelNode);
-          let spanNode = cE("span");
-          spanNode.id = json.id;
-          if (json.value) spanNode.innerText = json.value;
-          newNode.appendChild(spanNode);
+          if (json.type == "url") {
+            let a = cE("a")
+            a.setAttribute('href', json.value);
+            a.setAttribute('target', "_blank");
+            a.innerText = json.value;
+            newNode.appendChild(a);
+          } else {
+            let spanNode = cE("span");
+            spanNode.id = json.id;
+            if (json.value) spanNode.innerText = json.value;
+            newNode.appendChild(spanNode);
+          }
         }
         else { //not ro or button
           newNode = cE("p");
@@ -227,14 +248,14 @@ function generateHTML(parentNode, json) {
               if (json.value) rangeValueNode.innerText = json.value;
             } else {
               inputNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setInput(event.target);});
-              if (["text", "password", "number"].includes(json.type) ) {
-                buttonSaveNode = cE("text");
-                buttonSaveNode.innerText = "✅";
-                buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
-                buttonCancelNode = cE("text");
-                buttonCancelNode.innerText = "🛑";
-                buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
-              }
+              // if (["text", "password", "number"].includes(json.type) ) {
+              //   buttonSaveNode = cE("text");
+              //   buttonSaveNode.innerText = "✅";
+              //   buttonSaveNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+              //   buttonCancelNode = cE("text");
+              //   buttonCancelNode.innerText = "🛑";
+              //   buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
+              // }
               if (json.type == "number") {
                 inputNode.setAttribute('size', '4');
                 inputNode.maxlength = 4;
@@ -261,6 +282,7 @@ function generateHTML(parentNode, json) {
     }
     
     if (json.n) {
+      //add a div with _n extension and details have this as parent
       if (ndivNeeded) {
         divNode = cE("div");
         divNode.id = json.id + "_n";
@@ -336,7 +358,12 @@ function processUpdate(json) {
             // console.log("commentNode", commentNode);
             if (!commentNode) { //create if not exist
               commentNode = cE("comment");
-              parentNode.appendChild(commentNode);
+              //if a div node exists (for details - ndiv) then place the comment before the div node
+              let divNode = parentNode.querySelector('div');
+              if (divNode)
+                parentNode.insertBefore(commentNode, divNode);
+              else
+                parentNode.appendChild(commentNode);
             }
             commentNode.innerText = json[key].comment;        
           }

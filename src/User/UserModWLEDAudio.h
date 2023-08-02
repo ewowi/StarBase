@@ -37,18 +37,19 @@ public:
   void loop(){
     // Module::loop();
     if (sync.read()) {
-      print->print("WLED-Sync: ");
+      if(debug) print->print("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
         uint8_t val = sync.fftResult[b];
         fftResults[b] = val;
-        print->print("%u ", val);
+        if(debug) print->print("%u ", val);
       }
-      print->print("\n");
+      if(debug) print->print("\n");
     }
   }
 
   private:
-    WLEDSync sync; 
+    WLEDSync sync;
+    boolean debug; 
 
 };
 

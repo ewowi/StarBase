@@ -232,9 +232,9 @@ public:
   void loop() {
     if (!strip.isMatrix) return mode_static(); // not a 2D set-up
 
-    const int NUM_BANDS = map(SEGMENT.custom1, 0, 255, 1, 16);
-    const uint16_t cols = SEGMENT.virtualWidth();
-    const uint16_t rows = SEGMENT.virtualHeight();
+    const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
+    const uint16_t cols = LedsV::widthV 
+    const uint16_t rows = LedsV::heightV 
     if ((cols <=1) || (rows <=1)) return mode_static(); // not really a 2D set-up
 
     if (!SEGENV.allocateData(cols*sizeof(uint16_t))) return mode_static(); //allocation failed

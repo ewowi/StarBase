@@ -14,6 +14,8 @@ class UserModWLEDAudio:public Module {
 
 public:
 
+  uint8_t fftResults[NUM_GEQ_CHANNELS]= {0};
+
   UserModWLEDAudio() :Module("WLED Audio Sync Receiver") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
@@ -38,6 +40,7 @@ public:
       print->print("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
         uint8_t val = sync.fftResult[b];
+        fftResults[b] = val;
         print->print("%u ", val);
       }
       print->print("\n");

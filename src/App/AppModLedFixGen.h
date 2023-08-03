@@ -28,40 +28,53 @@ public:
       f_2DMatrix,
       f_2DR24,
       f_2DR35,
-      f_3DC885,
+      f_3DSideCube,
       f_3DC888,
       f_3DGlobe,
       f_3DHumanSizedCube
     };
 
     ui->initSelect(parentVar, "ledFixGen", 0, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Ledfix generator");
+      web->addResponse(var["id"], "label", "Fixture");
+      web->addResponse(var["id"], "comment", "Type of fixture");
       JsonArray select = web->addResponseA(var["id"], "select");
       select.add("1DSpiral"); //0
       select.add("2DMatrix"); //1
       select.add("2DRing24"); //2
       select.add("2DRing35"); //3
-      select.add("3DCube885"); //4
+      select.add("3DSideCube"); //4
       select.add("3DCube888"); //5
       select.add("3DGlobe"); //6
       select.add("3DHumanSizedCube"); //7
     }, [](JsonObject var) { //chFun
       JsonObject parentVar = mdl->findVar(var["id"]);
       parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
-      if (var["value"].as<int>() == f_2DMatrix) {
-        ui->initText(parentVar, "width", nullptr, false);//, [](JsonObject var) { //uiFun
-        // });
+      uint8_t value = var["value"].as<int>();
+      if (value == f_2DMatrix) {
+        ui->initNumber(parentVar, "width", -1, false);
 
-        ui->initText(parentVar, "height", nullptr, false);//, [](JsonObject var) { //uiFun
-        // });
+        ui->initNumber(parentVar, "height", -1, false);
 
-        ui->initSelect(parentVar, "top", 0, false, [](JsonObject var) { //uiFun
+        ui->initSelect(parentVar, "firstLedX", 0, false, [](JsonObject var) { //uiFun
+          // web->addResponse(var["id"], "label", "Ledfix generator");
+          JsonArray select = web->addResponseA(var["id"], "select");
+          select.add("Left"); //0
+          select.add("Richt"); //1
+        });
+        ui->initSelect(parentVar, "firstLedY", 0, false, [](JsonObject var) { //uiFun
           // web->addResponse(var["id"], "label", "Ledfix generator");
           JsonArray select = web->addResponseA(var["id"], "select");
           select.add("Top"); //0
           select.add("Bottom"); //1
         });
+
+        ui->initCheckBox(parentVar, "serpentine", false, false);
       }
+      else if (value == f_3DSideCube) {
+        ui->initNumber(parentVar, "width", -1, false);
+        ui->initNumber(parentVar, "sides", -1, false);
+      }
+
       web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
 
     }); //ledFixGen
@@ -73,6 +86,7 @@ public:
       uint8_t fix = mdl->getValue("ledFixGen").as<int>();
 
       char name[32] = "TT";
+      char nameExt[12];
       uint16_t nrOfLeds = 64; //default
       uint16_t diameter = 100; //in mm
 
@@ -91,9 +105,8 @@ public:
           depth = 1;
           nrOfLeds = width * height;
           strcpy(name, "2DMatrix");
-          char post[10];
-          snprintf(post, sizeof(post), "%02d%02d", width, height);
-          strcat(name, post);
+          snprintf(nameExt, sizeof(nameExt), "%02d%02d", width, height);
+          strcat(name, nameExt);
           break;
         case f_2DR24:
           strcpy(name, "2DRing24");
@@ -103,9 +116,14 @@ public:
           strcpy(name, "2DRing35");
           nrOfLeds = 35;
           break;
-        case f_3DC885:
-          strcpy(name, "3DCube885");
-          nrOfLeds = 320;
+        case f_3DSideCube:
+          width = mdl->getValue("width");
+          height = width;
+          depth = width;
+          nrOfLeds = width * height * mdl->getValue("sides").as<int>();
+          strcpy(name, "3DSideCube");
+          snprintf(nameExt, sizeof(nameExt), "%02d%02d%02d", width, height, depth);
+          strcat(name, nameExt);
           break;
         case f_3DC888:
           strcpy(name, "3DCube888");
@@ -211,13 +229,10 @@ public:
           f.printf("]}]");
 
           break;
-        case f_3DC885:
+        case f_3DSideCube:
         case f_3DHumanSizedCube:
-          if (fix==f_3DC885) {
+          if (fix == f_3DSideCube) {
             diameter = 8; //in cm
-            width = 8;
-            height = 8;
-            depth = 8;
             f.printf(",\"scale\":\"%s\"", "cm");
           }
           else {

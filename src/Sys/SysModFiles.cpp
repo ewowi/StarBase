@@ -40,12 +40,16 @@ void SysModFiles::setup() {
     web->addResponse(var["id"], "comment", "List of files");
     JsonArray rows = web->addResponseA(var["id"], "table");
     dirToJson(rows);
+
   });
   ui->initText(tableVar, "flName", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
   ui->initText(tableVar, "flSize", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size (B)");
+  });
+  ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Show");
   });
 
   ui->initText(parentVar, "drsize", nullptr, true, [](JsonObject var) { //uiFun
@@ -58,6 +62,8 @@ void SysModFiles::setup() {
     print->print("delete files\n");
     files->removeFiles("model.json", true); //all but model.json
   });
+
+  // ui->initURL(parentVar, "urlTest", "file/3DCube202005.json", true);
 
   web->addUpload("/upload");
 
@@ -115,6 +121,9 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
         JsonArray row = array.createNestedArray();
         row.add((char *)file.name());  //create a copy!
         row.add(file.size());
+        char urlString[32] = "file/";
+        strcat(urlString, file.name());
+        row.add((char *)urlString);  //create a copy!
       }
       // Serial.printf("FILE: %s %d\n", file.name(), file.size());
     }

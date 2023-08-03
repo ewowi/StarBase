@@ -49,16 +49,17 @@ void SysModUI::setup() {
       JsonArray row = rows.createNestedArray();
       row.add(varLoop->var["id"]);
       row.add(varLoop->counter);
+
       varLoopsChanged = varLoop->counter != varLoop->prevCounter;
       varLoop->prevCounter = varLoop->counter;
       varLoop->counter = 0;
     }
   });
-  initText(tableVar, "ulObject", nullptr, true, [](JsonObject var) { //uiFun
+  initText(tableVar, "ulVar", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  initText(tableVar, "ulLoopps", nullptr, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Loops/s");
+  initNumber(tableVar, "ulLoopps", -1, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Loops//s");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -73,6 +74,16 @@ void SysModUI::loop() {
 
       SysModWeb::ws->cleanupClients();
       if (SysModWeb::ws->count()) {
+        //check if there are valid clients before!!!
+        bool okay = false;
+        for (auto client:SysModWeb::ws->getClients()) {
+          if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
+            okay = true;
+        }
+
+        if (okay) {
+
+        SysModWeb::wsSendBytesCounter++;
 
         //send var to notify client data coming is for var (client then knows it is canvas and expects data for it)
         setChFunAndWs(varLoop->var, "new");
@@ -113,6 +124,7 @@ void SysModUI::loop() {
           SysModWeb::ws->cleanupClients(0); //disconnect all clients to release memory
           SysModWeb::ws->_cleanBuffers();
         }
+        } // if okay
       }
 
       varLoop->counter++;

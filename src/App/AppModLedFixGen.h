@@ -51,9 +51,9 @@ public:
       parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
       uint8_t value = var["value"].as<int>();
       if (value == f_2DMatrix) {
-        ui->initNumber(parentVar, "width", -1, false);
+        ui->initNumber(parentVar, "width", 8, false);
 
-        ui->initNumber(parentVar, "height", -1, false);
+        ui->initNumber(parentVar, "height", 8, false);
 
         ui->initSelect(parentVar, "firstLedX", 0, false, [](JsonObject var) { //uiFun
           // web->addResponse(var["id"], "label", "Ledfix generator");

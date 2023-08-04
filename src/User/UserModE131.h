@@ -84,7 +84,7 @@ public:
 
             if (varsToWatch[i].id != nullptr) {
               print->print(" var: %s\n", varsToWatch[i].id);
-              mdl->setValueI(varsToWatch[i].id, varsToWatch[i].savedValue%varsToWatch[i].max);
+              mdl->setValueI(varsToWatch[i].id, map(varsToWatch[i].savedValue, 0, 255, 0, varsToWatch[i].max));
             }
             else
               print->print("\n");

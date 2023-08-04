@@ -51,7 +51,7 @@ public:
 
   private:
     WLEDSync sync;
-    boolean debug; 
+    boolean debug = false; 
 
 };
 

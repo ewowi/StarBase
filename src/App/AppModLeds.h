@@ -248,8 +248,6 @@ public:
     #ifdef USERMOD_E131
       e131mod->addWatch(1, "bri");
       e131mod->addWatch(2, "fx", (effects.size() - 1));
-      e131mod->addWatch(3, "speed"); // TODO: add constant for name
-      e131mod->addWatch(4, "intensity");
     #endif
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");

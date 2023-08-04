@@ -10,6 +10,9 @@
 #ifdef USERMOD_WLEDAUDIO
   #include "User/UserModWLEDAudio.h"
 #endif
+#ifdef USERMOD_E131
+  #include "../User/UserModE131.h"
+#endif
 
 
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
@@ -326,10 +329,16 @@ public:
   }
 
   bool parameters(JsonObject parentVar) {
-    ui->initNumber(parentVar, "speed", 128, false);
-    ui->initNumber(parentVar, "intensity", 128, false);
+    ui->initNumber(parentVar, "speed", 255, false);
+    ui->initNumber(parentVar, "intensity", 255, false);
     ui->initCheckBox(parentVar, "check1", false, false);
     ui->initCheckBox(parentVar, "check2", false, false);
+
+    // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
+
+    e131mod->addWatch(3, "speed", 255); // TODO: add constant for name
+    e131mod->addWatch(4, "intensity", 255);
+
     return true;
   }
 };

@@ -10,6 +10,7 @@
 
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 static unsigned long call = 0;
+static unsigned long step = 0;
 
 //should not contain variables/bytes to keep mem as small as possible!!
 class Effect {
@@ -223,39 +224,45 @@ public:
   }
 }; // Frizzles2D
 
+#define NUM_GEQ_CHANNELS 16                                           // number of frequency channels. Don't change !!
+
 class GEQEffect:public Effect {
 public:
+  byte previousBarHeight[1024];
+  uint8_t intensity;
+  uint8_t speed;
+  bool check1;
+  bool check2;
+
   const char * name() {
     return "GEQ";
   }
-  void setup() {} //not implemented yet
+
+  void setup() {
+    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
+    for (int i=0; i<LedsV::widthV; i++) previousBarHeight[i] = 0;
+  } //not implemented yet
+
   void loop() {
-    if (!strip.isMatrix) return mode_static(); // not a 2D set-up
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
-    const uint16_t cols = LedsV::widthV 
-    const uint16_t rows = LedsV::heightV 
-    if ((cols <=1) || (rows <=1)) return mode_static(); // not really a 2D set-up
+    const uint16_t cols = LedsV::widthV;
+    const uint16_t rows = LedsV::heightV; 
 
-    if (!SEGENV.allocateData(cols*sizeof(uint16_t))) return mode_static(); //allocation failed
-    uint16_t *previousBarHeight = reinterpret_cast<uint16_t*>(SEGENV.data); //array of previous bar heights per frequency band
 
     uint8_t *fftResult = wledAudioMod->fftResults;
     #ifdef SR_DEBUG
     uint8_t samplePeak = *(uint8_t*)um_data->u_data[3];
     #endif
 
-    if (SEGENV.call == 0) for (int i=0; i<cols; i++) previousBarHeight[i] = 0;
-
     bool rippleTime = false;
-    if (millis() - SEGENV.step >= (256U - SEGMENT.intensity)) {
-      SEGENV.step = millis();
+    if (millis() - step >= (256U - intensity)) {
+      step = millis();
       rippleTime = true;
     }
 
-    if (SEGENV.call == 0) SEGMENT.fill(BLACK);
-    int fadeoutDelay = (256 - SEGMENT.speed) / 64;
-    if ((fadeoutDelay <= 1 ) || ((SEGENV.call % fadeoutDelay) == 0)) SEGMENT.fadeToBlackBy(SEGMENT.speed);
+    int fadeoutDelay = (256 - speed) / 64;
+    if ((fadeoutDelay <= 1 ) || ((call % fadeoutDelay) == 0)) fadeToBlackBy( ledsP, LedsV::nrOfLedsP, speed);
 
     uint16_t lastBandHeight = 0;  // WLEDMM: for smoothing out bars
 
@@ -275,7 +282,7 @@ public:
       uint16_t bandHeight = fftResult[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
 
       // WLEDMM begin - smooth out bars
-      if ((x > 0) && (x < (cols-1)) && (SEGMENT.check2)) {
+      if ((x > 0) && (x < (cols-1)) && (check2)) {
         // get height of next (right side) bar
         uint8_t nextband = (remaining < 1)? band +1: band;
         nextband = constrain(nextband, 0, 15);  // just to be sure
@@ -293,16 +300,19 @@ public:
       if (barHeight > rows) barHeight = rows;                      // WLEDMM map() can "overshoot" due to rounding errors
       if (barHeight > previousBarHeight[x]) previousBarHeight[x] = barHeight; //drive the peak up
 
-      uint32_t ledColor = BLACK;
+      CRGB ledColor = CRGB::Black;
       for (int y=0; y < barHeight; y++) {
-        if (SEGMENT.check1) //color_vertical / color bars toggle
+        if (check1) //color_vertical / color bars toggle
           colorIndex = map(y, 0, rows-1, 0, 255);
 
-        ledColor = SEGMENT.color_from_palette(colorIndex, false, PALETTE_SOLID_WRAP, 0);
-        SEGMENT.setPixelColorXY(x, rows-1 - y, ledColor);
+        CRGBPalette16 palette = PartyColors_p;
+        ledColor = ColorFromPalette(palette, (uint8_t)colorIndex);
+
+        ledsV.setPixelColor(x + LedsV::widthV * (rows-1 - y), ledColor);
       }
-      if ((SEGMENT.intensity < 255) && (previousBarHeight[x] > 0) && (previousBarHeight[x] < rows))  // WLEDMM avoid "overshooting" into other segments
-        SEGMENT.setPixelColorXY(x, rows - previousBarHeight[x], (SEGCOLOR(2) != BLACK) ? SEGCOLOR(2) : ledColor);
+
+      if ((intensity < 255) && (previousBarHeight[x] > 0) && (previousBarHeight[x] < rows))  // WLEDMM avoid "overshooting" into other segments
+        ledsV.setPixelColor(x + LedsV::widthV * (rows - previousBarHeight[x]), ledColor); 
 
       if (rippleTime && previousBarHeight[x]>0) previousBarHeight[x]--;    //delay/ripple effect
 

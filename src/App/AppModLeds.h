@@ -237,6 +237,7 @@ public:
     effects.push_back(new Ripples3DEffect);
     effects.push_back(new SphereMove3DEffect);
     effects.push_back(new Frizzles2D);
+    effects.push_back(new RingRandomFlow);
 #ifdef USERMOD_WLEDAUDIO
     effects.push_back(new GEQEffect);
     effects.push_back(new AudioRings);

@@ -231,6 +231,50 @@ public:
   }
 }; // Frizzles2D
 
+class RingEffect:public Effect {
+  protected:
+    uint8_t ringMap[9][2] = { // If you ring goes from ouside in, then reverse the order of this array
+      {0, 0},     //0 Center Point
+      {1, 8},     //1
+      {9, 20},   //2
+      {21, 36},   //3
+      {37, 60},   //4
+      {61, 92},   //5
+      {93, 132},  //6
+      {133, 180}, //7
+      {181, 240}, //8 Outer Ring
+    };
+    CRGBPalette16 palette = PartyColors_p;
+    bool INWARD; // TODO: param
+    const static int RINGS = 9;
+    uint8_t hue[RINGS];
+
+    void setRing(int ring, CRGB colour) {
+      for (int i = ringMap[ring][0]; i <= ringMap[ring][1]; i++) {
+        ledsV[i] = colour;
+      }
+    }
+
+};
+
+class RingRandomFlow:public RingEffect {
+public:
+  const char * name() {
+    return "RingRandomFlow";
+  }
+  void setup() {}
+  void loop() {
+    hue[0] = random(0, 255);
+    for (int r = 0; r < RINGS; r++) {
+      setRing(r, CHSV(hue[r], 255, 255));
+    }
+    for (int r = (RINGS - 1); r >= 1; r--) {
+      hue[r] = hue[(r - 1)]; // set this ruing based on the inner
+    }
+    // FastLED.delay(SPEED);
+  }
+};
+
 
 #ifdef USERMOD_WLEDAUDIO
 
@@ -343,33 +387,15 @@ public:
   }
 };
 
-class AudioRings:public Effect {
+class AudioRings:public RingEffect {
   private:
-    uint8_t ringMap[9][2] = { // If you ring goes from ouside in, then reverse the order of this array
-      {0, 0},     //0 Center Point
-      {1, 8},     //1
-      {9, 20},   //2
-      {21, 36},   //3
-      {37, 60},   //4
-      {61, 92},   //5
-      {93, 132},  //6
-      {133, 180}, //7
-      {181, 240}, //8 Outer Ring
-    };
     uint8_t *fftResult = wledAudioMod->fftResults;
-    CRGBPalette16 palette = PartyColors_p;
-    bool INWARD; // TODO: param
 
   public:
     const char * name() {
       return "AudioRings";
     }
     void setup() {}
-    void setRing(int ring, CRGB colour) {
-      for (int i = ringMap[ring][0]; i <= ringMap[ring][1]; i++) {
-        ledsV[i] = colour;
-      }
-    }
 
     void setRingFromFtt(int index, int ring) {
       uint8_t val = fftResult[index];
@@ -400,8 +426,8 @@ class AudioRings:public Effect {
   //        setRingFromFtt((i * 2), i); 
       }
 
-      setRingFromFtt(2, 7); // set outer ring to base
-      setRingFromFtt(0, 8); // set outer ring to base
+      setRingFromFtt(2, 7); // set outer ring to bass
+      setRingFromFtt(0, 8); // set outer ring to bass
 
     }
 };

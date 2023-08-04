@@ -31,6 +31,9 @@ DynamicJsonDocument * SysModWeb::responseDoc0 = nullptr;
 DynamicJsonDocument * SysModWeb::responseDoc1 = nullptr;
 bool SysModWeb::clientsChanged = false;
 
+unsigned long SysModWeb::wsSendBytesCounter = 0;
+unsigned long SysModWeb::wsSendJsonCounter = 0;
+
 SysModWeb::SysModWeb() :Module("Web") {
   ws = new AsyncWebSocket("/ws");
   server = new AsyncWebServer(80);
@@ -56,10 +59,10 @@ void SysModWeb::setup() {
   ui->initText(tableVar, "clIp", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "IP");
   });
-  ui->initText(tableVar, "clIsFull", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initCheckBox(tableVar, "clIsFull", false, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Is full");
   });
-  ui->initText(tableVar, "clStatus", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initSelect(tableVar, "clStatus", -1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
     //tbd: not working yet in ui
     JsonArray select = web->addResponseA(var["id"], "select");
@@ -67,6 +70,9 @@ void SysModWeb::setup() {
     select.add("Connected"); //1
     select.add("Disconnecting"); //2
   });
+
+  ui->initText(parentVar, "wsSendBytes");
+  ui->initText(parentVar, "wsSendJson");
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
@@ -95,17 +101,22 @@ void SysModWeb::loop() {
       mdl->setValueI("clStatus", client->status());
     }
 
+    mdl->setValueV("wsSendBytes", "%lu /s", wsSendBytesCounter);
+    wsSendBytesCounter = 0;
+    mdl->setValueV("wsSendJson", "%lu /s", wsSendJsonCounter);
+    wsSendJsonCounter = 0;
   }
 }
 
 void SysModWeb::connected() {
-    ws->onEvent(wsEvent);
-    server->addHandler(ws);
+  ws->onEvent(wsEvent);
+  // ws->onEvent(wsEvent2);
+  server->addHandler(ws);
 
-    server->begin();
+  server->begin();
 
-    // print->print("%s server (re)started\n", name); //causes crash for some reason...
-    print->print("server (re)started\n"); //and this not causes crash ??? whats with name?
+  // print->print("%s server (re)started\n", name); //causes crash for some reason...
+  print->print("server (re)started\n"); //and this not causes crash ??? whats with name?
 }
 
 //WebSocket connection to 'ws://192.168.8.152/ws' failed: The operation couldn’t be completed. Protocol error
@@ -127,8 +138,9 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   } else if(type == WS_EVT_DISCONNECT) {
     printClient("WS Client disconnected", client);
     clientsChanged = true;
-  } else if(type == WS_EVT_DATA){
+  } else if (type == WS_EVT_DATA) {
     AwsFrameInfo * info = (AwsFrameInfo*)arg;
+    String msg = "";
     // print->print("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
     if (info->final && info->index == 0 && info->len == len) { //not multipart
       printClient("WS event data", client);
@@ -152,7 +164,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
           DeserializationError error = deserializeJson(*responseDoc, data, len); //data to responseDoc
 
           if (error || responseVariant.isNull()) {
-            print->print("wsEvent deserializeJson failed with code %s %s\n", error.c_str(), data);
+            print->print("wsEvent deserializeJson failed with code %s\n", error.c_str());
             client->text(F("{\"success\":true}")); // we have to send something back otherwise WS connection closes
           } else {
             const char * error = processWSFunc(responseVariant); //processJson, adds to responsedoc
@@ -180,6 +192,40 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
         }
     } else {
       //message is comprised of multiple frames or the frame is split into multiple packets
+      if(info->index == 0){
+        if(info->num == 0)
+          Serial.printf("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+        Serial.printf("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+      }
+
+      Serial.printf("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+
+      if(info->opcode == WS_TEXT){
+        for(size_t i=0; i < len; i++) {
+          msg += (char) data[i];
+        }
+      }
+      // else {
+      //   char buff[3];
+      //   for(size_t i=0; i < len; i++) {
+      //     sprintf(buff, "%02x ", (uint8_t) data[i]);
+      //     msg += buff ;
+      //   }
+      // }
+      Serial.printf("%s\n",msg.c_str());
+
+      if((info->index + len) == info->len){
+        Serial.printf("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+        if(info->final){
+          Serial.printf("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          if(info->message_opcode == WS_TEXT)
+            client->text("I got your text message");
+          else
+            client->binary("I got your binary message");
+        }
+      }
+
+      //message is comprised of multiple frames or the frame is split into multiple packets
       //if(info->index == 0){
         //if (!wsFrameBuffer && len < 4096) wsFrameBuffer = new uint8_t[4096];
       //}
@@ -189,29 +235,105 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
 
       //}
 
-      if((info->index + len) == info->len){
-        if(info->final){
-          if(info->message_opcode == WS_TEXT) {
-            // client->text(F("{\"error\":9}")); //we do not handle split packets right now
-            print->print("WS multipart message: we do not handle split packets right now\n");
-          }
-        }
-      }
-      print->print("WS multipart message f:%d i:%d len:%d == %d\n", info->final, info->index, info->len, len);
+      // if((info->index + len) == info->len){
+      //   if(info->final){
+      //     if(info->message_opcode == WS_TEXT) {
+      //       client->text(F("{\"error\":9}")); //we do not handle split packets right now
+      //       print->print("WS multipart message: we do not handle split packets right now\n");
+      //     }
+      //   }
+      // }
+      // print->print("WS multipart message f:%d i:%d len:%d == %d\n", info->final, info->index, info->len, len);
     }
   } else if (type == WS_EVT_ERROR){
     //error was received from the other end
     // printClient("WS error", client); //crashes
-    print->print("WS error\n");
-    // Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+    // print->print("WS error\n");
+    Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
 
   } else if (type == WS_EVT_PONG){
     //pong message was received (in response to a ping request maybe)
     // printClient("WS pong", client); //crashes!
-    print->print("WS pong\n");
+    // print->print("WS pong\n");
     // Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
+    Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
   }
 }
+
+void SysModWeb::wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+  if(type == WS_EVT_CONNECT){
+    Serial.printf("ws[%s][%u] connect\n", server->url(), client->id());
+    // client->printf("Hello Client %u :)", client->id());
+    client->ping();
+  } else if(type == WS_EVT_DISCONNECT){
+    Serial.printf("ws[%s][%u] disconnect\n", server->url(), client->id());
+  } else if(type == WS_EVT_ERROR){
+    Serial.printf("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+  } else if(type == WS_EVT_PONG){
+    Serial.printf("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
+  } else if(type == WS_EVT_DATA){
+    AwsFrameInfo * info = (AwsFrameInfo*)arg;
+    String msg = "";
+    if(info->final && info->index == 0 && info->len == len){
+      //the whole message is in a single frame and we got all of it's data
+      Serial.printf("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
+
+      if(info->opcode == WS_TEXT){
+        for(size_t i=0; i < info->len; i++) {
+          msg += (char) data[i];
+        }
+      } 
+      // else {
+      //   char buff[3];
+      //   for(size_t i=0; i < info->len; i++) {
+      //     sprintf(buff, "%02x ", (uint8_t) data[i]);
+      //     msg += buff ;
+      //   }
+      // }
+      Serial.printf("%s\n",msg.c_str());
+
+      if(info->opcode == WS_TEXT)
+        client->text("I got your text message");
+      else
+        client->binary("I got your binary message");
+    } else {
+      //message is comprised of multiple frames or the frame is split into multiple packets
+      if(info->index == 0){
+        if(info->num == 0)
+          Serial.printf("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+        Serial.printf("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+      }
+
+      Serial.printf("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+
+      if(info->opcode == WS_TEXT){
+        for(size_t i=0; i < len; i++) {
+          msg += (char) data[i];
+        }
+      }
+      // else {
+      //   char buff[3];
+      //   for(size_t i=0; i < len; i++) {
+      //     sprintf(buff, "%02x ", (uint8_t) data[i]);
+      //     msg += buff ;
+      //   }
+      // }
+      Serial.printf("%s\n",msg.c_str());
+
+      if((info->index + len) == info->len){
+        Serial.printf("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+        if(info->final){
+          Serial.printf("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          if(info->message_opcode == WS_TEXT)
+            client->text("I got your text message");
+          else
+            client->binary("I got your binary message");
+        }
+      }
+    }
+  }
+}
+
 
 void SysModWeb::printClient(const char * text, AsyncWebSocketClient * client) {
   print->print("%s client: %d %s q:%d s:%d (w:%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", client->queueIsFull(), client->status(), ws->count());
@@ -222,11 +344,21 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
     print->print("sendDataWs no ws\n");
     return;
   }
-  ws->cleanupClients();
+  // return;
+  wsSendJsonCounter++;
+  // ws->cleanupClients();
 
   if (ws->count()) {
+    bool okay = false;
+    for (auto client:SysModWeb::ws->getClients()) {
+      if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
+        okay = true;
+    }
+
+    if (okay) {
+
     size_t len = measureJson(json);
-    AsyncWebSocketMessageBuffer *wsBuf = ws->makeBuffer(len); // will not allocate correct memory sometimes on ESP8266
+    AsyncWebSocketMessageBuffer *wsBuf = ws->makeBuffer(len);
 
     if (wsBuf) {
       wsBuf->lock();
@@ -254,9 +386,10 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
     else {
       print->print("sendDataWs WS buffer allocation failed\n");
       ws->closeAll(1013); //code 1013 = temporary overload, try again later
-      ws->cleanupClients(0); //disconnect all clients to release memory
+      ws->cleanupClients(); //disconnect all clients to release memory
       ws->_cleanBuffers();
     }
+    } //if okay
   }
 }
 

@@ -81,6 +81,10 @@ public:
     return initVarAndUpdate<const char *>(parent, id, "textarea", value, readOnly, uiFun, chFun, loopFun);
   }
 
+  JsonObject initURL(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "url", value, readOnly, uiFun, chFun, loopFun);
+  }
+
   template <typename Type>
   JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
     JsonObject var = initVar(parent, id, type, readOnly, uiFun, chFun, loopFun);

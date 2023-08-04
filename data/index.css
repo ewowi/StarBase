@@ -28,6 +28,31 @@ textarea {
 	width: 100%;
 	height: 100%;
 	border-radius: 12px;
+	background: transparent;
+}
+
+canvas {
+	width: 100%;
+	height: 100%;
+	border-radius: 12px;
+	background: transparent;
+}
+
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	background: black;
+}
+
+input {
+	background: transparent;
+}
+
+select {
+	background: transparent;
+}
+
+h1,h2 {
+	color: #b60f62; /* StarMod base color??? */
 }
 
 /* for toggleModal */
@@ -48,7 +73,7 @@ textarea {
 }
 
 .ndiv {
-	border: 2px solid black;
+	/* border: 2px solid black; */
 	margin-left: 50px;
 	border-radius: 12px;
 }
@@ -66,9 +91,9 @@ textarea {
   padding: 6px;
 }
 
-.table-style tr:nth-child(even){background-color: #f2f2f2;}
+/* .table-style tr:nth-child(even){background-color: #f2f2f2;} */
 
-.table-style tr:hover {background-color: #ddd;}
+/* .table-style tr:hover {background-color: #ddd;} */
 
 .table-style th {
   /* padding-top: 12px;
@@ -86,12 +111,13 @@ textarea {
   
 .box {
   border: 3px solid #666;
-  background-color: #ddd;
-  /* border-radius: .5em; */
+  /* background-color: #ddd; */
+  /* background: linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%); */
+  background: linear-gradient(to bottom, #ffbe33 0%, #b60f62 100%);
+  border-radius: 21px; /* from .5em */
   padding: 10px;
   margin: 10px; /*space around boxes */
   cursor: move;
-  border-radius: 21px;
 }
 
 .box:hover {
@@ -100,7 +126,8 @@ textarea {
 
 .column {
   border: 3px solid #666;
-  border-radius: .5em;
+  /* border-radius: .5em; */
+  border-radius: 21px;
   padding: 10px;
   cursor: move;
 }

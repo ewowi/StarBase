@@ -11,7 +11,7 @@
 #include <WiFi.h>
 #include <ArduinoHA.h>
 
-#define BROKER_ADDR     IPAddress(192,168,178,42)
+#define BROKER_ADDR     IPAddress(192,168,178,42) //ewowi: could we scan that instead of hard coded?
 
 class UserModHA:public Module {
 

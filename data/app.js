@@ -104,7 +104,9 @@ function preview3D(node, leds) {
   // let mH = leds[1];
   // let mD = leds[2];
 
-  if (!renderer || (jsonValues.pview &&jsonValues.pview.new)) { //init 3D
+  var d = 5; //distanceLED;
+
+  if (!renderer || (jsonValues.pview && jsonValues.pview.new)) { //init 3D
 
     console.log("preview3D create new renderer");
 
@@ -118,9 +120,9 @@ function preview3D(node, leds) {
     // renderer.setSize( 300, 150);
     // node.parentNode.appendChild( renderer.domElement );
 
-    camera = new THREE.PerspectiveCamera( 45, 300/150, 1, 500 );
+    camera = new THREE.PerspectiveCamera( 45, node.width/node.height, 1, 500);
     // const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
-    camera.position.set( 0, 0, 75 );
+    camera.position.set( 0, 0, d*Math.sqrt(jsonValues.pview.width*jsonValues.pview.width + jsonValues.pview.height*jsonValues.pview.height + jsonValues.pview.depth*jsonValues.pview.depth) );
     camera.lookAt( 0, 0, 0 );
 
     scene = new THREE.Scene();
@@ -148,7 +150,6 @@ function preview3D(node, leds) {
   } //new
 
   if (jsonValues.pview && jsonValues.pview.new) { //set the new coordinates
-    var d = 5; //distanceLED;
     var offset_x = -d*(jsonValues.pview.width-1)/2;
     var offset_y = -d*(jsonValues.pview.height-1)/2;
     var offset_z = -d*(jsonValues.pview.depth-1)/2;

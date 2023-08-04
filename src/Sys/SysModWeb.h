@@ -27,6 +27,7 @@ public:
   void connected();
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+  static void wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
   static void printClient(const char * text, AsyncWebSocketClient * client);
 
@@ -71,8 +72,11 @@ public:
   //gets the right responseDoc, depending on which task you are in
   JsonDocument * getResponseDoc();
   
+  static unsigned long wsSendBytesCounter;
+  static unsigned long wsSendJsonCounter;
 private:
   bool modelUpdated = false;
+
   static bool clientsChanged;
 
   static AsyncWebServer *server;

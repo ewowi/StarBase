@@ -12,6 +12,9 @@
 
 #include "AppLedsV.h"
 #include "AppEffects.h"
+#ifdef USERMOD_E131
+  #include "../User/UserModE131.h"
+#endif
 
 #include <vector>
 #include "FastLED.h"
@@ -33,36 +36,37 @@ public:
   AppModLeds() :Module("Leds") {};
 
   void setup() {
-  Module::setup();
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    Module::setup();
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentVar = ui->initModule(parentVar, name);
+    parentVar = ui->initModule(parentVar, name);
 
-  ui->initSlider(parentVar, "bri", 5, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Brightness");
-  }, [](JsonObject var) { //chFun
-    uint8_t bri = var["value"];
-    FastLED.setBrightness(bri);
-    print->print("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
-  });
+    ui->initSlider(parentVar, "bri", 5, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Brightness");
+    }, [](JsonObject var) { //chFun
+      uint8_t bri = var["value"];
+      FastLED.setBrightness(bri);
+      print->print("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
+    });
 
-  ui->initSelect(parentVar, "fx", 6, false, [](JsonObject var) { //uiFun. 6: Juggles is default
-    web->addResponse(var["id"], "label", "Effect");
-    web->addResponse(var["id"], "comment", "Effect to show");
-    JsonArray select = web->addResponseA(var["id"], "select");
-    for (Effect *effect:effects) {
-      select.add(effect->name());
-    }
-  }, [](JsonObject var) { //chFun
-    print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
-    // if (LedsV::projectionNr == p_DistanceFromPoint) {
-      if (var["value"].as<int>() == 9 && LedsV::fxDimension != 2) { // 9 = "Frizzles2D"
-        LedsV::fxDimension = 2;
-        ledsV.ledFixProjectAndMap();
+    ui->initSelect(parentVar, "fx", 6, false, [](JsonObject var) { //uiFun. 6: Juggles is default
+      web->addResponse(var["id"], "label", "Effect");
+      web->addResponse(var["id"], "comment", "Effect to show");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      for (Effect *effect:effects) {
+        select.add(effect->name());
       }
-      if (var["value"].as<int>() != 9 && LedsV::fxDimension != 1) { // 9 = "Frizzles2D"
+    }, [](JsonObject var) { //chFun
+      uint8_t fx = var["value"];
+      print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
+      // if (LedsV::projectionNr == p_DistanceFromPoint) {
+      if (fx == 9 && LedsV::fxDimension != 2) { // 9 = "Frizzles2D"
+        LedsV::fxDimension = 2;
+        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
+      }
+      if (fx != 9 && LedsV::fxDimension != 1) { // 9 = "Frizzles2D"
         LedsV::fxDimension = 1;
-        ledsV.ledFixProjectAndMap();
+        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
       }
 
       // if (false) {
@@ -118,120 +122,125 @@ public:
       }
       print->printJson("parentVar", parentVar);
       web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
-      // }
-    // }
-  });
+    });
 
-  ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun. 1:  is default
-    // web->addResponse(var["id"], "label", "Effect");
-    web->addResponse(var["id"], "comment", "How to project fx to fixture");
-    JsonArray select = web->addResponseA(var["id"], "select");
-    select.add("None");
-    select.add("Random");
-    select.add("Distance from point");
-  }, [](JsonObject var) { //chFun
-    print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+    ui->initSelect(parentVar, "projection", -1, false, [](JsonObject var) { //uiFun. 1:  is default
+      // web->addResponse(var["id"], "label", "Effect");
+      web->addResponse(var["id"], "comment", "How to project fx to fixture");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      select.add("None");
+      select.add("Random");
+      select.add("Distance from point");
+    }, [](JsonObject var) { //chFun
+      print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-    LedsV::projectionNr = var["value"];
-    ledsV.ledFixProjectAndMap();
-  });
+      LedsV::projectionNr = var["value"];
+      ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
+    });
 
-  ui->initCanvas(parentVar, "pview", -1, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Preview");
-    // web->addResponse(var["id"], "comment", "Click to enlarge");
-  }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
-    // send leds preview to clients
-    for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
-    {
-      buffer[i*3+4] = ledsP[i].red;
-      buffer[i*3+4+1] = ledsP[i].green;
-      buffer[i*3+4+2] = ledsP[i].blue;
-    }
-    //new values
-    buffer[0] = LedsV::nrOfLedsP/256;
-    buffer[1] = LedsV::nrOfLedsP%256;
-    buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
-  });
+    ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Preview");
+      web->addResponse(var["id"], "comment", "Shows the preview");
+      // web->addResponse(var["id"], "comment", "Click to enlarge");
+    }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
+      // send leds preview to clients
+      for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
+      {
+        buffer[i*3+4] = ledsP[i].red;
+        buffer[i*3+4+1] = ledsP[i].green;
+        buffer[i*3+4+2] = ledsP[i].blue;
+      }
+      //new values
+      buffer[0] = LedsV::nrOfLedsP/256;
+      buffer[1] = LedsV::nrOfLedsP%256;
+      buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
+    });
 
-  ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "LedFix");
-    web->addResponse(var["id"], "comment", "Fixture to display effect on");
-    JsonArray select = web->addResponseA(var["id"], "select");
-    files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
+    ui->initSelect(parentVar, "ledFix", -1, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "LedFix");
+      web->addResponse(var["id"], "comment", "Fixture to display effect on");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
 
-    // ui needs to load the file also initially
-    char fileName[30] = "";
-    if (files->seqNrToName(fileName, var["value"])) {
-      web->addResponse("pview", "file", fileName);
-    }
-  }, [](JsonObject var) { //chFun
-    print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+      // ui needs to load the file also initially
+      char fileName[30] = "";
+      if (files->seqNrToName(fileName, var["value"])) {
+        web->addResponse("pview", "file", fileName);
+      }
+    }, [](JsonObject var) { //chFun
+      print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-    LedsV::ledFixNr = var["value"];
-    ledsV.ledFixProjectAndMap();
+      LedsV::ledFixNr = var["value"];
+      ledsV.ledFixProjectAndMap();
 
-    char fileName[30] = "";
-    if (files->seqNrToName(fileName, LedsV::ledFixNr)) {
-      //send to pview a message to get file filename
-      JsonDocument *responseDoc = web->getResponseDoc();
-      responseDoc->clear(); //needed for deserializeJson?
-      JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+      char fileName[30] = "";
+      if (files->seqNrToName(fileName, LedsV::ledFixNr)) {
+        //send to pview a message to get file filename
+        JsonDocument *responseDoc = web->getResponseDoc();
+        responseDoc->clear(); //needed for deserializeJson?
+        JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
-      web->addResponse("pview", "file", fileName);
-      web->sendDataWs(responseVariant);
-      print->printJson("ledfix chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
-    }
-  }); //ledFix
+        web->addResponse("pview", "file", fileName);
+        web->sendDataWs(responseVariant);
+        print->printJson("ledfix chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
+      }
+    }); //ledFix
 
-  ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
-    // web->addResponseV(var["id"], "comment", "Max %dK", 32);
-  });
+    ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
+      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
+    }, [](JsonObject var) { //chFun
+    });
 
-  ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun
-    web->addResponseV(var["id"], "comment", "Max %d (%d by FastLed)", NUM_LEDS_Preview, NUM_LEDS_FastLed);
-  });
+    ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun
+      web->addResponseV(var["id"], "comment", "Max %d (%d by FastLed)", NUM_LEDS_Preview, NUM_LEDS_FastLed);
+    });
 
-  //set the values by chFun
-  //tbd: add page reload event (as these values should be given each time a page reloads, and they are not included in model.json as they are readonly...
-  // print->print("post whd P:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
-  print->print("post whd P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
-  mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
-  mdl->setValueV("nrOfLeds", "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+    //set the values by chFun
+    //tbd: add page reload event (as these values should be given each time a page reloads, and they are not included in model.json as they are readonly...
+    // print->print("post whd P:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+    print->print("post whd P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+    mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
+    mdl->setValueV("nrOfLeds", "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
 
-  ui->initNumber(parentVar, "fps", fps, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Frames per second");
-  }, [](JsonObject var) { //chFun
-    AppModLeds::fps = var["value"];
-    print->print("fps changed %d\n", AppModLeds::fps);
-  });
+    ui->initNumber(parentVar, "fps", fps, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "comment", "Frames per second");
+    }, [](JsonObject var) { //chFun
+      AppModLeds::fps = var["value"];
+      print->print("fps changed %d\n", AppModLeds::fps);
+    });
 
-  ui->initText(parentVar, "realFps", nullptr, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
-  });
+    ui->initText(parentVar, "realFps", nullptr, true, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
+    });
 
-  ui->initNumber(parentVar, "dataPin", DATA_PIN, false, [](JsonObject var) { //uiFun
-    web->addResponseV(var["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
-  }, [](JsonObject var) { //chFun
-    print->print("Set data pin to %d\n", var["value"].as<int>());
-  });
+    ui->initNumber(parentVar, "dataPin", DATA_PIN, false, [](JsonObject var) { //uiFun
+      web->addResponseV(var["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
+    }, [](JsonObject var) { //chFun
+      print->print("Set data pin to %d\n", var["value"].as<int>());
+    });
 
-  effects.push_back(new RainbowEffect);
-  effects.push_back(new RainbowWithGlitterEffect);
-  effects.push_back(new SinelonEffect);
-  effects.push_back(new RunningEffect);
-  effects.push_back(new ConfettiEffect);
-  effects.push_back(new BPMEffect);
-  effects.push_back(new JuggleEffect);
-  effects.push_back(new Ripples3DEffect);
-  effects.push_back(new SphereMove3DEffect);
-  effects.push_back(new Frizzles2D);
-  effects.push_back(new GEQEffect);
+    effects.push_back(new RainbowEffect);
+    effects.push_back(new RainbowWithGlitterEffect);
+    effects.push_back(new SinelonEffect);
+    effects.push_back(new RunningEffect);
+    effects.push_back(new ConfettiEffect);
+    effects.push_back(new BPMEffect);
+    effects.push_back(new JuggleEffect);
+    effects.push_back(new Ripples3DEffect);
+    effects.push_back(new SphereMove3DEffect);
+    effects.push_back(new Frizzles2D);
+    effects.push_back(new GEQEffect);
 
-  // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
-  FastLED.addLeds<NEOPIXEL, DATA_PIN>(ledsP, NUM_LEDS_FastLed); 
+    // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
+    FastLED.addLeds<NEOPIXEL, DATA_PIN>(ledsP, NUM_LEDS_FastLed); 
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
-}
+    #ifdef USERMOD_E131
+      e131mod->addWatch(1, "bri", 256);
+      e131mod->addWatch(2, "fx", effects.size());
+    #endif
+
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  }
 
   void loop() {
     // Module::loop();

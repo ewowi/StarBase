@@ -22,8 +22,10 @@
 #include "Sys/SysModModel.h"
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
-#include "App/AppModLeds.h"
-#include "App/AppModLedFixGen.h"
+#ifdef APPMOD_LEDS
+  #include "App/AppModLeds.h"
+  #include "App/AppModLedFixGen.h"
+#endif
 #ifdef USERMOD_E131
   #include "User/UserModE131.h"
 #endif
@@ -46,8 +48,10 @@ void setup() {
   ui = new SysModUI();
   sys = new SysModSystem();
   pin = new SysModPins();
-  lds = new AppModLeds();
-  lfg = new AppModLedFixGen();
+  #ifdef APPMOD_LEDS
+    lds = new AppModLeds();
+    lfg = new AppModLedFixGen();
+  #endif
   #ifdef USERMOD_E131
     e131mod = new UserModE131();
   #endif
@@ -59,12 +63,16 @@ void setup() {
   #endif
 
   //prefered default order in the UI
-  mdls->add(lds);
+  #ifdef APPMOD_LEDS
+    mdls->add(lds);
+  #endif
   mdls->add(files);
   mdls->add(sys);
   mdls->add(pin);
   mdls->add(print);
-  mdls->add(lfg);
+  #ifdef APPMOD_LEDS
+    mdls->add(lfg);
+  #endif
   mdls->add(ui);
   mdls->add(web);
   mdls->add(net);

@@ -47,13 +47,10 @@ void LedsV::ledFixProjectAndMap() {
     jrdws.lookFor("depth", &depthP);
     jrdws.lookFor("nrOfLeds", &nrOfLedsP);
 
-    //defaults
-    widthV = widthP;
-    heightV = heightP;
-    depthV = depthP;
-    nrOfLedsV = nrOfLedsP;
-
+    //define leds mapping
     if (projectionNr > p_Random) { //0 and 1 (none, random have no mapping)
+
+      //lookFor leds array and for each item in array call lambdo to make a projection
       jrdws.lookFor("leds", [](std::vector<uint16_t> uint16CollectList) { //this will be called for each tuple of coordinates!
         // print->print("funList ");
         // for (uint16_t num:uint16CollectList)
@@ -111,7 +108,16 @@ void LedsV::ledFixProjectAndMap() {
       }); //create the right type, otherwise crash
 
     } //projection != 0
-    if (jrdws.deserialize()) { //find all the vars
+
+    if (jrdws.deserialize(projectionNr <= p_Random)) { //find all the vars, for p_None and p_random lazy is enough, no need to go through the whole file
+
+      if (projectionNr <= p_Random) {
+        //defaults
+        widthV = widthP;
+        heightV = heightP;
+        depthV = depthP;
+        nrOfLedsV = nrOfLedsP;
+      }
 
       if (projectionNr > p_Random) {
         nrOfLedsV = mappingTable.size();

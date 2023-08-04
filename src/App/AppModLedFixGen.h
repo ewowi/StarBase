@@ -189,8 +189,34 @@ public:
     f.printf(",\"nrOfLeds\":%d", nrOfLeds);
     // f.printf(",\"pin\":%d",16);
 
+    float factorI;
+
     switch (fix) {
       case f_1DSpiral:
+        diameter = 100; //in mm
+
+        f.printf(",\"scale\":\"%s\"", "mm"); //scale currently not used (to show multiple fixtures)
+        f.printf(",\"size\":%d", diameter);
+
+        width = 10;
+        height = nrOfLeds/12;
+        depth = 10;
+        factorI = diameter / width;
+        f.printf(",\"width\":%d", width);
+        f.printf(",\"height\":%d", height);
+        f.printf(",\"depth\":%d", depth);
+
+        f.printf(",\"outputs\":[{\"pin\":10,\"leds\":[");
+        strcpy(sep, "");
+        for (int i=0; i<nrOfLeds; i++) {
+          float radians = i*360/48 * (M_PI / 180);
+          uint16_t x = factorI * width/2 * (1 + sinf(radians));
+          uint16_t y = factorI * i/12;
+          uint16_t z = factorI * depth/2 * (1+ cosf(radians));
+          f.printf("%s[%d,%d,%d]", sep, x, y, z); strcpy(sep, ",");
+        }
+        f.printf("]}]");
+        break;
       case f_2DRing:
         diameter = 100; //in mm
 

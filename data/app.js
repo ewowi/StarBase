@@ -51,6 +51,7 @@ function userFun(userFunId, data) {
 function preview2D(node, leds) {
   let ctx = node.getContext('2d');
   let i = 4;
+  let factor = jsonValues.pview.width/jsonValues.pview.size;
   ctx.clearRect(0, 0, node.width, node.height);
   if (jsonValues.pview) {
     let pPL = Math.min(node.width / jsonValues.pview.width, node.height / jsonValues.pview.height); // pixels per LED (width of circle)
@@ -63,7 +64,7 @@ function preview2D(node, leds) {
             if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
               ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
               ctx.beginPath();
-              ctx.arc(led[0]*pPL*jsonValues.pview.width/jsonValues.pview.size + lOf, led[1]*pPL*jsonValues.pview.height/jsonValues.pview.size, pPL*0.4, 0, 2 * Math.PI);
+              ctx.arc(led[0]*pPL*factor + lOf, led[1]*pPL*factor, pPL*0.4, 0, 2 * Math.PI);
               ctx.fill();
             }
             i+=3;
@@ -81,21 +82,6 @@ function preview2D(node, leds) {
     }
     jsonValues.pview.new = false;
   }
-  // else {
-  //   let mW = leds[0]; // matrix width
-  //   let mH = leds[1]; // matrix height
-  //   let pPL = Math.min(node.width / mW, node.height / mH); // pixels per LED (width of circle)
-  //   let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
-  //   for (y=0.5;y<mH;y++) for (x=0.5; x<mW; x++) {
-  //     if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
-  //       ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
-  //       ctx.beginPath();
-  //       ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
-  //       ctx.fill();
-  //     }
-  //     i+=3;
-  //   }
-  // }
 }
 
 function preview3D(node, leds) {
@@ -104,7 +90,8 @@ function preview3D(node, leds) {
   // let mH = leds[1];
   // let mD = leds[2];
 
-  var d = 5; //distanceLED;
+  let factor = jsonValues.pview.width/jsonValues.pview.size;
+  let d = 5 * factor; //distanceLED;
 
   if (!renderer || (jsonValues.pview && jsonValues.pview.new)) { //init 3D
 
@@ -128,25 +115,6 @@ function preview3D(node, leds) {
     scene = new THREE.Scene();
     scene.background = null; //new THREE.Color( 0xff0000 );
 
-    // if (!jsonValues.pview.new) { //default setup only of no json
-    //   var d = 5; //distanceLED;
-    //   var offset_x = -d*(mW-1)/2;
-    //   var offset_y = -d*(mH-1)/2;
-    //   var offset_z = -d*(mD-1)/2;
-
-    //   for (var x = 0; x < mW; x++) {
-    //     for (var y = 0; y < mH; y++) {
-    //         for (var z = 0; z < mD; z++) {
-    //             const geometry = new THREE.SphereGeometry( 1, 32, 16 );
-    //             const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5});
-    //             // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
-    //             const sphere = new THREE.Mesh( geometry, material );
-    //             sphere.position.set(offset_x + d*x, offset_y + d*y, offset_z + d*z);
-    //             scene.add( sphere );
-    //         }
-    //     }
-    //   }
-    // }
   } //new
 
   if (jsonValues.pview && jsonValues.pview.new) { //set the new coordinates
@@ -161,11 +129,11 @@ function preview3D(node, leds) {
       for (var output of jsonValues.pview.outputs) {
         if (output.leds) {
           for (var led of output.leds) {
-            const geometry = new THREE.SphereGeometry( 1, 32, 16 );
+            const geometry = new THREE.SphereGeometry( 1*factor);
             const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5});
             // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
             const sphere = new THREE.Mesh( geometry, material );
-            sphere.position.set(offset_x + d*led[0], offset_y + d*led[1], offset_z + d*led[2]);
+            sphere.position.set(offset_x + d*led[0]*factor, offset_y + d*led[1]*factor, offset_z + d*led[2]*factor);
             scene.add( sphere );
           }
         }
@@ -211,22 +179,6 @@ function preview3D(node, leds) {
       console.log("preview3D jsonValues no outputs", jsonValues.pview);
       jsonValues.pview = null;
     }
-  // } else {
-  //   //light up the cube
-  //   let firstLed = 4;
-  //   var i = 1;
-  //   for (var x = 0; x < mW; x++) {
-  //     for (var y = 0; y < mH; y++) {
-  //         for (var z = 0; z < mD; z++) {
-  //           if (i < scene.children.length) {
-  //             scene.children[i].visible = leds[i*3 + firstLed] + leds[i*3 + firstLed + 1] + leds[i*3 + firstLed+2] > 10; //do not show blacks
-  //             if (scene.children[i].visible) 
-  //               scene.children[i].material.color = new THREE.Color(`${leds[i*3 + firstLed]/255}`, `${leds[i*3 + firstLed + 1]/255}`, `${leds[i*3 + firstLed + 2]/255}`);
-  //           }
-  //           i++;
-  //         }
-  //     }
-  //   }
   }
 
   //rotate the 3D view

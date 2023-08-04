@@ -67,11 +67,10 @@ class JsonRDWS {
 
   //reads from file until all vars have been found (then stops reading)
   //returns false if not all vars to look for are found
-  bool deserialize() {
+  bool deserialize(bool lazy) {
     f.read(&character, sizeof(byte));
-    while (f.available()) // && !foundAll
+    while (f.available() && (!foundAll || !lazy))
       next();
-    bool foundAll = foundCounter >= varDetails.size();
     if (foundAll)
       print->print("JsonRDWS found all what it was looking for %d >= %d\n", foundCounter, varDetails.size());
     else
@@ -100,6 +99,7 @@ private:
   char lastVarId[100] = ""; //last found var id in json
   char beforeLastVarId[100] = ""; //last found var id in json
   size_t foundCounter = 0; //count how many of the id's to lookFor have been actually found
+  bool foundAll = false;
 
   //called by lookedFor, store the var details in varDetails
   void addToVars(const char * id, const char * type, size_t index) {
@@ -227,9 +227,8 @@ private:
         foundCounter++;
       }
     }
-    // foundAll = foundCounter >= varDetails.size();
-    // if (foundAll)
-    //   print->print("Hooray, LazyJsonRDWS found all what we were looking for, no further search needed\n");
+
+    foundAll = foundCounter >= varDetails.size();
   }
 
   //writeJsonVariantToFile calls itself recursively until whole json document has been parsed

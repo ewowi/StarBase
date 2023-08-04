@@ -20,9 +20,9 @@ static unsigned long step = 0;
 class Effect {
 public:
   virtual const char * name() { return nullptr;}
-  virtual void setup() {} //not implemented yet
+  virtual void setup() {}
   virtual void loop() {}
-  virtual const char * parameters() {return nullptr;}
+  virtual bool parameters(JsonObject parentVar) {return false;}
 };
 
 class RainbowEffect:public Effect {
@@ -30,7 +30,7 @@ public:
   const char * name() {
     return "Rainbow";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // FastLED's built-in rainbow generator
     fill_rainbow( ledsP, LedsV::nrOfLedsP, gHue, 7);
@@ -42,7 +42,7 @@ public:
   const char * name() {
     return "Rainbow with glitter";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // built-in FastLED rainbow, plus some random sparkly glitter
     RainbowEffect::loop();
@@ -61,7 +61,7 @@ public:
   const char * name() {
     return "Sinelon";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
@@ -77,7 +77,7 @@ public:
   const char * name() {
     return "Running";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 70); //physical leds
@@ -93,7 +93,7 @@ public:
   const char * name() {
     return "Confetti";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // random colored speckles that blink in and fade smoothly
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 10);
@@ -107,7 +107,7 @@ public:
   const char * name() {
     return "Beats per minute";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
     uint8_t BeatsPerMinute = 62;
@@ -117,8 +117,8 @@ public:
       ledsV[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
     }
   }
-  const char * parameters() {
-    return "BeatsPerMinute";
+  bool parameters(JsonObject parentVar) {
+    return false;
   }
 };
 
@@ -127,7 +127,7 @@ public:
   const char * name() {
     return "Juggle";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // eight colored dots, weaving in and out of sync with each other
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
@@ -144,7 +144,7 @@ public:
   const char * name() {
     return "Ripples 3D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     float ripple_interval = 1.3;// * (SEGMENT.intensity/128.0);
 
@@ -171,7 +171,7 @@ public:
   const char * name() {
     return "SphereMove 3D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     uint16_t origin_x, origin_y, origin_z, d;
     float diameter;
@@ -211,7 +211,7 @@ public:
   const char * name() {
     return "Frizzles2D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
     CRGBPalette16 palette = PartyColors_p;
@@ -234,10 +234,6 @@ public:
 class GEQEffect:public Effect {
 public:
   byte previousBarHeight[1024];
-  uint8_t intensity;
-  uint8_t speed;
-  bool check1;
-  bool check2;
 
   const char * name() {
     return "GEQ";
@@ -260,8 +256,10 @@ public:
     uint8_t samplePeak = *(uint8_t*)um_data->u_data[3];
     #endif
 
-    speed = mdl->getValue("speed");
-    intensity = mdl->getValue("intensity"); 
+    uint8_t speed = mdl->getValue("speed");
+    uint8_t intensity = mdl->getValue("intensity"); 
+    bool check1 = mdl->getValue("check1");
+    bool check2 = mdl->getValue("check2");
 
     bool rippleTime = false;
     if (millis() - step >= (256U - intensity)) {
@@ -325,6 +323,14 @@ public:
       if (rippleTime && previousBarHeight[x]>0) previousBarHeight[x]--;    //delay/ripple effect
 
     }
+  }
+
+  bool parameters(JsonObject parentVar) {
+    ui->initNumber(parentVar, "speed", 128, false);
+    ui->initNumber(parentVar, "intensity", 128, false);
+    ui->initCheckBox(parentVar, "check1", false, false);
+    ui->initCheckBox(parentVar, "check2", false, false);
+    return true;
   }
 };
 

@@ -69,57 +69,65 @@ public:
         ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
       }
 
-      // if (false) {
-      JsonObject parentVar = mdl->findVar(var["id"]);
-      parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+      if (fx < effects.size()) {
 
-      for (int i=0; i<5; i++) {
-        uint8_t nameNr = random8(6);  
-        uint8_t typeNr = random8(5);  
-        char name[12];
-        switch (nameNr) {
-          case 0:
-            strcpy(name, "lorum");
-            break;
-          case 1:
-            strcpy(name, "ipsum");
-            break;
-          case 2:
-            strcpy(name, "dolor");
-            break;
-          case 3:
-            strcpy(name, "sit");
-            break;
-          case 4:
-            strcpy(name, "amet");
-            break;
-          case 5:
-            strcpy(name, "consectetur");
-            break;
-        }
-        
-        switch (typeNr) {
-          case 0:
-            ui->initText(parentVar, name, name, false);
-            break;
-          case 1:
-            ui->initNumber(parentVar, name, random8(255), false);
-            break;
-          case 2:
-            ui->initSlider(parentVar, name, random8(255), false);
-            break;
-          case 3:
-            ui->initCheckBox(parentVar, name, random8(2), false);
-            break;
-          case 4:
-            ui->initSelect(parentVar, name, random8(2), false, [](JsonObject var) { //uiFun
-              JsonArray select = web->addResponseA(var["id"], "select");
-              select.add("Oui"); //0
-              select.add("Non"); //1
-            });
-            break;
-        }
-      }
+        // if (false) {
+        JsonObject parentVar = mdl->findVar(var["id"]);
+        parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+
+        Effect* effect = effects[fx];
+        effect->setup(); //if changed then run setup once (like call==0 in WLED)
+        if (!effect->parameters(parentVar)) {
+          for (int i=0; i<5; i++) {
+            uint8_t nameNr = random8(6);  
+            uint8_t typeNr = random8(5);  
+            char name[12];
+            switch (nameNr) {
+              case 0:
+                strcpy(name, "lorum");
+                break;
+              case 1:
+                strcpy(name, "ipsum");
+                break;
+              case 2:
+                strcpy(name, "dolor");
+                break;
+              case 3:
+                strcpy(name, "sit");
+                break;
+              case 4:
+                strcpy(name, "amet");
+                break;
+              case 5:
+                strcpy(name, "consectetur");
+                break;
+            }
+            
+            switch (typeNr) {
+              case 0:
+                ui->initText(parentVar, name, name, false);
+                break;
+              case 1:
+                ui->initNumber(parentVar, name, random8(255), false);
+                break;
+              case 2:
+                ui->initSlider(parentVar, name, random8(255), false);
+                break;
+              case 3:
+                ui->initCheckBox(parentVar, name, random8(2), false);
+                break;
+              case 4:
+                ui->initSelect(parentVar, name, random8(2), false, [](JsonObject var) { //uiFun
+                  JsonArray select = web->addResponseA(var["id"], "select");
+                  select.add("Oui"); //0
+                  select.add("Non"); //1
+                });
+                break;
+            }
+          } //for loop
+        } //! parameters        
+      } //fx < size
+
       print->printJson("parentVar", parentVar);
       web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
     });

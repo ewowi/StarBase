@@ -380,8 +380,8 @@ public:
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 
-    e131mod->patchChannel(3, "speed", 125, 255); // TODO: add constant for name
-    e131mod->patchChannel(4, "intensity", 125, 255);
+    e131mod->patchChannel(3, "speed", 255); // TODO: add constant for name
+    e131mod->patchChannel(4, "intensity", 255);
 
     return true;
   }

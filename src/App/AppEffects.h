@@ -8,6 +8,11 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
 
+#ifdef USERMOD_WLEDAUDIO
+  #include "User/UserModWLEDAudio.h"
+#endif
+
+
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 static unsigned long call = 0;
 static unsigned long step = 0;
@@ -224,7 +229,8 @@ public:
   }
 }; // Frizzles2D
 
-#define NUM_GEQ_CHANNELS 16                                           // number of frequency channels. Don't change !!
+
+#ifdef USERMOD_WLEDAUDIO
 
 class GEQEffect:public Effect {
 public:
@@ -241,7 +247,7 @@ public:
   void setup() {
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
     for (int i=0; i<LedsV::widthV; i++) previousBarHeight[i] = 0;
-  } //not implemented yet
+  }
 
   void loop() {
 
@@ -316,8 +322,10 @@ public:
 
       if (rippleTime && previousBarHeight[x]>0) previousBarHeight[x]--;    //delay/ripple effect
 
+    }
   }
 };
 
+#endif // End Audio Effects
 
 static std::vector<Effect *> effects;

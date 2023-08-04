@@ -229,7 +229,10 @@ public:
     effects.push_back(new Ripples3DEffect);
     effects.push_back(new SphereMove3DEffect);
     effects.push_back(new Frizzles2D);
+#ifdef USERMOD_WLEDAUDIO
     effects.push_back(new GEQEffect);
+#endif
+
 
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(ledsP, NUM_LEDS_FastLed); 

@@ -8,6 +8,8 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
 
+#pragma once
+
 #include <WLED-sync.h> // https://github.com/netmindz/WLED-sync
 
 class UserModWLEDAudio:public Module {

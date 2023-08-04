@@ -71,14 +71,14 @@ public:
         for (int i=0; i < maxChannels; i++) {
           if (packet.property_values[i] != varsToWatch[i].savedValue) {
 
-            print->print("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u\n",
+            print->print("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u ",
                     htons(packet.universe),                 // The Universe for this packet
                     htons(packet.property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
                     e131.stats.num_packets,                 // Packet counter
                     e131.stats.packet_errors,               // Packet error counter
                     i,
                     varsToWatch[i].savedValue,
-                    packet.property_values[i]);             // Dimmer data for Channel i
+                    packet.property_values[i]);             // value for channel i
 
             varsToWatch[i].savedValue = packet.property_values[i];
 
@@ -98,15 +98,15 @@ public:
     varsToWatch[channel].max = max;
   }
 
-  uint8_t getValue(const char * id) {
-    for (int i=0; i < maxChannels; i++) {
-        if(varsToWatch[i].id == id) {
-          return varsToWatch[i].savedValue;
-        }
-    }
-    print->print("ERROR: failed to find param %s\n", id);
-    return 0;
-  }
+  // uint8_t getValue(const char * id) {
+  //   for (int i=0; i < maxChannels; i++) {
+  //       if(varsToWatch[i].id == id) {
+  //         return varsToWatch[i].savedValue;
+  //       }
+  //   }
+  //   print->print("ERROR: failed to find param %s\n", id);
+  //   return 0;
+  // }
 
   private:
     ESPAsyncE131 e131;

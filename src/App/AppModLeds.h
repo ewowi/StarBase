@@ -238,8 +238,10 @@ public:
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(ledsP, NUM_LEDS_FastLed); 
 
     #ifdef USERMOD_E131
-      e131mod->addWatch(1, "bri", 256);
+      e131mod->addWatch(1, "bri");
       e131mod->addWatch(2, "fx", effects.size());
+      e131mod->addWatch(3, "speed"); // TODO: add constant for name
+      e131mod->addWatch(4, "intensity");
     #endif
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");

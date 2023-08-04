@@ -7,7 +7,9 @@
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
-
+#ifdef USERMOD_E131
+  #include "User/UserModE131.h"
+#endif
 #ifdef USERMOD_WLEDAUDIO
   #include "User/UserModWLEDAudio.h"
 #endif
@@ -260,6 +262,9 @@ public:
     #ifdef SR_DEBUG
     uint8_t samplePeak = *(uint8_t*)um_data->u_data[3];
     #endif
+
+    speed = e131mod->getValue("speed");
+    intensity = e131mod->getValue("intensity"); 
 
     bool rippleTime = false;
     if (millis() - step >= (256U - intensity)) {

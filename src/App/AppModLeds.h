@@ -126,10 +126,10 @@ public:
             }
           } //for loop
         } //! parameters        
+        print->printJson("parentVar", parentVar);
+        web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
       } //fx < size
 
-      print->printJson("parentVar", parentVar);
-      web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
     });
 
     ui->initSelect(parentVar, "projection", -1, false, [](JsonObject var) { //uiFun. 1:  is default

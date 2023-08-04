@@ -345,7 +345,7 @@ public:
 
 class AudioRings:public Effect {
   private:
-    uint8_t ringMap[9][2] = {
+    uint8_t ringMap[9][2] = { // If you ring goes from ouside in, then reverse the order of this array
       {0, 0},     //0 Center Point
       {1, 8},     //1
       {9, 20},   //2

@@ -95,6 +95,7 @@ public:
 
   void patchChannel(uint8_t channel, const char * id, uint8_t max = 255) {
     varsToWatch[channel].id = id;
+    varsToWatch[channel].savedValue = 0; // Always reset when (re)patching so variable gets set to DMX value even if unchanged
     varsToWatch[channel].max = max;
   }
 

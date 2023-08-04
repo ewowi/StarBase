@@ -239,6 +239,7 @@ public:
     effects.push_back(new Frizzles2D);
 #ifdef USERMOD_WLEDAUDIO
     effects.push_back(new GEQEffect);
+    effects.push_back(new AudioRings);
 #endif
 
 

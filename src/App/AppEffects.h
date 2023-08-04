@@ -343,6 +343,70 @@ public:
   }
 };
 
+class AudioRings:public Effect {
+  private:
+    uint8_t ringMap[9][2] = {
+      {0, 0},     //0 Center Point
+      {1, 8},     //1
+      {9, 20},   //2
+      {21, 36},   //3
+      {37, 60},   //4
+      {61, 92},   //5
+      {93, 132},  //6
+      {133, 180}, //7
+      {181, 240}, //8 Outer Ring
+    };
+    uint8_t *fftResult = wledAudioMod->fftResults;
+    CRGBPalette16 palette = PartyColors_p;
+    bool INWARD; // TODO: param
+
+  public:
+    const char * name() {
+      return "AudioRings";
+    }
+    void setup() {}
+    void setRing(int ring, CRGB colour) {
+      for (int i = ringMap[ring][0]; i <= ringMap[ring][1]; i++) {
+        ledsV[i] = colour;
+      }
+    }
+
+    void setRingFromFtt(int index, int ring) {
+      uint8_t val = fftResult[index];
+      // Visualize leds to the beat
+      CRGB color = ColorFromPalette(palette, val, 255);
+      color.nscale8_video(val);
+      setRing(ring, color);
+    }
+
+
+    void loop() {
+      for (int i = 0; i < 7; i++) {
+
+        uint8_t val;
+        if(INWARD) {
+          val = fftResult[(i*2)];
+        }
+        else {
+          int b = 14 -(i*2);
+          val = fftResult[b];
+        }
+    
+        // Visualize leds to the beat
+        CRGB color = ColorFromPalette(palette, val, val);
+  //      CRGB color = ColorFromPalette(currentPalette, val, 255, currentBlending);
+  //      color.nscale8_video(val);
+        setRing(i, color);
+  //        setRingFromFtt((i * 2), i); 
+      }
+
+      setRingFromFtt(2, 7); // set outer ring to base
+      setRingFromFtt(0, 8); // set outer ring to base
+
+    }
+};
+
+
 #endif // End Audio Effects
 
 static std::vector<Effect *> effects;

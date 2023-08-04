@@ -71,7 +71,7 @@ public:
         for (int i=0; i < maxChannels; i++) {
           if (packet.property_values[i] != varsToWatch[i].savedValue) {
 
-            print->print("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u",
+            print->print("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u\n",
                     htons(packet.universe),                 // The Universe for this packet
                     htons(packet.property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
                     e131.stats.num_packets,                 // Packet counter

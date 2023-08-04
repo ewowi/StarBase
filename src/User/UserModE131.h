@@ -93,7 +93,7 @@ public:
     }
   }
 
-  void addWatch(uint8_t channel, const char * id, uint8_t max = 255) {
+  void patchChannel(uint8_t channel, const char * id, uint8_t max = 255) {
     varsToWatch[channel].id = id;
     varsToWatch[channel].max = max;
   }

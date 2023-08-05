@@ -233,26 +233,12 @@ public:
 
 class RingEffect:public Effect {
   protected:
-    uint8_t ringMap[9][2] = { // If you ring goes from ouside in, then reverse the order of this array
-      {0, 0},     //0 Center Point
-      {1, 8},     //1
-      {9, 20},   //2
-      {21, 36},   //3
-      {37, 60},   //4
-      {61, 92},   //5
-      {93, 132},  //6
-      {133, 180}, //7
-      {181, 240}, //8 Outer Ring
-    };
     CRGBPalette16 palette = PartyColors_p;
     bool INWARD; // TODO: param
-    const static int RINGS = 9;
-    uint8_t hue[RINGS];
+    uint8_t hue[9]; // TODO: needs to match LedsV::nrOfLedsV
 
     void setRing(int ring, CRGB colour) {
-      for (int i = ringMap[ring][0]; i <= ringMap[ring][1]; i++) {
-        ledsV[i] = colour;
-      }
+      ledsV[ring] = colour;
     }
 
 };
@@ -265,10 +251,10 @@ public:
   void setup() {}
   void loop() {
     hue[0] = random(0, 255);
-    for (int r = 0; r < RINGS; r++) {
+    for (int r = 0; r < LedsV::nrOfLedsV; r++) {
       setRing(r, CHSV(hue[r], 255, 255));
     }
-    for (int r = (RINGS - 1); r >= 1; r--) {
+    for (int r = (LedsV::nrOfLedsV - 1); r >= 1; r--) {
       hue[r] = hue[(r - 1)]; // set this ruing based on the inner
     }
     // FastLED.delay(SPEED);

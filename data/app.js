@@ -51,7 +51,7 @@ function userFun(userFunId, data) {
 function preview2D(node, leds) {
   let ctx = node.getContext('2d');
   let i = 4;
-  let factor = jsonValues.pview.width/jsonValues.pview.size;
+  let factor = jsonValues.pview.factor;
   ctx.clearRect(0, 0, node.width, node.height);
   if (jsonValues.pview) {
     let pPL = Math.min(node.width / jsonValues.pview.width, node.height / jsonValues.pview.height); // pixels per LED (width of circle)
@@ -64,7 +64,7 @@ function preview2D(node, leds) {
             if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
               ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
               ctx.beginPath();
-              ctx.arc(led[0]*pPL*factor + lOf, led[1]*pPL*factor, pPL*0.4, 0, 2 * Math.PI);
+              ctx.arc(led[0]*pPL/factor + lOf, led[1]*pPL/factor, pPL*0.4, 0, 2 * Math.PI);
               ctx.fill();
             }
             i+=3;
@@ -90,8 +90,8 @@ function preview3D(node, leds) {
   // let mH = leds[1];
   // let mD = leds[2];
 
-  let factor = jsonValues.pview.width/jsonValues.pview.size;
-  let d = 5 * factor; //distanceLED;
+  let factor = jsonValues.pview.factor;
+  let d = 5 / factor; //distanceLED;
 
   if (!renderer || (jsonValues.pview && jsonValues.pview.new)) { //init 3D
 
@@ -129,11 +129,11 @@ function preview3D(node, leds) {
       for (var output of jsonValues.pview.outputs) {
         if (output.leds) {
           for (var led of output.leds) {
-            const geometry = new THREE.SphereGeometry( 1*factor);
+            const geometry = new THREE.SphereGeometry( 1/factor);
             const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5});
             // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
             const sphere = new THREE.Mesh( geometry, material );
-            sphere.position.set(offset_x + d*led[0]*factor, offset_y + d*led[1]*factor, offset_z + d*led[2]*factor);
+            sphere.position.set(offset_x + d*led[0]/factor, offset_y + d*led[1]/factor, offset_z + d*led[2]/factor);
             scene.add( sphere );
           }
         }

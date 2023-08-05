@@ -23,6 +23,7 @@ uint16_t LedsV::nrOfLedsV = 64;  //amount of virtual leds (calculated by project
 uint16_t LedsV::widthP = 8; 
 uint16_t LedsV::heightP = 8; 
 uint16_t LedsV::depthP = 1; 
+uint16_t LedsV::factorP = 8; 
 uint16_t LedsV::widthV = 8; 
 uint16_t LedsV::heightV = 8; 
 uint16_t LedsV::depthV = 1; 
@@ -45,6 +46,7 @@ void LedsV::ledFixProjectAndMap() {
     jrdws.lookFor("width", &widthP);
     jrdws.lookFor("height", &heightP);
     jrdws.lookFor("depth", &depthP);
+    jrdws.lookFor("factor", &factorP);
     jrdws.lookFor("nrOfLeds", &nrOfLedsP);
 
     //define leds mapping
@@ -59,17 +61,28 @@ void LedsV::ledFixProjectAndMap() {
 
         if (uint16CollectList.size()>=1 && uint16CollectList.size()<=3) { //we only comprehend 1D, 2D, 3D 
           // print->print("projectionNr p:%d f:%d s:%d\n", LedsV::projectionNr, LedsV::fxDimension, uint16CollectList.size());
-          if (LedsV::projectionNr == p_DistanceFromPoint) {
+          if (LedsV::projectionNr == p_DistanceFromPoint || LedsV::projectionNr == p_DistanceFromCentre) {
             uint16_t bucket;// = -1;
             if (LedsV::fxDimension == 1) { //we do distance from point
               //if effect is 1D
 
+              uint16_t bx, by, bz;
+              if (LedsV::projectionNr == p_DistanceFromPoint) {
+                bx = 0;
+                by = 0;
+                bz = 0;
+              } else {
+                bx = LedsV::factorP * LedsV::widthP / 2;
+                by = LedsV::factorP * LedsV::heightP / 2;
+                bz = LedsV::factorP * LedsV::depthP / 2;
+              }
+
               if (uint16CollectList.size() == 1) //ledfix is 1D
-                bucket = uint16CollectList[0];
+                bucket = uint16CollectList[0] / LedsV::factorP;
               else if (uint16CollectList.size() == 2) //ledfix is 2D
-                bucket = distance(uint16CollectList[0],uint16CollectList[1],0,0,0,0);
+                bucket = distance(uint16CollectList[0],uint16CollectList[1],0,bx,by,0) / LedsV::factorP;
               else if (uint16CollectList.size() == 3) //ledfix is 3D
-                bucket = distance(uint16CollectList[0],uint16CollectList[1],uint16CollectList[2],0,0,0);
+                bucket = distance(uint16CollectList[0],uint16CollectList[1],uint16CollectList[2],bx, by, bz) / LedsV::factorP;
 
             }
             else if (LedsV::fxDimension == 2) { //we do distance from x, y+z

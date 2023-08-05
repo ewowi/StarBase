@@ -128,9 +128,10 @@ public:
       // web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
       JsonArray select = web->addResponseA(var["id"], "select");
-      select.add("None");
-      select.add("Random");
-      select.add("Distance from point");
+      select.add("None"); // 0
+      select.add("Random"); // 1
+      select.add("Distance from point"); //2
+      select.add("Distance from centre"); //3
     }, [](JsonObject var) { //chFun
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 

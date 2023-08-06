@@ -22,13 +22,15 @@ jobs:
       - name: Install PlatformIO Core
         run: pip install --upgrade platformio
       - name: Setup Vars
-        run: git_hash=$(git rev-parse --short "$GITHUB_SHA")
+        run: |
+          export git_hash=$(git rev-parse --short "$GITHUB_SHA")
+          export git_branch=${GITHUB_REF#refs/heads/}
       - name: Build PlatformIO Project
         run: pio run
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v3
         with:
-            name: StarMod-esp32-${git_hash}.bin
+            name: StarMod-esp32-${git_branch}-${git_hash}.bin
             path: .pio/build/esp32dev/firmware.bin
             retention-days: 30
 

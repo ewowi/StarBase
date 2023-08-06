@@ -27,21 +27,25 @@ public:
   }
 
   void connected() {
+    isConnected = true;
     udp.begin(65506);
   }
 
   void loop(){
     // Module::loop();
+    if(!isConnected) return;
+
     int packetSize = udp.parsePacket();
 
     if (packetSize) {
       IPAddress remoteIp = udp.remoteIP();
       // TODO: actually look at the contents of the packet to fetch version, name etc
-      print->print("WLED: %s\n", remoteIp);
+      print->print("WLED: %s\n", remoteIp.toString().c_str());
     }
   }
 
   private:
+    bool isConnected = false;
     WiFiUDP udp;
 
 };

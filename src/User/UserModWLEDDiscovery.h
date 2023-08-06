@@ -40,12 +40,14 @@ public:
     if (packetSize) {
       IPAddress remoteIp = udp.remoteIP();
       // TODO: actually look at the contents of the packet to fetch version, name etc
-      print->print("WLED: %s\n", remoteIp.toString().c_str());
+      print->print("WLED: %s (%u)\n", remoteIp.toString().c_str(), packetSize);
+      udp.read(packetBuffer, packetSize);
     }
   }
 
   private:
     bool isConnected = false;
+    char packetBuffer[255];
     WiFiUDP udp;
 
 };

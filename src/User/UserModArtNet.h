@@ -10,7 +10,6 @@
 
 #define ARTNET_DEFAULT_PORT 6454
 
-static       size_t sequenceNumber = 0; // this needs to be shared across all outputs
 static const size_t ART_NET_HEADER_SIZE = 12;
 static const byte   ART_NET_HEADER[] PROGMEM = {0x41,0x72,0x74,0x2d,0x4e,0x65,0x74,0x00,0x00,0x50,0x00,0x0e};
 
@@ -107,6 +106,7 @@ public:
 
   private:
     bool isConnected = false;
+    size_t sequenceNumber = 0;
 
 };
 

@@ -28,6 +28,9 @@
   #ifdef USERMOD_ARTNET
     #include "User/UserModArtNet.h"
   #endif
+  #ifdef USERMOD_DDP
+    #include "User/UserModDDP.h"
+  #endif
 #endif
 #ifdef USERMOD_E131
   #include "User/UserModE131.h"
@@ -54,6 +57,9 @@ void setup() {
     #ifdef USERMOD_ARTNET
       artnetmod = new UserModArtNet();
     #endif
+    #ifdef USERMOD_DDP
+      ddpmod = new UserModArtNet();
+    #endif
   #endif
   #ifdef USERMOD_E131
     e131mod = new UserModE131();
@@ -74,6 +80,9 @@ void setup() {
     mdls->add(lfg);
     #ifdef USERMOD_ARTNET
       mdls->add(artnetmod);
+    #endif
+    #ifdef USERMOD_DDP
+      mdls->add(ddpmod);
     #endif
   #endif
   mdls->add(ui);

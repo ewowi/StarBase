@@ -58,8 +58,9 @@ public:
 
     if(!isConnected) return;
 
-    if(wledDiscoveryMod->nodes.length() >= 1) {
+    if((!targetIp) && (wledDiscoveryMod->nodes.length() >= 1)) {
       targetIp = wledDiscoveryMod->nodes.firstKey(); // TODO: replace with WebUI setting
+      print->print("Start DDP to %s\n", targetIp.toString().c_str());
     }
     
     if(!targetIp) return;

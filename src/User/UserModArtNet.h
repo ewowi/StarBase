@@ -29,7 +29,7 @@ public:
   void setup() {
     Module::setup();
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
-    targetIp = IPAddress(192,168,178,161); // TODO allow setting at runtime
+    targetIp = IPAddress(0,0,0,0); // TODO allow setting at runtime
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 

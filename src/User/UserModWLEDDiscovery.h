@@ -15,7 +15,7 @@ class UserModWLEDDiscovery:public Module {
 
 public:
 
-  Dictionary<String, String> nodes;
+  Dictionary<IPAddress, String> nodes;
 
   UserModWLEDDiscovery() :Module("WLED Discovery") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -47,7 +47,7 @@ public:
       // TODO: actually look at the contents of the packet to fetch version, name etc
       print->print("WLED: %s (%u)\n", remoteIp.toString().c_str(), packetSize);
       udp.read(packetBuffer, packetSize);
-      nodes.set(remoteIp.toString().c_str(), remoteIp.toString().c_str());
+      nodes.set(remoteIp, remoteIp.toString().c_str());
     }
   }
 

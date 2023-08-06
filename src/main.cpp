@@ -22,6 +22,7 @@
 #include "Sys/SysModModel.h"
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
+#include "User/UserModWLEDDiscovery.h"
 #ifdef APPMOD_LEDS
   #include "App/AppModLeds.h"
   #include "App/AppModLedFixGen.h"
@@ -38,7 +39,6 @@
 #ifdef USERMOD_HA
   #include "User/UserModHA.h"
 #endif
-#include "User/UserModWLEDDiscovery.h"
 
 //setup all modules
 void setup() {
@@ -52,6 +52,7 @@ void setup() {
   ui = new SysModUI();
   sys = new SysModSystem();
   pin = new SysModPins();
+  wledDiscoveryMod = new UserModWLEDDiscovery();
   #ifdef APPMOD_LEDS
     lds = new AppModLeds();
     lfg = new AppModLedFixGen();
@@ -68,7 +69,6 @@ void setup() {
   #ifdef USERMOD_HA
     hamod = new UserModHA();
   #endif
-  wledDiscoveryMod = new UserModWLEDDiscovery();
 
   //prefered default order in the UI
   #ifdef APPMOD_LEDS

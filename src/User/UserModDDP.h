@@ -45,7 +45,6 @@ public:
   void setup() {
     Module::setup();
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
-    targetIp = IPAddress(192,168,178,161); // TODO allow setting at runtime
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
@@ -58,6 +57,12 @@ public:
     // Module::loop();
 
     if(!isConnected) return;
+
+    if(wledDiscoveryMod->nodes.length() >= 1) {
+      targetIp = wledDiscoveryMod->nodes.firstKey(); // TODO: replace with WebUI setting
+    }
+    
+    if(!targetIp) return;
 
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;

@@ -58,7 +58,7 @@ void setup() {
       artnetmod = new UserModArtNet();
     #endif
     #ifdef USERMOD_DDP
-      ddpmod = new UserModArtNet();
+      ddpmod = new UserModDDP();
     #endif
   #endif
   #ifdef USERMOD_E131

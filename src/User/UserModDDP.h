@@ -132,4 +132,4 @@ public:
 
 };
 
-static UserModArtNet *ddpmod;
+static UserModDDP *ddpmod;

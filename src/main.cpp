@@ -32,6 +32,7 @@
 #ifdef USERMOD_HA
   #include "User/UserModHA.h"
 #endif
+#include "User/UserModWLEDDiscovery.h"
 
 //setup all modules
 void setup() {
@@ -55,6 +56,7 @@ void setup() {
   #ifdef USERMOD_HA
     hamod = new UserModHA();
   #endif
+  wledDiscoveryMod = new UserModWLEDDiscovery();
 
   //prefered default order in the UI
   #ifdef APPMOD_LEDS
@@ -77,6 +79,7 @@ void setup() {
   #ifdef USERMOD_HA
     mdls->add(hamod);
   #endif
+  mdls->add(wledDiscoveryMod);
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

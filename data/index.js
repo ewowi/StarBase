@@ -44,6 +44,8 @@ function makeWS() {
         userFunId = "";
     } 
     else {
+      clearTimeout(jsonTimeout);
+      jsonTimeout = null;
       gId('connind').style.backgroundColor = "var(--c-l)";
       // console.log("onmessage", e.data);
       let json = null;
@@ -83,6 +85,7 @@ function makeWS() {
   }
   ws.onopen = (e)=>{
     console.log("WS open", e);
+		reqsLegal = true;
   }
 }
 
@@ -539,12 +542,21 @@ function findVar(id, parent = null) {
   return foundVar;
 }
 
+var jsonTimeout;
+var reqsLegal = false;
+
 function requestJson(command) {
   gId('connind').style.backgroundColor = "var(--c-y)";
-  if (!ws) return;
+	if (command && !reqsLegal) return; // stop post requests from chrome onchange event on page restore
+	if (!jsonTimeout) jsonTimeout = setTimeout(()=>{if (ws) ws.close(); ws=null; console.log("connection failed")}, 3000);
+
+  // if (!ws) return;
   let req = JSON.stringify(command);
   
   console.log("requestJson", command);
+
+  if (req.length > 1340)
+  console.log("too big???");
   
   ws.send(req?req:'{"v":true}');
 

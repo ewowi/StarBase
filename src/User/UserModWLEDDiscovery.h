@@ -8,9 +8,14 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
 
+#include <Dictionary.h>
+
+
 class UserModWLEDDiscovery:public Module {
 
 public:
+
+  Dictionary<String, String> nodes;
 
   UserModWLEDDiscovery() :Module("WLED Discovery") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -42,6 +47,7 @@ public:
       // TODO: actually look at the contents of the packet to fetch version, name etc
       print->print("WLED: %s (%u)\n", remoteIp.toString().c_str(), packetSize);
       udp.read(packetBuffer, packetSize);
+      nodes.set(remoteIp.toString().c_str(), remoteIp.toString().c_str());
     }
   }
 

@@ -29,6 +29,7 @@ class AppModLeds:public Module {
 public:
   unsigned long frameMillis = 0;
   unsigned long frameCounter = 0;
+  bool newFrame = false;
 
   //need to make these static as they are called in lambda functions 
   static uint16_t fps;
@@ -248,6 +249,8 @@ public:
     if(millis() - frameMillis >= 1000.0/fps) {
       frameMillis = millis();
 
+      newFrame = true;
+
       Effect* effect = effects[mdl->getValue("fx")];
       effect->loop();
 
@@ -256,6 +259,9 @@ public:
 
       frameCounter++;
       call++;
+    }
+    else {
+      newFrame = false;
     }
     if (millis() - secondMillis >= 1000 || !secondMillis) {
       secondMillis = millis();

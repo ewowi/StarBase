@@ -12,9 +12,6 @@
 
 #include "AppLedsV.h"
 #include "AppEffects.h"
-#ifdef USERMOD_E131
-  #include "../User/UserModE131.h"
-#endif
 
 #include <vector>
 #include "FastLED.h"
@@ -32,6 +29,8 @@ public:
 
   //need to make these static as they are called in lambda functions 
   static uint16_t fps;
+  unsigned long lastMappingMillis = 0;
+  static bool doMap;
 
   AppModLeds() :Module("Leds") {};
 
@@ -62,11 +61,11 @@ public:
       // if (LedsV::projectionNr == p_DistanceFromPoint) {
       if (fx == 9 && LedsV::fxDimension != 2) { // 9 = "Frizzles2D"
         LedsV::fxDimension = 2;
-        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
+        doMap = true;
       }
       if (fx != 9 && LedsV::fxDimension != 1) { // 9 = "Frizzles2D"
         LedsV::fxDimension = 1;
-        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
+        doMap = true;
       }
 
       // if (false) {
@@ -136,7 +135,7 @@ public:
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::projectionNr = var["value"];
-      ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
+      doMap = true;
     });
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
@@ -172,7 +171,7 @@ public:
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::ledFixNr = var["value"];
-      ledsV.ledFixProjectAndMap();
+      doMap = true;
 
       char fileName[30] = "";
       if (files->seqNrToName(fileName, LedsV::ledFixNr)) {
@@ -234,10 +233,9 @@ public:
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(ledsP, NUM_LEDS_FastLed); 
 
-    #ifdef USERMOD_E131
-      e131mod->addWatch(1, "bri", 256);
-      e131mod->addWatch(2, "fx", effects.size());
-    #endif
+    mdl->addWatch(1, "bri", 256);
+    mdl->addWatch(2, "fx", effects.size());
+    mdl->addWatch(3, "projection", Projections::count);
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
@@ -245,7 +243,7 @@ public:
   void loop() {
     // Module::loop();
 
-    if(millis() - frameMillis >= 1000.0/fps) {
+    if (millis() - frameMillis >= 1000.0/fps) {
       frameMillis = millis();
 
       Effect* effect = effects[mdl->getValue("fx")];
@@ -257,10 +255,17 @@ public:
       frameCounter++;
       call++;
     }
-    if (millis() - secondMillis >= 1000 || !secondMillis) {
+
+    if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
       mdl->setValueV("realFps", "%lu /s", frameCounter);
       frameCounter = 0;
+    }
+
+    if (millis() - lastMappingMillis >= 1000 && doMap) { //not more then once per second (for E131)
+      lastMappingMillis = millis();
+      doMap = false;
+      ledsV.ledFixProjectAndMap();
     }
 
     // do some periodic updates
@@ -272,3 +277,4 @@ public:
 static AppModLeds *lds;
 
 uint16_t AppModLeds::fps = 40;
+bool AppModLeds::doMap = false;

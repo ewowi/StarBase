@@ -13,12 +13,22 @@
 
 #include "ArduinoJson.h"
 
+struct VarToWatch {
+  const char * id = nullptr;
+  uint16_t max = -1;
+  uint8_t savedValue = -1;
+};
+
+#define maxChannels 10
+
 class SysModModel:public Module {
 
 public:
 
   // StaticJsonDocument<24576> model; //not static as that blows up the stack. Use extern??
   static DynamicJsonDocument *model;
+
+  VarToWatch varsToWatch[maxChannels];
 
   SysModModel();
   void setup();
@@ -65,6 +75,11 @@ public:
   //returns the var defined by id (parent to recursively call findVar)
   static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
   
+  void addWatch(uint8_t channel, const char * id, uint16_t max) {
+    varsToWatch[channel].id = id;
+    varsToWatch[channel].max = max;
+  }
+
 private:
   static bool doWriteModel;
   static bool doShowObsolete;

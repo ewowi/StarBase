@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ewoudwijma/playground.git"
+    "url": "git+https://github.com/ewowi/StarMod.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/ewoudwijma/playground/issues"
+    "url": "https://github.com/ewowi/StarMod/issues"
   },
-  "homepage": "https://github.com/ewoudwijma/playground#readme",
+  "homepage": "https://github.com/ewowi/StarMod#readme",
   "dependencies": {
     "clean-css": "^4.2.3",
     "html-minifier-terser": "^5.1.1",

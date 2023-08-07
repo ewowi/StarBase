@@ -59,6 +59,8 @@ public:
 
     if(!isConnected) return;
 
+    if(!lds->newFrame) return;
+
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;
 

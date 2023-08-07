@@ -175,13 +175,35 @@ JsonObject SysModModel::setValueI(const char * id, int value) {
   return var;
 }
 
-JsonObject SysModModel::setValueB(const char * id, bool value) {
+JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
   JsonObject var = findVar(id);
   if (!var.isNull()) {
-    if (var["value"].isNull() || var["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value?"true":"false");
-      var["value"] = value;
-      ui->setChFunAndWs(var);
+    // print->printJson("setValueB", var);
+    if (rowNr == (uint8_t)-1) { //normal situation
+      if (var["value"].isNull() || var["value"] != value) {
+        print->print("setValueB changed %s (%d) %s->%s\n", id, rowNr, var["value"].as<String>().c_str(), value?"true":"false");
+        var["value"] = value;
+        ui->setChFunAndWs(var);
+      }
+    }
+    else {
+      //if we deal with multiple rows, value should be an array, if not we create one
+
+      if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
+        print->print("setValueB var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
+        // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
+        var.createNestedArray("value");
+      }
+
+      if (var["value"].is<JsonArray>()) {
+        //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
+        if (var["value"][rowNr] != value) {
+          var["value"][rowNr] = value;
+          ui->setChFunAndWs(var);
+        }
+      }
+      else 
+        print->print("setValueB %s could not create value array\n", id);
     }
   }
   else

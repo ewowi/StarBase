@@ -61,6 +61,8 @@ void SysModWeb::setup() {
   });
   ui->initCheckBox(tableVar, "clIsFull", false, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Is full");
+  }, [](JsonObject var) { //chFun
+    print->printJson("clIsFull.chFun", var);
   });
   ui->initSelect(tableVar, "clStatus", -1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
@@ -96,9 +98,11 @@ void SysModWeb::loop() {
       ui->processUiFun("clist");
     }
 
+    uint8_t rowNr = 0;
     for (auto client:SysModWeb::ws->getClients()) {
-      mdl->setValueB("clIsFull", client->queueIsFull());
+      mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
       mdl->setValueI("clStatus", client->status());
+      rowNr++;
     }
 
     mdl->setValueV("wsSendBytes", "%lu /s", wsSendBytesCounter);
@@ -131,11 +135,11 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   //   print->print("wsEvent no clients\n");
   //   return;
   // }
-  if(type == WS_EVT_CONNECT) {
+  if (type == WS_EVT_CONNECT) {
     printClient("WS client connected", client);
     sendDataWs(client, true); //send definition to client
     clientsChanged = true;
-  } else if(type == WS_EVT_DISCONNECT) {
+  } else if (type == WS_EVT_DISCONNECT) {
     printClient("WS Client disconnected", client);
     clientsChanged = true;
   } else if (type == WS_EVT_DATA) {
@@ -502,13 +506,6 @@ bool SysModWeb::addFileServer(const char * uri) {
   return true;
 }
 
-//processJsonUrl handles requests send in javascript using fetch and from a browser or curl
-//try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
-//curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
-//curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
-//curl -X POST "http://192.168.8.152/json" -d '{"fx":2}' -H "Content-Type: application/json"
-//curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
-
 bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &)) {
   processWSFunc = processFunc; //for WebSocket requests
 
@@ -537,6 +534,12 @@ void SysModWeb::addResponse(const char * id, const char * key, const char * valu
   JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
   responseVariant[id][key] = (char *)value; //copy!!
+}
+
+void SysModWeb::addResponseArray(const char * id, const char * key, JsonArray value) {
+  JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
+  if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
+  responseVariant[id][key] = value;
 }
 
 void SysModWeb::addResponseV(const char * id, const char * key, const char * format, ...) {

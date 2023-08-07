@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      UserModArtNet.h
+   @file      UserModArtDDP.h
    @date      20230730
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main

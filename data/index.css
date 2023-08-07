@@ -63,7 +63,7 @@ h1,h2 {
 	right: 0px;
 	top: 0px;
 	/* calc(var(--th) - 1px); */
-	background-color: var(--c-o);
+	background: linear-gradient(to bottom, #ffbe3390 0%, #b60f6290 100%); /*var(--c-o);*/
 	transform: translateY(100%);
 	transition: transform 0.4s;
 	padding: 8px;

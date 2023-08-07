@@ -239,6 +239,8 @@ void SysModUI::setChFunAndWs(JsonObject var, const char * value) { //value: bypa
       web->addResponseB(var["id"], "value", var["value"].as<bool>());
     else if (var["value"].is<const char *>())
       web->addResponse(var["id"], "value", var["value"].as<const char *>());
+    else if (var["value"].is<JsonArray>())
+      web->addResponseArray(var["id"], "value", var["value"].as<JsonArray>());
     else {
       print->print("unknown type for %s\n", var["value"].as<String>().c_str());
       web->addResponse(var["id"], "value", var["value"]);
@@ -286,17 +288,43 @@ const char * SysModUI::processJson(JsonVariant &json) {
       } 
       else { //normal change
         if (!value.is<JsonObject>()) { //no vars (inserted by uiFun responses)
+
+          //check if we deal with multiple rows (from table type)
+          char * rowNr = strtok((char *)key, "#");
+          if (rowNr != NULL ) {
+            key = rowNr;
+            rowNr = strtok(NULL, " ");
+          }
+
           JsonObject var = mdl->findVar(key);
+
+          print->print("processJson k:%s r:%s (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value.as<String>().c_str(), var["value"] == value);
+
           if (!var.isNull())
           {
-            if (var["value"] != value) { // if changed
+            bool changed = false;
+            //if we deal with multiple rows, value should be an array and check the corresponding array item
+            //if value not array we change it anyway
+            if (rowNr) {
+              //var value should be array
+              if (var["value"].is<JsonArray>())
+                changed = var["value"][atoi(rowNr)] != value;
+              else {
+                print->printJson("we want an array for value but : ", var);
+                changed = true; //we should change anyway
+              }
+            }
+            else //normal situation
+              changed = var["value"] != value;
+
+            if (changed) {
               // print->print("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 
               //set new value
               if (value.is<const char *>())
                 mdl->setValueC(key, value.as<const char *>());
               else if (value.is<bool>())
-                mdl->setValueB(key, value.as<bool>());
+                mdl->setValueB(key, value.as<bool>(), rowNr?atoi(rowNr):-1);
               else if (value.is<int>())
                 mdl->setValueI(key, value.as<int>());
               else {

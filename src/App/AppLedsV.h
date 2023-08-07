@@ -27,7 +27,8 @@ enum Projections
   p_None,
   p_Random,
   p_DistanceFromPoint,
-  p_DistanceFromCentre
+  p_DistanceFromCentre,
+  count
 };
 
 class LedsV {

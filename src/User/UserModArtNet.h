@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      UserModArtNet.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230807
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -42,6 +42,8 @@ public:
     // Module::loop();
 
     if(!isConnected) return;
+
+    if(!lds->newFrame) return;
 
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;

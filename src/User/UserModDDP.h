@@ -1,9 +1,9 @@
 /*
    @title     StarMod
-   @file      UserModArtNet.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @file      UserModDDP.h
+   @date      20230807
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -58,12 +58,16 @@ public:
 
     if(!isConnected) return;
 
+
     if((!targetIp) && (wledDiscoveryMod->nodes.length() >= 1)) {
       targetIp = wledDiscoveryMod->nodes.firstKey(); // TODO: replace with WebUI setting
       print->print("Start DDP to %s\n", targetIp.toString().c_str());
     }
     
     if(!targetIp) return;
+
+    if(!lds->newFrame) return;
+
 
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;

@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      AppModLeds.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230807
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  */
@@ -29,6 +29,7 @@ class AppModLeds:public Module {
 public:
   unsigned long frameMillis = 0;
   unsigned long frameCounter = 0;
+  bool newFrame = false;
 
   //need to make these static as they are called in lambda functions 
   static uint16_t fps;
@@ -248,6 +249,8 @@ public:
     if(millis() - frameMillis >= 1000.0/fps) {
       frameMillis = millis();
 
+      newFrame = true;
+
       Effect* effect = effects[mdl->getValue("fx")];
       effect->loop();
 
@@ -256,6 +259,9 @@ public:
 
       frameCounter++;
       call++;
+    }
+    else {
+      newFrame = false;
     }
     if (millis() - secondMillis >= 1000 || !secondMillis) {
       secondMillis = millis();

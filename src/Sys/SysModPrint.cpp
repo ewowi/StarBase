@@ -88,20 +88,19 @@ size_t SysModPrint::printJson(const char * text, JsonVariantConst source) {
   return size;
 }
 
-char * SysModPrint::fFormat(const char * format, ...) {
-  static char msgbuf[32];
-
+size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {
   va_list args;
   va_start(args, format);
 
-  size_t len = snprintf(msgbuf, sizeof(msgbuf), format, args);
+  size_t len = vsnprintf(buf, size, format, args);
 
   va_end(args);
 
-  return msgbuf;
+  // Serial.printf("fFormat %s (%d)\n", buf, size);
+
+  return len;
 }
 
 void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
   print("%s  %u / %u (%u%%) (%u %u %u)\n", text, source.memoryUsage(), source.capacity(), 100 * source.memoryUsage() / source.capacity(), source.size(), source.overflowed(), source.nesting());
 }
-

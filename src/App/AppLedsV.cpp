@@ -15,6 +15,7 @@
 #include "../Sys/SysModFiles.h"
 #include "../Sys/SysModWeb.h"
 #include "../Sys/SysJsonRDWS.h"
+#include "../Sys/SysModPins.h"
 
 std::vector<std::vector<uint16_t>> LedsV::mappingTable;
 uint16_t LedsV::mappingTableLedCounter = 0;
@@ -42,12 +43,27 @@ void LedsV::ledFixProjectAndMap() {
     mappingTableLedCounter = 0;
     mappingTable.clear();
 
+    //deallocate all led pins
+    uint8_t pinNr = 0;
+    for (PinObject pinObject: SysModPins::pinObjects) {
+      if (strcmp(pinObject.owner, "Leds") == 0)
+        pins->deallocatePin(pinNr, "Leds");
+      pinNr++;
+    }
+
+    //track pins
+    static uint8_t currPin;
+    static uint8_t prevPin;
+    static uint16_t prevLeds;
+    prevPin = -1;
+
     //what to deserialize
     jrdws.lookFor("width", &widthP);
     jrdws.lookFor("height", &heightP);
     jrdws.lookFor("depth", &depthP);
     jrdws.lookFor("factor", &factorP);
     jrdws.lookFor("nrOfLeds", &nrOfLedsP);
+    jrdws.lookFor("pin", &currPin);
 
     //define leds mapping
     if (projectionNr > p_Random) { //0 and 1 (none, random have no mapping)
@@ -60,6 +76,22 @@ void LedsV::ledFixProjectAndMap() {
         // print->print("\n");
 
         if (uint16CollectList.size()>=1 && uint16CollectList.size()<=3) { //we only comprehend 1D, 2D, 3D 
+
+          if (currPin != prevPin) {
+            print->print("  new pin found %d (%d)\n", currPin, mappingTableLedCounter);
+
+            //allocate the previous pin (as we don't know nr of leds of current pin yet)
+            if (prevPin != (uint8_t)-1) { //prevPin must exist
+              char details[32] = "";
+              print->fFormat(details, sizeof(details), "%d-%d", prevLeds, mappingTableLedCounter - 1);
+              print->print("pins %d: %s (%d)\n", prevPin, details);
+              pins->allocatePin(prevPin, "Leds", details);
+            }
+
+            prevPin = currPin;
+            prevLeds = mappingTableLedCounter;
+          }
+  
           // print->print("projectionNr p:%d f:%d s:%d\n", LedsV::projectionNr, LedsV::fxDimension, uint16CollectList.size());
           if (LedsV::projectionNr == p_DistanceFromPoint || LedsV::projectionNr == p_DistanceFromCentre) {
             uint16_t bucket;// = -1;
@@ -110,14 +142,15 @@ void LedsV::ledFixProjectAndMap() {
                 }
               }
 
-              mappingTable[bucket].push_back(mappingTableLedCounter++);
+              mappingTable[bucket].push_back(mappingTableLedCounter);
             }
           }
 
           // print->print("mapping %d V:%d P:%d\n", dist, mappingTable.size(), mappingTableLedCounter);
 
           // delay(1); //feed the watchdog
-        }
+          mappingTableLedCounter++;
+        } //if 1D-3D
       }); //create the right type, otherwise crash
 
     } //projection != 0
@@ -155,6 +188,13 @@ void LedsV::ledFixProjectAndMap() {
       //at page refresh, done before these vars have been initialized...
       mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
+
+      //set nrOfLeds or last pin
+      char details[32] = "";
+      print->fFormat(details, sizeof(details), "%d-%d", prevLeds, mappingTableLedCounter - 1);
+      print->print("pins %d: %s\n", prevPin, details);
+      pins->allocatePin(prevPin, "Leds", details);
+
     } // if deserialize
   } //if fileName
   else

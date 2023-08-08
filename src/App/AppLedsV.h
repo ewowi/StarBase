@@ -96,7 +96,7 @@ public:
 
 private:
   //need to make these static as they are called in lambda functions
-  static std::vector<std::vector<uint16_t>> mappingTable; //not customMappingTable, just MappingTable
+  static std::vector<std::vector<uint16_t>> mappingTable;
   static uint16_t mappingTableLedCounter;
 };
 

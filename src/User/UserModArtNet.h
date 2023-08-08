@@ -66,7 +66,7 @@ public:
       if (sequenceNumber > 255) sequenceNumber = 0;
 
       if (!ddpUdp.beginPacket(targetIp, ARTNET_DEFAULT_PORT)) {
-        print->print("Art-Net WiFiUDP.beginPacket returned an error");
+        print->print("Art-Net WiFiUDP.beginPacket returned an error\n");
         return; // borked
       }
 
@@ -98,7 +98,7 @@ public:
       }
 
       if (!ddpUdp.endPacket()) {
-        print->print("Art-Net WiFiUDP.endPacket returned an error");
+        print->print("Art-Net WiFiUDP.endPacket returned an error\n");
         return; // borked
       }
       channel += packetSize;

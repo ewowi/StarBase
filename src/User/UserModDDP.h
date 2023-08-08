@@ -81,7 +81,7 @@ public:
       if (sequenceNumber > 15) sequenceNumber = 0;
 
       if (!ddpUdp.beginPacket(targetIp, DDP_DEFAULT_PORT)) {  // port defined in ESPAsyncE131.h
-        print->print("DDP WiFiUDP.beginPacket returned an error");
+        print->print("DDP WiFiUDP.beginPacket returned an error\n");
         return; // borked
       }
 
@@ -121,7 +121,7 @@ public:
       }
 
       if (!ddpUdp.endPacket()) {
-        print->print("DDP WiFiUDP.endPacket returned an error");
+        print->print("DDP WiFiUDP.endPacket returned an error\n");
         return; // problem
       }
       channel += packetSize;

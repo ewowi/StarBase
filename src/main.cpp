@@ -50,7 +50,7 @@ void setup() {
   web = new SysModWeb();
   ui = new SysModUI();
   sys = new SysModSystem();
-  pin = new SysModPins();
+  pins = new SysModPins();
   #ifdef APPMOD_LEDS
     lds = new AppModLeds();
     lfg = new AppModLedFixGen();
@@ -74,7 +74,7 @@ void setup() {
   #endif
   mdls->add(files);
   mdls->add(sys);
-  mdls->add(pin);
+  mdls->add(pins);
   mdls->add(print);
   #ifdef APPMOD_LEDS
     mdls->add(lfg);

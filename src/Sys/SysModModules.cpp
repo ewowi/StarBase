@@ -32,7 +32,7 @@ void Modules::setup() {
 
   JsonObject tableVar = ui->initTable(parentVar, "modules", nullptr, false, [](JsonObject var) { //uiFun
     // web->addResponse(var["id"], "label", "Files");
-    web->addResponse(var["id"], "comment", "List of modules (enabled should be editable - wip)");
+    web->addResponse(var["id"], "comment", "List of modules");
     JsonArray rows = web->addResponseA(var["id"], "table");
     for (Module *module:Modules::modules) {
       JsonArray row = rows.createNestedArray();

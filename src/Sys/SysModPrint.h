@@ -29,7 +29,7 @@ public:
   size_t printJson(const char * text, JsonVariantConst source);
 
   //experimenting with return of char, if possible at all - wip... use String?
-  char * fFormat(const char * format, ...);
+  size_t fFormat(char * buf, size_t size, const char * format, ...);
 
   void printJDocInfo(const char * text, DynamicJsonDocument source);
 

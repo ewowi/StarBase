@@ -46,21 +46,18 @@ class JsonRDWS {
 
   //look for uint16 var
   void lookFor(const char * id, uint16_t * value) {
-    // const char *p = (const char*)&value; //pointer trick
     uint16List.push_back(value);
     addToVars(id, "uint16", uint16List.size()-1);
   }
 
   //look for char var
   void lookFor(const char * id, char * value) {
-    // const char *p = (const char*)&value; //pointer trick
     charList.push_back(value);
     addToVars(id, "char", charList.size()-1);
   }
 
   //look for array of integers
   void lookFor(const char * id, void(*fun)(std::vector<uint16_t>)) {
-    // const char *p = (const char*)&value; //pointer trick
     funList.push_back(fun);
     addToVars(id, "fun", funList.size()-1);
   }
@@ -157,12 +154,13 @@ private:
       char value[100] = "";
       f.readBytesUntil('"', value, sizeof(value));
     
+      //if no lastVar then var found
       if (strcmp(lastVarId, "") == 0) {
         // print->print("Element [%s]\n", value);
         strcpy(lastVarId, value);
       }
-      else {
-        print->print("String %s: [%s]\n", lastVarId, value);
+      else { // if lastvar then string value found
+        // print->print("String var %s: [%s]\n", lastVarId, value);
         check(lastVarId, value);
         strcpy(lastVarId, "");
       }
@@ -181,7 +179,8 @@ private:
       }
       value[len++] = '\0';
 
-      // print->print("Number %s: [%s]\n", lastVarId, value);
+      //number value found
+      // print->print("Number var %s: [%s]\n", lastVarId, value);
       if (collectNumbers)
         uint16CollectList.push_back(atoi(value));
 
@@ -216,6 +215,7 @@ private:
   } //next
 
   void check(char * varId, char * value = nullptr) {
+    //check if var is in lookFor list
     for (std::vector<VarDetails>::iterator vd=varDetails.begin(); vd!=varDetails.end(); ++vd) {
       // print->print("check %s %s %s\n", vd->id, varId, value);
       if (strcmp(vd->id, varId)==0) {

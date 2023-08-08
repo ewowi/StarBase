@@ -12,18 +12,30 @@
 
 #include "ArduinoJson.h"
 
+#define NUM_PINS 50
+
+//info stored per pin
+struct PinObject {
+  char owner[32]; //if not "" then allocated (tbd: no use char)
+  char details[32]; //info about pin usage
+};
+
 class SysModPins:public Module {
 
 public:
+
+  static PinObject pinObjects[NUM_PINS]; //all pins
+  static bool pinsChanged; //update pins table if pins changed
 
   SysModPins();
   void setup();
   void loop();
 
-  void registerPin(uint8_t pinNr);
+  static void allocatePin(uint8_t pinNr, const char * owner, const char * details);
+  static void deallocatePin(uint8_t pinNr, const char * owner);
 
   static void updateGPIO(JsonObject var);
 
 };
 
-static SysModPins *pin;
+static SysModPins *pins;

@@ -51,8 +51,8 @@ public:
   bool addFileServer(const char * uri);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
-  //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
-  //curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
+  //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"pin2":false}' -H "Content-Type: application/json"
+  //curl -X POST "http://4.3.2.1/json" -d '{"pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
   //curl -X POST "http://192.168.8.152/json" -d '{"fx":2}' -H "Content-Type: application/json"
   //curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
@@ -60,6 +60,7 @@ public:
   bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &));
 
   void addResponse(const char * id, const char * key, const char * value);
+  void addResponseArray(const char * id, const char * key, JsonArray value);
 
   void addResponseV(const char * id, const char * key, const char * format, ...);
 

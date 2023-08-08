@@ -47,8 +47,29 @@ void Modules::setup() {
   ui->initCheckBox(tableVar, "mdlSucces", false, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Success");
   });
-  ui->initCheckBox(tableVar, "mdlEnabled", false, false, [](JsonObject var) { //uiFun not readonly! (tbd)
+  ui->initCheckBox(tableVar, "mdlEnabled", true, false, [](JsonObject var) { //uiFun not readonly! (tbd)
+    //initially set to true, but as enabled are table cells, will be updated to an array
     web->addResponse(var["id"], "label", "Enabled");
+  }, [](JsonObject var) { //chFun
+    print->printJson("mdlEnabled.chFun", var);
+    //if value not array, create and initialize
+    uint8_t rowNr = 0;
+    if (!var["value"].is<JsonArray>()) {
+      var.createNestedArray("value");
+      for (Module *module: modules) {
+        var["value"][rowNr] = module->enabled;
+        rowNr++;
+      }
+    } else { //read array and set module enabled
+      for (bool enabled:var["value"].as<JsonArray>()) {
+        if (modules[rowNr]->enabled != enabled) {
+          print->print("  mdlEnabled.chFun %d %s: %d->%d\n", rowNr, modules[rowNr]->name, modules[rowNr]->enabled, enabled);
+          modules[rowNr]->enabled = enabled;
+          modules[rowNr]->enabledChanged(enabled);
+        }
+        rowNr++;
+      }
+    }
   });
 }
 

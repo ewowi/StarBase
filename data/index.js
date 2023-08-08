@@ -89,7 +89,7 @@ function makeWS() {
   }
 }
 
-function generateHTML(parentNode, json, tableRow = -1) {
+function generateHTML(parentNode, json, rowNr = -1) {
   // console.log("generateHTML", parentNode, json);
   if (Array.isArray(json)) {
     json.sort(function(a,b) {
@@ -210,7 +210,7 @@ function generateHTML(parentNode, json, tableRow = -1) {
         }
         else if (json.type == "url") {
           //tbd: th and table row outside this if
-          if (tableRow == -1) {
+          if (rowNr == -1) {
             newNode = cE("p");
             newNode.appendChild(labelNode);
             //add label
@@ -222,15 +222,15 @@ function generateHTML(parentNode, json, tableRow = -1) {
           valueNode.setAttribute('target', "_blank");
           valueNode.innerText = json.value;
     
-          if (tableRow == -1) {
+          if (rowNr == -1) {
             valueNode.id = json.id;
             newNode.appendChild(valueNode);
           } else {
-            valueNode.id = json.id + tableRow;
+            valueNode.id = json.id + "#" + rowNr;
             newNode = valueNode;
           }
         } else { //input
-          if (tableRow == -1) {
+          if (rowNr == -1) {
             newNode = cE("p");
             newNode.appendChild(labelNode);
             //add label
@@ -247,11 +247,13 @@ function generateHTML(parentNode, json, tableRow = -1) {
           if (json.type == "checkbox") {
             valueNode = cE("input");
             valueNode.type = json.type;
+            valueNode.disabled = json.ro;
             if (json.value) valueNode.checked = json.value;
             valueNode.addEventListener('change', (event) => {console.log(json.type + " change", event);setCheckbox(event.target);});
           } else if (json.type == "button") {
             valueNode = cE("input");
             valueNode.type = json.type;
+            valueNode.disabled = json.ro;
             valueNode.value = initCap(json.id);
             valueNode.addEventListener('click', (event) => {console.log(json.type + " click", event);setButton(event.target);});
           } else if (json.type == "range") {
@@ -259,6 +261,7 @@ function generateHTML(parentNode, json, tableRow = -1) {
             valueNode.type = json.type;
             valueNode.max = 255;
             // valueNode.addEventListener('input', (event) => {console.log(json.type + " input", event);gId(json.id + "_rv").innerText = this.value;});
+            valueNode.disabled = json.ro;
             valueNode.addEventListener('change', (event) => {
               console.log(json.type + " change", event.target, json.id);
               gId(json.id + "_rv").innerText = event.target.value;
@@ -294,11 +297,11 @@ function generateHTML(parentNode, json, tableRow = -1) {
             }
           } //not checkbox or button or range
 
-          if (tableRow == -1) {
+          if (rowNr == -1) {
             valueNode.id = json.id;
             newNode.appendChild(valueNode);
           } else {
-            valueNode.id = json.id + tableRow;
+            valueNode.id = json.id + "#" + rowNr;
             newNode = valueNode;
           }
 
@@ -311,8 +314,8 @@ function generateHTML(parentNode, json, tableRow = -1) {
 
     if (newNode) parentNode.appendChild(newNode); //add new node to parent
 
-    //don't call uiFun on tablerows (for the moment)
-    if (tableRow == -1) {
+    //don't call uiFun on rowNrs (for the moment)
+    if (rowNr == -1) {
       //call ui Functionality, if defined (to set label, comment, select etc)
       if (json.uiFun >= 0) { //>=0 as element in var
         uiFunCommands.push(json.id);
@@ -328,10 +331,10 @@ function generateHTML(parentNode, json, tableRow = -1) {
           divNode.id = json.id + "_n";
           divNode.classList.add("ndiv");
           newNode.appendChild(divNode);
-          generateHTML(divNode, json.n, tableRow);
+          generateHTML(divNode, json.n, rowNr);
         }
         else
-          generateHTML(newNode, json.n, tableRow); //details (e.g. module)
+          generateHTML(newNode, json.n, rowNr); //details (e.g. module)
       }
     }
     return newNode;
@@ -379,7 +382,7 @@ function processUpdate(json) {
 function processVarNode(node, key, json) {
   let overruleValue = false;
   
-  if (json.label) {
+  if (json.hasOwnProperty("label")) {
     console.log("processUpdate label", key, json.label);
     if (node.nodeName.toLocaleLowerCase() == "input" && node.type == "button") {
       node.value = initCap(json.label);
@@ -395,7 +398,7 @@ function processVarNode(node, key, json) {
       labelNode.innerText = initCap(json.label);
     }
   }
-  if (json.comment) {
+  if (json.hasOwnProperty("comment")) {
     console.log("processUpdate comment", key, json.comment);
     // normal: <p><label><input id><comment></p>
     // table or canvas <p><label><comment></p><canvas id>
@@ -418,7 +421,7 @@ function processVarNode(node, key, json) {
     }
     commentNode.innerText = json.comment;        
   }
-  if (json.select) {
+  if (json.hasOwnProperty("select")) {
     console.log("processUpdate select", key, json.select);
     if (node.nodeName.toLocaleLowerCase() == "span") { //readonly. tbd: only the displayed value needs to be in the select
       var index = 0;
@@ -447,7 +450,7 @@ function processVarNode(node, key, json) {
       }
     }
   }
-  if (json.table) {
+  if (json.hasOwnProperty("table")) {
     console.log("processUpdate table", key, json.table);
     //remove table rows
     let tbodyNode = cE('tbody');
@@ -489,26 +492,34 @@ function processVarNode(node, key, json) {
     //replace the table body
     node.replaceChild(tbodyNode, node.lastChild); //replace <table><tbody>
   }
-  if (json.value && !overruleValue) { //after select, in case used
-    // if (key=="ledFix" || key =="ledFixGen"|| key =="reset0")
-    //   console.log("processUpdate value", key, json.value, node);
+  if (json.hasOwnProperty("value") && !overruleValue) { //after select, in case used
+    //hasOwnProperty needed to catch also boolean json.value when it is false
+    // if (key=="mdlEnabled" || key=="clIsFull" || key=="pin2")
+    //   console.log("processUpdate value", key, json, json.value, node);
     if (node.nodeName.toLocaleLowerCase() == "span") //read only vars
       node.textContent = json.value;
-    else if (node.nodeName.toLocaleLowerCase() == "a") {
+    else if (node.nodeName.toLocaleLowerCase() == "a") { //url links
       node.innerText = "🔍";
       node.setAttribute('href', json.value);
     } else if (node.nodeName.toLocaleLowerCase() == "canvas")
       userFunId = key; //prepare for websocket data
     else if (node.type == "checkbox")
       node.checked = json.value;
-    else //inputs
+    else if (Array.isArray(json.value)) {
+      let rowNr = 0;
+      for (let x of json.value) {
+        gId(key + "#" + rowNr).checked = x; //tbd support all types!!
+        rowNr++;
+      }
+      // node.checked = json.value;
+    } else //inputs
       node.value = json.value;
   }
-  if (json.json) { //json send html nodes cannot process, store in jsonValues array
+  if (json.hasOwnProperty("json")) { //json send html nodes cannot process, store in jsonValues array
     console.log("processUpdate json", key, json.json, node);
     jsonValues[key] = json.json;
   }
-  if (json.file) { //json send html nodes cannot process, store in jsonValues array
+  if (json.hasOwnProperty("file")) { //json send html nodes cannot process, store in jsonValues array
     console.log("processUpdate file", key, json.file, node);
   
     //we need to send a request which the server can handle using request variable
@@ -643,8 +654,6 @@ function toggleModal(element) {
   }
 
 	gId('modalView').style.transform = (isModal) ? "translateY(0px)":"translateY(100%)";
-
-
 }
 // https://stackoverflow.com/questions/324303/cut-and-paste-moving-nodes-in-the-dom-with-javascript
 

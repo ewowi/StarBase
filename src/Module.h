@@ -35,6 +35,7 @@ public:
   virtual void loop() {}
 
   virtual void connected() {}
+  virtual void enabledChanged(bool tf) {}
 
   virtual void testManager() {}
   virtual void performanceManager() {}

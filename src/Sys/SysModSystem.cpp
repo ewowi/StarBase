@@ -109,7 +109,7 @@ void SysModSystem::addResetReasonsSelect(JsonArray select) {
   select.add("TGWDT_CPU_RESET"); //11,    /**<11, Time Group reset CPU*/
   select.add("SW reset CPU (12)");//SW_CPU_RESET"); //12,    /**<12, */
   select.add("RTCWDT_CPU_RESET"); //13,    /**<13, RTC Watch dog Reset CPU*/
-  select.add("for APP CPU, reseted by PRO CPU");//EXT_CPU_RESET"); //14,    /**<14, */
+  select.add("for APP CPU, reset by PRO CPU");//EXT_CPU_RESET"); //14,    /**<14, */
   select.add("RTCWDT_BROWN_OUT_RESET"); //15,    /**<15, Reset when the vdd voltage is not stable*/
   select.add("RTCWDT_RTC_RESET"); //16     /**<16, RTC Watch dog reset digital core and rtc module*/
 }

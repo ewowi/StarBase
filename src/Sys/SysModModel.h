@@ -34,7 +34,7 @@ public:
   static JsonObject setValueI(const char * id, int value);
 
   //setValue bool
-  static JsonObject setValueB(const char * id, bool value);
+  static JsonObject setValueB(const char * id, bool value, uint8_t rowNr=-1);
 
   //Set value with argument list
   static JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun

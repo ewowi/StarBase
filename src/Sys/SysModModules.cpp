@@ -13,16 +13,18 @@
 #include "SysModUI.h"
 #include "SysModWeb.h"
 
-bool Modules::newConnection = false;
-std::vector<Module *> Modules::modules;
+bool SysModModules::newConnection = false;
+bool SysModModules::isConnected = false;
 
-Modules::Modules() :Module("Modules") {
+std::vector<Module *> SysModModules::modules;
+
+SysModModules::SysModModules() :Module("Modules") {
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
-void Modules::setup() {
+void SysModModules::setup() {
   for (Module *module:modules) {
     module->setup();
   }
@@ -34,11 +36,11 @@ void Modules::setup() {
     // web->addResponse(var["id"], "label", "Files");
     web->addResponse(var["id"], "comment", "List of modules");
     JsonArray rows = web->addResponseA(var["id"], "table");
-    for (Module *module:Modules::modules) {
+    for (Module *module:SysModModules::modules) {
       JsonArray row = rows.createNestedArray();
       row.add(module->name);  //create a copy!
       row.add(module->success);
-      row.add(module->enabled);
+      row.add(module->isEnabled);
     }
   });
   ui->initText(tableVar, "mdlName", nullptr, true, [](JsonObject var) { //uiFun
@@ -52,20 +54,24 @@ void Modules::setup() {
     web->addResponse(var["id"], "label", "Enabled");
   }, [](JsonObject var) { //chFun
     print->printJson("mdlEnabled.chFun", var);
-    //if value not array, create and initialize
     uint8_t rowNr = 0;
-    if (!var["value"].is<JsonArray>()) {
+
+    //if value not array, create array
+    if (!var["value"].is<JsonArray>())
       var.createNestedArray("value");
+
+    //if value array not same size as nr of modules
+    if (var["value"].size() != modules.size()) {
       for (Module *module: modules) {
-        var["value"][rowNr] = module->enabled;
+        var["value"][rowNr] = module->isEnabled;
         rowNr++;
       }
     } else { //read array and set module enabled
-      for (bool enabled:var["value"].as<JsonArray>()) {
-        if (modules[rowNr]->enabled != enabled) {
-          print->print("  mdlEnabled.chFun %d %s: %d->%d\n", rowNr, modules[rowNr]->name, modules[rowNr]->enabled, enabled);
-          modules[rowNr]->enabled = enabled;
-          modules[rowNr]->enabledChanged(enabled);
+      for (bool isEnabled:var["value"].as<JsonArray>()) {
+        if (modules[rowNr]->isEnabled != isEnabled) {
+          print->print("  mdlEnabled.chFun %d %s: %d->%d\n", rowNr, modules[rowNr]->name, modules[rowNr]->isEnabled, isEnabled);
+          modules[rowNr]->isEnabled = isEnabled;
+          modules[rowNr]->enabledChanged();
         }
         rowNr++;
       }
@@ -73,9 +79,9 @@ void Modules::setup() {
   });
 }
 
-void Modules::loop() {
+void SysModModules::loop() {
   for (Module *module:modules) {
-    if (module->enabled && module->success) {
+    if (module->isEnabled && module->success) {
       module->loop();
       // module->testManager();
       // module->performanceManager();
@@ -84,17 +90,18 @@ void Modules::loop() {
     }
   }
   if (newConnection) {
-    connected();
     newConnection = false;
+    isConnected = true;
+    connectedChanged();
   }
 }
 
-void Modules::add(Module* module) {
+void SysModModules::add(Module* module) {
   modules.push_back(module);
 }
 
-void Modules::connected() {
+void SysModModules::connectedChanged() {
   for (Module *module:modules) {
-    module->connected();
+    module->connectedChanged();
   }
 }

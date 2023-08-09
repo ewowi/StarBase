@@ -82,7 +82,7 @@ void SysModNetwork::handleConnection() {
 
     interfacesInited = true;
 
-    Modules::newConnection = true; // send all modules connect notification
+    SysModModules::newConnection = true; // send all modules connect notification
 
     // shut down AP
     if (apActive) { //apBehavior != AP_BEHAVIOR_ALWAYS
@@ -131,7 +131,7 @@ void SysModNetwork::initAP() {
   {
     mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
-    Modules::newConnection = true; // send all modules connect notification
+    SysModModules::newConnection = true; // send all modules connect notification
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());

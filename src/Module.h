@@ -18,7 +18,7 @@ class Module {
 public:
   const char * name;
   bool success;
-  bool enabled;
+  bool isEnabled;
   unsigned long secondMillis = 0; // Feels like it should be private, bit doesn't compile if set as such
 
   JsonObject parentVar;
@@ -26,7 +26,7 @@ public:
   Module(const char * name) {
     this->name = name;
     success = true;
-    enabled = true;
+    isEnabled = true;
     // Serial.printf("Constructor %s %s\n", __PRETTY_FUNCTION__, name);
   }
 
@@ -34,8 +34,8 @@ public:
 
   virtual void loop() {}
 
-  virtual void connected() {}
-  virtual void enabledChanged(bool tf) {}
+  virtual void connectedChanged() {}
+  virtual void enabledChanged() {}
 
   virtual void testManager() {}
   virtual void performanceManager() {}

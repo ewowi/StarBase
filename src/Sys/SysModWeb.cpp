@@ -13,6 +13,7 @@
 #include "SysModUI.h"
 #include "SysModPrint.h"
 #include "SysModFiles.h"
+#include "SysModModules.h"
 
 #include "AsyncJson.h"
 
@@ -112,15 +113,18 @@ void SysModWeb::loop() {
   }
 }
 
-void SysModWeb::connected() {
-  ws->onEvent(wsEvent);
-  // ws->onEvent(wsEvent2);
-  server->addHandler(ws);
+void SysModWeb::connectedChanged() {
+  if (SysModModules::isConnected) {
+    ws->onEvent(wsEvent);
+    // ws->onEvent(wsEvent2);
+    server->addHandler(ws);
 
-  server->begin();
+    server->begin();
 
-  // print->print("%s server (re)started\n", name); //causes crash for some reason...
-  print->print("server (re)started\n"); //and this not causes crash ??? whats with name?
+    // print->print("%s server (re)started\n", name); //causes crash for some reason...
+    print->print("server (re)started\n"); //and this not causes crash ??? whats with name?
+  }
+  //else remove handlers...
 }
 
 //WebSocket connection to 'ws://192.168.8.152/ws' failed: The operation couldn’t be completed. Protocol error

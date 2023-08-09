@@ -215,11 +215,11 @@ public:
       web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
     });
 
-    ui->initNumber(parentVar, "dataPin", DATA_PIN, false, [](JsonObject var) { //uiFun
-      web->addResponseV(var["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
-    }, [](JsonObject var) { //chFun
-      print->print("Set data pin to %d\n", var["value"].as<int>());
-    });
+    // ui->initNumber(parentVar, "dataPin", DATA_PIN, false, [](JsonObject var) { //uiFun
+    //   web->addResponseV(var["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
+    // }, [](JsonObject var) { //chFun
+    //   print->print("Set data pin to %d\n", var["value"].as<int>());
+    // });
 
     effects.push_back(new RainbowEffect);
     effects.push_back(new RainbowWithGlitterEffect);

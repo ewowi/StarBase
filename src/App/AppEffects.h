@@ -201,25 +201,38 @@ public:
   }
 }; // SphereMove3DEffect
 
+//XY used by blur2d
+uint16_t XY( uint8_t x, uint8_t y) {
+  return x + y * LedsV::widthV;
+}
+
 class Frizzles2D: public Effect {
 public:
   const char * name() {
     return "Frizzles 2D";
   }
-  void setup() {}
+
+  void setup() {
+    // fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100); //like more the gradual change
+  }
+
   void loop() {
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
     CRGBPalette16 palette = PartyColors_p;
 
     for (size_t i = 8; i > 0; i--) {
-      uint8_t x = beatsin8(128/8 + i, 0, LedsV::widthV - 1);
-      uint8_t y = beatsin8(128/8 - i, 0, LedsV::heightV - 1);
+      uint8_t x = beatsin8(mdl->getValue("speed").as<int>()/8 + i, 0, LedsV::widthV - 1);
+      uint8_t y = beatsin8(mdl->getValue("intensity").as<int>()/8 - i, 0, LedsV::heightV - 1);
       CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
       ledsV[x + y * LedsV::widthV] = color;
     }
-    // blur2d(ledsP, LedsV::width, LedsV::height, 255);
-    // SEGMENT.blur(SEGMENT.custom1>>3);
-
+    blur2d(ledsP, LedsV::widthV, LedsV::heightV, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
+  }
+  bool parameters(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 128, false);
+    ui->initSlider(parentVar, "intensity", 128, false);
+    ui->initSlider(parentVar, "blur", 128, false);
+    return true;
   }
 }; // Frizzles2D
 
@@ -228,7 +241,9 @@ public:
   const char * name() {
     return "Lines 2D";
   }
+
   void setup() {}
+
   void loop() {
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100);
     CRGBPalette16 palette = PartyColors_p;
@@ -245,9 +260,9 @@ public:
       }
     }
   }
+
   bool parameters(JsonObject parentVar) {
     ui->initCheckBox(parentVar, "Vertical", false, false);
-
     return true;
   }
 }; // Lines2D

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModFiles.cpp
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -35,7 +35,7 @@ void SysModFiles::setup() {
   Module::setup();
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "flist", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Files");
     web->addResponse(var["id"], "comment", "List of files");
     JsonArray rows = web->addResponseA(var["id"], "table");
@@ -74,7 +74,7 @@ void SysModFiles::setup() {
 void SysModFiles::loop(){
   // Module::loop();
 
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
     mdl->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
@@ -83,7 +83,7 @@ void SysModFiles::loop(){
     if (filesChanged) {
       filesChanged = false;
 
-      ui->processUiFun("flist");
+      ui->processUiFun("fileTbl");
     }
   }
 }

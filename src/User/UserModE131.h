@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      UserModE131.h
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -27,7 +27,7 @@ public:
 
   VarToWatch varsToWatch[maxChannels]; //up to 513
 
-  UserModE131() :Module("e131/sACN support") {
+  UserModE131() :Module("e131-sACN support") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");

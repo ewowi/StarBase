@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      Modules.cpp
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -30,8 +30,8 @@ void Modules::setup() {
   //do its own setup
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "modules", nullptr, false, [](JsonObject var) { //uiFun
-    // web->addResponse(var["id"], "label", "Files");
+  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, false, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Modules");
     web->addResponse(var["id"], "comment", "List of modules");
     JsonArray rows = web->addResponseA(var["id"], "table");
     for (Module *module:Modules::modules) {

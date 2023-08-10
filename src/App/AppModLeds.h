@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModLeds.h
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -33,6 +33,8 @@ public:
 
   //need to make these static as they are called in lambda functions 
   static uint16_t fps;
+  unsigned long lastMappingMillis = 0;
+  static bool doMap;
 
   AppModLeds() :Module("Leds") {};
 
@@ -60,69 +62,87 @@ public:
     }, [](JsonObject var) { //chFun
       uint8_t fx = var["value"];
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
-      // if (LedsV::projectionNr == p_DistanceFromPoint) {
-      if (fx == 9 && LedsV::fxDimension != 2) { // 9 = "Frizzles2D"
-        LedsV::fxDimension = 2;
-        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
-      }
-      if (fx != 9 && LedsV::fxDimension != 1) { // 9 = "Frizzles2D"
-        LedsV::fxDimension = 1;
-        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
-      }
 
-      // if (false) {
-      JsonObject parentVar = mdl->findVar(var["id"]);
-      parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+      if (fx < effects.size()) {
 
-      for (int i=0; i<5; i++) {
-        uint8_t nameNr = random8(6);  
-        uint8_t typeNr = random8(5);  
-        char name[12];
-        switch (nameNr) {
-          case 0:
-            strcpy(name, "lorum");
-            break;
-          case 1:
-            strcpy(name, "ipsum");
-            break;
-          case 2:
-            strcpy(name, "dolor");
-            break;
-          case 3:
-            strcpy(name, "sit");
-            break;
-          case 4:
-            strcpy(name, "amet");
-            break;
-          case 5:
-            strcpy(name, "consectetur");
-            break;
+        //tbd: make property of effects
+        if (strstr(effects[fx]->name(), "2D")) {
+          if (LedsV::fxDimension != 2) {
+            LedsV::fxDimension = 2;
+            doMap = true;
+          }
         }
-        
-        switch (typeNr) {
-          case 0:
-            ui->initText(parentVar, name, name, false);
-            break;
-          case 1:
-            ui->initNumber(parentVar, name, random8(255), false);
-            break;
-          case 2:
-            ui->initSlider(parentVar, name, random8(255), false);
-            break;
-          case 3:
-            ui->initCheckBox(parentVar, name, random8(2), false);
-            break;
-          case 4:
-            ui->initSelect(parentVar, name, random8(2), false, [](JsonObject var) { //uiFun
-              JsonArray select = web->addResponseA(var["id"], "select");
-              select.add("Oui"); //0
-              select.add("Non"); //1
-            });
-            break;
+        else if (strstr(effects[fx]->name(), "3D")) {
+          if (LedsV::fxDimension != 3) {
+            LedsV::fxDimension = 3;
+            doMap = true;
+          }
         }
-      }
-      print->printJson("parentVar", parentVar);
-      web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
+        else {
+          if (LedsV::fxDimension != 1) {
+            LedsV::fxDimension = 1;
+            doMap = true;
+          }
+        }
+
+        JsonObject parentVar = mdl->findVar(var["id"]);
+        parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+
+        Effect* effect = effects[fx];
+        effect->setup(); //if changed then run setup once (like call==0 in WLED)
+        if (!effect->parameters(parentVar)) {
+
+          for (int i=0; i<5; i++) {
+            uint8_t nameNr = random8(6);  
+            uint8_t typeNr = random8(5);  
+            char name[12];
+            switch (nameNr) {
+              case 0:
+                strcpy(name, "lorum");
+                break;
+              case 1:
+                strcpy(name, "ipsum");
+                break;
+              case 2:
+                strcpy(name, "dolor");
+                break;
+              case 3:
+                strcpy(name, "sit");
+                break;
+              case 4:
+                strcpy(name, "amet");
+                break;
+              case 5:
+                strcpy(name, "consectetur");
+                break;
+            }
+            
+            switch (typeNr) {
+              case 0:
+                ui->initText(parentVar, name, name, false);
+                break;
+              case 1:
+                ui->initNumber(parentVar, name, random8(255), false);
+                break;
+              case 2:
+                ui->initSlider(parentVar, name, random8(255), false);
+                break;
+              case 3:
+                ui->initCheckBox(parentVar, name, random8(2), false);
+                break;
+              case 4:
+                ui->initSelect(parentVar, name, random8(2), false, [](JsonObject var) { //uiFun
+                  JsonArray select = web->addResponseA(var["id"], "select");
+                  select.add("Oui"); //0
+                  select.add("Non"); //1
+                });
+                break;
+            }
+          } //for loop
+        } //! parameters
+        print->printJson("parentVar", parentVar);
+        web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
+      } // fx < size
     });
 
     ui->initSelect(parentVar, "projection", -1, false, [](JsonObject var) { //uiFun. 1:  is default
@@ -137,7 +157,7 @@ public:
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::projectionNr = var["value"];
-      ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
+      doMap = true;
     });
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
@@ -173,7 +193,7 @@ public:
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::ledFixNr = var["value"];
-      ledsV.ledFixProjectAndMap();
+      doMap = true;
 
       char fileName[30] = "";
       if (files->seqNrToName(fileName, LedsV::ledFixNr)) {
@@ -189,20 +209,18 @@ public:
     }); //ledFix
 
     ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
-      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
+      char details[32] = "";
+      print->fFormat(details, sizeof(details), "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
+      web->addResponse(var["id"], "value", details);
     }, [](JsonObject var) { //chFun
     });
 
     ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun
+      char details[32] = "";
+      print->fFormat(details, sizeof(details), "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+      web->addResponse(var["id"], "value", details);
       web->addResponseV(var["id"], "comment", "Max %d (%d by FastLed)", NUM_LEDS_Preview, NUM_LEDS_FastLed);
     });
-
-    //set the values by chFun
-    //tbd: add page reload event (as these values should be given each time a page reloads, and they are not included in model.json as they are readonly...
-    // print->print("post whd P:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
-    print->print("post whd P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
-    mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
-    mdl->setValueV("nrOfLeds", "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
 
     ui->initNumber(parentVar, "fps", fps, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Frames per second");
@@ -231,6 +249,7 @@ public:
     effects.push_back(new Ripples3DEffect);
     effects.push_back(new SphereMove3DEffect);
     effects.push_back(new Frizzles2D);
+    effects.push_back(new Lines2D);
 
     // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
     FastLED.addLeds<NEOPIXEL, DATA_PIN>(ledsP, NUM_LEDS_FastLed); 
@@ -246,7 +265,7 @@ public:
   void loop() {
     // Module::loop();
 
-    if(millis() - frameMillis >= 1000.0/fps) {
+    if (millis() - frameMillis >= 1000.0/fps) {
       frameMillis = millis();
 
       newFrame = true;
@@ -263,10 +282,16 @@ public:
     else {
       newFrame = false;
     }
-    if (millis() - secondMillis >= 1000 || !secondMillis) {
+    if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
       mdl->setValueV("realFps", "%lu /s", frameCounter);
       frameCounter = 0;
+    }
+
+   if (millis() - lastMappingMillis >= 1000 && doMap) { //not more then once per second (for E131)
+      lastMappingMillis = millis();
+      doMap = false;
+      ledsV.ledFixProjectAndMap();
     }
 
     // do some periodic updates
@@ -278,3 +303,4 @@ public:
 static AppModLeds *lds;
 
 uint16_t AppModLeds::fps = 40;
+bool AppModLeds::doMap = false;

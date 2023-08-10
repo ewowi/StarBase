@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModSystem.cpp
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -81,7 +81,7 @@ void SysModSystem::loop() {
   // Module::loop();
 
   loopCounter++;
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
     mdl->setValueV("upTime", "%u s", millis()/1000);

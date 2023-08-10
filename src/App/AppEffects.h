@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppEffects.h
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -15,17 +15,17 @@ static unsigned long call = 0;
 class Effect {
 public:
   virtual const char * name() { return nullptr;}
-  virtual void setup() {} //not implemented yet
+  virtual void setup() {}
   virtual void loop() {}
-  virtual const char * parameters() {return nullptr;}
+  virtual bool parameters(JsonObject parentVar) {return false;}
 };
 
-class RainbowEffect:public Effect {
+class RainbowEffect: public Effect {
 public:
   const char * name() {
-    return "Rainbow";
+    return "Rainbow 1D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // FastLED's built-in rainbow generator
     fill_rainbow( ledsP, LedsV::nrOfLedsP, gHue, 7);
@@ -35,9 +35,9 @@ public:
 class RainbowWithGlitterEffect:public RainbowEffect {
 public:
   const char * name() {
-    return "Rainbow with glitter";
+    return "Rainbow with glitter 1D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // built-in FastLED rainbow, plus some random sparkly glitter
     RainbowEffect::loop();
@@ -51,12 +51,12 @@ public:
   }
 };
 
-class SinelonEffect:public Effect {
+class SinelonEffect: public Effect {
 public:
   const char * name() {
-    return "Sinelon";
+    return "Sinelon 1D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
@@ -67,12 +67,12 @@ public:
   }
 };
 
-class RunningEffect:public Effect {
+class RunningEffect: public Effect {
 public:
   const char * name() {
-    return "Running";
+    return "Running 1D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 70); //physical leds
@@ -83,12 +83,12 @@ public:
   }
 };
 
-class ConfettiEffect:public Effect {
+class ConfettiEffect: public Effect {
 public:
   const char * name() {
-    return "Confetti";
+    return "Confetti 1D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // random colored speckles that blink in and fade smoothly
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 10);
@@ -97,12 +97,12 @@ public:
   }
 };
 
-class BPMEffect:public Effect {
+class BPMEffect: public Effect {
 public:
   const char * name() {
-    return "Beats per minute";
+    return "Beats per minute 1D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
     uint8_t BeatsPerMinute = 62;
@@ -112,17 +112,17 @@ public:
       ledsV[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
     }
   }
-  const char * parameters() {
-    return "BeatsPerMinute";
+  bool parameters(JsonObject parentVar) {
+    return false;
   }
 };
 
-class JuggleEffect:public Effect {
+class JuggleEffect: public Effect {
 public:
   const char * name() {
-    return "Juggle";
+    return "Juggle 1D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     // eight colored dots, weaving in and out of sync with each other
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
@@ -134,12 +134,12 @@ public:
   }
 };
 
-class Ripples3DEffect:public Effect {
+class Ripples3DEffect: public Effect {
 public:
   const char * name() {
     return "Ripples 3D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     float ripple_interval = 1.3;// * (SEGMENT.intensity/128.0);
 
@@ -161,12 +161,12 @@ public:
   }
 };
 
-class SphereMove3DEffect:public Effect {
+class SphereMove3DEffect: public Effect {
 public:
   const char * name() {
     return "SphereMove 3D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     uint16_t origin_x, origin_y, origin_z, d;
     float diameter;
@@ -201,12 +201,12 @@ public:
   }
 }; // SphereMove3DEffect
 
-class Frizzles2D:public Effect {
+class Frizzles2D: public Effect {
 public:
   const char * name() {
-    return "Frizzles2D";
+    return "Frizzles 2D";
   }
-  void setup() {} //not implemented yet
+  void setup() {}
   void loop() {
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
     CRGBPalette16 palette = PartyColors_p;
@@ -222,5 +222,35 @@ public:
 
   }
 }; // Frizzles2D
+
+class Lines2D: public Effect {
+public:
+  const char * name() {
+    return "Lines 2D";
+  }
+  void setup() {}
+  void loop() {
+    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100);
+    CRGBPalette16 palette = PartyColors_p;
+
+    if (mdl->getValue("Vertical").as<bool>()) {
+      size_t x = call%LedsV::widthV;
+      for (size_t y = 0; y <  LedsV::heightV; y++) {
+        ledsV[x + y * LedsV::widthV] = CHSV( gHue, 255, 192);
+      }
+    } else {
+      size_t y = call%LedsV::heightV;
+      for (size_t x = 0; x <  LedsV::widthV; x++) {
+        ledsV[x + y * LedsV::widthV] = CHSV( gHue, 255, 192);
+      }
+    }
+  }
+  bool parameters(JsonObject parentVar) {
+    ui->initCheckBox(parentVar, "Vertical", false, false);
+
+    return true;
+  }
+}; // Lines2D
+
 
 static std::vector<Effect *> effects;

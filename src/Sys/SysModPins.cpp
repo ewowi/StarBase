@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModPins.cpp
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -55,8 +55,8 @@ void SysModPins::setup() {
   });
 
   //show table of allocated pins
-  JsonObject tableVar = ui->initTable(parentVar, "pins", nullptr, false, [](JsonObject var) { //uiFun
-    // web->addResponse(var["id"], "label", "Files");
+  JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, false, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Pins");
     web->addResponse(var["id"], "comment", "List of pins");
     JsonArray rows = web->addResponseA(var["id"], "table");
     uint8_t pinNr = 0;
@@ -90,13 +90,13 @@ void SysModPins::setup() {
 void SysModPins::loop(){
   // Module::loop();
 
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
     if (pinsChanged) {
       pinsChanged = false;
 
-      ui->processUiFun("pins");
+      ui->processUiFun("pinTbl");
     }
   }
 }

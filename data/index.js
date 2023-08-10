@@ -1,6 +1,6 @@
 // @title     StarMod
 // @file      index.css
-// @date      20230807
+// @date      20230810
 // @repo      https://github.com/ewowi/StarMod
 // @Authors   https://github.com/ewowi/StarMod/commits/main
 // @Copyright (c) 2023 Github StarMod Commit Authors
@@ -470,6 +470,7 @@ function processVarNode(node, key, json) {
         let tdNode = cE("td");
 
         //call generateHTML to create the variable in the UI
+        // console.log("table cell generateHTML", tdNode, variable, variable.n, colNr, rowNr);
         let newNode = generateHTML(tdNode, variable.n[colNr], rowNr); //no <p><label>
         if (newNode) {
           //very strange: gId(newNode.id) is not working here. Delay before it is in the dom??? (workaround create processVarNode function)

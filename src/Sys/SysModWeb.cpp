@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModWeb.cpp
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -88,7 +88,7 @@ void SysModWeb::loop() {
     this->modelUpdated = false;
   }
 
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
     // if something changed in clist

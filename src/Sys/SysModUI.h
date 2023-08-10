@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModUI.h
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -90,8 +90,13 @@ public:
     JsonObject var = initVar(parent, id, type, readOnly, uiFun, chFun, loopFun);
     bool isPointer = std::is_pointer<Type>::value;
     //set a default if not a value yet
-    if (var["value"].isNull() && (!isPointer || value)) var["value"] = value; //if value is a pointer, it needs to have a value
-    //tbd check if value in case of constchar* needs to be copied using (char *)...
+    if (var["value"].isNull() && (!isPointer || value)) {
+      bool isChar = std::is_same<Type, const char *>::value;
+      if (isChar)
+        var["value"] = (char *)value; //if char make a copy !!
+      else
+        var["value"] = value; //if value is a pointer, it needs to have a value
+    }
     //no call of fun for buttons otherwise all buttons will be fired including restart delete model.json and all that jazz!!! 
     if (strcmp(type,"button")!=0 && chFun && (!isPointer || value)) chFun(var); //!isPointer because 0 is also a value then
     return var;

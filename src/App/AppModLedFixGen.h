@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModLedFixGen.h
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -111,10 +111,11 @@ public:
       select.add("2DMatrix"); //1
       select.add("2DRing"); //2
       select.add("2DRings241"); //3
-      select.add("3DCone"); //4
-      select.add("3DSideCube"); //5
-      select.add("3DCube"); //6
-      select.add("3DGlobe"); //7
+      select.add("2DCloud"); //4
+      select.add("3DCone"); //5
+      select.add("3DSideCube"); //6
+      select.add("3DCube"); //7
+      select.add("3DGlobe"); //8
     }, [](JsonObject var) { //chFun
 
       ledFixGenChFun(var);
@@ -141,10 +142,12 @@ public:
     f_2DMatrix,
     f_2DRing,
     f_2DRings241,
+    f_2DCloud,
     f_3DCone,
     f_3DSideCube,
     f_3DCube,
-    f_3DGlobe
+    f_3DGlobe,
+    count
   };
 
   //generate dynamic html for fixture parameters
@@ -207,6 +210,7 @@ public:
     uint8_t fix = mdl->getValue("ledFixGen");
 
     char sep[3]="";
+    char sep2[3]="";
 
     uint8_t pin = 10;
 
@@ -305,6 +309,55 @@ public:
         }
       }
       genFix.writef("]}]");
+    } else if (fix == f_2DCloud) {
+      uint16_t width = 54;
+      uint16_t height = 16;
+      genFix.assign(width, height, 1, 513, 1);
+
+      genFix.writeName("2DCloud%02d%02d", width, height);
+      genFix.writeHeader();
+
+      genFix.writef(",\"outputs\":[");
+
+      //Small RL Alt Test
+
+      uint8_t y;
+      strcpy(sep,"");
+
+      //first pin (red)
+      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+      strcpy(sep2,"");
+      y = 15; for (int x = 53; x >= 0; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 11; for (int x = 9; x <= 51; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 7; for (int x = 40; x >= 11; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      genFix.writef("]}");
+      //second pin (green)
+      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+      strcpy(sep2,"");
+      y = 14; for (int x = 53; x >= 0; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 10; for (int x = 9; x <= 51; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 6; for (int x = 39; x >= 12; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      genFix.writef("]}");
+      //third pin (blue)
+      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+      strcpy(sep2,"");
+      y = 13; for (int x = 52; x >= 1; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 9; for (int x = 10; x <= 50; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 5; for (int x = 39; x >= 14; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      genFix.writef("]}");
+      //fourth pin (yellow)
+      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+      strcpy(sep2,"");
+      y = 12; for (int x = 52; x >= 3; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 8; for (int x = 10; x <= 48; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 4; for (int x = 38; x >= 24; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 3; for (int x = 25; x <= 37; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 2; for (int x = 36; x >= 26; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 1; for (int x = 27; x <= 35; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      y = 0; for (int x = 33; x >= 29; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
+      genFix.writef("]}");
+
+      genFix.writef("]");
     } else if (fix == f_3DCone) {
 
       bool in2out;
@@ -349,7 +402,7 @@ public:
       genFix.writef(",\"outputs\":[");
   
       strcpy(sep,"");
-      char sep2[3]="";
+      strcpy(sep2,"");
 
       //front and back
       for (uint8_t z = 0; z<genFix.depth; z+=genFix.depth-1) {

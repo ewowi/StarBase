@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModUI.cpp
-   @date      20230807
+   @date      20230810
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -40,7 +40,7 @@ void SysModUI::setup() {
 
   parentVar = initModule(parentVar, name);
 
-  JsonObject tableVar = initTable(parentVar, "vloops", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Variable loops");
     web->addResponse(var["id"], "comment", "Loops initiated by a variable");
     JsonArray rows = web->addResponseA(var["id"], "table");
@@ -55,11 +55,11 @@ void SysModUI::setup() {
       varLoop->counter = 0;
     }
   });
-  initText(tableVar, "ulVar", nullptr, true, [](JsonObject var) { //uiFun
+  initText(tableVar, "vlVar", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  initNumber(tableVar, "ulLoopps", -1, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Loops//s");
+  initNumber(tableVar, "vlLoopps", -1, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Loops p s");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -132,14 +132,14 @@ void SysModUI::loop() {
     }
   }
 
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
     //if something changed in vloops
     if (varLoopsChanged) {
       varLoopsChanged = false;
 
-      processUiFun("vloops");
+      processUiFun("vlTbl");
     }
   }
 }

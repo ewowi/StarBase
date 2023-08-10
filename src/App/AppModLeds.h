@@ -90,7 +90,7 @@ public:
 
         Effect* effect = effects[fx];
         effect->setup(); //if changed then run setup once (like call==0 in WLED)
-        if (!effect->parameters(parentVar)) {
+        if (!effect->controls(parentVar)) {
 
           for (int i=0; i<5; i++) {
             uint8_t nameNr = random8(6);  
@@ -139,7 +139,7 @@ public:
                 break;
             }
           } //for loop
-        } //! parameters
+        } //! controls
         print->printJson("parentVar", parentVar);
         web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
       } // fx < size

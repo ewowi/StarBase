@@ -17,7 +17,7 @@ public:
   virtual const char * name() { return nullptr;}
   virtual void setup() {}
   virtual void loop() {}
-  virtual bool parameters(JsonObject parentVar) {return false;}
+  virtual bool controls(JsonObject parentVar) {return false;}
 };
 
 class RainbowEffect: public Effect {
@@ -112,7 +112,7 @@ public:
       ledsV[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
     }
   }
-  bool parameters(JsonObject parentVar) {
+  bool controls(JsonObject parentVar) {
     return false;
   }
 };
@@ -228,7 +228,7 @@ public:
     }
     blur2d(ledsP, LedsV::widthV, LedsV::heightV, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
   }
-  bool parameters(JsonObject parentVar) {
+  bool controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 128, false);
     ui->initSlider(parentVar, "intensity", 128, false);
     ui->initSlider(parentVar, "blur", 128, false);
@@ -261,7 +261,7 @@ public:
     }
   }
 
-  bool parameters(JsonObject parentVar) {
+  bool controls(JsonObject parentVar) {
     ui->initCheckBox(parentVar, "Vertical", false, false);
     return true;
   }

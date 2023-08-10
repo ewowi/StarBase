@@ -150,7 +150,7 @@ public:
     count
   };
 
-  //generate dynamic html for fixture parameters
+  //generate dynamic html for fixture controls
   static void ledFixGenChFun(JsonObject var) {
     JsonObject parentVar = mdl->findVar(var["id"]);
     parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!

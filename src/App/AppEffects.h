@@ -226,7 +226,7 @@ public:
       CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
       ledsV[x + y * LedsV::widthV] = color;
     }
-    blur2d(ledsP, LedsV::widthV, LedsV::heightV, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
+    blur2d(ledsP, LedsV::widthP, LedsV::heightP, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
   }
   bool controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 128, false);
@@ -266,6 +266,72 @@ public:
     return true;
   }
 }; // Lines2D
+
+uint8_t gamma8(uint8_t b) { //we do nothing with gamma for now
+  return b;
+}
+
+class DistortionWaves2D: public Effect {
+public:
+  const char * name() {
+    return "DistortionWaves 2D";
+  }
+
+  void setup() {
+    // fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100); //like more the gradual change
+  }
+
+  void loop() {
+
+    const uint16_t cols = LedsV::widthV;
+    const uint16_t rows = LedsV::widthV;
+
+    uint8_t speed = mdl->getValue("speed").as<int>()/32;
+    uint8_t scale = mdl->getValue("scale").as<int>()/32;
+
+    uint8_t  w = 2;
+
+    uint16_t a  = millis()/32;
+    uint16_t a2 = a/2;
+    uint16_t a3 = a/3;
+
+    uint16_t cx =  beatsin8(10-speed,0,cols-1)*scale;
+    uint16_t cy =  beatsin8(12-speed,0,rows-1)*scale;
+    uint16_t cx1 = beatsin8(13-speed,0,cols-1)*scale;
+    uint16_t cy1 = beatsin8(15-speed,0,rows-1)*scale;
+    uint16_t cx2 = beatsin8(17-speed,0,cols-1)*scale;
+    uint16_t cy2 = beatsin8(14-speed,0,rows-1)*scale;
+    
+    uint16_t xoffs = 0;
+    for (int x = 0; x < cols; x++) {
+      xoffs += scale;
+      uint16_t yoffs = 0;
+
+      for (int y = 0; y < rows; y++) {
+        yoffs += scale;
+
+        byte rdistort = cos8((cos8(((x<<3)+a )&255)+cos8(((y<<3)-a2)&255)+a3   )&255)>>1; 
+        byte gdistort = cos8((cos8(((x<<3)-a2)&255)+cos8(((y<<3)+a3)&255)+a+32 )&255)>>1; 
+        byte bdistort = cos8((cos8(((x<<3)+a3)&255)+cos8(((y<<3)-a) &255)+a2+64)&255)>>1; 
+
+        byte valueR = rdistort+ w*  (a- ( ((xoffs - cx)  * (xoffs - cx)  + (yoffs - cy)  * (yoffs - cy))>>7  ));
+        byte valueG = gdistort+ w*  (a2-( ((xoffs - cx1) * (xoffs - cx1) + (yoffs - cy1) * (yoffs - cy1))>>7 ));
+        byte valueB = bdistort+ w*  (a3-( ((xoffs - cx2) * (xoffs - cx2) + (yoffs - cy2) * (yoffs - cy2))>>7 ));
+
+        valueR = gamma8(cos8(valueR));
+        valueG = gamma8(cos8(valueG));
+        valueB = gamma8(cos8(valueB));
+
+        ledsV[x + y * LedsV::widthV] = CRGB(valueR, valueG, valueB);
+      }
+    }
+  }
+  bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 128, false);
+    ui->initSlider(parentVar, "scale", 128, false);
+    return true;
+  }
+}; // Frizzles2D
 
 
 static std::vector<Effect *> effects;

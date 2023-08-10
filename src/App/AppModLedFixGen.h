@@ -271,7 +271,8 @@ public:
       genFix.writef("]}]");
     } else if (fix == f_2DRings241) {
 
-      uint8_t rings[9] = {1, 8, 12, 16, 24, 32, 40, 48, 60};
+      uint8_t ringsNrOfLeds[9] = {1, 8, 12, 16, 24, 32, 40, 48, 60};
+      uint8_t ringDiams[9] = {0, 13, 23, 33, 43, 53, 63, 73, 83};
       //  {0, 0},     //0 Center Point -> 1
       //   {1, 8},     //1 -> 8
       //   {9, 20},   //2 -> 12
@@ -295,12 +296,10 @@ public:
       in2out = mdl->getValue("in2out");
 
       // in2out or out2in
-      int arrSize = sizeof(rings)/sizeof(rings[0]);
-      // for (int j=in2out?0:arrSize-1; in2out?j<arrSize:j>=0; j+=in2out?1:-1) {
-      //   uint8_t ringNrOfLeds = rings[j];
+      int arrSize = sizeof(ringsNrOfLeds)/sizeof(ringsNrOfLeds[0]);
       for (int j=0; j<arrSize; j++) {
-        uint8_t ringNrOfLeds = in2out?rings[j]:rings[arrSize - 1 - j];
-        ringDiam = genFix.factor * ringNrOfLeds / 2 / M_PI; //in mm
+        uint8_t ringNrOfLeds = in2out?ringsNrOfLeds[j]:ringsNrOfLeds[arrSize - 1 - j];
+        ringDiam = in2out?ringDiams[j]:ringDiams[arrSize - 1 - j]; //in mm
         for (int i=0; i<ringNrOfLeds; i++) {
           float radians = i*360/ringNrOfLeds * (M_PI / 180);
           uint16_t x = genFix.factor * genFix.width / 2 + ringDiam * sinf(radians);

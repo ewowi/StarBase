@@ -117,16 +117,16 @@ public:
       select.add("3DCube"); //7
       select.add("3DGlobe"); //8
     }, [](JsonObject var) { //chFun
-
       ledFixGenChFun(var);
     }); //ledFixGen
 
+    ui->initText(parentVar, "pinList", "16", false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "comment", "One or more e.g. 12,13");
+    });
+
     ui->initButton(parentVar, "generate", nullptr, false, [](JsonObject var) { //uiFun
-      // web->addResponse(var["id"], "comment", "All but model.json");
     }, [](JsonObject var) {
-
       generateChFun(var);
-
     });
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -212,8 +212,26 @@ public:
     char sep[3]="";
     char sep2[3]="";
 
-    uint8_t pin = 10;
+    uint8_t pinList[9] = {255,255,255,255,255,255,255,255,255};
+    uint8_t sizeOfPins = 0;
+    if (!mdl->getValue("pinList").isNull()) {
+      print->print( "pinlist %s\n",mdl->getValue("pinList").as<const char *>());
+      char str[32];
+      strcpy(str, mdl->getValue("pinList").as<const char *>());
+      const char s[2] = ",";
+      char *token;
+      /* get the first token */
+      token = strtok(str, s);
+      /* walk through other tokens */
+      while( token != NULL ) 
+      {
+        print->print( " %s(%d) %d\n", token, atoi(token), sizeOfPins );
+        pinList[sizeOfPins++] = atoi(token);
+        token = strtok(NULL, s);
+      }
+    }
 
+    uint8_t pinNr = 0;
     float ringDiam;
 
     GenFix genFix;
@@ -227,7 +245,7 @@ public:
 
       genFix.writeHeader();
 
-      genFix.writef(",\"outputs\":[{\"pin\":10,\"leds\":[");
+      genFix.writef(",\"outputs\":[{\"pin\":%d,\"leds\":[", pinList[(pinNr++)%sizeOfPins]);
       strcpy(sep, "");
       for (int i=0; i<genFix.nrOfLeds; i++) {
         float radians = i*360/48 * (M_PI / 180); //48 leds per round
@@ -245,7 +263,7 @@ public:
       genFix.writeName("2DMatrix%02d%02d", width, height);
       genFix.writeHeader();
 
-      genFix.writef(",\"outputs\":[{\"pin\":10,\"leds\":[");
+      genFix.writef(",\"outputs\":[{\"pin\":%d,\"leds\":[", pinList[(pinNr++)%sizeOfPins]);
       strcpy(sep,"");
       for (uint8_t y = 0; y<height; y++)
         for (uint16_t x = 0; x<width ; x++) {
@@ -259,7 +277,7 @@ public:
       genFix.writeName("2DRing%02d", ledCount);
       genFix.writeHeader();
 
-      genFix.writef(",\"outputs\":[{\"pin\":10,\"leds\":[");
+      genFix.writef(",\"outputs\":[{\"pin\":%d,\"leds\":[", pinList[(pinNr++)%sizeOfPins]);
       strcpy(sep, "");
       ringDiam = genFix.factor * genFix.nrOfLeds / 2 / M_PI; //in mm
       for (int i=0; i<genFix.nrOfLeds; i++) {
@@ -290,7 +308,7 @@ public:
       genFix.writeName("2DRing%02d", genFix.nrOfLeds);
       genFix.writeHeader();
 
-      genFix.writef(",\"outputs\":[{\"pin\":10,\"leds\":[");
+      genFix.writef(",\"outputs\":[{\"pin\":%d,\"leds\":[", pinList[(pinNr++)%sizeOfPins]);
       strcpy(sep, "");
 
       in2out = mdl->getValue("in2out");
@@ -324,28 +342,28 @@ public:
       strcpy(sep,"");
 
       //first pin (red)
-      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pinList[(pinNr++)%sizeOfPins]);strcpy(sep, ",");
       strcpy(sep2,"");
       y = 15; for (int x = 53; x >= 0; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       y = 11; for (int x = 9; x <= 51; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       y = 7; for (int x = 40; x >= 11; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       genFix.writef("]}");
       //second pin (green)
-      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pinList[(pinNr++)%sizeOfPins]);strcpy(sep, ",");
       strcpy(sep2,"");
       y = 14; for (int x = 53; x >= 0; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       y = 10; for (int x = 9; x <= 51; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       y = 6; for (int x = 39; x >= 12; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       genFix.writef("]}");
       //third pin (blue)
-      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pinList[(pinNr++)%sizeOfPins]);strcpy(sep, ",");
       strcpy(sep2,"");
       y = 13; for (int x = 52; x >= 1; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       y = 9; for (int x = 10; x <= 50; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       y = 5; for (int x = 39; x >= 14; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       genFix.writef("]}");
       //fourth pin (yellow)
-      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+      genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pinList[(pinNr++)%sizeOfPins]);strcpy(sep, ",");
       strcpy(sep2,"");
       y = 12; for (int x = 52; x >= 3; x--) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
       y = 8; for (int x = 10; x <= 48; x++) {genFix.writef("%s[%d,%d]", sep2, x,y); strcpy(sep2, ",");}
@@ -371,7 +389,7 @@ public:
       genFix.writeName("3DCone%02d", nrOfRings);
       genFix.writeHeader();
 
-      genFix.writef(",\"outputs\":[{\"pin\":10,\"leds\":[");
+      genFix.writef(",\"outputs\":[{\"pin\":%d,\"leds\":[", pinList[(pinNr++)%sizeOfPins]);
       strcpy(sep, "");
 
       in2out = mdl->getValue("in2out");
@@ -405,7 +423,7 @@ public:
 
       //front and back
       for (uint8_t z = 0; z<genFix.depth; z+=genFix.depth-1) {
-        genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+        genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pinList[(pinNr++)%sizeOfPins]);strcpy(sep, ",");
         strcpy(sep2,"");
         for (uint8_t y = 0; y<genFix.height; y++)
           for (uint16_t x = 0; x<genFix.width ; x++) {
@@ -415,7 +433,7 @@ public:
       }
       //NO botom and top
       for (uint8_t y = genFix.height-1; y<genFix.height; y+=genFix.height-1) {
-        genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+        genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pinList[(pinNr++)%sizeOfPins]);strcpy(sep, ",");
         strcpy(sep2,"");
         for (uint8_t z = 0; z<genFix.depth; z++)
           for (uint16_t x = 0; x<genFix.width ; x++) {
@@ -426,7 +444,7 @@ public:
 
       //left and right
       for (uint16_t x = 0; x<genFix.width ; x+=genFix.width-1) {
-        genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pin++);strcpy(sep, ",");
+        genFix.writef("%s{\"pin\":%d,\"leds\":[", sep, pinList[(pinNr++)%sizeOfPins]);strcpy(sep, ",");
         strcpy(sep2,"");
         for (uint8_t z = 0; z<genFix.depth; z++)
           for (uint8_t y = 0; y<genFix.height; y++) {
@@ -445,7 +463,7 @@ public:
       genFix.writeName("3DCube%02d%02d%02d", width, height, depth);
       genFix.writeHeader();
 
-      genFix.writef(",\"outputs\":[{\"pin\":10,\"leds\":[");
+      genFix.writef(",\"outputs\":[{\"pin\":%d,\"leds\":[", pinList[(pinNr++)%sizeOfPins]);
       strcpy(sep,"");
       for (uint8_t z = 0; z<genFix.depth; z++)
         for (uint8_t y = 0; y<genFix.height; y++)
@@ -462,7 +480,7 @@ public:
 
       genFix.writeHeader();
 
-      genFix.writef(",\"outputs\":[{\"pin\":10,\"leds\":[");
+      genFix.writef(",\"outputs\":[{\"pin\":%d,\"leds\":[", pinList[(pinNr++)%sizeOfPins]);
       strcpy(sep, "");
       ringDiam = genFix.factor * genFix.nrOfLeds / 2 / M_PI; //in mm
       for (int i=0; i<genFix.nrOfLeds; i++) {

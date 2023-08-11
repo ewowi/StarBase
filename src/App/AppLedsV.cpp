@@ -144,12 +144,11 @@ void LedsV::ledFixProjectAndMap() {
       } //if 1D-3D
       else {
         char details[32] = "";
-        print->fFormat(details, sizeof(details), "%d-%d", prevLeds, mappingTableLedCounter - 1);
+        print->fFormat(details, sizeof(details), "%d-%d", prevLeds, mappingTableLedCounter - 1); //careful: AppModLeds:loop uses this to assign to FastLed
         print->print("pins %d: %s (%d)\n", currPin, details);
         pins->allocatePin(currPin, "Leds", details);
 
         prevLeds = mappingTableLedCounter;
-
       }
     }); //create the right type, otherwise crash
 
@@ -215,11 +214,11 @@ void LedsV::setPixelColor(int indexV, CRGB color) {
     if (indexV >= mappingTable.size()) return;
     for (uint16_t indexP:mappingTable[indexV]) {
       if (indexP < NUM_LEDS_Preview)
-        ledsP[indexP] = color;
+        ledsPhysical[indexP] = color;
     }
   }
   else //no projection
-    ledsP[projectionNr==p_Random?random(nrOfLedsP):indexV] = color;
+    ledsPhysical[projectionNr==p_Random?random(nrOfLedsP):indexV] = color;
 }
 
 CRGB LedsV::getPixelColor(int indexV) {
@@ -227,10 +226,10 @@ CRGB LedsV::getPixelColor(int indexV) {
     if (indexV >= mappingTable.size()) return CRGB::Black;
     if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Preview) return CRGB::Black;
 
-    return ledsP[mappingTable[indexV][0]]; //any would do as they are all the same
+    return ledsPhysical[mappingTable[indexV][0]]; //any would do as they are all the same
   }
   else //no projection
-    return ledsP[indexV];
+    return ledsPhysical[indexV];
 }
 
 // LedsV& operator+=(const CRGB color) {

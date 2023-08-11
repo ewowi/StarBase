@@ -12,7 +12,6 @@
 #include <vector>
 #include "ArduinoJson.h"
 
-#define NUM_LEDS_FastLed 1024
 #define NUM_LEDS_Preview 4096
 
 //keep them global for the time being as FastLed effects refer to them and want to keep that code as unchanged as possible
@@ -34,7 +33,7 @@ class LedsV {
 
 public:
   // CRGB *leds = nullptr;
-  CRGB ledsP[NUM_LEDS_Preview];
+  CRGB ledsPhysical[NUM_LEDS_Preview];
     // if (!leds)
   //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
   // else
@@ -60,7 +59,7 @@ public:
 
   void ledFixProjectAndMap();
 
-  uint16_t indexVLocal = 0;
+  uint16_t indexVLocal = 0; //set in operator[], used by operator=
 
   // ledsV[indexV] stores indexV locally
   LedsV& operator[](uint16_t indexV);
@@ -100,6 +99,7 @@ private:
   static uint16_t mappingTableLedCounter;
 };
 
+//Global vars!
 //after header split they all needs to be static otherwise multiple definition link error
 static LedsV ledsV = LedsV(); //virtual leds
-static CRGB *ledsP = ledsV.ledsP; //physical leds, used by FastLed in particular
+static CRGB *ledsP = ledsV.ledsPhysical; //physical leds, used by FastLed in particular

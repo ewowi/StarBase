@@ -15,8 +15,16 @@ static unsigned long call = 0;
 class Effect {
 public:
   virtual const char * name() { return nullptr;}
+
   virtual void setup() {}
-  virtual void loop() {}
+
+  virtual void loop() {
+    call++;
+
+    // do some periodic updates
+    EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
+  }
+
   virtual bool controls(JsonObject parentVar) {return false;}
 };
 
@@ -27,6 +35,7 @@ public:
   }
   void setup() {}
   void loop() {
+    Effect::loop();
     // FastLED's built-in rainbow generator
     fill_rainbow( ledsP, LedsV::nrOfLedsP, gHue, 7);
   }
@@ -39,6 +48,7 @@ public:
   }
   void setup() {}
   void loop() {
+    Effect::loop();
     // built-in FastLED rainbow, plus some random sparkly glitter
     RainbowEffect::loop();
     addGlitter(80);
@@ -58,6 +68,7 @@ public:
   }
   void setup() {}
   void loop() {
+    Effect::loop();
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
     int pos = beatsin16( 13, 0, LedsV::nrOfLedsV-1 );
@@ -74,6 +85,7 @@ public:
   }
   void setup() {}
   void loop() {
+    Effect::loop();
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 70); //physical leds
     // int pos0 = (call-1)%ledsV.nrOfLeds;
@@ -90,6 +102,7 @@ public:
   }
   void setup() {}
   void loop() {
+    Effect::loop();
     // random colored speckles that blink in and fade smoothly
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 10);
     int pos = random16(LedsV::nrOfLedsP);
@@ -104,6 +117,7 @@ public:
   }
   void setup() {}
   void loop() {
+    Effect::loop();
     // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
     uint8_t BeatsPerMinute = 62;
     CRGBPalette16 palette = PartyColors_p;
@@ -124,6 +138,7 @@ public:
   }
   void setup() {}
   void loop() {
+    Effect::loop();
     // eight colored dots, weaving in and out of sync with each other
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
     uint8_t dothue = 0;
@@ -141,7 +156,10 @@ public:
   }
   void setup() {}
   void loop() {
-    float ripple_interval = 1.3;// * (SEGMENT.intensity/128.0);
+    Effect::loop();
+    uint8_t interval = mdl->getValue("interval");
+
+    float ripple_interval = 1.3 * (interval/128.0);
 
     fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
     // fill(CRGB::Black);
@@ -159,6 +177,10 @@ public:
         }
     }
   }
+  bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "interval", 128, false);
+    return true;
+  }
 };
 
 class SphereMove3DEffect: public Effect {
@@ -168,6 +190,7 @@ public:
   }
   void setup() {}
   void loop() {
+    Effect::loop();
     uint16_t origin_x, origin_y, origin_z, d;
     float diameter;
 
@@ -206,6 +229,7 @@ uint16_t XY( uint8_t x, uint8_t y) {
   return x + y * LedsV::widthV;
 }
 
+//Frizzles2D inspired by WLED, Stepko, Andrew Tuline, https://editor.soulmatelights.com/gallery/640-color-frizzles
 class Frizzles2D: public Effect {
 public:
   const char * name() {
@@ -217,6 +241,7 @@ public:
   }
 
   void loop() {
+    Effect::loop();
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
     CRGBPalette16 palette = PartyColors_p;
 
@@ -245,6 +270,7 @@ public:
   void setup() {}
 
   void loop() {
+    Effect::loop();
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100);
     CRGBPalette16 palette = PartyColors_p;
 
@@ -271,6 +297,7 @@ uint8_t gamma8(uint8_t b) { //we do nothing with gamma for now
   return b;
 }
 
+//DistortionWaves2D  inspired by WLED, ldirko, https://editor.soulmatelights.com/gallery/1089-distorsion-waves
 class DistortionWaves2D: public Effect {
 public:
   const char * name() {
@@ -282,6 +309,7 @@ public:
   }
 
   void loop() {
+    Effect::loop();
 
     const uint16_t cols = LedsV::widthV;
     const uint16_t rows = LedsV::widthV;
@@ -331,7 +359,89 @@ public:
     ui->initSlider(parentVar, "scale", 128, false);
     return true;
   }
-}; // Frizzles2D
+}; // DistortionWaves2D
 
+
+//BouncingBalls1D  inspired by WLED
+//each needs 12 bytes
+typedef struct Ball {
+  unsigned long lastBounceTime;
+  float impactVelocity;
+  float height;
+} ball;
+
+#define maxNumBalls 16
+
+class BouncingBalls1D: public Effect {
+public:
+  Ball balls[maxNumBalls];
+
+  const char * name() {
+    return "Bouncing Balls 1D";
+  }
+
+  void setup() {
+    for (size_t i = 0; i < maxNumBalls; i++) balls[i].lastBounceTime = millis();
+  }
+
+  void loop() {
+    Effect::loop();
+
+    uint8_t grav = mdl->getValue("gravity");
+    uint8_t nrOfBalls = mdl->getValue("nrOfBalls");
+
+    // number of balls based on intensity setting to max of 7 (cycles colors)
+    // non-chosen color is a random color
+    uint16_t numBalls = (grav * (maxNumBalls - 1)) / 255 + 1; // minimum 1 ball
+    const float gravity = -9.81f; // standard value of gravity
+    // const bool hasCol2 = SEGCOLOR(2);
+    const unsigned long time = millis();
+
+    for (size_t i = 0; i < numBalls; i++) {
+      float timeSinceLastBounce = (time - balls[i].lastBounceTime)/((255-grav)/64 +1);
+      float timeSec = timeSinceLastBounce/1000.0f;
+      balls[i].height = (0.5f * gravity * timeSec + balls[i].impactVelocity) * timeSec; // avoid use pow(x, 2) - its extremely slow !
+
+      if (balls[i].height <= 0.0f) {
+        balls[i].height = 0.0f;
+        //damping for better effect using multiple balls
+        float dampening = 0.9f - float(i)/float(numBalls * numBalls); // avoid use pow(x, 2) - its extremely slow !
+        balls[i].impactVelocity = dampening * balls[i].impactVelocity;
+        balls[i].lastBounceTime = time;
+
+        if (balls[i].impactVelocity < 0.015f) {
+          float impactVelocityStart = sqrtf(-2.0f * gravity) * random8(5,11)/10.0f; // randomize impact velocity
+          balls[i].impactVelocity = impactVelocityStart;
+        }
+      } else if (balls[i].height > 1.0f) {
+        continue; // do not draw OOB ball
+      }
+
+      // uint32_t color = SEGCOLOR(0);
+      // if (SEGMENT.palette) {
+      //   color = SEGMENT.color_wheel(i*(256/MAX(numBalls, 8)));
+      // } 
+      // else if (hasCol2) {
+      //   color = SEGCOLOR(i % NUM_COLORS);
+      // }
+
+      int pos = roundf(balls[i].height * (LedsV::nrOfLedsV - 1));
+
+      CRGBPalette16 palette = PartyColors_p;
+
+      CRGB color = ColorFromPalette(palette, i*(256/max(numBalls, (uint16_t)8)), 255);
+
+      ledsV[pos] = color;
+      // if (SEGLEN<32) SEGMENT.setPixelColor(indexToVStrip(pos, stripNr), color); // encode virtual strip into index
+      // else           SEGMENT.setPixelColor(balls[i].height + (stripNr+1)*10.0f, color);
+    } //nrOfBalls
+  }
+
+  bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "gravity", 128, false);
+    ui->initSlider(parentVar, "nrOfBalls", 128, false);
+    return true;
+  }
+}; // DistortionWaves2D
 
 static std::vector<Effect *> effects;

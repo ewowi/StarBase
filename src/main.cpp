@@ -22,6 +22,7 @@
 #include "Sys/SysModModel.h"
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
+#include "User/UserModWLEDDiscovery.h"
 #ifdef APPMOD_LEDS
   #include "App/AppModLeds.h"
   #include "App/AppModLedFixGen.h"
@@ -51,6 +52,7 @@ void setup() {
   ui = new SysModUI();
   sys = new SysModSystem();
   pins = new SysModPins();
+  wledDiscoveryMod = new UserModWLEDDiscovery();
   #ifdef APPMOD_LEDS
     lds = new AppModLeds();
     lfg = new AppModLedFixGen();
@@ -95,6 +97,7 @@ void setup() {
   #ifdef USERMOD_HA
     mdls->add(hamod);
   #endif
+  mdls->add(wledDiscoveryMod);
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

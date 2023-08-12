@@ -38,6 +38,8 @@ public:
   UserModDDP() :Module("DDP") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
+    isEnabled = false;
+
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
@@ -49,15 +51,15 @@ public:
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
-  void connected() {
-    print->print("%s %s - Connected\n", __PRETTY_FUNCTION__, name);
-    isConnected = true;
+  void connectedChanged() {
+    if (SysModModules::isConnected)
+      print->print("%s %s - Connected\n", __PRETTY_FUNCTION__, name);
   }
 
   void loop(){
     // Module::loop();
 
-    if(!isConnected) return;
+    if(!SysModModules::isConnected) return;
 
     if(!lds->newFrame) return;
 
@@ -129,7 +131,6 @@ public:
   }
 
   private:
-    bool isConnected = false;
     size_t sequenceNumber = 0;
 
 };

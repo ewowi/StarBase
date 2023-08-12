@@ -41,7 +41,7 @@
 
 //setup all modules
 void setup() {
-  mdls = new Modules();
+  mdls = new SysModModules();
   
   print = new SysModPrint();
   files = new SysModFiles();

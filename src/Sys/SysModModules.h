@@ -13,11 +13,12 @@
 
 #include <vector>
 
-class Modules:public Module {
+class SysModModules:public Module {
 public:
   static bool newConnection; //need to be static otherwise crash
+  static bool isConnected;
 
-  Modules();
+  SysModModules();
 
   void setup();
 
@@ -25,10 +26,10 @@ public:
 
   void add(Module* module);
 
-  void connected();
+  void connectedChanged();
 
 private:
   static std::vector<Module *> modules;
 };
 
-static Modules *mdls;
+static SysModModules *mdls;

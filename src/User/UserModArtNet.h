@@ -24,6 +24,14 @@ public:
 
     isEnabled = false; //default off
 
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  };
+
+  //setup filesystem
+  void setup() {
+    Module::setup();
+    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+
     parentVar = ui->initModule(parentVar, name);
 
     ui->initSelect(parentVar, "artInst", -1, false, [](JsonObject var) { //uiFun
@@ -44,14 +52,6 @@ public:
         print->print("Start ArtNet to %s\n", targetIp.toString().c_str());
       }
     }); //ddpInst
-
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
-  };
-
-  //setup filesystem
-  void setup() {
-    Module::setup();
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }

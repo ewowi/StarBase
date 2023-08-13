@@ -29,7 +29,7 @@ void SysModModules::setup() {
     module->setup();
   }
 
-  //do its own setup
+  //do its own setup: will be shown as last module
   parentVar = ui->initModule(parentVar, name);
 
   JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, false, [](JsonObject var) { //uiFun
@@ -57,7 +57,7 @@ void SysModModules::setup() {
     uint8_t rowNr = 0;
 
     //if value not array, create array
-    if (!var["value"].is<JsonArray>())
+    if (!var["value"].is<JsonArray>()) //comment if forced to recreate enabled array
       var.createNestedArray("value");
 
     //if value array not same size as nr of modules

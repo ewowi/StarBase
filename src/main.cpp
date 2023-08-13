@@ -70,34 +70,36 @@ void setup() {
     hamod = new UserModHA();
   #endif
 
-  //prefered default order in the UI
+  //prefered default order in the UI. 
+  //Reorder with care! If changed make sure mdlEnabled.chFun executes var.createNestedArray("value"); and saveModel! 
+  //Default: add below, not in between
   #ifdef APPMOD_LEDS
     mdls->add(lds);
+    mdls->add(lfg);
   #endif
   mdls->add(files);
+  mdls->add(instances);
   mdls->add(sys);
   mdls->add(pins);
   mdls->add(print);
+  mdls->add(web);
+  mdls->add(net);
   #ifdef APPMOD_LEDS
-    mdls->add(lfg);
-    #ifdef USERMOD_ARTNET
-      mdls->add(artnetmod);
-    #endif
     #ifdef USERMOD_DDP
       mdls->add(ddpmod);
     #endif
+    #ifdef USERMOD_ARTNET
+      mdls->add(artnetmod);
+    #endif
   #endif
-  mdls->add(ui);
-  mdls->add(web);
-  mdls->add(net);
-  mdls->add(mdl);
   #ifdef USERMOD_E131
     mdls->add(e131mod);
   #endif
   #ifdef USERMOD_HA
     mdls->add(hamod);
   #endif
-  mdls->add(instances);
+  mdls->add(mdl);
+  mdls->add(ui);
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

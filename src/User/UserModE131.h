@@ -27,7 +27,7 @@ public:
 
   VarToWatch varsToWatch[maxChannels]; //up to 513
 
-  UserModE131() :Module("e131-sACN support") {
+  UserModE131() :Module("e131-sACN") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
     isEnabled = false; //defailt off

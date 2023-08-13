@@ -120,7 +120,7 @@ public:
           if (node->ip == remoteIp) {
             found = true;
             node->timeStamp = millis(); //update timestamp
-            // strcpy(node->details, nodeName); //update name (in case changed)
+            strcpy(node->details, nodeName); //update name (in case changed)
           }
         }
 

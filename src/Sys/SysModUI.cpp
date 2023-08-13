@@ -74,15 +74,6 @@ void SysModUI::loop() {
 
       SysModWeb::ws->cleanupClients();
       if (SysModWeb::ws->count()) {
-        //check if there are valid clients before!!!
-        bool okay = false;
-        for (auto client:SysModWeb::ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
-            okay = true;
-        }
-
-        if (okay) {
-
         SysModWeb::wsSendBytesCounter++;
 
         //send var to notify client data coming is for var (client then knows it is canvas and expects data for it)
@@ -124,7 +115,6 @@ void SysModUI::loop() {
           SysModWeb::ws->cleanupClients(0); //disconnect all clients to release memory
           SysModWeb::ws->_cleanBuffers();
         }
-        } // if okay
       }
 
       varLoop->counter++;
@@ -270,10 +260,12 @@ const char * SysModUI::processJson(JsonVariant &json) {
               //call ui function...
               if (!var["uiFun"].isNull()) {//isnull needed here!
                 size_t funNr = var["uiFun"];
-                if (funNr < ucFunctions.size()) 
+                if (funNr < ucFunctions.size())
                   ucFunctions[funNr](var);
                 else    
                   print->print("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
+
+                //if select var, send value back
                 if (var["type"] == "select")
                   web->addResponseI(var["id"], "value", var["value"]); //temp assume int only
 

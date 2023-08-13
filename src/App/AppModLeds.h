@@ -50,7 +50,7 @@ public:
       print->print("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
     });
 
-    ui->initSelect(parentVar, "fx", 6, false, [](JsonObject var) { //uiFun. 6: Juggles is default
+    ui->initSelect(parentVar, "fx", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
       JsonArray select = web->addResponseA(var["id"], "select");
@@ -95,7 +95,7 @@ public:
       } // fx < size
     });
 
-    ui->initSelect(parentVar, "projection", -1, false, [](JsonObject var) { //uiFun. 1:  is default
+    ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun.
       // web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
       JsonArray select = web->addResponseA(var["id"], "select");
@@ -128,7 +128,7 @@ public:
       buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
-    ui->initSelect(parentVar, "ledFix", -1, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "LedFix");
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
       JsonArray select = web->addResponseA(var["id"], "select");
@@ -162,7 +162,6 @@ public:
       char details[32] = "";
       print->fFormat(details, sizeof(details), "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
       web->addResponse(var["id"], "value", details);
-    }, [](JsonObject var) { //chFun
     });
 
     ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun

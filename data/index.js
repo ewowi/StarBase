@@ -71,8 +71,9 @@ function makeWS() {
             console.log("Error: no valid model", json);
         }
         else { //update
-          // console.log("WS receive update", json);
-          processUpdate(json);
+          if (!Array.isArray(json)) //only the model is an array
+            // console.log("WS receive update", json);
+            processUpdate(json);
         }
       }
     }
@@ -345,7 +346,7 @@ function flushUIFunCommands() {
   if (uiFunCommands.length > 0) { //if something to flush
     var command = {};
     command["uiFun"] = uiFunCommands; //ask to run uiFun for vars (to add the options)
-    console.log("uiFunCommands", command);
+    // console.log("flushUIFunCommands", command);
     requestJson(command);
     uiFunCommands = [];
   }
@@ -451,14 +452,12 @@ function processVarNode(node, key, json) {
     }
   }
   if (json.hasOwnProperty("table")) {
-    console.log("processUpdate table", key, json.table);
     //remove table rows
     let tbodyNode = cE('tbody');
-
     
     //find model info
     let variable = findVar(key);
-    console.log("processUpdate table model", variable);
+    console.log("processUpdate table", key, variable, json.table);
 
     //add each row
     let rowNr = 0;

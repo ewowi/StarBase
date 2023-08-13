@@ -83,8 +83,8 @@ private:
   static AsyncWebServer *server;
   static const char * (*processWSFunc)(JsonVariant &);
 
-  static DynamicJsonDocument *responseDoc0;
-  static DynamicJsonDocument *responseDoc1;
+  static DynamicJsonDocument *responseDocLoopTask;
+  static DynamicJsonDocument *responseDocAsyncTCP;
 
 };
 

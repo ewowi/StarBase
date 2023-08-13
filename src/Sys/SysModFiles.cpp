@@ -79,7 +79,7 @@ void SysModFiles::loop(){
 
     mdl->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
 
-        // if something changed in clist
+        // if something changed in fileTbl
     if (filesChanged) {
       filesChanged = false;
 

@@ -30,7 +30,7 @@ public:
   UserModE131() :Module("e131-sACN support") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    isEnabled = false;
+    isEnabled = false; //defailt off
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
@@ -41,19 +41,38 @@ public:
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
   }
 
-  void connectedChanged() {
-    if (SysModModules::isConnected) {
-      print->print("UserModE131::connected\n");
-      setOn();
-      print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
-    }
-  }
+  // void connectedChanged() {
+  //   setOnOff();
+  // }
 
-  void enabledChanged() {
-    if (isEnabled)
-      setOn();
-    else
-      setOff();
+  // void enabledChanged() {
+  //   setOnOff();
+  // }
+
+  void onOffChanged() {
+
+    if (SysModModules::isConnected && isEnabled) {
+      print->print("UserModE131::connected && enabled\n");
+
+      if (e131Created) { // TODO: crashes here - no idea why!
+        print->print("UserModE131 - ESPAsyncE131 created already\n");
+        return;
+      }
+      print->print("UserModE131 - Create ESPAsyncE131\n");
+
+      e131 = ESPAsyncE131(universeCount);
+      if (this->e131.begin(E131_MULTICAST, universe, universeCount)) { // TODO: multicast igmp failing, so only works with unicast currently
+        print->print("Network exists, begin e131.begin ok\n");
+        success = true;
+      }
+      else {
+        print->print("Network exists, begin e131.begin FAILED\n");
+      }
+      e131Created = true;
+    }
+    else {
+      e131Created = false;
+    }
   }
 
   void loop(){
@@ -88,31 +107,6 @@ public:
         }
       }
     }
-  }
-
-  void setOn() {
-    if (SysModModules::isConnected && isEnabled) {
-
-      if (e131Created) { // TODO: crashes here - no idea why!
-        print->print("UserModE131 - ESPAsyncE131 created already\n");
-        return;
-      }
-      print->print("UserModE131 - Create ESPAsyncE131\n");
-
-      e131 = ESPAsyncE131(universeCount);
-      if (this->e131.begin(E131_MULTICAST, universe, universeCount)) { // TODO: multicast igmp failing, so only works with unicast currently
-        print->print("Network exists, begin e131.begin ok\n");
-        success = true;
-      }
-      else {
-        print->print("Network exists, begin e131.begin FAILED\n");
-      }
-      e131Created = true;
-    }
-  }
-
-  void setOff() {
-    e131Created = false;
   }
 
   void addWatch(uint8_t channel, const char * id, uint16_t max) {

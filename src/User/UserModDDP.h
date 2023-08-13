@@ -33,12 +33,33 @@ class UserModDDP:public Module {
 
 public:
 
-  IPAddress targetIp;
+  static IPAddress targetIp; //tbd: targetip also configurable from fixtures, and ddp instead of pin output
 
   UserModDDP() :Module("DDP") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    isEnabled = false;
+    isEnabled = false; //default off
+
+    parentVar = ui->initModule(parentVar, name);
+
+    ui->initSelect(parentVar, "ddpInst", -1, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Instance");
+      web->addResponse(var["id"], "comment", "Instance to send data");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      for (NodeInfo node: UserModInstances::nodes) {
+        char option[32] = { 0 };
+        strcpy(option, node.ip.toString().c_str());
+        strcat(option, " ");
+        strcat(option, node.details);
+        select.add(option);
+      }
+    }, [](JsonObject var) { //chFun
+      size_t ddpInst = var["value"];
+      if (ddpInst >=0 && ddpInst < UserModInstances::nodes.size()) {
+        targetIp = UserModInstances::nodes[ddpInst].ip;
+        print->print("Start DDP to %s\n", targetIp.toString().c_str());
+      }
+    }); //ddpInst
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
@@ -50,26 +71,14 @@ public:
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
-  void connectedChanged() {
-    if (SysModModules::isConnected)
-      print->print("%s %s - Connected\n", __PRETTY_FUNCTION__, name);
-  }
-
   void loop(){
     // Module::loop();
 
     if(!SysModModules::isConnected) return;
 
-
-    if((!targetIp) && (wledDiscoveryMod->nodes.length() >= 1)) {
-      targetIp = wledDiscoveryMod->nodes.firstKey(); // TODO: replace with WebUI setting
-      print->print("Start DDP to %s\n", targetIp.toString().c_str());
-    }
-    
     if(!targetIp) return;
 
     if(!lds->newFrame) return;
-
 
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;
@@ -144,3 +153,5 @@ public:
 };
 
 static UserModDDP *ddpmod;
+
+IPAddress UserModDDP::targetIp;

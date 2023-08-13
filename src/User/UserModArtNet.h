@@ -17,12 +17,33 @@ class UserModArtNet:public Module {
 
 public:
 
-  IPAddress targetIp;
+  static IPAddress targetIp; //tbd: targetip also configurable from fixtures and artnet instead of pin output
 
   UserModArtNet() :Module("ArtNet") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    isEnabled = false;
+    isEnabled = false; //default off
+
+    parentVar = ui->initModule(parentVar, name);
+
+    ui->initSelect(parentVar, "artInst", -1, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Instance");
+      web->addResponse(var["id"], "comment", "Instance to send data");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      for (NodeInfo node: UserModInstances::nodes) {
+        char option[32] = { 0 };
+        strcpy(option, node.ip.toString().c_str());
+        strcat(option, " ");
+        strcat(option, node.details);
+        select.add(option);
+      }
+    }, [](JsonObject var) { //chFun
+      size_t ddpInst = var["value"];
+      if (ddpInst >=0 && ddpInst < UserModInstances::nodes.size()) {
+        targetIp = UserModInstances::nodes[ddpInst].ip;
+        print->print("Start ArtNet to %s\n", targetIp.toString().c_str());
+      }
+    }); //ddpInst
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
@@ -31,20 +52,16 @@ public:
   void setup() {
     Module::setup();
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
-    targetIp = IPAddress(0,0,0,0); // TODO allow setting at runtime
+
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
-
-  // void connectedChanged() {
-  //   if (SysModModules::isConnected) {
-  //     print->print("%s %s - Connected\n", __PRETTY_FUNCTION__, name);
-  //   }
-  // }
 
   void loop(){
     // Module::loop();
 
     if(!SysModModules::isConnected) return;
+
+    if(!targetIp) return;
 
     if(!lds->newFrame) return;
 
@@ -115,3 +132,5 @@ public:
 };
 
 static UserModArtNet *artnetmod;
+
+IPAddress UserModArtNet::targetIp;

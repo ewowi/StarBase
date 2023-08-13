@@ -34,8 +34,9 @@ public:
 
   virtual void loop() {}
 
-  virtual void connectedChanged() {}
-  virtual void enabledChanged() {}
+  virtual void connectedChanged() {onOffChanged();}
+  virtual void enabledChanged() {onOffChanged();}
+  virtual void onOffChanged() {}
 
   virtual void testManager() {}
   virtual void performanceManager() {}

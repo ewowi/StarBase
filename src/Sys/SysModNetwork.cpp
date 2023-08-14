@@ -114,8 +114,8 @@ void SysModNetwork::initConnection() {
   const char * ssid = mdl->getValue("ssid");
   const char * password = mdl->getValue("pw");
   if (ssid && strlen(ssid)>0) {
-    char passXXX [20] = "";
-    for (int i = 0; i < strlen(password); i++) strcat(passXXX, "*");
+    char passXXX [32] = "";
+    for (int i = 0; i < strlen(password); i++) strncat(passXXX, "*", sizeof(passXXX)-1);
     print->print("Connecting to WiFi %s / %s\n", ssid, passXXX);
     WiFi.begin(ssid, password);
   }

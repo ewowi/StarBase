@@ -49,7 +49,7 @@ public:
         row.add(node.timeStamp / 1000);
         row.add(node.details);
         char urlString[32] = "http://";
-        strcat(urlString, node.ip.toString().c_str());
+        strncat(urlString, node.ip.toString().c_str(), sizeof(urlString)-1);
         row.add((char *)urlString);  //create a copy!
       }
     });
@@ -120,7 +120,7 @@ public:
           if (node->ip == remoteIp) {
             found = true;
             node->timeStamp = millis(); //update timestamp
-            strcpy(node->details, nodeName); //update name (in case changed)
+            strncpy(node->details, nodeName, sizeof(node->details)-1); //update name (in case changed)
           }
         }
 
@@ -133,7 +133,7 @@ public:
           else
             strcpy(newNode.type, "Unknown");
           newNode.timeStamp = millis();
-          strcpy(newNode.details, nodeName);
+          strncpy(newNode.details, nodeName, sizeof(newNode.details)-1);
           nodes.push_back(newNode);
           ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
           ui->processUiFun("artInst"); //show the new instance in the dropdown  

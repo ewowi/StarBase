@@ -217,8 +217,8 @@ JsonObject SysModModel::setValueV(const char * id, const char * format, ...) {
   va_start(args, format);
 
   // size_t len = vprintf(format, args);
-  char value[100];
-  vsnprintf(value, sizeof(value), format, args);
+  char value[128];
+  vsnprintf(value, sizeof(value)-1, format, args);
 
   va_end(args);
 
@@ -230,8 +230,8 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
   va_start(args, format);
 
   // size_t len = vprintf(format, args);
-  char value[100];
-  vsnprintf(value, sizeof(value), format, args);
+  char value[128];
+  vsnprintf(value, sizeof(value)-1, format, args);
   print->print("%s\n", value);
 
   va_end(args);

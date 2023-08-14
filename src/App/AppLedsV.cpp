@@ -24,7 +24,6 @@ uint16_t LedsV::nrOfLedsV = 64;  //amount of virtual leds (calculated by project
 uint16_t LedsV::widthP = 8; 
 uint16_t LedsV::heightP = 8; 
 uint16_t LedsV::depthP = 1; 
-uint16_t LedsV::factorP = 8; 
 uint16_t LedsV::widthV = 8; 
 uint16_t LedsV::heightV = 8; 
 uint16_t LedsV::depthV = 1; 
@@ -35,12 +34,16 @@ uint8_t LedsV::fxDimension = -1;
 
 //load ledfix json file, parse it and depending on the projection, create a mapping for it
 void LedsV::ledFixProjectAndMap() {
-  char fileName[30] = "";
+  char fileName[32] = "";
 
   if (files->seqNrToName(fileName, ledFixNr)) {
     JsonRDWS jrdws(fileName); //open fileName for deserialize
 
     mappingTableLedCounter = 0;
+
+    //vectors really gone now?
+    for (std::vector<uint16_t> physMap: mappingTable)
+      physMap.clear();
     mappingTable.clear();
 
     //deallocate all led pins
@@ -60,7 +63,6 @@ void LedsV::ledFixProjectAndMap() {
     jrdws.lookFor("width", &widthP);
     jrdws.lookFor("height", &heightP);
     jrdws.lookFor("depth", &depthP);
-    jrdws.lookFor("factor", &factorP);
     jrdws.lookFor("nrOfLeds", &nrOfLedsP);
     jrdws.lookFor("pin", &currPin);
 
@@ -75,11 +77,11 @@ void LedsV::ledFixProjectAndMap() {
 
       if (ledFixDimension>=1 && ledFixDimension<=3) { //we only comprehend 1D, 2D, 3D 
 
-        uint16_t x = uint16CollectList[0] / LedsV::factorP;
-        uint16_t y = (ledFixDimension>=2)?(uint16CollectList[1] / LedsV::factorP) : 1;
-        uint16_t z = (ledFixDimension>=3)?(uint16CollectList[2] / LedsV::factorP): 1;
+        uint16_t x = uint16CollectList[0] / 10;
+        uint16_t y = (ledFixDimension>=2)?uint16CollectList[1] / 10 : 1;
+        uint16_t z = (ledFixDimension>=3)?uint16CollectList[2] / 10 : 1;
 
-        // print->print("projectionNr p:%d f:%d s:%d\n", LedsV::projectionNr, LedsV::fxDimension, ledFixDimension);
+        // print->print("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", LedsV::projectionNr, LedsV::fxDimension, ledFixDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
         if (LedsV::projectionNr == p_DistanceFromPoint || LedsV::projectionNr == p_DistanceFromCentre) {
           uint16_t bucket;// = -1;
           if (LedsV::fxDimension == 1) { //if effect is 1D
@@ -90,17 +92,19 @@ void LedsV::ledFixProjectAndMap() {
               pointY = 0;
               pointZ = 0;
             } else {
-              pointX = LedsV::factorP * LedsV::widthP / 2;
-              pointY = LedsV::factorP * LedsV::heightP / 2;
-              pointZ = LedsV::factorP * LedsV::depthP / 2;
+              pointX = LedsV::widthP / 2;
+              pointY = LedsV::heightP / 2;
+              pointZ = LedsV::depthP / 2;
             }
 
             if (ledFixDimension == 1) //ledfix is 1D
               bucket = x;
-            else if (ledFixDimension == 2) //ledfix is 2D
-              bucket = distance(x,y,0,pointX,pointY,0) / LedsV::factorP;
+            else if (ledFixDimension == 2) {//ledfix is 2D 
+              bucket = distance(x,y,0,pointX,pointY,0);
+              // print->print("bucket %d-%d %d-%d %d\n", x,y, pointX, pointY, bucket);
+            }
             else if (ledFixDimension == 3) //ledfix is 3D
-              bucket = distance(x,y,z,pointX, pointY, pointZ) / LedsV::factorP;
+              bucket = distance(x,y,z,pointX, pointY, pointZ);
 
           }
           else if (LedsV::fxDimension == 2) { //effect is 2D
@@ -142,11 +146,33 @@ void LedsV::ledFixProjectAndMap() {
         // delay(1); //feed the watchdog
         mappingTableLedCounter++;
       } //if 1D-3D
-      else {
+      else { // end of leds array
+
+        //check if pin already allocated, if so, extend range in details
+        PinObject pinObject = SysModPins::pinObjects[currPin];
         char details[32] = "";
-        print->fFormat(details, sizeof(details), "%d-%d", prevLeds, mappingTableLedCounter - 1); //careful: AppModLeds:loop uses this to assign to FastLed
-        print->print("pins %d: %s (%d)\n", currPin, details);
-        pins->allocatePin(currPin, "Leds", details);
+        if (strcmp(pinObject.owner, "Leds") == 0) { //if owner
+
+          char * after = strtok((char *)pinObject.details, "-");
+          if (after != NULL ) {
+            char * before;
+            before = after;
+            after = strtok(NULL, " ");
+            uint16_t startLed = atoi(before);
+            uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
+            print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevLeds, startLed), max((uint16_t)(mappingTableLedCounter - 1), nrOfLeds)); //careful: AppModLeds:loop uses this to assign to FastLed
+            print->print("pins extend leds %d: %s (%d)\n", currPin, details);
+            //tbd: more check
+
+            strncpy(SysModPins::pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
+          }
+        }
+        else {//allocate new pin
+          //tbd: check if free
+          print->fFormat(details, sizeof(details)-1, "%d-%d", prevLeds, mappingTableLedCounter - 1); //careful: AppModLeds:loop uses this to assign to FastLed
+          print->print("pins %d: %s (%d)\n", currPin, details);
+          pins->allocatePin(currPin, "Leds", details);
+        }
 
         prevLeds = mappingTableLedCounter;
       }

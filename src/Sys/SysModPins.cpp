@@ -120,8 +120,8 @@ void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * det
     if (strcmp(pinObjects[pinNr].owner, "") != 0 && strcmp(pinObjects[pinNr].owner, owner) != 0)
       print->print("allocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
     else {
-      strcpy(pinObjects[pinNr].owner, owner);  
-      strcpy(pinObjects[pinNr].details, details);  
+      strncpy(pinObjects[pinNr].owner, owner, sizeof(PinObject::owner)-1);  
+      strncpy(pinObjects[pinNr].details, details, sizeof(PinObject::details)-1);  
       pinsChanged = true;
     }
   }

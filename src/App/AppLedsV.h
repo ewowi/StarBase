@@ -48,7 +48,6 @@ public:
   static uint16_t widthP; 
   static uint16_t heightP; 
   static uint16_t depthP; 
-  static uint16_t factorP; 
   static uint16_t widthV; 
   static uint16_t heightV; 
   static uint16_t depthV; 

@@ -40,9 +40,9 @@ public:
       JsonArray select = web->addResponseA(var["id"], "select");
       for (NodeInfo node: UserModInstances::nodes) {
         char option[32] = { 0 };
-        strcpy(option, node.ip.toString().c_str());
-        strcat(option, " ");
-        strcat(option, node.details);
+        strncpy(option, node.ip.toString().c_str(), sizeof(option)-1);
+        strncat(option, " ", sizeof(option)-1);
+        strncat(option, node.details, sizeof(option)-1);
         select.add(option);
       }
     }, [](JsonObject var) { //chFun

@@ -93,8 +93,8 @@ private:
   std::vector<String> varStack; //objects and arrays store their names in a stack
   bool collectNumbers = false; //array can ask to store all numbers found in array (now used for x,y,z coordinates)
   std::vector<uint16_t> uint16CollectList; //collected numbers
-  char lastVarId[100] = ""; //last found var id in json
-  char beforeLastVarId[100] = ""; //last found var id in json
+  char lastVarId[128] = ""; //last found var id in json
+  char beforeLastVarId[128] = ""; //last found var id in json
   size_t foundCounter = 0; //count how many of the id's to lookFor have been actually found
   bool foundAll = false;
 
@@ -116,7 +116,7 @@ private:
       f.read(&character, sizeof(byte));
     }
     else if (character=='}') { //object end
-      strcpy(lastVarId, varStack[varStack.size()-1].c_str());
+      strncpy(lastVarId, varStack[varStack.size()-1].c_str(), sizeof(lastVarId)-1);
       // print->print("Object pop %s %d\n", lastVarId, varStack.size());
       check(lastVarId);
       varStack.pop_back();
@@ -135,14 +135,14 @@ private:
     }
     else if (character==']') { //array end
       //assign back the popped var id from [
-      strcpy(lastVarId, varStack[varStack.size()-1].c_str());
+      strncpy(lastVarId, varStack[varStack.size()-1].c_str(), sizeof(lastVarId)-1);
       // print->print("Array pop %s %d %d\n", lastVarId, varStack.size(), uint16CollectList.size());
       check(lastVarId);
 
       //check the parent array, if exists
       if (varStack.size()-2 >=0) {
         // print->print("  Parent check %s\n", varStack[varStack.size()-2].c_str());
-        strcpy(beforeLastVarId, varStack[varStack.size()-2].c_str());
+        strncpy(beforeLastVarId, varStack[varStack.size()-2].c_str(), sizeof(beforeLastVarId)-1);
         check(beforeLastVarId);
       }
       varStack.pop_back(); //remove var id of this array
@@ -151,13 +151,13 @@ private:
       f.read(&character, sizeof(byte));
     }
     else if (character=='"') { //parse String
-      char value[100] = "";
-      f.readBytesUntil('"', value, sizeof(value));
+      char value[128] = "";
+      f.readBytesUntil('"', value, sizeof(value)-1);
     
       //if no lastVar then var found
       if (strcmp(lastVarId, "") == 0) {
         // print->print("Element [%s]\n", value);
-        strcpy(lastVarId, value);
+        strncpy(lastVarId, value, sizeof(lastVarId)-1);
       }
       else { // if lastvar then string value found
         // print->print("String var %s: [%s]\n", lastVarId, value);
@@ -209,7 +209,7 @@ private:
       f.read(&character, sizeof(byte));
     }
     else {
-      print->print("Element don't know %c\n", character);
+      print->print("%c", character);
       f.read(&character, sizeof(byte));
     }
   } //next
@@ -222,7 +222,7 @@ private:
         // print->print("JsonRDWS found %s:%s %d %s\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size());
         if (strcmp(vd->type, "uint8") ==0) *uint8List[vd->index] = atoi(value);
         if (strcmp(vd->type, "uint16") ==0) *uint16List[vd->index] = atoi(value);
-        if (strcmp(vd->type, "char") ==0) strcpy(charList[vd->index], value);
+        if (strcmp(vd->type, "char") ==0) strncpy(charList[vd->index], value, 31); //assuming size 32-1 here
         if (strcmp(vd->type, "fun") ==0) funList[vd->index](uint16CollectList);
         foundCounter++;
       }
@@ -235,7 +235,7 @@ private:
   void writeJsonVariantToFile(JsonVariant variant) {
     if (variant.is<JsonObject>()) {
       f.printf("{");
-      char sep[3] = "";
+      char sep[2] = "";
       for (JsonPair pair: variant.as<JsonObject>()) {
         bool found = false;
         for (char *el:charList) {
@@ -247,7 +247,7 @@ private:
         // std::vector<char *>::iterator itr = find(charList.begin(), charList.end(), pair.key().c_str());
         if (!found) { //not found
           f.printf("%s\"%s\":", sep, pair.key().c_str());
-          strcpy(sep,",");
+          strcpy(sep, ",");
           writeJsonVariantToFile(pair.value());
         }
       }
@@ -255,10 +255,10 @@ private:
     }
     else if (variant.is<JsonArray>()) {
       f.printf("[");
-      char sep[3] = "";
+      char sep[2] = "";
       for (JsonVariant variant2: variant.as<JsonArray>()) {
         f.print(sep);
-        strcpy(sep,",");
+        strcpy(sep, ",");
         writeJsonVariantToFile(variant2);
       }      
       f.printf("]");

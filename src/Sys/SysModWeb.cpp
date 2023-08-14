@@ -379,8 +379,8 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
           if (client->status() == WS_CONNECTED && !client->queueIsFull())
             client->text(wsBuf);
           else 
-            printClient("sendDataWs client(s) full or not connected", client); //crash??
-            // print->print("sendDataWs client full or not connected\n");
+            // printClient("sendDataWs client(s) full or not connected", client); //crash!!
+            print->print("sendDataWs client full or not connected\n");
         }
         // DEBUG_PRINTLN(F("to multiple clients."));
       }
@@ -548,8 +548,8 @@ void SysModWeb::addResponseV(const char * id, const char * key, const char * for
   va_start(args, format);
 
   // size_t len = vprintf(format, args);
-  char value[100];
-  vsnprintf(value, sizeof(value), format, args);
+  char value[128];
+  vsnprintf(value, sizeof(value)-1, format, args);
 
   va_end(args);
 

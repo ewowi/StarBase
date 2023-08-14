@@ -122,7 +122,7 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
         row.add((char *)file.name());  //create a copy!
         row.add(file.size());
         char urlString[32] = "file/";
-        strcat(urlString, file.name());
+        strncat(urlString, file.name(), sizeof(urlString)-1);
         row.add((char *)urlString);  //create a copy!
       }
       // Serial.printf("FILE: %s %d\n", file.name(), file.size());
@@ -149,8 +149,8 @@ bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
     if (counter == seqNr) {
       Serial.printf("seqNrToName: %s %d\n", file.name(), file.size());
       root.close();
-      strcat(fileName, "/"); //add root prefix
-      strcat(fileName, file.name());
+      strncat(fileName, "/", 31); //add root prefix, fileName is 32 bytes but sizeof doesn't know so cheating
+      strncat(fileName, file.name(), 31);
       return true;
     }
 
@@ -206,8 +206,8 @@ void SysModFiles::removeFiles(const char * filter, bool reverse) {
 
   while (file) {
     if (filter == nullptr || reverse?strstr(file.name(), filter) == nullptr: strstr(file.name(), filter) != nullptr) {
-      char fileName[30] = "/";
-      strcat(fileName, file.name());
+      char fileName[32] = "/";
+      strncat(fileName, file.name(), sizeof(fileName)-1);
       file.close(); //close otherwise not removeable
       remove(fileName);
     }

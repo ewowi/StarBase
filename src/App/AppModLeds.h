@@ -135,7 +135,7 @@ public:
       files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
 
       // ui needs to load the file also initially
-      char fileName[30] = "";
+      char fileName[32] = "";
       if (files->seqNrToName(fileName, var["value"])) {
         web->addResponse("pview", "file", fileName);
       }
@@ -145,7 +145,7 @@ public:
       LedsV::ledFixNr = var["value"];
       doMap = true;
 
-      char fileName[30] = "";
+      char fileName[32] = "";
       if (files->seqNrToName(fileName, LedsV::ledFixNr)) {
         //send to pview a message to get file filename
         JsonDocument *responseDoc = web->getResponseDoc();
@@ -160,13 +160,13 @@ public:
 
     ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
       char details[32] = "";
-      print->fFormat(details, sizeof(details), "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
+      print->fFormat(details, sizeof(details)-1, "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
       web->addResponse(var["id"], "value", details);
     });
 
     ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun
       char details[32] = "";
-      print->fFormat(details, sizeof(details), "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+      print->fFormat(details, sizeof(details)-1, "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
       web->addResponse(var["id"], "value", details);
       web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Preview);
     });
@@ -246,8 +246,8 @@ public:
             char * before;
             before = after;
             after = strtok(NULL, " ");
-            uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
             uint16_t startLed = atoi(before);
+            uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
             print->print("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
 
             //commented pins: error: static assertion failed: Invalid pin specified
@@ -316,5 +316,5 @@ public:
 
 static AppModLeds *lds;
 
-uint16_t AppModLeds::fps = 40;
+uint16_t AppModLeds::fps = 120;
 bool AppModLeds::doMap = false;

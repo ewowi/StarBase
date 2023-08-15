@@ -202,11 +202,11 @@ public:
 #endif
 
     #ifdef USERMOD_E131
-      e131mod->addWatch(1, "bri", 256);
-      e131mod->addWatch(2, "fx", effects.size());
+      e131mod->patchChannel(1, "bri", 255); //should be 256??
+      e131mod->patchChannel(2, "fx", effects.size());
       // //add these temporary to test remote changing of this values do not crash the system
-      // e131mod->addWatch(3, "projection", Projections::count);
-      // e131mod->addWatch(4, "ledFix", 5); //assuming 5!!!
+      // e131mod->patchChannel(3, "projection", Projections::count);
+      // e131mod->patchChannel(4, "ledFix", 5); //assuming 5!!!
     #endif
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");

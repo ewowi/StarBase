@@ -467,7 +467,7 @@ class RingEffect:public Effect {
 class RingRandomFlow:public RingEffect {
 public:
   const char * name() {
-    return "RingRandomFlow";
+    return "RingRandomFlow 1D";
   }
   void setup() {}
   void loop() {
@@ -490,7 +490,7 @@ public:
   byte previousBarHeight[1024];
 
   const char * name() {
-    return "GEQ";
+    return "GEQ 2D";
   }
 
   void setup() {
@@ -512,8 +512,8 @@ public:
 
     uint8_t speed = mdl->getValue("speed");
     uint8_t intensity = mdl->getValue("intensity"); 
-    bool check1 = mdl->getValue("check1");
-    bool check2 = mdl->getValue("check2");
+    bool colorBars = mdl->getValue("colorBars");
+    bool smoothBars = mdl->getValue("smoothBars");
 
     bool rippleTime = false;
     if (millis() - step >= (256U - intensity)) {
@@ -542,7 +542,7 @@ public:
       uint16_t bandHeight = fftResult[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
 
       // WLEDMM begin - smooth out bars
-      if ((x > 0) && (x < (cols-1)) && (check2)) {
+      if ((x > 0) && (x < (cols-1)) && (smoothBars)) {
         // get height of next (right side) bar
         uint8_t nextband = (remaining < 1)? band +1: band;
         nextband = constrain(nextband, 0, 15);  // just to be sure
@@ -562,7 +562,7 @@ public:
 
       CRGB ledColor = CRGB::Black;
       for (int y=0; y < barHeight; y++) {
-        if (check1) //color_vertical / color bars toggle
+        if (colorBars) //color_vertical / color bars toggle
           colorIndex = map(y, 0, rows-1, 0, 255);
 
         CRGBPalette16 palette = PartyColors_p;
@@ -579,11 +579,11 @@ public:
     }
   }
 
-  bool parameters(JsonObject parentVar) {
+  bool controls(JsonObject parentVar) {
     ui->initNumber(parentVar, "speed", 255, false);
     ui->initNumber(parentVar, "intensity", 255, false);
-    ui->initCheckBox(parentVar, "check1", false, false);
-    ui->initCheckBox(parentVar, "check2", false, false);
+    ui->initCheckBox(parentVar, "colorBars", false, false); //
+    ui->initCheckBox(parentVar, "smoothBars", false, false);
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 
@@ -600,7 +600,7 @@ class AudioRings:public RingEffect {
 
   public:
     const char * name() {
-      return "AudioRings";
+      return "AudioRings 1D";
     }
     void setup() {}
 
@@ -614,7 +614,7 @@ class AudioRings:public RingEffect {
 
 
     void loop() {
-      for (int i = 0; i < 7; i++) {
+      for (int i = 0; i < 7; i++) { // 7 rings
 
         uint8_t val;
         if(INWARD) {

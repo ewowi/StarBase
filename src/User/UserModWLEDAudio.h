@@ -1,9 +1,9 @@
 /*
    @title     StarMod
-   @file      UserModExample.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @file      UserModWLEDAudio.h
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -21,6 +21,8 @@ public:
   UserModWLEDAudio() :Module("WLED Audio Sync Receiver") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
+    isEnabled = false; //default off
+
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
@@ -32,8 +34,13 @@ public:
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
-  void connected() {
-    sync.begin();
+  void onOffChanged() {
+    if (SysModModules::isConnected && isEnabled) {
+      print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+      sync.begin();
+    } else {
+      // sync.end();???
+    }
   }
 
   void loop(){

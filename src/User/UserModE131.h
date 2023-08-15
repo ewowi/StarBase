@@ -109,10 +109,21 @@ public:
     }
   }
 
-  void addWatch(uint8_t channel, const char * id, uint16_t max) {
+  void patchChannel(uint8_t channel, const char * id, uint8_t max = 255) {
     varsToWatch[channel].id = id;
+    varsToWatch[channel].savedValue = 0; // Always reset when (re)patching so variable gets set to DMX value even if unchanged
     varsToWatch[channel].max = max;
   }
+
+  // uint8_t getValue(const char * id) {
+  //   for (int i=0; i < maxChannels; i++) {
+  //       if(varsToWatch[i].id == id) {
+  //         return varsToWatch[i].savedValue;
+  //       }
+  //   }
+  //   print->print("ERROR: failed to find param %s\n", id);
+  //   return 0;
+  // }
 
   private:
     ESPAsyncE131 e131;

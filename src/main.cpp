@@ -39,6 +39,9 @@
 #ifdef USERMOD_HA
   #include "User/UserModHA.h"
 #endif
+#ifdef USERMOD_WLEDAUDIO
+  #include "User/UserModWLEDAudio.h"
+#endif
 
 //setup all modules
 void setup() {
@@ -68,6 +71,9 @@ void setup() {
   #endif
   #ifdef USERMOD_HA
     hamod = new UserModHA();
+  #endif
+  #ifdef USERMOD_WLEDAUDIO
+    wledAudioMod = new UserModWLEDAudio();
   #endif
 
   //prefered default order in the UI. 
@@ -100,6 +106,9 @@ void setup() {
   #endif
   mdls->add(mdl);
   mdls->add(ui);
+  #ifdef USERMOD_WLEDAUDIO
+    mdls->add(wledAudioMod);
+  #endif
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

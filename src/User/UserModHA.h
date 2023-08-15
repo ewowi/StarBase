@@ -2,8 +2,8 @@
    @title     StarMod
    @file      UserModHA.h
    @date      20230731
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -19,6 +19,8 @@ public:
 
   UserModHA() :Module("Home Assistant support") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+
+    isEnabled = false;
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
@@ -48,12 +50,13 @@ public:
       sender->setRGBColor(color); // report color back to the Home Assistant
   }
 
-  void connected() {
+  void connectedChanged() {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
-    // set device's details (optional)
-    device.setName("StarMod");
-    device.setSoftwareVersion("0.0.1");
-
+    if (SysModModules::isConnected) {
+      // set device's details (optional)
+      device.setName("StarMod");
+      device.setSoftwareVersion("0.0.1");
+    }
 
     // configure light (optional)
     light->setName("LEDs");

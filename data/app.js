@@ -1,8 +1,8 @@
 // @title     StarMod
 // @file      app.js
-// @date      20230730
-// @repo      https://github.com/ewoudwijma/StarMod
-// @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+// @date      20230810
+// @repo      https://github.com/ewowi/StarMod
+// @Authors   https://github.com/ewowi/StarMod/commits/main
 // @Copyright (c) 2023 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 
@@ -19,7 +19,7 @@ function userFun(userFunId, data) {
     //replace the canvas: in case we switch from 2D to 3D as they cannot be reused between them
     if (jsonValues.pview.new)
     {
-      console.log("replace the canvas!")
+      console.log("replace the canvas!", jsonValues.pview);
       let canvasNode = cE("canvas");
       canvasNode.width = pviewNode.width;
       canvasNode.height = pviewNode.height;
@@ -51,7 +51,7 @@ function userFun(userFunId, data) {
 function preview2D(node, leds) {
   let ctx = node.getContext('2d');
   let i = 4;
-  let factor = jsonValues.pview.factor;
+  let factor = 10;//fixed value: from mm to cm
   ctx.clearRect(0, 0, node.width, node.height);
   if (jsonValues.pview) {
     let pPL = Math.min(node.width / jsonValues.pview.width, node.height / jsonValues.pview.height); // pixels per LED (width of circle)
@@ -90,7 +90,7 @@ function preview3D(node, leds) {
   // let mH = leds[1];
   // let mD = leds[2];
 
-  let factor = jsonValues.pview.factor;
+  let factor = 10;//fixed value: from mm to cm
   let d = 5 / factor; //distanceLED;
 
   if (!renderer || (jsonValues.pview && jsonValues.pview.new)) { //init 3D

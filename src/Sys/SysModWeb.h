@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      SysModWeb.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -24,7 +24,7 @@ public:
 
   void loop();
 
-  void connected();
+  void connectedChanged();
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
   static void wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
@@ -51,8 +51,8 @@ public:
   bool addFileServer(const char * uri);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
-  //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
-  //curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
+  //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"pin2":false}' -H "Content-Type: application/json"
+  //curl -X POST "http://4.3.2.1/json" -d '{"pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
   //curl -X POST "http://192.168.8.152/json" -d '{"fx":2}' -H "Content-Type: application/json"
   //curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
@@ -60,6 +60,7 @@ public:
   bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &));
 
   void addResponse(const char * id, const char * key, const char * value);
+  void addResponseArray(const char * id, const char * key, JsonArray value);
 
   void addResponseV(const char * id, const char * key, const char * format, ...);
 
@@ -82,8 +83,8 @@ private:
   static AsyncWebServer *server;
   static const char * (*processWSFunc)(JsonVariant &);
 
-  static DynamicJsonDocument *responseDoc0;
-  static DynamicJsonDocument *responseDoc1;
+  static DynamicJsonDocument *responseDocLoopTask;
+  static DynamicJsonDocument *responseDocAsyncTCP;
 
 };
 

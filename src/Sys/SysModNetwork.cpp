@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      SysModNetwork.cpp
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  */
@@ -82,7 +82,7 @@ void SysModNetwork::handleConnection() {
 
     interfacesInited = true;
 
-    Modules::newConnection = true; // send all modules connect notification
+    SysModModules::newConnection = true; // send all modules connect notification
 
     // shut down AP
     if (apActive) { //apBehavior != AP_BEHAVIOR_ALWAYS
@@ -114,8 +114,8 @@ void SysModNetwork::initConnection() {
   const char * ssid = mdl->getValue("ssid");
   const char * password = mdl->getValue("pw");
   if (ssid && strlen(ssid)>0) {
-    char passXXX [20] = "";
-    for (int i = 0; i < strlen(password); i++) strcat(passXXX, "*");
+    char passXXX [32] = "";
+    for (int i = 0; i < strlen(password); i++) strncat(passXXX, "*", sizeof(passXXX)-1);
     print->print("Connecting to WiFi %s / %s\n", ssid, passXXX);
     WiFi.begin(ssid, password);
   }
@@ -131,7 +131,7 @@ void SysModNetwork::initAP() {
   {
     mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
-    Modules::newConnection = true; // send all modules connect notification
+    SysModModules::newConnection = true; // send all modules connect notification
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());

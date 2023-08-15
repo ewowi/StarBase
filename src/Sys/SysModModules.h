@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      SysModModules.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -13,11 +13,12 @@
 
 #include <vector>
 
-class Modules:public Module {
+class SysModModules:public Module {
 public:
   static bool newConnection; //need to be static otherwise crash
+  static bool isConnected;
 
-  Modules();
+  SysModModules();
 
   void setup();
 
@@ -25,10 +26,10 @@ public:
 
   void add(Module* module);
 
-  void connected();
+  void connectedChanged();
 
 private:
   static std::vector<Module *> modules;
 };
 
-static Modules *mdls;
+static SysModModules *mdls;

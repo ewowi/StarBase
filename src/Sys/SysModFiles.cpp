@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      SysModFiles.cpp
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  */
@@ -35,7 +35,7 @@ void SysModFiles::setup() {
   Module::setup();
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "flist", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Files");
     web->addResponse(var["id"], "comment", "List of files");
     JsonArray rows = web->addResponseA(var["id"], "table");
@@ -74,16 +74,16 @@ void SysModFiles::setup() {
 void SysModFiles::loop(){
   // Module::loop();
 
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
     mdl->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
 
-        // if something changed in clist
+        // if something changed in fileTbl
     if (filesChanged) {
       filesChanged = false;
 
-      ui->processUiFun("flist");
+      ui->processUiFun("fileTbl");
     }
   }
 }
@@ -122,7 +122,7 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
         row.add((char *)file.name());  //create a copy!
         row.add(file.size());
         char urlString[32] = "file/";
-        strcat(urlString, file.name());
+        strncat(urlString, file.name(), sizeof(urlString)-1);
         row.add((char *)urlString);  //create a copy!
       }
       // Serial.printf("FILE: %s %d\n", file.name(), file.size());
@@ -149,8 +149,8 @@ bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
     if (counter == seqNr) {
       Serial.printf("seqNrToName: %s %d\n", file.name(), file.size());
       root.close();
-      strcat(fileName, "/"); //add root prefix
-      strcat(fileName, file.name());
+      strncat(fileName, "/", 31); //add root prefix, fileName is 32 bytes but sizeof doesn't know so cheating
+      strncat(fileName, file.name(), 31);
       return true;
     }
 
@@ -206,8 +206,8 @@ void SysModFiles::removeFiles(const char * filter, bool reverse) {
 
   while (file) {
     if (filter == nullptr || reverse?strstr(file.name(), filter) == nullptr: strstr(file.name(), filter) != nullptr) {
-      char fileName[30] = "/";
-      strcat(fileName, file.name());
+      char fileName[32] = "/";
+      strncat(fileName, file.name(), sizeof(fileName)-1);
       file.close(); //close otherwise not removeable
       remove(fileName);
     }

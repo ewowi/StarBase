@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      SysModModel.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  */
@@ -34,7 +34,7 @@ public:
   static JsonObject setValueI(const char * id, int value);
 
   //setValue bool
-  static JsonObject setValueB(const char * id, bool value);
+  static JsonObject setValueB(const char * id, bool value, uint8_t rowNr=-1);
 
   //Set value with argument list
   static JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun

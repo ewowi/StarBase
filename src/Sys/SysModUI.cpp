@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      SysModUI.cpp
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -40,7 +40,7 @@ void SysModUI::setup() {
 
   parentVar = initModule(parentVar, name);
 
-  JsonObject tableVar = initTable(parentVar, "vloops", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Variable loops");
     web->addResponse(var["id"], "comment", "Loops initiated by a variable");
     JsonArray rows = web->addResponseA(var["id"], "table");
@@ -55,11 +55,11 @@ void SysModUI::setup() {
       varLoop->counter = 0;
     }
   });
-  initText(tableVar, "ulVar", nullptr, true, [](JsonObject var) { //uiFun
+  initText(tableVar, "vlVar", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  initNumber(tableVar, "ulLoopps", -1, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Loops//s");
+  initNumber(tableVar, "vlLoopps", -1, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Loops p s");
   });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -74,15 +74,6 @@ void SysModUI::loop() {
 
       SysModWeb::ws->cleanupClients();
       if (SysModWeb::ws->count()) {
-        //check if there are valid clients before!!!
-        bool okay = false;
-        for (auto client:SysModWeb::ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
-            okay = true;
-        }
-
-        if (okay) {
-
         SysModWeb::wsSendBytesCounter++;
 
         //send var to notify client data coming is for var (client then knows it is canvas and expects data for it)
@@ -124,7 +115,6 @@ void SysModUI::loop() {
           SysModWeb::ws->cleanupClients(0); //disconnect all clients to release memory
           SysModWeb::ws->_cleanBuffers();
         }
-        } // if okay
       }
 
       varLoop->counter++;
@@ -132,14 +122,14 @@ void SysModUI::loop() {
     }
   }
 
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
     //if something changed in vloops
     if (varLoopsChanged) {
       varLoopsChanged = false;
 
-      processUiFun("vloops");
+      processUiFun("vlTbl");
     }
   }
 }
@@ -239,6 +229,8 @@ void SysModUI::setChFunAndWs(JsonObject var, const char * value) { //value: bypa
       web->addResponseB(var["id"], "value", var["value"].as<bool>());
     else if (var["value"].is<const char *>())
       web->addResponse(var["id"], "value", var["value"].as<const char *>());
+    else if (var["value"].is<JsonArray>())
+      web->addResponseArray(var["id"], "value", var["value"].as<JsonArray>());
     else {
       print->print("unknown type for %s\n", var["value"].as<String>().c_str());
       web->addResponse(var["id"], "value", var["value"]);
@@ -268,10 +260,12 @@ const char * SysModUI::processJson(JsonVariant &json) {
               //call ui function...
               if (!var["uiFun"].isNull()) {//isnull needed here!
                 size_t funNr = var["uiFun"];
-                if (funNr < ucFunctions.size()) 
+                if (funNr < ucFunctions.size())
                   ucFunctions[funNr](var);
                 else    
                   print->print("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
+
+                //if select var, send value back
                 if (var["type"] == "select")
                   web->addResponseI(var["id"], "value", var["value"]); //temp assume int only
 
@@ -286,17 +280,43 @@ const char * SysModUI::processJson(JsonVariant &json) {
       } 
       else { //normal change
         if (!value.is<JsonObject>()) { //no vars (inserted by uiFun responses)
+
+          //check if we deal with multiple rows (from table type)
+          char * rowNr = strtok((char *)key, "#");
+          if (rowNr != NULL ) {
+            key = rowNr;
+            rowNr = strtok(NULL, " ");
+          }
+
           JsonObject var = mdl->findVar(key);
+
+          print->print("processJson k:%s r:%s (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value.as<String>().c_str(), var["value"] == value);
+
           if (!var.isNull())
           {
-            if (var["value"] != value) { // if changed
+            bool changed = false;
+            //if we deal with multiple rows, value should be an array and check the corresponding array item
+            //if value not array we change it anyway
+            if (rowNr) {
+              //var value should be array
+              if (var["value"].is<JsonArray>())
+                changed = var["value"][atoi(rowNr)] != value;
+              else {
+                print->printJson("we want an array for value but : ", var);
+                changed = true; //we should change anyway
+              }
+            }
+            else //normal situation
+              changed = var["value"] != value;
+
+            if (changed) {
               // print->print("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 
               //set new value
               if (value.is<const char *>())
                 mdl->setValueC(key, value.as<const char *>());
               else if (value.is<bool>())
-                mdl->setValueB(key, value.as<bool>());
+                mdl->setValueB(key, value.as<bool>(), rowNr?atoi(rowNr):-1);
               else if (value.is<int>())
                 mdl->setValueI(key, value.as<int>());
               else {

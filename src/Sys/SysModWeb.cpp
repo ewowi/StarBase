@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      SysModWeb.cpp
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -13,6 +13,7 @@
 #include "SysModUI.h"
 #include "SysModPrint.h"
 #include "SysModFiles.h"
+#include "SysModModules.h"
 
 #include "AsyncJson.h"
 
@@ -27,8 +28,8 @@ AsyncWebSocket * SysModWeb::ws = nullptr;
 
 const char * (*SysModWeb::processWSFunc)(JsonVariant &) = nullptr;
 
-DynamicJsonDocument * SysModWeb::responseDoc0 = nullptr;
-DynamicJsonDocument * SysModWeb::responseDoc1 = nullptr;
+DynamicJsonDocument * SysModWeb::responseDocLoopTask = nullptr;
+DynamicJsonDocument * SysModWeb::responseDocAsyncTCP = nullptr;
 bool SysModWeb::clientsChanged = false;
 
 unsigned long SysModWeb::wsSendBytesCounter = 0;
@@ -37,8 +38,8 @@ unsigned long SysModWeb::wsSendJsonCounter = 0;
 SysModWeb::SysModWeb() :Module("Web") {
   ws = new AsyncWebSocket("/ws");
   server = new AsyncWebServer(80);
-  responseDoc0 = new DynamicJsonDocument(2048);
-  responseDoc1 = new DynamicJsonDocument(2048);
+  responseDocLoopTask = new DynamicJsonDocument(2048);
+  responseDocAsyncTCP = new DynamicJsonDocument(3072);
 };
 
 void SysModWeb::setup() {
@@ -47,13 +48,13 @@ void SysModWeb::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "clist", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Clients");
     web->addResponse(var["id"], "comment", "List of clients");
     JsonArray rows = web->addResponseA(var["id"], "table");
     web->clientsToJson(rows);
   });
-  ui->initText(tableVar, "clNr", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "clNr", -1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Nr");
   });
   ui->initText(tableVar, "clIp", nullptr, true, [](JsonObject var) { //uiFun
@@ -61,6 +62,8 @@ void SysModWeb::setup() {
   });
   ui->initCheckBox(tableVar, "clIsFull", false, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Is full");
+  }, [](JsonObject var) { //chFun
+    print->printJson("clIsFull.chFun", var);
   });
   ui->initSelect(tableVar, "clStatus", -1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
@@ -73,6 +76,9 @@ void SysModWeb::setup() {
 
   ui->initText(parentVar, "wsSendBytes");
   ui->initText(parentVar, "wsSendJson");
+  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "comment", "32 not enough, investigate...");
+  });
 
   print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
@@ -86,19 +92,21 @@ void SysModWeb::loop() {
     this->modelUpdated = false;
   }
 
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
-    // if something changed in clist
+    // if something changed in clTbl
     if (clientsChanged) {
       clientsChanged = false;
 
-      ui->processUiFun("clist");
+      ui->processUiFun("clTbl");
     }
 
+    uint8_t rowNr = 0;
     for (auto client:SysModWeb::ws->getClients()) {
-      mdl->setValueB("clIsFull", client->queueIsFull());
+      mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
       mdl->setValueI("clStatus", client->status());
+      rowNr++;
     }
 
     mdl->setValueV("wsSendBytes", "%lu /s", wsSendBytesCounter);
@@ -108,15 +116,18 @@ void SysModWeb::loop() {
   }
 }
 
-void SysModWeb::connected() {
-  ws->onEvent(wsEvent);
-  // ws->onEvent(wsEvent2);
-  server->addHandler(ws);
+void SysModWeb::connectedChanged() {
+  if (SysModModules::isConnected) {
+    ws->onEvent(wsEvent);
+    // ws->onEvent(wsEvent2);
+    server->addHandler(ws);
 
-  server->begin();
+    server->begin();
 
-  // print->print("%s server (re)started\n", name); //causes crash for some reason...
-  print->print("server (re)started\n"); //and this not causes crash ??? whats with name?
+    // print->print("%s server (re)started\n", name); //causes crash for some reason...
+    print->print("server (re)started\n"); //and this not causes crash ??? whats with name?
+  }
+  //else remove handlers...
 }
 
 //WebSocket connection to 'ws://192.168.8.152/ws' failed: The operation couldn’t be completed. Protocol error
@@ -131,11 +142,11 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   //   print->print("wsEvent no clients\n");
   //   return;
   // }
-  if(type == WS_EVT_CONNECT) {
+  if (type == WS_EVT_CONNECT) {
     printClient("WS client connected", client);
     sendDataWs(client, true); //send definition to client
     clientsChanged = true;
-  } else if(type == WS_EVT_DISCONNECT) {
+  } else if (type == WS_EVT_DISCONNECT) {
     printClient("WS Client disconnected", client);
     clientsChanged = true;
   } else if (type == WS_EVT_DATA) {
@@ -336,7 +347,8 @@ void SysModWeb::wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client,
 
 
 void SysModWeb::printClient(const char * text, AsyncWebSocketClient * client) {
-  print->print("%s client: %d %s q:%d s:%d (w:%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", client->queueIsFull(), client->status(), ws->count());
+  print->print("%s client: %d %s q:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", client->queueIsFull(), client->status(), ws->count());
+  //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
 }
 
 void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
@@ -346,17 +358,9 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
   }
   // return;
   wsSendJsonCounter++;
-  // ws->cleanupClients();
+  ws->cleanupClients();
 
   if (ws->count()) {
-    bool okay = false;
-    for (auto client:SysModWeb::ws->getClients()) {
-      if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
-        okay = true;
-    }
-
-    if (okay) {
-
     size_t len = measureJson(json);
     AsyncWebSocketMessageBuffer *wsBuf = ws->makeBuffer(len);
 
@@ -364,7 +368,7 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
       wsBuf->lock();
       serializeJson(json, (char *)wsBuf->get(), len);
       if (client) {
-        if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
+        if (client->status() == WS_CONNECTED && !client->queueIsFull())
           client->text(wsBuf);
         else 
           printClient("sendDataWs client full or not connected", client);
@@ -372,10 +376,10 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
         // DEBUG_PRINTLN(F("to a single client."));
       } else {
         for (auto client:ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
+          if (client->status() == WS_CONNECTED && !client->queueIsFull())
             client->text(wsBuf);
           else 
-            // printClient("sendDataWs client full or not connected", client); //crash??
+            // printClient("sendDataWs client(s) full or not connected", client); //crash!!
             print->print("sendDataWs client full or not connected\n");
         }
         // DEBUG_PRINTLN(F("to multiple clients."));
@@ -389,7 +393,6 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
       ws->cleanupClients(); //disconnect all clients to release memory
       ws->_cleanBuffers();
     }
-    } //if okay
   }
 }
 
@@ -502,13 +505,6 @@ bool SysModWeb::addFileServer(const char * uri) {
   return true;
 }
 
-//processJsonUrl handles requests send in javascript using fetch and from a browser or curl
-//try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
-//curl -X POST "http://4.3.2.1/json" -d '{"Pin2":false}' -H "Content-Type: application/json"
-//curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
-//curl -X POST "http://192.168.8.152/json" -d '{"fx":2}' -H "Content-Type: application/json"
-//curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
-
 bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &)) {
   processWSFunc = processFunc; //for WebSocket requests
 
@@ -539,6 +535,12 @@ void SysModWeb::addResponse(const char * id, const char * key, const char * valu
   responseVariant[id][key] = (char *)value; //copy!!
 }
 
+void SysModWeb::addResponseArray(const char * id, const char * key, JsonArray value) {
+  JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
+  if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
+  responseVariant[id][key] = value;
+}
+
 void SysModWeb::addResponseV(const char * id, const char * key, const char * format, ...) {
   JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
@@ -546,8 +548,8 @@ void SysModWeb::addResponseV(const char * id, const char * key, const char * for
   va_start(args, format);
 
   // size_t len = vprintf(format, args);
-  char value[100];
-  vsnprintf(value, sizeof(value), format, args);
+  char value[128];
+  vsnprintf(value, sizeof(value)-1, format, args);
 
   va_end(args);
 
@@ -588,5 +590,5 @@ void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filte
 JsonDocument * SysModWeb::getResponseDoc() {
   // print->print("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
 
-  return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0?web->responseDoc0:web->responseDoc1;
+  return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?web->responseDocLoopTask:web->responseDocAsyncTCP;
 }

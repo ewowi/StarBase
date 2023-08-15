@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      Module.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -18,7 +18,7 @@ class Module {
 public:
   const char * name;
   bool success;
-  bool enabled;
+  bool isEnabled;
   unsigned long secondMillis = 0; // Feels like it should be private, bit doesn't compile if set as such
 
   JsonObject parentVar;
@@ -26,7 +26,7 @@ public:
   Module(const char * name) {
     this->name = name;
     success = true;
-    enabled = true;
+    isEnabled = true;
     // Serial.printf("Constructor %s %s\n", __PRETTY_FUNCTION__, name);
   }
 
@@ -34,7 +34,9 @@ public:
 
   virtual void loop() {}
 
-  virtual void connected() {}
+  virtual void connectedChanged() {onOffChanged();}
+  virtual void enabledChanged() {onOffChanged();}
+  virtual void onOffChanged() {}
 
   virtual void testManager() {}
   virtual void performanceManager() {}

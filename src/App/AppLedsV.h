@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      AppLedsV.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -12,7 +12,6 @@
 #include <vector>
 #include "ArduinoJson.h"
 
-#define NUM_LEDS_FastLed 1024
 #define NUM_LEDS_Preview 4096
 
 //keep them global for the time being as FastLed effects refer to them and want to keep that code as unchanged as possible
@@ -27,14 +26,15 @@ enum Projections
   p_None,
   p_Random,
   p_DistanceFromPoint,
-  p_DistanceFromCentre
+  p_DistanceFromCentre,
+  count
 };
 
 class LedsV {
 
 public:
   // CRGB *leds = nullptr;
-  CRGB ledsP[NUM_LEDS_Preview];
+  CRGB ledsPhysical[NUM_LEDS_Preview];
     // if (!leds)
   //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
   // else
@@ -49,7 +49,6 @@ public:
   static uint16_t widthP; 
   static uint16_t heightP; 
   static uint16_t depthP; 
-  static uint16_t factorP; 
   static uint16_t widthV; 
   static uint16_t heightV; 
   static uint16_t depthV; 
@@ -60,7 +59,7 @@ public:
 
   void ledFixProjectAndMap();
 
-  uint16_t indexVLocal = 0;
+  uint16_t indexVLocal = 0; //set in operator[], used by operator=
 
   // ledsV[indexV] stores indexV locally
   LedsV& operator[](uint16_t indexV);
@@ -96,10 +95,11 @@ public:
 
 private:
   //need to make these static as they are called in lambda functions
-  static std::vector<std::vector<uint16_t>> mappingTable; //not customMappingTable, just MappingTable
+  static std::vector<std::vector<uint16_t>> mappingTable;
   static uint16_t mappingTableLedCounter;
 };
 
+//Global vars!
 //after header split they all needs to be static otherwise multiple definition link error
 static LedsV ledsV = LedsV(); //virtual leds
-static CRGB *ledsP = ledsV.ledsP; //physical leds, used by FastLed in particular
+static CRGB *ledsP = ledsV.ledsPhysical; //physical leds, used by FastLed in particular

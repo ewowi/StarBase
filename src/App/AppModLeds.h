@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      AppModLeds.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  */
@@ -19,8 +19,6 @@
 #include <vector>
 #include "FastLED.h"
 
-#define DATA_PIN 16
-
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
@@ -29,9 +27,12 @@ class AppModLeds:public Module {
 public:
   unsigned long frameMillis = 0;
   unsigned long frameCounter = 0;
+  bool newFrame = false; //for other modules (DDP)
 
   //need to make these static as they are called in lambda functions 
   static uint16_t fps;
+  unsigned long lastMappingMillis = 0;
+  static bool doMap;
 
   AppModLeds() :Module("Leds") {};
 
@@ -49,7 +50,7 @@ public:
       print->print("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
     });
 
-    ui->initSelect(parentVar, "fx", 6, false, [](JsonObject var) { //uiFun. 6: Juggles is default
+    ui->initSelect(parentVar, "fx", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
       JsonArray select = web->addResponseA(var["id"], "select");
@@ -59,80 +60,42 @@ public:
     }, [](JsonObject var) { //chFun
       uint8_t fx = var["value"];
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
-      // if (LedsV::projectionNr == p_DistanceFromPoint) {
-      if (fx == 9 && LedsV::fxDimension != 2) { // 9 = "Frizzles2D"
-        LedsV::fxDimension = 2;
-        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
-      }
-      if (fx != 9 && LedsV::fxDimension != 1) { // 9 = "Frizzles2D"
-        LedsV::fxDimension = 1;
-        ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
-      }
 
       if (fx < effects.size()) {
 
-        // if (false) {
+        //tbd: make property of effects
+        if (strstr(effects[fx]->name(), "2D")) {
+          if (LedsV::fxDimension != 2) {
+            LedsV::fxDimension = 2;
+            doMap = true;
+          }
+        }
+        else if (strstr(effects[fx]->name(), "3D")) {
+          if (LedsV::fxDimension != 3) {
+            LedsV::fxDimension = 3;
+            doMap = true;
+          }
+        }
+        else {
+          if (LedsV::fxDimension != 1) {
+            LedsV::fxDimension = 1;
+            doMap = true;
+          }
+        }
+
         JsonObject parentVar = mdl->findVar(var["id"]);
         parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
         Effect* effect = effects[fx];
         effect->setup(); //if changed then run setup once (like call==0 in WLED)
-        if (!effect->parameters(parentVar)) {
-          for (int i=0; i<5; i++) {
-            uint8_t nameNr = random8(6);  
-            uint8_t typeNr = random8(5);  
-            char name[12];
-            switch (nameNr) {
-              case 0:
-                strcpy(name, "lorum");
-                break;
-              case 1:
-                strcpy(name, "ipsum");
-                break;
-              case 2:
-                strcpy(name, "dolor");
-                break;
-              case 3:
-                strcpy(name, "sit");
-                break;
-              case 4:
-                strcpy(name, "amet");
-                break;
-              case 5:
-                strcpy(name, "consectetur");
-                break;
-            }
-            
-            switch (typeNr) {
-              case 0:
-                ui->initText(parentVar, name, name, false);
-                break;
-              case 1:
-                ui->initNumber(parentVar, name, random8(255), false);
-                break;
-              case 2:
-                ui->initSlider(parentVar, name, random8(255), false);
-                break;
-              case 3:
-                ui->initCheckBox(parentVar, name, random8(2), false);
-                break;
-              case 4:
-                ui->initSelect(parentVar, name, random8(2), false, [](JsonObject var) { //uiFun
-                  JsonArray select = web->addResponseA(var["id"], "select");
-                  select.add("Oui"); //0
-                  select.add("Non"); //1
-                });
-                break;
-            }
-          } //for loop
-        } //! parameters        
+        effect->controls(parentVar);
+
         print->printJson("parentVar", parentVar);
         web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
-      } //fx < size
-
+      } // fx < size
     });
 
-    ui->initSelect(parentVar, "projection", -1, false, [](JsonObject var) { //uiFun. 1:  is default
+    ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun.
       // web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
       JsonArray select = web->addResponseA(var["id"], "select");
@@ -144,7 +107,7 @@ public:
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::projectionNr = var["value"];
-      ledsV.ledFixProjectAndMap(); //luckily not called during reboot as ledFixNr not defined yet then
+      doMap = true;
     });
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
@@ -165,14 +128,14 @@ public:
       buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
-    ui->initSelect(parentVar, "ledFix", -1, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "LedFix");
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
       JsonArray select = web->addResponseA(var["id"], "select");
       files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
 
       // ui needs to load the file also initially
-      char fileName[30] = "";
+      char fileName[32] = "";
       if (files->seqNrToName(fileName, var["value"])) {
         web->addResponse("pview", "file", fileName);
       }
@@ -180,9 +143,9 @@ public:
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::ledFixNr = var["value"];
-      ledsV.ledFixProjectAndMap();
+      doMap = true;
 
-      char fileName[30] = "";
+      char fileName[32] = "";
       if (files->seqNrToName(fileName, LedsV::ledFixNr)) {
         //send to pview a message to get file filename
         JsonDocument *responseDoc = web->getResponseDoc();
@@ -196,20 +159,17 @@ public:
     }); //ledFix
 
     ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
-      // web->addResponseV(var["id"], "comment", "Max %dK", 32);
-    }, [](JsonObject var) { //chFun
+      char details[32] = "";
+      print->fFormat(details, sizeof(details)-1, "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
+      web->addResponse(var["id"], "value", details);
     });
 
     ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun
-      web->addResponseV(var["id"], "comment", "Max %d (%d by FastLed)", NUM_LEDS_Preview, NUM_LEDS_FastLed);
+      char details[32] = "";
+      print->fFormat(details, sizeof(details)-1, "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+      web->addResponse(var["id"], "value", details);
+      web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Preview);
     });
-
-    //set the values by chFun
-    //tbd: add page reload event (as these values should be given each time a page reloads, and they are not included in model.json as they are readonly...
-    // print->print("post whd P:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
-    print->print("post whd P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV, LedsV::nrOfLedsP, LedsV::nrOfLedsV);
-    mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
-    mdl->setValueV("nrOfLeds", "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
 
     ui->initNumber(parentVar, "fps", fps, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Frames per second");
@@ -222,12 +182,6 @@ public:
       web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
     });
 
-    ui->initNumber(parentVar, "dataPin", DATA_PIN, false, [](JsonObject var) { //uiFun
-      web->addResponseV(var["id"], "comment", "Not implemented yet (fixed to %d)", DATA_PIN);
-    }, [](JsonObject var) { //chFun
-      print->print("Set data pin to %d\n", var["value"].as<int>());
-    });
-
     effects.push_back(new RainbowEffect);
     effects.push_back(new RainbowWithGlitterEffect);
     effects.push_back(new SinelonEffect);
@@ -238,19 +192,21 @@ public:
     effects.push_back(new Ripples3DEffect);
     effects.push_back(new SphereMove3DEffect);
     effects.push_back(new Frizzles2D);
+    effects.push_back(new Lines2D);
+    effects.push_back(new DistortionWaves2D);
+    effects.push_back(new BouncingBalls1D);
     effects.push_back(new RingRandomFlow);
 #ifdef USERMOD_WLEDAUDIO
     effects.push_back(new GEQEffect);
     effects.push_back(new AudioRings);
 #endif
 
-
-    // FastLED.addLeds<NEOPIXEL, 6>(leds, 1); 
-    FastLED.addLeds<NEOPIXEL, DATA_PIN>(ledsP, NUM_LEDS_FastLed); 
-
     #ifdef USERMOD_E131
-      e131mod->patchChannel(1, "bri");
-      e131mod->patchChannel(2, "fx", (effects.size() - 1));
+      e131mod->addWatch(1, "bri", 256);
+      e131mod->addWatch(2, "fx", effects.size());
+      // //add these temporary to test remote changing of this values do not crash the system
+      // e131mod->addWatch(3, "projection", Projections::count);
+      // e131mod->addWatch(4, "ledFix", 5); //assuming 5!!!
     #endif
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -259,30 +215,115 @@ public:
   void loop() {
     // Module::loop();
 
-    if(millis() - frameMillis >= 1000.0/fps) {
+    //set new frame
+    if (millis() - frameMillis >= 1000.0/fps) {
       frameMillis = millis();
+
+      newFrame = true;
 
       Effect* effect = effects[mdl->getValue("fx")];
       effect->loop();
 
-      // yield();
       FastLED.show();  
 
       frameCounter++;
-      call++;
     }
-    if (millis() - secondMillis >= 1000 || !secondMillis) {
+    else {
+      newFrame = false;
+    }
+
+    //update ui
+    if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
       mdl->setValueV("realFps", "%lu /s", frameCounter);
       frameCounter = 0;
     }
 
-    // do some periodic updates
-    EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  }
+    //update projection
+    if (millis() - lastMappingMillis >= 1000 && doMap) { //not more then once per second (for E131)
+      lastMappingMillis = millis();
+      doMap = false;
+      ledsV.ledFixProjectAndMap();
+
+      //https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples
+      uint8_t pinNr=0;
+      for (PinObject pinObject:SysModPins::pinObjects) {
+        if (strcmp(pinObject.owner, "Leds")== 0) {
+          //dirty trick to decode nrOfLedsPerPin
+          char * after = strtok((char *)pinObject.details, "-");
+          if (after != NULL ) {
+            char * before;
+            before = after;
+            after = strtok(NULL, " ");
+            uint16_t startLed = atoi(before);
+            uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
+            print->print("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
+
+            //commented pins: error: static assertion failed: Invalid pin specified
+            switch (pinNr) {
+              case 0: FastLED.addLeds<NEOPIXEL, 0>(ledsP, startLed, nrOfLeds); break;
+              case 1: FastLED.addLeds<NEOPIXEL, 1>(ledsP, startLed, nrOfLeds); break;
+              case 2: FastLED.addLeds<NEOPIXEL, 2>(ledsP, startLed, nrOfLeds); break;
+              case 3: FastLED.addLeds<NEOPIXEL, 3>(ledsP, startLed, nrOfLeds); break;
+              case 4: FastLED.addLeds<NEOPIXEL, 4>(ledsP, startLed, nrOfLeds); break;
+              case 5: FastLED.addLeds<NEOPIXEL, 5>(ledsP, startLed, nrOfLeds); break;
+              // case 6: FastLED.addLeds<NEOPIXEL, 6>(ledsP, startLed, nrOfLeds); break;
+              // case 7: FastLED.addLeds<NEOPIXEL, 7>(ledsP, startLed, nrOfLeds); break;
+              // case 8: FastLED.addLeds<NEOPIXEL, 8>(ledsP, startLed, nrOfLeds); break;
+              // case 9: FastLED.addLeds<NEOPIXEL, 9>(ledsP, startLed, nrOfLeds); break;
+              // case 10: FastLED.addLeds<NEOPIXEL, 10>(ledsP, startLed, nrOfLeds); break;
+              case 11: FastLED.addLeds<NEOPIXEL, 11>(ledsP, startLed, nrOfLeds); break;
+              case 12: FastLED.addLeds<NEOPIXEL, 12>(ledsP, startLed, nrOfLeds); break;
+              case 13: FastLED.addLeds<NEOPIXEL, 13>(ledsP, startLed, nrOfLeds); break;
+              case 14: FastLED.addLeds<NEOPIXEL, 14>(ledsP, startLed, nrOfLeds); break;
+              case 15: FastLED.addLeds<NEOPIXEL, 15>(ledsP, startLed, nrOfLeds); break;
+              case 16: FastLED.addLeds<NEOPIXEL, 16>(ledsP, startLed, nrOfLeds); break;
+              case 17: FastLED.addLeds<NEOPIXEL, 17>(ledsP, startLed, nrOfLeds); break;
+              case 18: FastLED.addLeds<NEOPIXEL, 18>(ledsP, startLed, nrOfLeds); break;
+              case 19: FastLED.addLeds<NEOPIXEL, 19>(ledsP, startLed, nrOfLeds); break;
+              // case 20: FastLED.addLeds<NEOPIXEL, 20>(ledsP, startLed, nrOfLeds); break;
+              case 21: FastLED.addLeds<NEOPIXEL, 21>(ledsP, startLed, nrOfLeds); break;
+              case 22: FastLED.addLeds<NEOPIXEL, 22>(ledsP, startLed, nrOfLeds); break;
+              case 23: FastLED.addLeds<NEOPIXEL, 23>(ledsP, startLed, nrOfLeds); break;
+              // case 24: FastLED.addLeds<NEOPIXEL, 24>(ledsP, startLed, nrOfLeds); break;
+              case 25: FastLED.addLeds<NEOPIXEL, 25>(ledsP, startLed, nrOfLeds); break;
+              case 26: FastLED.addLeds<NEOPIXEL, 26>(ledsP, startLed, nrOfLeds); break;
+              case 27: FastLED.addLeds<NEOPIXEL, 27>(ledsP, startLed, nrOfLeds); break;
+              // case 28: FastLED.addLeds<NEOPIXEL, 28>(ledsP, startLed, nrOfLeds); break;
+              // case 29: FastLED.addLeds<NEOPIXEL, 29>(ledsP, startLed, nrOfLeds); break;
+              // case 30: FastLED.addLeds<NEOPIXEL, 30>(ledsP, startLed, nrOfLeds); break;
+              // case 31: FastLED.addLeds<NEOPIXEL, 31>(ledsP, startLed, nrOfLeds); break;
+              case 32: FastLED.addLeds<NEOPIXEL, 32>(ledsP, startLed, nrOfLeds); break;
+              case 33: FastLED.addLeds<NEOPIXEL, 33>(ledsP, startLed, nrOfLeds); break;
+              // case 34: FastLED.addLeds<NEOPIXEL, 34>(ledsP, startLed, nrOfLeds); break;
+              // case 35: FastLED.addLeds<NEOPIXEL, 35>(ledsP, startLed, nrOfLeds); break;
+              // case 36: FastLED.addLeds<NEOPIXEL, 36>(ledsP, startLed, nrOfLeds); break;
+              // case 37: FastLED.addLeds<NEOPIXEL, 37>(ledsP, startLed, nrOfLeds); break;
+              // case 38: FastLED.addLeds<NEOPIXEL, 38>(ledsP, startLed, nrOfLeds); break;
+              // case 39: FastLED.addLeds<NEOPIXEL, 39>(ledsP, startLed, nrOfLeds); break;
+              // case 40: FastLED.addLeds<NEOPIXEL, 40>(ledsP, startLed, nrOfLeds); break;
+              // case 41: FastLED.addLeds<NEOPIXEL, 41>(ledsP, startLed, nrOfLeds); break;
+              // case 42: FastLED.addLeds<NEOPIXEL, 42>(ledsP, startLed, nrOfLeds); break;
+              // case 43: FastLED.addLeds<NEOPIXEL, 43>(ledsP, startLed, nrOfLeds); break;
+              // case 44: FastLED.addLeds<NEOPIXEL, 44>(ledsP, startLed, nrOfLeds); break;
+              // case 45: FastLED.addLeds<NEOPIXEL, 45>(ledsP, startLed, nrOfLeds); break;
+              // case 46: FastLED.addLeds<NEOPIXEL, 46>(ledsP, startLed, nrOfLeds); break;
+              // case 47: FastLED.addLeds<NEOPIXEL, 47>(ledsP, startLed, nrOfLeds); break;
+              // case 48: FastLED.addLeds<NEOPIXEL, 48>(ledsP, startLed, nrOfLeds); break;
+              // case 49: FastLED.addLeds<NEOPIXEL, 49>(ledsP, startLed, nrOfLeds); break;
+              // case 50: FastLED.addLeds<NEOPIXEL, 50>(ledsP, startLed, nrOfLeds); break;
+              default: print->print("FastLedPin assignment: pin not supported %d\n", pinNr);
+            }
+          }
+        }
+        pinNr++;
+      }
+    }
+  } //loop
 
 };
 
 static AppModLeds *lds;
 
-uint16_t AppModLeds::fps = 40;
+uint16_t AppModLeds::fps = 120;
+bool AppModLeds::doMap = false;

@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      UserModArtNet.h
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -17,10 +17,12 @@ class UserModArtNet:public Module {
 
 public:
 
-  IPAddress targetIp;
+  static IPAddress targetIp; //tbd: targetip also configurable from fixtures and artnet instead of pin output
 
   UserModArtNet() :Module("ArtNet") {
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+
+    isEnabled = false; //default off
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
@@ -29,19 +31,39 @@ public:
   void setup() {
     Module::setup();
     print->print("%s %s\n", __PRETTY_FUNCTION__, name);
-    targetIp = IPAddress(192,168,178,161); // TODO allow setting at runtime
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
-  }
 
-  void connected() {
-    print->print("%s %s - Connected\n", __PRETTY_FUNCTION__, name);
-    isConnected = true;
+    parentVar = ui->initModule(parentVar, name);
+
+    ui->initSelect(parentVar, "artInst", -1, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Instance");
+      web->addResponse(var["id"], "comment", "Instance to send data");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      for (NodeInfo node: UserModInstances::nodes) {
+        char option[32] = { 0 };
+        strncpy(option, node.ip.toString().c_str(), sizeof(option)-1);
+        strncat(option, " ", sizeof(option)-1);
+        strncat(option, node.details, sizeof(option)-1);
+        select.add(option);
+      }
+    }, [](JsonObject var) { //chFun
+      size_t ddpInst = var["value"];
+      if (ddpInst >=0 && ddpInst < UserModInstances::nodes.size()) {
+        targetIp = UserModInstances::nodes[ddpInst].ip;
+        print->print("Start ArtNet to %s\n", targetIp.toString().c_str());
+      }
+    }); //ddpInst
+
+    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){
     // Module::loop();
 
-    if(!isConnected) return;
+    if(!SysModModules::isConnected) return;
+
+    if(!targetIp) return;
+
+    if(!lds->newFrame) return;
 
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;
@@ -64,7 +86,7 @@ public:
       if (sequenceNumber > 255) sequenceNumber = 0;
 
       if (!ddpUdp.beginPacket(targetIp, ARTNET_DEFAULT_PORT)) {
-        print->print("Art-Net WiFiUDP.beginPacket returned an error");
+        print->print("Art-Net WiFiUDP.beginPacket returned an error\n");
         return; // borked
       }
 
@@ -96,7 +118,7 @@ public:
       }
 
       if (!ddpUdp.endPacket()) {
-        print->print("Art-Net WiFiUDP.endPacket returned an error");
+        print->print("Art-Net WiFiUDP.endPacket returned an error\n");
         return; // borked
       }
       channel += packetSize;
@@ -105,9 +127,10 @@ public:
   }
 
   private:
-    bool isConnected = false;
     size_t sequenceNumber = 0;
 
 };
 
 static UserModArtNet *artnetmod;
+
+IPAddress UserModArtNet::targetIp;

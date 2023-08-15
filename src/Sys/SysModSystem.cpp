@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      SysModSystem.cpp
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -81,7 +81,7 @@ void SysModSystem::loop() {
   // Module::loop();
 
   loopCounter++;
-  if (millis() - secondMillis >= 1000 || !secondMillis) {
+  if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
     mdl->setValueV("upTime", "%u s", millis()/1000);
@@ -109,7 +109,7 @@ void SysModSystem::addResetReasonsSelect(JsonArray select) {
   select.add("TGWDT_CPU_RESET"); //11,    /**<11, Time Group reset CPU*/
   select.add("SW reset CPU (12)");//SW_CPU_RESET"); //12,    /**<12, */
   select.add("RTCWDT_CPU_RESET"); //13,    /**<13, RTC Watch dog Reset CPU*/
-  select.add("for APP CPU, reseted by PRO CPU");//EXT_CPU_RESET"); //14,    /**<14, */
+  select.add("for APP CPU, reset by PRO CPU");//EXT_CPU_RESET"); //14,    /**<14, */
   select.add("RTCWDT_BROWN_OUT_RESET"); //15,    /**<15, Reset when the vdd voltage is not stable*/
   select.add("RTCWDT_RTC_RESET"); //16     /**<16, RTC Watch dog reset digital core and rtc module*/
 }

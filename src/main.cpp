@@ -1,9 +1,9 @@
 /*
    @title     StarMod
    @file      main.cpp
-   @date      20230730
-   @repo      https://github.com/ewoudwijma/StarMod
-   @Authors   https://github.com/ewoudwijma/StarMod/commits/main
+   @date      20230810
+   @repo      https://github.com/ewowi/StarMod
+   @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
@@ -22,6 +22,7 @@
 #include "Sys/SysModModel.h"
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
+#include "User/UserModInstances.h"
 #ifdef APPMOD_LEDS
   #include "App/AppModLeds.h"
   #include "App/AppModLedFixGen.h"
@@ -44,7 +45,7 @@
 
 //setup all modules
 void setup() {
-  mdls = new Modules();
+  mdls = new SysModModules();
   
   print = new SysModPrint();
   files = new SysModFiles();
@@ -53,7 +54,8 @@ void setup() {
   web = new SysModWeb();
   ui = new SysModUI();
   sys = new SysModSystem();
-  pin = new SysModPins();
+  pins = new SysModPins();
+  instances = new UserModInstances();
   #ifdef APPMOD_LEDS
     lds = new AppModLeds();
     lfg = new AppModLedFixGen();
@@ -74,33 +76,36 @@ void setup() {
     wledAudioMod = new UserModWLEDAudio();
   #endif
 
-  //prefered default order in the UI
+  //prefered default order in the UI. 
+  //Reorder with care! If changed make sure mdlEnabled.chFun executes var.createNestedArray("value"); and saveModel! 
+  //Default: add below, not in between
   #ifdef APPMOD_LEDS
     mdls->add(lds);
+    mdls->add(lfg);
   #endif
   mdls->add(files);
+  mdls->add(instances);
   mdls->add(sys);
-  mdls->add(pin);
+  mdls->add(pins);
   mdls->add(print);
+  mdls->add(web);
+  mdls->add(net);
   #ifdef APPMOD_LEDS
-    mdls->add(lfg);
-    #ifdef USERMOD_ARTNET
-      mdls->add(artnetmod);
-    #endif
     #ifdef USERMOD_DDP
       mdls->add(ddpmod);
     #endif
+    #ifdef USERMOD_ARTNET
+      mdls->add(artnetmod);
+    #endif
   #endif
-  mdls->add(ui);
-  mdls->add(web);
-  mdls->add(net);
-  mdls->add(mdl);
   #ifdef USERMOD_E131
     mdls->add(e131mod);
   #endif
   #ifdef USERMOD_HA
     mdls->add(hamod);
   #endif
+  mdls->add(mdl);
+  mdls->add(ui);
   #ifdef USERMOD_WLEDAUDIO
     mdls->add(wledAudioMod);
   #endif

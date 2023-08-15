@@ -505,10 +505,12 @@ function processVarNode(node, key, json) {
       userFunId = key; //prepare for websocket data
     else if (node.type == "checkbox")
       node.checked = json.value;
-    else if (Array.isArray(json.value)) {
+    else if (Array.isArray(json.value)) { //table column
       let rowNr = 0;
       for (let x of json.value) {
-        gId(key + "#" + rowNr).checked = x; //tbd support all types!!
+        console.log(key, gId(key + "#" + rowNr), x);
+        if (gId(key + "#" + rowNr) && gId(key + "#" + rowNr).checked)
+          gId(key + "#" + rowNr).checked = x; //tbd support all types!!
         rowNr++;
       }
       // node.checked = json.value;

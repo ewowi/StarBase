@@ -199,6 +199,9 @@ public:
     #ifdef USERMOD_E131
       e131mod->addWatch(1, "bri", 256);
       e131mod->addWatch(2, "fx", effects.size());
+      // //add these temporary to test remote changing of this values do not crash the system
+      // e131mod->addWatch(3, "projection", Projections::count);
+      // e131mod->addWatch(4, "ledFix", 5); //assuming 5!!!
     #endif
 
     print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -237,6 +240,7 @@ public:
       doMap = false;
       ledsV.ledFixProjectAndMap();
 
+      //https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples
       uint8_t pinNr=0;
       for (PinObject pinObject:SysModPins::pinObjects) {
         if (strcmp(pinObject.owner, "Leds")== 0) {

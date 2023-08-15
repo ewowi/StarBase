@@ -98,8 +98,8 @@ public:
 
           varsToWatch[i].savedValue = packet.property_values[i];
 
-          if (varsToWatch[i].id != nullptr) {
-            print->print(" var: %s\n", varsToWatch[i].id);
+          if (varsToWatch[i].id != nullptr && varsToWatch[i].max != 0) {
+            print->print(" varsToWatch: %s\n", varsToWatch[i].id);
             mdl->setValueI(varsToWatch[i].id, varsToWatch[i].savedValue%varsToWatch[i].max); // TODO: ugly to have magic string 
           }
           else

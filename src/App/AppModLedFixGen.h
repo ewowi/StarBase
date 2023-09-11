@@ -181,15 +181,32 @@ public:
 
   void ring2D (uint16_t startX, uint16_t startY, uint16_t nrOfLeds) {
 
-    float size = nrOfLeds / M_PI;
+    // float size = nrOfLeds / 2 / M_PI;
     openPin();
 
     float ringDiam = 10 * nrOfLeds / 2 / M_PI; //in mm
     for (int i=0; i<nrOfLeds; i++) {
       float radians = i*360/nrOfLeds * (M_PI / 180);
-      uint16_t x = 10 * size / 2 + ringDiam * sinf(radians);
-      uint16_t y = 10 * size / 2 + ringDiam * cosf(radians);
+      uint16_t x = ringDiam + ringDiam * sinf(radians);
+      uint16_t y = ringDiam + ringDiam * cosf(radians);
       write2D(x+startX,y+startY);
+    }
+    closePin();
+  }
+
+  void wheel2D (uint16_t startX, uint16_t startY, uint16_t nrOfSpokes, uint16_t ledsPerSpoke) {
+
+    float size = 50 + 10 * ledsPerSpoke;
+    openPin();
+
+    for (int i=0; i<nrOfSpokes; i++) {
+      float radians = i*360/nrOfSpokes * (M_PI / 180);
+      for (int j=0;j<ledsPerSpoke;j++) {
+        float ringDiam = 50 + 10 * j; //in mm
+        uint16_t x = size + ringDiam * sinf(radians);
+        uint16_t y = size + ringDiam * cosf(radians);
+        write2D(x+startX,y+startY);
+      }
     }
     closePin();
   }
@@ -370,11 +387,12 @@ public:
       select.add("2DRing"); //2
       select.add("2DRings241"); //3
       select.add("2DCloud"); //4
-      select.add("2DWall"); //8
-      select.add("3DCone"); //5
-      select.add("3DSideCube"); //6
-      select.add("3DCube"); //7
-      select.add("3DGlobe"); //8
+      select.add("2DWall"); //5
+      select.add("2DWheel"); //6
+      select.add("3DCone"); //7
+      select.add("3DSideCube"); //8
+      select.add("3DCube"); //9
+      select.add("3DGlobe"); //10
     }, [](JsonObject var) { //chFun
       ledFixGenChFun(var);
     }); //ledFixGen
@@ -403,6 +421,7 @@ public:
     f_2DRings241,
     f_2DCloud,
     f_2DWall,
+    f_2DWheel,
     f_3DCone,
     f_3DSideCube,
     f_3DCube,
@@ -424,6 +443,10 @@ public:
     }
     else if (value == f_2DRings241) {
       ui->initCheckBox(parentVar, "in2out", true, false);
+    }
+    else if (value == f_2DWheel) {
+      ui->initNumber(parentVar, "nrOfSpokes", 36, false);
+      ui->initNumber(parentVar, "ledsPerSpoke", 24, false);
     }
     else if (value == f_3DCone) {
       ui->initCheckBox(parentVar, "in2out", true, false);
@@ -528,6 +551,16 @@ public:
       genFix.ring2D(190, 85, 48);
 
       // genFix.spiral1D(240, 0, 0, 48);
+
+      genFix.closeHeader();
+    }
+    else if (fix == f_2DWheel) {
+      uint16_t nrOfSpokes = mdl->getValue("nrOfSpokes");
+      uint16_t ledsPerSpoke = mdl->getValue("ledsPerSpoke");
+
+      genFix.openHeader("2DWheel%02d_%d", nrOfSpokes, ledsPerSpoke);
+
+      genFix.wheel2D(0, 0, nrOfSpokes, ledsPerSpoke);
 
       genFix.closeHeader();
 

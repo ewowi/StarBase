@@ -63,7 +63,8 @@ h1,h2 {
 	right: 0px;
 	top: 0px;
 	/* calc(var(--th) - 1px); */
-	background: linear-gradient(to bottom, #ffbe3390 0%, #b60f6290 100%); /*var(--c-o);*/
+	/* background-color: linear-gradient(to bottom, #ffbe3399 0%, #b60f6299 100%); var(--c-o); */
+	background-color: var(--c-o);
 	transform: translateY(100%);
 	transition: transform 0.4s;
 	padding: 8px;
@@ -155,7 +156,7 @@ h1,h2 {
 	--c-l: #48a;
 	--c-y: #a90;
 	--t-b: 0.5;
-	--c-o: rgba(195, 145, 145, 0.9); /* used for modal background, changed to more readable*/
+	--c-o: rgba(34, 34, 34, 0.9);
 	--c-tb : rgba(34, 34, 34, var(--t-b));
 	--c-tba: rgba(102, 102, 102, var(--t-b));
 	--c-tbh: rgba(51, 51, 51, var(--t-b));

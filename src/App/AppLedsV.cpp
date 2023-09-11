@@ -115,13 +115,21 @@ void LedsV::ledFixProjectAndMap() {
               widthV = widthP;
               heightV = heightP;
               depthV = 1;
-              bucket = x  + y * widthV;
+              float scale = 1;
+              if (widthV * heightV > 256)
+                scale = sqrt((float)256.0 / (widthV * heightV));
+              widthV *= scale;
+              heightV *= scale;
+              x = (x+1) * scale - 1;
+              y = (y+1) * scale - 1;
+              bucket = x + y * widthV;
+              // print->print("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
             }
             else if (ledFixDimension == 3) {//ledfix is 3D
               widthV = widthP + heightP;
               heightV = depthP;
               depthV = 1;
-              bucket = (x + y + 1)  + z * widthV;
+              bucket = (x + y + 1) + z * widthV;
               // print->print("2D to 3D bucket %d %d\n", bucket, widthV);
             }
           }
@@ -129,15 +137,19 @@ void LedsV::ledFixProjectAndMap() {
 
           if (bucket != -1) {
             //add physical tables if not present
-            if (bucket >= mappingTable.size()) {
-              for (int i = mappingTable.size(); i<=bucket;i++) {
-                // print->print("mapping add physMap %d %d\n", bucket, mappingTable.size());
-                std::vector<uint16_t> physMap;
-                mappingTable.push_back(physMap);
-              }
+            if (bucket >= NUM_LEDS_Preview) {
+              print->print("mapping add physMap %d %d too big\n", bucket, mappingTable.size());
             }
-
-            mappingTable[bucket].push_back(mappingTableLedCounter);
+            else {
+              if (bucket >= mappingTable.size()) {
+                for (int i = mappingTable.size(); i<=bucket;i++) {
+                  // print->print("mapping add physMap %d %d\n", bucket, mappingTable.size());
+                  std::vector<uint16_t> physMap;
+                  mappingTable.push_back(physMap);
+                }
+              }
+              mappingTable[bucket].push_back(mappingTableLedCounter);
+            }
           }
         }
 

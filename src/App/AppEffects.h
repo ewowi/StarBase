@@ -79,13 +79,18 @@ public:
     Effect::loop();
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
-    int pos = beatsin16( 13, 0, LedsV::nrOfLedsV-1 );
+    int pos = beatsin16( mdl->getValue("speed").as<int>(), 0, LedsV::nrOfLedsV-1 );
     // ledsV[pos] += CHSV( gHue, 255, 192);
     ledsV[pos] = ledsV.getPixelColor(pos) + CHSV( gHue, 255, 192);
     // CRGB x = ledsV[pos];
   }
+  bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 128, false);
+    return true;
+  }
 };
 
+//https://www.perfectcircuit.com/signal/difference-between-waveforms
 class RunningEffect: public Effect {
 public:
   const char * name() {
@@ -95,11 +100,21 @@ public:
   void loop() {
     Effect::loop();
     // a colored dot sweeping back and forth, with fading trails
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 70); //physical leds
+    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, mdl->getValue("fade").as<int>()); //physical leds
     // int pos0 = (call-1)%ledsV.nrOfLeds;
     // leds[pos0] = CHSV( 0,0,0);
-    int pos = call%LedsV::nrOfLedsV; //Virtual leds
-    ledsV[pos] = CHSV( gHue, 255, 192); //make sore the right physical leds get their value
+    int pos = map(beat16( mdl->getValue("speed").as<int>()), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 );
+    int pos2 = map(beat16( mdl->getValue("speed").as<int>(), 1000), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 );
+    // int pos = call%LedsV::nrOfLedsV; //Virtual leds
+    ledsV[LedsV::nrOfLedsV -1 - pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
+    ledsV[LedsV::nrOfLedsV -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
+  }
+  bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 128, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "comment", "in BPM!");
+    });
+    ui->initSlider(parentVar, "fade", 128, false);
+    return true;
   }
 };
 
@@ -639,7 +654,83 @@ class AudioRings:public RingEffect {
     }
 };
 
-
 #endif // End Audio Effects
 
-static std::vector<Effect *> effects;
+class Effects {
+public:
+  std::vector<Effect *> effects;
+
+  Effects() {
+    //create effects before fx.chFun is called
+    effects.push_back(new RainbowEffect);
+    effects.push_back(new RainbowWithGlitterEffect);
+    effects.push_back(new SinelonEffect);
+    effects.push_back(new RunningEffect);
+    effects.push_back(new ConfettiEffect);
+    effects.push_back(new BPMEffect);
+    effects.push_back(new JuggleEffect);
+    effects.push_back(new Ripples3DEffect);
+    effects.push_back(new SphereMove3DEffect);
+    effects.push_back(new Frizzles2D);
+    effects.push_back(new Lines2D);
+    effects.push_back(new DistortionWaves2D);
+    effects.push_back(new BouncingBalls1D);
+    effects.push_back(new RingRandomFlow);
+    #ifdef USERMOD_WLEDAUDIO
+      effects.push_back(new GEQEffect);
+      effects.push_back(new AudioRings);
+    #endif
+  }
+
+  size_t size() {
+    return effects.size();
+  }
+
+  bool setEffect(const char * id, size_t index) {
+    bool doMap = false;
+
+    print->print("setEffect %d %d %d \n", index, effects.size(), size());
+    if (index < size()) {
+
+      //tbd: make property of effects
+      if (strstr(effects[index]->name(), "2D")) {
+        if (LedsV::fxDimension != 2) {
+          LedsV::fxDimension = 2;
+          doMap = true;
+        }
+      }
+      else if (strstr(effects[index]->name(), "3D")) {
+        if (LedsV::fxDimension != 3) {
+          LedsV::fxDimension = 3;
+          doMap = true;
+        }
+      }
+      else {
+        if (LedsV::fxDimension != 1) {
+          LedsV::fxDimension = 1;
+          doMap = true;
+        }
+      }
+
+      JsonObject parentVar = mdl->findVar(id);
+      parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+
+      Effect* effect = effects[index];
+      effect->setup(); //if changed then run setup once (like call==0 in WLED)
+      effect->controls(parentVar);
+
+      print->printJson("parentVar", parentVar);
+      web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
+    } // fx < size
+
+    return doMap;
+
+  }
+
+  void loop(size_t index) {
+    // print->print("loop %d\n", index);
+
+    effects[index]->loop();
+  }
+
+};

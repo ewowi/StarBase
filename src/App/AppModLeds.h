@@ -34,6 +34,8 @@ public:
   unsigned long lastMappingMillis = 0;
   static bool doMap;
 
+  static Effects effects;
+
   AppModLeds() :Module("Leds") {};
 
   void setup() {
@@ -54,46 +56,17 @@ public:
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
       JsonArray select = web->addResponseA(var["id"], "select");
-      for (Effect *effect:effects) {
+      for (Effect *effect:effects.effects) {
         select.add(effect->name());
       }
     }, [](JsonObject var) { //chFun
       uint8_t fx = var["value"];
       print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
 
-      if (fx < effects.size()) {
-
-        //tbd: make property of effects
-        if (strstr(effects[fx]->name(), "2D")) {
-          if (LedsV::fxDimension != 2) {
-            LedsV::fxDimension = 2;
-            doMap = true;
-          }
-        }
-        else if (strstr(effects[fx]->name(), "3D")) {
-          if (LedsV::fxDimension != 3) {
-            LedsV::fxDimension = 3;
-            doMap = true;
-          }
-        }
-        else {
-          if (LedsV::fxDimension != 1) {
-            LedsV::fxDimension = 1;
-            doMap = true;
-          }
-        }
-
-        JsonObject parentVar = mdl->findVar(var["id"]);
-        parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
-
-        Effect* effect = effects[fx];
-        effect->setup(); //if changed then run setup once (like call==0 in WLED)
-        effect->controls(parentVar);
-
-        print->printJson("parentVar", parentVar);
-        web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
-      } // fx < size
+      doMap = effects.setEffect("fx", fx);
     });
+
+    print->print("afterfx");
 
     ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun.
       // web->addResponse(var["id"], "label", "Effect");
@@ -182,25 +155,6 @@ public:
       web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
     });
 
-    effects.push_back(new RainbowEffect);
-    effects.push_back(new RainbowWithGlitterEffect);
-    effects.push_back(new SinelonEffect);
-    effects.push_back(new RunningEffect);
-    effects.push_back(new ConfettiEffect);
-    effects.push_back(new BPMEffect);
-    effects.push_back(new JuggleEffect);
-    effects.push_back(new Ripples3DEffect);
-    effects.push_back(new SphereMove3DEffect);
-    effects.push_back(new Frizzles2D);
-    effects.push_back(new Lines2D);
-    effects.push_back(new DistortionWaves2D);
-    effects.push_back(new BouncingBalls1D);
-    effects.push_back(new RingRandomFlow);
-#ifdef USERMOD_WLEDAUDIO
-    effects.push_back(new GEQEffect);
-    effects.push_back(new AudioRings);
-#endif
-
     #ifdef USERMOD_E131
       e131mod->patchChannel(1, "bri", 255); //should be 256??
       e131mod->patchChannel(2, "fx", effects.size());
@@ -221,8 +175,7 @@ public:
 
       newFrame = true;
 
-      Effect* effect = effects[mdl->getValue("fx")];
-      effect->loop();
+      effects.loop(mdl->getValue("fx"));
 
       FastLED.show();  
 
@@ -246,6 +199,8 @@ public:
       ledsV.ledFixProjectAndMap();
 
       //https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples
+
+      //allocatePins
       uint8_t pinNr=0;
       for (PinObject pinObject:SysModPins::pinObjects) {
         if (strcmp(pinObject.owner, "Leds")== 0) {
@@ -327,3 +282,4 @@ static AppModLeds *lds;
 
 uint16_t AppModLeds::fps = 120;
 bool AppModLeds::doMap = false;
+Effects AppModLeds::effects;

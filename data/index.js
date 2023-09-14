@@ -6,6 +6,9 @@
 // @Copyright (c) 2023 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 
+// import { on } from 'nodemon';
+import { userFun } from './app.js';
+
 let d = document;
 let ws = null;
 
@@ -13,12 +16,12 @@ let screenColumnNr = 0;
 let nrOfScreenColumns = 4;
 let userFunId = "";
 let htmlGenerated = false;
-let jsonValues = {};
+export let jsonValues = {};
 let uiFunCommands = [];
 let model = null; //model.json (as send by the server)
 
-function gId(c) {return d.getElementById(c);}
-function cE(e) { return d.createElement(e); }
+export function gId(c) {return d.getElementById(c);}
+export function cE(e) { return d.createElement(e); }
 
 function handleVisibilityChange() {
   console.log("handleVisibilityChange");
@@ -27,10 +30,12 @@ function handleVisibilityChange() {
 function onLoad() {
   makeWS();
 
-  initColumns();
+  initScreenColumns();
 
   d.addEventListener("visibilitychange", handleVisibilityChange, false);
 }
+
+window.addEventListener('load', onLoad);
 
 function makeWS() {
   if (ws) return;
@@ -121,13 +126,13 @@ function generateHTML(parentNode, json, rowNr = -1) {
       newNode = cE("div");
       newNode.id = json.id
       newNode.draggable = true;
-      newNode.className = "box";
+      newNode.className = "screenBox";
 
       let h2Node = cE("h2");
       h2Node.innerText = initCap(json.id);
       newNode.appendChild(h2Node);
 
-      setupBox(newNode);
+      setupScreenBox(newNode);
     }
     else if (json.type == "table") {
       ndivNeeded = false;
@@ -185,7 +190,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
           var pNode = cE("p");
           pNode.appendChild(labelNode);
 
-          spanNode = cE("span");
+          let spanNode = cE("span");
           spanNode.innerText= "🔍";
           pNode.appendChild(spanNode);
           
@@ -193,7 +198,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
 
           newNode = cE("canvas");
           newNode.id = json.id;
-          newNode.addEventListener('click', (event) => {toggleModal(event.target);});
+          newNode.addEventListener('dblclick', (event) => {toggleModal(event.target);});
         }
         else if (json.type == "textarea") {
           pNode = cE("p");
@@ -203,7 +208,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
           newNode = cE("textarea");
           newNode.id = json.id;
           newNode.readOnly = json.ro;
-          newNode.addEventListener('click', (event) => {toggleModal(event.target);});
+          newNode.addEventListener('dblclick', (event) => {toggleModal(event.target);});
 
           if (json.value) newNode.innerText = json.value;
           // newNode.appendChild(textareaNode);
@@ -310,6 +315,10 @@ function generateHTML(parentNode, json, rowNr = -1) {
           if (buttonSaveNode) newNode.appendChild(buttonSaveNode);
           if (buttonCancelNode) newNode.appendChild(buttonCancelNode);
         } //input type
+
+        //disable drag of parent screenBox
+        newNode.draggable = true;
+        newNode.addEventListener('dragstart', (event) => {event.preventDefault(); event.stopPropagation();});
       } //table header
     } //primitive types
 
@@ -328,7 +337,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
       if (json.n) {
         //add a div with _n extension and details have this as parent
         if (ndivNeeded) {
-          divNode = cE("div");
+          let divNode = cE("div");
           divNode.id = json.id + "_n";
           divNode.classList.add("ndiv");
           newNode.appendChild(divNode);
@@ -359,7 +368,7 @@ function processUpdate(json) {
     if (gId(json.id + "_n")) 
       gId(json.id + "_n").remove();
     if (json.n) {
-      divNode = cE("div");
+      let divNode = cE("div");
       divNode.id = json.id + "_n";
       divNode.classList.add("ndiv");
       gId(json.id).parentNode.appendChild(divNode);
@@ -628,7 +637,7 @@ function setSelect(element) {
 let isModal = false;
 let modalPlaceHolder;
 
-function toggleModal(element) {
+export function toggleModal(element) {
   // console.log("toggleModal", element);
   isModal = !isModal;
 
@@ -672,9 +681,9 @@ function initCap(s) {
 var dragSrcEl;
 
 // https://stackoverflow.com/questions/75698658/how-can-i-drag-and-drop-like-browser-tabs-in-javascript
-function initColumns() {
+function initScreenColumns() {
 
-  let columns = document.querySelectorAll('.container .column');
+  let columns = document.querySelectorAll('.container .screenColumn');
   columns.forEach(function(column) {
     column.addEventListener('dragover', handleDragOver);
     column.addEventListener('dragenter', handleDragEnter);
@@ -682,20 +691,20 @@ function initColumns() {
     column.addEventListener('drop', handleDrop);
   });
 
-  setupBoxes();
+  setupScreenBoxes();
   
 }
 
-function setupBoxes() {
-  let boxes = document.querySelectorAll('.container .box');
+function setupScreenBoxes() {
+  let boxes = document.querySelectorAll('.container .screenBox');
   boxes.forEach(function(box) {
-    setupBox(box);
+    setupScreenBox(box);
   });
 
 }
 
 // var lastPage;
-function setupBox(item) {
+function setupScreenBox(item) {
   item.addEventListener('dragstart', handleDragStart);
   item.addEventListener('dragover', handleDragOver);
   item.addEventListener('dragenter', handleDragEnter);
@@ -724,12 +733,12 @@ function handleDragStart(e) {
 function removeDragStyle(item) {
   item.style.opacity = '1';
 
-  let boxes = document.querySelectorAll('.container .box');
+  let boxes = document.querySelectorAll('.container .screenBox');
   boxes.forEach(function (item) {
     item.classList.remove('over');
   });
 
-  let columns = document.querySelectorAll('.container .column');
+  let columns = document.querySelectorAll('.container .screenColumn');
   columns.forEach(function (item) {
     item.classList.remove('over');
   });
@@ -761,7 +770,7 @@ function handleDrop(e) {
     console.log("handleDrop", dragSrcEl, this, e, e.dataTransfer);
 
     const clone = dragSrcEl.cloneNode(true);
-    setupBox(clone);
+    setupScreenBox(clone);
     removeDragStyle(clone);
 
     if (this.id.includes("screenColumn")) {

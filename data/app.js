@@ -6,12 +6,19 @@
 // @Copyright (c) 2023 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 
+import { gId, cE, jsonValues, toggleModal } from './index.js';
+
+import * as THREE from 'three';
+
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
 var renderer = null;
 var scene = null;
 var camera = null;
-var previousFunction;
+var controls = null;
+// var previousFunction;
 
-function userFun(userFunId, data) {
+export function userFun(userFunId, data) {
   if (userFunId == "pview" && jsonValues.pview) {
     let leds = new Uint8Array(data);
     let pviewNode = gId("pview");
@@ -23,11 +30,13 @@ function userFun(userFunId, data) {
       let canvasNode = cE("canvas");
       canvasNode.width = pviewNode.width;
       canvasNode.height = pviewNode.height;
-  
+      canvasNode.draggable = true;
+      canvasNode.addEventListener('dragstart', (event) => {event.preventDefault(); event.stopPropagation();});
+
       pviewNode.parentNode.replaceChild(canvasNode, pviewNode);
       pviewNode = canvasNode;
       pviewNode.id = "pview";
-      pviewNode.addEventListener('click', (event) => {toggleModal(event.target);});
+      pviewNode.addEventListener('dblclick', (event) => {toggleModal(event.target);});
     }
 
     // console.log("userFun", leds);
@@ -84,6 +93,7 @@ function preview2D(node, leds) {
   }
 }
 
+//https://stackoverflow.com/questions/8426822/rotate-camera-in-three-js-with-mouse
 function preview3D(node, leds) {
   //3D vars
   // let mW = leds[0];
@@ -114,6 +124,12 @@ function preview3D(node, leds) {
 
     scene = new THREE.Scene();
     scene.background = null; //new THREE.Color( 0xff0000 );
+
+    controls = new OrbitControls( camera, renderer.domElement );
+    controls.target.set( 0, 0.5, 0 );
+    controls.update();
+    controls.enablePan = false;
+    controls.enableDamping = true;
 
   } //new
 
@@ -181,11 +197,9 @@ function preview3D(node, leds) {
     }
   }
 
-  //rotate the 3D view
-  scene.rotation.x += 0.01;
-  scene.rotation.y += 0.01;
-  renderer.render( scene, camera );
+  controls.update(); // apply orbit controls
 
+  renderer.render( scene, camera);
 }
 
 function previewBoard(node, leds) {
@@ -197,7 +211,7 @@ function previewBoard(node, leds) {
   let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
   let i = 4;
   ctx.clearRect(0, 0, node.width, node.height);
-  for (y=0.5;y<mH;y++) for (x=0.5; x<mW; x++) {
+  for (let y=0.5;y<mH;y++) for (let x=0.5; x<mW; x++) {
     if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
       ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
       ctx.beginPath();

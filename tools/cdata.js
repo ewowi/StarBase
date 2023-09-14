@@ -220,3 +220,23 @@ function writeChunks(srcDir, specs, resultFile) {
 }
 
 writeHtmlGzipped("data/index.htm", "src/html_ui.h", 'index');
+
+writeChunks(
+  "data",
+  [
+    {
+      file: "index.js",
+      name: "PAGE_indexJs",
+      method: "gzip",
+      filter: "js-minify",
+    },
+    {
+      file: "app.js",
+      name: "PAGE_appJs",
+      method: "gzip",
+      filter: "js-minify",
+    }
+  ],
+  "src/html_js.h"
+);
+

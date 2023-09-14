@@ -41,7 +41,7 @@ public:
   static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false);
 
   //add an url to the webserver to listen to
-  bool addURL(const char * uri, const char * path, const char * contentType);
+  bool addURL(const char * uri, const char * contentType, const char * path = nullptr, const uint8_t * content = nullptr, size_t len = -1);
 
   //not used at the moment
   bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *));

@@ -12,7 +12,7 @@
 #include <vector>
 #include "ArduinoJson.h"
 
-#define NUM_LEDS_Preview 4096
+#define NUM_LEDS_Preview 8192
 
 //keep them global for the time being as FastLed effects refer to them and want to keep that code as unchanged as possible
 //(so maybe move there?)

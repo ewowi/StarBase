@@ -339,31 +339,46 @@ public:
   }
 
   void cube3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t width, uint16_t height, uint16_t depth) {
-      openPin();
+    openPin();
 
-      for (uint8_t z = 0; z<depth; z++)
-        for (uint8_t y = 0; y<height; y++)
-          for (uint16_t x = 0; x<width ; x++) {
-            write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-          }
-        
-      closePin();
+    for (uint8_t z = 0; z<depth; z++)
+      for (uint8_t y = 0; y<height; y++)
+        for (uint16_t x = 0; x<width ; x++) {
+          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
+        }
+      
+    closePin();
   }
 
   void globe3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t width) {
-      openPin();
+    openPin();
 
-      float ringDiam = 10 * width / 2 / M_PI; //in mm
-      for (int i=0; i<width; i++) {
-        float radians = i*360/width * (M_PI / 180);
-        uint16_t x = 10 * width/M_PI / 2 + ringDiam * sinf(radians);
-        uint16_t y = 10 * width / 2 + ringDiam * cosf(radians);
-        uint16_t z = 10 * width / 2 + ringDiam * cosf(radians);
-        write3D(x + startX, y + startY, z + startZ);
-      }
+    float ringDiam = 10 * width / 2 / M_PI; //in mm
+    for (int i=0; i<width; i++) {
+      float radians = i*360/width * (M_PI / 180);
+      uint16_t x = 10 * width/M_PI / 2 + ringDiam * sinf(radians);
+      uint16_t y = 10 * width / 2 + ringDiam * cosf(radians);
+      uint16_t z = 10 * width / 2 + ringDiam * cosf(radians);
+      write3D(x + startX, y + startY, z + startZ);
+    }
 
-      closePin();
+    closePin();
   }
+
+  // https://stackoverflow.com/questions/17705621/algorithm-for-a-geodesic-sphere
+  //https://opengl.org.ru/docs/pg/0208.html
+  void geodesicDome3D (uint16_t startX, uint16_t startY, uint16_t startZ) {
+ 
+    static uint8_t tindices[20][3] = {    {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},       {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},       {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6},    {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} };
+
+    openPin();
+
+    for (int i=0; i<20; i++) {
+      write3D(tindices[i][0]*10 + startX, tindices[i][1]*10 + startY, tindices[i][2]*10 + startZ);
+    }
+    closePin();
+  }
+
 };
 
 class AppModLedFixGen:public Module {
@@ -392,7 +407,8 @@ public:
       select.add("3DCone"); //7
       select.add("3DSideCube"); //8
       select.add("3DCube"); //9
-      select.add("3DGlobe"); //10
+      select.add("3DGlobe WIP"); //10
+      select.add("3DGeodesicDome WIP"); //11
     }, [](JsonObject var) { //chFun
       ledFixGenChFun(var);
     }); //ledFixGen
@@ -426,6 +442,7 @@ public:
     f_3DSideCube,
     f_3DCube,
     f_3DGlobe,
+    f_3DGeodesicDome,
     count
   };
 
@@ -606,6 +623,15 @@ public:
       genFix.openHeader("3DGlobe%02d", width);
 
       genFix.globe3D(0, 0, 0, width);
+
+      genFix.closeHeader();
+    } else if (fix == f_3DGeodesicDome) {
+// 
+      uint16_t width = mdl->getValue("width");
+
+      genFix.openHeader("3DGeodesicDome");
+
+      genFix.geodesicDome3D(0, 0, 0);
 
       genFix.closeHeader();
     }

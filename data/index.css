@@ -36,6 +36,7 @@ canvas {
 	height: 100%;
 	border-radius: 12px;
 	background: transparent;
+	cursor: default;
 }
 
 body {
@@ -110,7 +111,7 @@ h1,h2 {
     grid-template-columns: repeat(4, 1fr);
 }
   
-.box {
+.screenBox {
   border: 3px solid #666;
   /* background-color: #ddd; */
   /* background: linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%); */
@@ -121,19 +122,19 @@ h1,h2 {
   cursor: move;
 }
 
-.box:hover {
+.screenBox:hover {
   background-color: #00BFFF;
 }
 
-.column {
+.screenColumn {
   border: 3px solid #666;
   /* border-radius: .5em; */
   border-radius: 21px;
   padding: 10px;
-  cursor: move;
+  /* cursor: move; */
 }
 
-.box.over, .column.over {
+.screenBox.over, .screenColumn.over {
   border: 3px dotted #666;
 }
 

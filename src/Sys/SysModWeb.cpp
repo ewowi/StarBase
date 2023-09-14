@@ -17,8 +17,6 @@
 
 #include "AsyncJson.h"
 
-#include "html_ui.h"
-
 //https://techtutorialsx.com/2018/08/24/esp32-web-server-serving-html-from-file-system/
 //https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
 
@@ -407,34 +405,27 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, bool inclDef) {
 }
 
 //add an url to the webserver to listen to
-bool SysModWeb::addURL(const char * uri, const char * path, const char * contentType) {
-  // File f = files->open(path, "r");
-  // if (!f) {
-  //   print->print("addURL error opening file %s", path);
-  //   return false;
-  // } else {
-    // print->print("addURL File %s size %d\n", path, f.size());
+bool SysModWeb::addURL(const char * uri, const char * contentType, const char * path, const uint8_t * content, size_t len) {
+  server->on(uri, HTTP_GET, [uri, contentType, path, content, len](AsyncWebServerRequest *request) {
+    if (path) {
+      print->print("Webserver: addUrl %s %s file: %s", uri, contentType, path);
+      request->send(LittleFS, path, contentType);
+    }
+    else {
+      print->print("Webserver: addUrl %s %s csdata", uri, contentType);
 
-  server->on(uri, HTTP_GET, [uri, path, contentType](AsyncWebServerRequest *request) {
-    print->print("Webserver: client request %s %s %s", uri, path, contentType);
+      // if (handleIfNoneMatchCacheHeader(request)) return;
 
-    if (strcmp(path, "/index.htm") == 0) {
       AsyncWebServerResponse *response;
-      response = request->beginResponse_P(200, "text/html", PAGE_index, PAGE_index_L);
-
+      response = request->beginResponse_P(200, contentType, content, len);
       response->addHeader(FPSTR("Content-Encoding"),"gzip");
       // setStaticContentCacheHeaders(response);
       request->send(response);
-    } 
-    // temporary removed!!!
-    // else {
-    //   request->send(LittleFS, path, contentType);
-    // }
 
-    print->print("!\n");
+      print->print("!\n");
+    }
   });
-  // }
-  // f.close();
+
   return true;
 }
 

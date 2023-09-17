@@ -14,7 +14,7 @@
 #include "SysModModel.h"
 
 #include "html_ui.h"
-#include "html_js.h"
+// #include "html_js.h"
 
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 std::vector<void(*)(JsonObject var)> SysModUI::ucFunctions;
@@ -27,8 +27,8 @@ SysModUI::SysModUI() :Module("UI") {
   print->print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   success &= web->addURL("/", "text/html", nullptr, PAGE_index, PAGE_index_L);
-  success &= web->addURL("/index.js", "application/javascript", nullptr, PAGE_indexJs, PAGE_indexJs_length);
-  success &= web->addURL("/app.js", "application/javascript", nullptr, PAGE_appJs, PAGE_appJs_length);
+  // success &= web->addURL("/index.js", "application/javascript", nullptr, PAGE_indexJs, PAGE_indexJs_length);
+  // success &= web->addURL("/app.js", "application/javascript", nullptr, PAGE_appJs, PAGE_appJs_length);
   // success &= web->addURL("/index.css", "text/css", "/index.css");
 
   success &= web->setupJsonHandlers("/json", processJson);

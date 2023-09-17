@@ -6,19 +6,13 @@
 // @Copyright (c) 2023 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 
-import { gId, cE, jsonValues, toggleModal } from './index.js';
-
-import * as THREE from 'three';
-
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
 var renderer = null;
 var scene = null;
 var camera = null;
 var controls = null;
 // var previousFunction;
 
-export function userFun(userFunId, data) {
+function userFun(userFunId, data) {
   if (userFunId == "pview" && jsonValues.pview) {
     let leds = new Uint8Array(data);
     let pviewNode = gId("pview");
@@ -99,108 +93,112 @@ function preview3D(node, leds) {
   // let mW = leds[0];
   // let mH = leds[1];
   // let mD = leds[2];
+  import ('three').then((THREE) => {
+    import ('three/addons/controls/OrbitControls.js').then((OCModule) => {
 
-  let factor = 10;//fixed value: from mm to cm
-  let d = 5 / factor; //distanceLED;
+      let factor = 10;//fixed value: from mm to cm
+      let d = 5 / factor; //distanceLED;
 
-  if (!renderer || (jsonValues.pview && jsonValues.pview.new)) { //init 3D
+      if (!renderer || (jsonValues.pview && jsonValues.pview.new)) { //init 3D
 
-    console.log("preview3D create new renderer");
+        console.log("preview3D create new renderer");
 
-    // node.width  = 0;
-    // node.height = 0;
-    console.log("before", node);
-    renderer = new THREE.WebGLRenderer({canvas: node, antialias: true, alpha: true });
-    console.log("after", node);
-    renderer.setClearAlpha(0)
-    renderer.setClearColor( 0x000000, 0 );
-    // renderer.setSize( 300, 150);
-    // node.parentNode.appendChild( renderer.domElement );
+        // node.width  = 0;
+        // node.height = 0;
+        console.log("before", node);
+        renderer = new THREE.WebGLRenderer({canvas: node, antialias: true, alpha: true });
+        console.log("after", node);
+        renderer.setClearAlpha(0)
+        renderer.setClearColor( 0x000000, 0 );
+        // renderer.setSize( 300, 150);
+        // node.parentNode.appendChild( renderer.domElement );
 
-    camera = new THREE.PerspectiveCamera( 45, node.width/node.height, 1, 500);
-    // const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
-    camera.position.set( 0, 0, d*Math.sqrt(jsonValues.pview.width*jsonValues.pview.width + jsonValues.pview.height*jsonValues.pview.height + jsonValues.pview.depth*jsonValues.pview.depth) );
-    camera.lookAt( 0, 0, 0 );
+        camera = new THREE.PerspectiveCamera( 45, node.width/node.height, 1, 500);
+        // const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
+        camera.position.set( 0, 0, d*Math.sqrt(jsonValues.pview.width*jsonValues.pview.width + jsonValues.pview.height*jsonValues.pview.height + jsonValues.pview.depth*jsonValues.pview.depth) );
+        camera.lookAt( 0, 0, 0 );
 
-    scene = new THREE.Scene();
-    scene.background = null; //new THREE.Color( 0xff0000 );
+        scene = new THREE.Scene();
+        scene.background = null; //new THREE.Color( 0xff0000 );
 
-    controls = new OrbitControls( camera, renderer.domElement );
-    controls.target.set( 0, 0.5, 0 );
-    controls.update();
-    controls.enablePan = false;
-    controls.enableDamping = true;
+        controls = new OCModule.OrbitControls( camera, renderer.domElement );
+        controls.target.set( 0, 0.5, 0 );
+        controls.update();
+        controls.enablePan = false;
+        controls.enableDamping = true;
 
-  } //new
+      } //new
 
-  if (jsonValues.pview && jsonValues.pview.new) { //set the new coordinates
-    var offset_x = -d*(jsonValues.pview.width-1)/2;
-    var offset_y = -d*(jsonValues.pview.height-1)/2;
-    var offset_z = -d*(jsonValues.pview.depth-1)/2;
+      if (jsonValues.pview && jsonValues.pview.new) { //set the new coordinates
+        var offset_x = -d*(jsonValues.pview.width-1)/2;
+        var offset_y = -d*(jsonValues.pview.height-1)/2;
+        var offset_z = -d*(jsonValues.pview.depth-1)/2;
 
-    console.log("preview3D new jsonValues", jsonValues.pview);
+        console.log("preview3D new jsonValues", jsonValues.pview);
 
-    if (jsonValues.pview.outputs) {
-      // console.log("preview2D jsonValues", jsonValues.pview);
-      for (var output of jsonValues.pview.outputs) {
-        if (output.leds) {
-          for (var led of output.leds) {
-            const geometry = new THREE.SphereGeometry( 1/factor);
-            const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5});
-            // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
-            const sphere = new THREE.Mesh( geometry, material );
-            sphere.position.set(offset_x + d*led[0]/factor, offset_y + d*led[1]/factor, offset_z + d*led[2]/factor);
-            scene.add( sphere );
-          }
-        }
-        else {
-          console.log("preview3D jsonValues no leds", jsonValues.pview);
-          jsonValues.pview = null;
-        }            
-      }  
-    }
-    else {
-      console.log("preview3D jsonValues no outputs", jsonValues.pview);
-      jsonValues.pview = null;
-    }
-    jsonValues.pview.new = false;
-  }
-
-  if (jsonValues.pview) {
-    if (renderer.width != gId("pview").width || renderer.height != gId("pview").height)
-      renderer.setSize( gId("pview").width, gId("pview").height);
-    //light up the cube
-    let firstLed = 4;
-    var i = 1;
-    if (jsonValues.pview.outputs) {
-      // console.log("preview2D jsonValues", jsonValues.pview);
-      for (var output of jsonValues.pview.outputs) {
-        if (output.leds) {
-          for (var led of output.leds) {
-            if (i < scene.children.length) {
-              scene.children[i].visible = leds[i*3 + firstLed] + leds[i*3 + firstLed + 1] + leds[i*3 + firstLed+2] > 10; //do not show blacks
-              if (scene.children[i].visible) 
-                scene.children[i].material.color = new THREE.Color(`${leds[i*3 + firstLed]/255}`, `${leds[i*3 + firstLed + 1]/255}`, `${leds[i*3 + firstLed + 2]/255}`);
+        if (jsonValues.pview.outputs) {
+          // console.log("preview2D jsonValues", jsonValues.pview);
+          for (var output of jsonValues.pview.outputs) {
+            if (output.leds) {
+              for (var led of output.leds) {
+                const geometry = new THREE.SphereGeometry( 1/factor);
+                const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5});
+                // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
+                const sphere = new THREE.Mesh( geometry, material );
+                sphere.position.set(offset_x + d*led[0]/factor, offset_y + d*led[1]/factor, offset_z + d*led[2]/factor);
+                scene.add( sphere );
+              }
             }
-            i++;
+            else {
+              console.log("preview3D jsonValues no leds", jsonValues.pview);
+              jsonValues.pview = null;
+            }
           }
         }
         else {
-          console.log("preview3D jsonValues no leds", jsonValues.pview);
+          console.log("preview3D jsonValues no outputs", jsonValues.pview);
           jsonValues.pview = null;
-        }            
+        }
+        jsonValues.pview.new = false;
       }
-    }
-    else {
-      console.log("preview3D jsonValues no outputs", jsonValues.pview);
-      jsonValues.pview = null;
-    }
-  }
 
-  controls.update(); // apply orbit controls
+      if (jsonValues.pview) {
+        if (renderer.width != gId("pview").width || renderer.height != gId("pview").height)
+          renderer.setSize( gId("pview").width, gId("pview").height);
+        //light up the cube
+        let firstLed = 4;
+        var i = 1;
+        if (jsonValues.pview.outputs) {
+          // console.log("preview2D jsonValues", jsonValues.pview);
+          for (var output of jsonValues.pview.outputs) {
+            if (output.leds) {
+              for (var led of output.leds) {
+                if (i < scene.children.length) {
+                  scene.children[i].visible = leds[i*3 + firstLed] + leds[i*3 + firstLed + 1] + leds[i*3 + firstLed+2] > 10; //do not show blacks
+                  if (scene.children[i].visible)
+                    scene.children[i].material.color = new THREE.Color(`${leds[i*3 + firstLed]/255}`, `${leds[i*3 + firstLed + 1]/255}`, `${leds[i*3 + firstLed + 2]/255}`);
+                }
+                i++;
+              }
+            }
+            else {
+              console.log("preview3D jsonValues no leds", jsonValues.pview);
+              jsonValues.pview = null;
+            }
+          }
+        }
+        else {
+          console.log("preview3D jsonValues no outputs", jsonValues.pview);
+          jsonValues.pview = null;
+        }
+      }
 
-  renderer.render( scene, camera);
-}
+      controls.update(); // apply orbit controls
+
+      renderer.render( scene, camera);
+    }); //import OrbitControl
+  }); //import Three
+} //preview3D
 
 function previewBoard(node, leds) {
   let ctx = node.getContext('2d');

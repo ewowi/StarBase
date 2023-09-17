@@ -6,9 +6,6 @@
 // @Copyright (c) 2023 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 
-// import { on } from 'nodemon';
-import { userFun } from './app.js';
-
 let d = document;
 let ws = null;
 
@@ -16,12 +13,12 @@ let screenColumnNr = 0;
 let nrOfScreenColumns = 4;
 let userFunId = "";
 let htmlGenerated = false;
-export let jsonValues = {};
+let jsonValues = {};
 let uiFunCommands = [];
 let model = null; //model.json (as send by the server)
 
-export function gId(c) {return d.getElementById(c);}
-export function cE(e) { return d.createElement(e); }
+function gId(c) {return d.getElementById(c);}
+function cE(e) { return d.createElement(e); }
 
 function handleVisibilityChange() {
   console.log("handleVisibilityChange");
@@ -34,8 +31,6 @@ function onLoad() {
 
   d.addEventListener("visibilitychange", handleVisibilityChange, false);
 }
-
-window.addEventListener('load', onLoad);
 
 function makeWS() {
   if (ws) return;
@@ -637,7 +632,7 @@ function setSelect(element) {
 let isModal = false;
 let modalPlaceHolder;
 
-export function toggleModal(element) {
+function toggleModal(element) {
   // console.log("toggleModal", element);
   isModal = !isModal;
 

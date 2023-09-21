@@ -173,7 +173,7 @@ void LedsV::ledFixProjectAndMap() {
             uint16_t startLed = atoi(before);
             uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
             print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevLeds, startLed), max((uint16_t)(mappingTableLedCounter - 1), nrOfLeds)); //careful: AppModLeds:loop uses this to assign to FastLed
-            print->print("pins extend leds %d: %s (%d)\n", currPin, details);
+            print->print("pins extend leds %d: %s\n", currPin, details);
             //tbd: more check
 
             strncpy(SysModPins::pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
@@ -182,7 +182,7 @@ void LedsV::ledFixProjectAndMap() {
         else {//allocate new pin
           //tbd: check if free
           print->fFormat(details, sizeof(details)-1, "%d-%d", prevLeds, mappingTableLedCounter - 1); //careful: AppModLeds:loop uses this to assign to FastLed
-          print->print("pins %d: %s (%d)\n", currPin, details);
+          print->print("pins %d: %s\n", currPin, details);
           pins->allocatePin(currPin, "Leds", details);
         }
 

@@ -30,6 +30,12 @@ enum Projections
   count
 };
 
+struct Coordinate {
+  uint16_t x;
+  uint16_t y;
+  uint16_t z;
+};
+
 class LedsV {
 
 public:

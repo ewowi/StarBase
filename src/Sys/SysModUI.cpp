@@ -14,7 +14,6 @@
 #include "SysModModel.h"
 
 #include "html_ui.h"
-// #include "html_js.h"
 
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 std::vector<void(*)(JsonObject var)> SysModUI::ucFunctions;
@@ -85,6 +84,7 @@ void SysModUI::loop() {
 
         //send leds info in binary data format
         //tbd: this can crash on 64*64 matrices...
+        // print->print("bufSize %d\n", varLoop->bufSize);
         AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 4);
         if (wsBuf) {//out of memory
           wsBuf->lock();
@@ -280,7 +280,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
               print->print("processJson Command %s var %s not found\n", key, value2.as<String>().c_str());
           }
         } else
-          print->print("processJson value not array?\n", key, value.as<String>().c_str());
+          print->print("processJson value not array? %s %s\n", key, value.as<String>().c_str());
       } 
       else { //normal change
         if (!value.is<JsonObject>()) { //no vars (inserted by uiFun responses)

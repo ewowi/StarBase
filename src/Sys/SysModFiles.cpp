@@ -167,7 +167,7 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
   // if (doCloseFile) closeFile();
   File f = open(path, "r");
   if (!f) {
-    print->print("File %s open not successful %s\n", path);
+    print->print("File %s open not successful\n", path);
     return false;
   }
   else { 

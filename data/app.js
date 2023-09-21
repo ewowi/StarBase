@@ -108,6 +108,7 @@ function preview3D(node, leds) {
         console.log("before", node);
         renderer = new THREE.WebGLRenderer({canvas: node, antialias: true, alpha: true });
         console.log("after", node);
+        // THREE.Object3D.DefaultUp = new THREE.Vector3(0,1,1);
         renderer.setClearAlpha(0)
         renderer.setClearColor( 0x000000, 0 );
         // renderer.setSize( 300, 150);
@@ -203,8 +204,8 @@ function preview3D(node, leds) {
 function previewBoard(node, leds) {
   let ctx = node.getContext('2d');
   //assuming 20 pins
-  let mW = 2; // matrix width
-  let mH = 10; // matrix height
+  let mW = 10; // matrix width
+  let mH = 2; // matrix height
   let pPL = Math.min(node.width / mW, node.height / mH); // pixels per LED (width of circle)
   let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
   let i = 4;

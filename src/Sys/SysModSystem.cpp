@@ -84,7 +84,7 @@ void SysModSystem::loop() {
   if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
-    mdl->setValueV("upTime", "%u s", millis()/1000);
+    mdl->setValueV("upTime", "%lu s", millis()/1000);
     mdl->setValueV("loops", "%lu /s", loopCounter);
     mdl->setValueV("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
     mdl->setValueV("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));

@@ -37,23 +37,6 @@ void SysModPins::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
-  ui->initCanvas(parentVar, "board", -1, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Board layout");
-    web->addResponse(var["id"], "comment", "WIP");
-  }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
-    // send leds preview to clients
-    for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
-    {
-      buffer[i*3+4] = (digitalRead(i)+1) * 50;
-      buffer[i*3+4+1] = 255;
-      buffer[i*3+4+2] = 192;
-    }
-    //new values
-    buffer[0] = 0; //0 * 256
-    buffer[1] = 20; //20 pins
-    buffer[3] = 10*10; //every 10 sec 
-  });
-
   //show table of allocated pins
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Pins");
@@ -80,6 +63,23 @@ void SysModPins::setup() {
     web->addResponse(var["id"], "label", "Details");
   });
 
+  ui->initCanvas(parentVar, "board", -1, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Board layout");
+    web->addResponse(var["id"], "comment", "WIP");
+  }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
+    // send leds preview to clients
+    for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
+    {
+      buffer[i*3+4] = (digitalRead(i)+1) * 50;
+      buffer[i*3+4+1] = 255;
+      buffer[i*3+4+2] = 192;
+    }
+    //new values
+    buffer[0] = 0; //0 * 256
+    buffer[1] = 20; //20 pins
+    buffer[3] = 10*10; //every 10 sec 
+  });
+
   ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);
   ui->initCheckBox(parentVar, "pin4", false, false);
   ui->initCheckBox(parentVar, "pin33", true, false);
@@ -103,14 +103,14 @@ void SysModPins::loop(){
 
 void SysModPins::updateGPIO(JsonObject var) {
   if (var["value"].is<bool>()) {
-    bool pin = var["value"];
+    bool pinValue = var["value"];
     JsonString id = var["id"];
 
-    print->print("updateGPIO %s:=%d\n", id.c_str(), pin);
+    print->print("updateGPIO %s:=%d\n", id.c_str(), pinValue);
 
-    if (id == "pin2") digitalWrite(2, pin?HIGH:LOW);
-    if (id == "pin4") digitalWrite(4, pin?HIGH:LOW);
-    if (id == "pin33") digitalWrite(33, pin?HIGH:LOW);
+    if (id == "pin2") digitalWrite(2, pinValue?HIGH:LOW);
+    if (id == "pin4") digitalWrite(4, pinValue?HIGH:LOW);
+    if (id == "pin33") digitalWrite(33, pinValue?HIGH:LOW);
   }
 }
 

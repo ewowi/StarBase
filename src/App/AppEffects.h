@@ -16,8 +16,8 @@
 
 
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-static unsigned long call = 0;
-static unsigned long step = 0;
+static unsigned long call = 0; //for 3D effects (temporary)
+static unsigned long step = 0; //for GEQ (temporary)
 
 //should not contain variables/bytes to keep mem as small as possible!!
 class Effect {
@@ -85,10 +85,10 @@ public:
     // CRGB x = ledsV[pos];
   }
   bool controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 128, false);
+    ui->initSlider(parentVar, "speed", 60, false);
     return true;
   }
-};
+}; //Sinelon
 
 //https://www.perfectcircuit.com/signal/difference-between-waveforms
 class RunningEffect: public Effect {
@@ -101,16 +101,13 @@ public:
     Effect::loop();
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, mdl->getValue("fade").as<int>()); //physical leds
-    // int pos0 = (call-1)%ledsV.nrOfLeds;
-    // leds[pos0] = CHSV( 0,0,0);
-    int pos = map(beat16( mdl->getValue("speed").as<int>()), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 );
-    int pos2 = map(beat16( mdl->getValue("speed").as<int>(), 1000), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 );
-    // int pos = call%LedsV::nrOfLedsV; //Virtual leds
-    ledsV[LedsV::nrOfLedsV -1 - pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
-    ledsV[LedsV::nrOfLedsV -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
+    int pos = map(beat16( mdl->getValue("speed").as<int>()), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 ); //instead of call%LedsV::nrOfLedsV
+    // int pos2 = map(beat16( mdl->getValue("speed").as<int>(), 1000), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 ); //one second later
+    ledsV[pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
+    // ledsV[LedsV::nrOfLedsV -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
   bool controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 128, false, [](JsonObject var) { //uiFun
+    ui->initSlider(parentVar, "speed", 60, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "in BPM!");
     });
     ui->initSlider(parentVar, "fade", 128, false);
@@ -277,7 +274,7 @@ public:
     blur2d(ledsP, LedsV::widthP, LedsV::heightP, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
   }
   bool controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 128, false);
+    ui->initSlider(parentVar, "speed", 60, false);
     ui->initSlider(parentVar, "intensity", 128, false);
     ui->initSlider(parentVar, "blur", 128, false);
     return true;
@@ -298,12 +295,13 @@ public:
     CRGBPalette16 palette = PartyColors_p;
 
     if (mdl->getValue("Vertical").as<bool>()) {
-      size_t x = call%LedsV::widthV;
+      size_t x = map(beat16( mdl->getValue("speed").as<int>()), 0, uint16_t(-1), 0, LedsV::widthV-1 ); //instead of call%width
+
       for (size_t y = 0; y <  LedsV::heightV; y++) {
         ledsV[x + y * LedsV::widthV] = CHSV( gHue, 255, 192);
       }
     } else {
-      size_t y = call%LedsV::heightV;
+      size_t y = map(beat16( mdl->getValue("speed").as<int>()), 0, uint16_t(-1), 0, LedsV::heightV-1 ); //instead of call%height
       for (size_t x = 0; x <  LedsV::widthV; x++) {
         ledsV[x + y * LedsV::widthV] = CHSV( gHue, 255, 192);
       }
@@ -311,6 +309,7 @@ public:
   }
 
   bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 60, false);
     ui->initCheckBox(parentVar, "Vertical", false, false);
     return true;
   }
@@ -525,7 +524,7 @@ public:
     uint8_t samplePeak = *(uint8_t*)um_data->u_data[3];
     #endif
 
-    uint8_t speed = mdl->getValue("speed");
+    uint8_t fadeOut = mdl->getValue("fadeOut");
     uint8_t intensity = mdl->getValue("intensity"); 
     bool colorBars = mdl->getValue("colorBars");
     bool smoothBars = mdl->getValue("smoothBars");
@@ -536,8 +535,10 @@ public:
       rippleTime = true;
     }
 
-    int fadeoutDelay = (256 - speed) / 64;
-    if ((fadeoutDelay <= 1 ) || ((call % fadeoutDelay) == 0)) fadeToBlackBy( ledsP, LedsV::nrOfLedsP, speed);
+    int fadeoutDelay = (256 - fadeOut) / 64; //256..1 -> 4..0
+    size_t beat = map(beat16( fadeOut), 0, uint16_t(-1), 0, fadeoutDelay-1 ); // instead of call%fadeOutDelay
+
+    if ((fadeoutDelay <= 1 ) || (beat == 0)) fadeToBlackBy( ledsP, LedsV::nrOfLedsP, fadeOut);
 
     uint16_t lastBandHeight = 0;  // WLEDMM: for smoothing out bars
 
@@ -595,14 +596,14 @@ public:
   }
 
   bool controls(JsonObject parentVar) {
-    ui->initNumber(parentVar, "speed", 255, false);
+    ui->initNumber(parentVar, "fadeOut", 255, false);
     ui->initNumber(parentVar, "intensity", 255, false);
     ui->initCheckBox(parentVar, "colorBars", false, false); //
     ui->initCheckBox(parentVar, "smoothBars", false, false);
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 
-    e131mod->patchChannel(3, "speed", 255); // TODO: add constant for name
+    e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
     e131mod->patchChannel(4, "intensity", 255);
 
     return true;

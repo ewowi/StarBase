@@ -56,17 +56,49 @@ void SysModPrint::loop() {
 
 size_t SysModPrint::print(const char * format, ...) {
   va_list args;
+
   va_start(args, format);
 
-  size_t len = vprintf(format, args);
+  for (size_t i = 0; i < strlen(format); i++) 
+  {
+    if (format[i] == '%') 
+    {
+      switch (format[i+1]) 
+      {
+        case 's':
+          Serial.print(va_arg(args, const char *));
+          break;
+        case 'u':
+          Serial.print(va_arg(args, unsigned int));
+          break;
+        case 'c':
+          Serial.print(va_arg(args, int));
+          break;
+        case 'd':
+          Serial.print(va_arg(args, int));
+          break;
+        case 'f':
+          Serial.print(va_arg(args, double));
+          break;
+        case '%':
+          Serial.print("%"); // in case of %%
+          break;
+        default:
+          va_arg(args, int);
+        // logFile.print(x);
+          Serial.print(format[i]);
+          Serial.print(format[i+1]);
+      }
+      i++;
+    } 
+    else 
+    {
+      Serial.print(format[i]);
+    }
+  }
 
   va_end(args);
-  
-  // if (setupsDone) mdl->setValueI("log", (int)millis()/1000);
-  //this function looks very sensitive, any chance causes crashes!
-  //reason could (very well...) be that setValue also issues print commands...
-
-  return len;
+  return 1;
 }
 
 size_t SysModPrint::println(const __FlashStringHelper * x) {

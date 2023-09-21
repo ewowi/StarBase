@@ -99,7 +99,7 @@ void SysModModel::setup() {
 
   if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
-    setValueV("mSize", "%u / %u B", model->memoryUsage(), model->capacity());
+    setValueV("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
   }
 
   if (model->memoryUsage() / model->capacity() > 0.95) {
@@ -213,6 +213,7 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
 
 //Set value with argument list
 JsonObject SysModModel::setValueV(const char * id, const char * format, ...) {
+  // return JsonObject();
   va_list args;
   va_start(args, format);
 

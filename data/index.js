@@ -187,6 +187,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
 
           let spanNode = cE("span");
           spanNode.innerText= "🔍";
+          // spanNode.addEventListener('click', (event) => {toggleModal(newNode);});
           pNode.appendChild(spanNode);
           
           parentNode.appendChild(pNode);
@@ -643,6 +644,11 @@ function toggleModal(element) {
     modalPlaceHolder.height = element.height;
 
     element.parentNode.replaceChild(modalPlaceHolder, element);
+
+    // let btn = cE("button");
+    // btn.innerText = "close";
+    // btn.addEventListener('click', (event) => {toggleModal(element);});
+    // gId('modalView').appendChild(btn);
 
     gId('modalView').appendChild(element);
     element.width = window.innerWidth;;

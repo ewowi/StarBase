@@ -19,7 +19,7 @@ public:
 
   uint8_t pinNr = 0;
   uint8_t pinList[9] = {255,255,255,255,255,255,255,255,255};
-  uint8_t sizeOfPins = 0;
+  uint8_t nrOfPins = 0;
 
   char pinSep[2]="";
   char pixelSep[2]="";
@@ -41,8 +41,8 @@ public:
       /* walk through other tokens */
       while( token != NULL ) 
       {
-        print->print( " %s(%d) %d\n", token, atoi(token), sizeOfPins );
-        pinList[sizeOfPins++] = atoi(token);
+        print->print( " %s(%d) %d\n", token, atoi(token), nrOfPins );
+        pinList[nrOfPins++] = atoi(token);
         token = strtok(NULL, s);
       }
     }
@@ -109,8 +109,14 @@ public:
 
   }
 
-  void openPin() {
-    f.printf("%s{\"pin\":%d,\"leds\":[", pinSep, pinList[(pinNr++)%sizeOfPins]);
+  void 
+  openPin() {
+    uint8_t nextPin;
+    if (pinNr < nrOfPins)
+      nextPin = pinNr++;
+    else
+      nextPin = nrOfPins-1;
+    f.printf("%s{\"pin\":%d,\"leds\":[", pinSep, pinList[nextPin]);
     strcpy(pinSep, ",");
     strcpy(pixelSep, "");
   }
@@ -307,35 +313,127 @@ public:
     closePin();
   }
 
-  void sideCube3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t width, uint8_t sides) {
-    //front and back
-    for (uint8_t z = 0; z<width; z+=width-1) {
+  void plane3DFindNextPoint(Coordinate *point, Coordinate first, Coordinate last, uint8_t axis, bool clockWise) {
+    if (axis == 0) {
+      if (point->x != last.x) {
+        point->x += point->x<=last.x?1:-1;
+      }
+      else { //cr
+        point->x = first.x;
+        if (clockWise) plane3DFindNextPoint(point, first, last, 1, clockWise);
+        else plane3DFindNextPoint(point, first, last, 2, clockWise);
+      }
+    }
+    if (axis == 1) {
+      if (point->y != last.y) {
+        point->y += point->y<=last.y?1:-1;
+      }
+      else { //cr
+        point->y = first.y;
+        if (clockWise) plane3DFindNextPoint(point, first, last, 2, clockWise);
+        else plane3DFindNextPoint(point, first, last, 0, clockWise);
+      }
+    }
+    if (axis == 2) {
+      if (point->z != last.z) {
+        point->z += point->z<=last.z?1:-1;
+      }
+      else { //cr
+        point->z = first.z;
+        if (clockWise) plane3DFindNextPoint(point, first, last, 0, clockWise);
+        else plane3DFindNextPoint(point, first, last, 1, clockWise);
+      }
+    }
+
+    // print->print("plane3DFindNextPoint %d %d %d %d \n", axis, point->x, point->y, point->z);
+  }
+
+  void plane3D (Coordinate first, Coordinate last, bool clockWise) {
+    openPin();
+    bool cont = true;
+    Coordinate point = first;
+
+    write3D(point.x*10, point.y*10, point.z*10);
+
+    while (cont) {
+
+      plane3DFindNextPoint(&point, first, last, 0, clockWise);
+
+      write3D(point.x*10, point.y*10, point.z*10);
+
+      //check if next point is end point
+      cont = (point.x != last.x || point.y != last.y || point.z != last.z);
+      // print->print("plane3DFindNextPoint p:%d %d %d %d l:%d %d %d \n", cont, point.x, point.y, point.z, last.x, last.y, last.z);
+    }
+
+    closePin();
+  }
+
+  //deprecated (use plane3D)
+  void sideCube3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t length, uint8_t sides) {
+    //front
+    { //for (uint8_t z = 0; z<length; z+=length-1) 
+      int z = 0;
       openPin();
-      for (uint8_t y = 0; y<width; y++)
-        for (uint16_t x = 0; x<width ; x++) {
+      for (int y = 0; y<length; y++)
+        for (int x = 0; x<length ; x++) {
           write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
         }
       closePin();
     }
-    //NO botom and top
-    for (uint8_t y = width-1; y<width; y+=width-1) {
+    //right
+    { //for (uint16_t x = 0; x<length ; x+=length-1) 
+      int x = length-1;
       openPin();
-      for (uint8_t z = 0; z<width; z++)
-        for (uint16_t x = 0; x<width ; x++) {
+      for (int y = 0; y<length; y++) {
+        for (int z = 0; z<length; z++)
           write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
         }
+      closePin();
+    }
+    //back
+    { //for (uint8_t z = 0; z<length; z+=length-1) 
+      int z = length-1;
+      openPin();
+      for (int y = 0; y<length; y++)
+        for (int x = length-1; x>=0 ; x--) {
+          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
+        }
+      closePin();
+    }
+    //bottom
+    { //for (uint8_t y = length-1; y<length; y+=length-1) 
+      uint16_t y = length -1;
+      openPin();
+      for (int z = length-1; z>=0; z--)
+        for (int x = length-1; x>=0 ; x--) {
+          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
+        }
+      closePin();
+    }
+    //left
+    { //for (uint16_t x = 0; x<length ; x+=length-1) 
+      int x = 0;
+      openPin();
+      for (int y = length-1; y>=0; y--) {
+        for (int z = length-1; z>=0; z--) {
+          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
+        }
+      }
+      closePin();
+    }
+    //top
+    { //for (uint16_t x = 0; x<length ; x+=length-1) 
+      int y = 0;
+      openPin();
+      for (int z = length-1; z>=0; z--) {
+        for (int x = 0; x<length; x++) {
+          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
+        }
+      }
       closePin();
     }
 
-    //left and right
-    for (uint16_t x = 0; x<width ; x+=width-1) {
-      openPin();
-      for (uint8_t z = 0; z<width; z++)
-        for (uint8_t y = 0; y<width; y++) {
-          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-        }
-      closePin();
-    }
   }
 
   void cube3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t width, uint16_t height, uint16_t depth) {
@@ -413,7 +511,7 @@ public:
       ledFixGenChFun(var);
     }); //ledFixGen
 
-    ui->initText(parentVar, "pinList", "16", false, [](JsonObject var) { //uiFun
+    ui->initText(parentVar, "pinList", "12,13,14,15,16,17", false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "One or more e.g. 12,13");
     });
 
@@ -495,7 +593,7 @@ public:
       ui->initNumber(parentVar, "depth", 8, false);
     }
     else if (value == f_3DSideCube) {
-      ui->initNumber(parentVar, "width", 8, false);
+      ui->initNumber(parentVar, "length", 8, false);
       ui->initNumber(parentVar, "sides", 5, false);
     }
     else if (value == f_3DGlobe) {
@@ -515,7 +613,7 @@ public:
 
       uint16_t ledCount = mdl->getValue("ledCount");
 
-      genFix.openHeader("1DSpiral%02d", ledCount);
+      genFix.openHeader("1DSpiral%d", ledCount);
 
       genFix.spiral1D(0, 0, 0, ledCount);
 
@@ -525,7 +623,7 @@ public:
       uint16_t width = mdl->getValue("width");
       uint16_t height = mdl->getValue("height");
 
-      genFix.openHeader("2DMatrix%02d%02d", width, height);
+      genFix.openHeader("2DMatrix%d%d", width, height);
 
       genFix.matrix2D(0, 0, width, height);
 
@@ -534,7 +632,7 @@ public:
     } else if (fix == f_2DRing) {
       uint16_t ledCount = mdl->getValue("ledCount");
 
-      genFix.openHeader("2DRing%02d", ledCount);
+      genFix.openHeader("2DRing%d", ledCount);
 
       genFix.ring2D(0, 0, ledCount);
 
@@ -575,7 +673,7 @@ public:
       uint16_t nrOfSpokes = mdl->getValue("nrOfSpokes");
       uint16_t ledsPerSpoke = mdl->getValue("ledsPerSpoke");
 
-      genFix.openHeader("2DWheel%02d_%d", nrOfSpokes, ledsPerSpoke);
+      genFix.openHeader("2DWheel%d_%d", nrOfSpokes, ledsPerSpoke);
 
       genFix.wheel2D(0, 0, nrOfSpokes, ledsPerSpoke);
 
@@ -590,19 +688,26 @@ public:
       //   nrOfLeds += (j+1) * 3;
       // }
 
-      genFix.openHeader("3DCone%02d", nrOfRings);
+      genFix.openHeader("3DCone%d", nrOfRings);
 
       genFix.cone3D(0,0,0, nrOfRings);
 
       genFix.closeHeader();
     }
     else if (fix == f_3DSideCube) {
-      uint16_t width = mdl->getValue("width");
+      uint16_t length = mdl->getValue("length");
       uint8_t sides = mdl->getValue("sides");
       
-      genFix.openHeader("3DSideCube%02d%02d%02d", width, width, sides);
+      genFix.openHeader("3DSideCube%d%d", length, sides);
 
-      genFix.sideCube3D (0, 0, 0, width, sides);  
+      genFix.plane3D({1, 1, 0},   {length, length, 0}, true); // front (z=0, first x then y)
+      genFix.plane3D({length, length+1, length}, {1, length+1, 1}, false); // bottom (y=length+1, first x, then z)
+      genFix.plane3D({length+1, 1, 1}, {length+1, length, length}, false); // right (x=length + 1, first z, then y)
+      genFix.plane3D({0, length, length}, {0, 1, 1}, true); // left (x=0, first y, then z)
+      genFix.plane3D({length, 1, length+1}, {1, length, length+1}, true); // back (z = length+1, first x, then y)
+      genFix.plane3D({1, 0, length}, {length, 0, 1}, true); // top (y=0, first x, then z)
+
+      // genFix.sideCube3D (0, 0, 0, length, sides);  
 
       genFix.closeHeader();
     } else if (fix == f_3DCube) {
@@ -610,7 +715,7 @@ public:
       uint16_t height =  mdl->getValue("height");
       uint16_t depth = mdl->getValue("depth");
 
-      genFix.openHeader("3DCube%02d%02d%02d", width, height, depth);
+      genFix.openHeader("3DCube%d%d%d", width, height, depth);
 
       genFix.cube3D(0, 0, 0, width, height, depth);
 
@@ -620,7 +725,7 @@ public:
 
       uint16_t width = mdl->getValue("width");
 
-      genFix.openHeader("3DGlobe%02d", width);
+      genFix.openHeader("3DGlobe%d", width);
 
       genFix.globe3D(0, 0, 0, width);
 

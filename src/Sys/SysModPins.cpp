@@ -70,9 +70,9 @@ void SysModPins::setup() {
     // send leds preview to clients
     for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
     {
-      buffer[i*3+4] = (digitalRead(i)+1) * 50;
-      buffer[i*3+4+1] = 255;
-      buffer[i*3+4+2] = 192;
+      buffer[i*3+4] = random(256);// (digitalRead(i)+1) * 50;
+      buffer[i*3+4+1] = random(256);;
+      buffer[i*3+4+2] = random(256);;
     }
     //new values
     buffer[0] = 0; //0 * 256

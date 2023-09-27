@@ -89,7 +89,7 @@ void SysModNetwork::handleConnection() {
       dnsServer.stop();
       WiFi.softAPdisconnect(true);
       apActive = false;
-      print->println(F("Access point disabled (handle)."));
+      USER_PRINTF("Access point disabled (handle).\n");
     }
   }
 }

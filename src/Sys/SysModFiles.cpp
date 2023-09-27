@@ -125,7 +125,7 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
         strncat(urlString, file.name(), sizeof(urlString)-1);
         row.add((char *)urlString);  //create a copy!
       }
-      // Serial.printf("FILE: %s %d\n", file.name(), file.size());
+      // USER_PRINTF("FILE: %s %d\n", file.name(), file.size());
     }
 
     file.close();
@@ -147,7 +147,7 @@ bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
   size_t counter = 0;
   while (file) {
     if (counter == seqNr) {
-      Serial.printf("seqNrToName: %s %d\n", file.name(), file.size());
+      USER_PRINTF("seqNrToName: %s %d\n", file.name(), file.size());
       root.close();
       strncat(fileName, "/", 31); //add root prefix, fileName is 32 bytes but sizeof doesn't know so cheating
       strncat(fileName, file.name(), 31);
@@ -189,13 +189,13 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
 // bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
 //   File f = open(path, "w");
 //   if (f) {
-//     print->println(F("  success"));
+//     print->println("  success");
 //     serializeJson(*dest, f);
 //     f.close();
 //     filesChange();
 //     return true;
 //   } else {
-//     print->println(F("  fail"));
+//     print->println("  fail");
 //     return false;
 //   }
 // }

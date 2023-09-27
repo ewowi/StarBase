@@ -27,7 +27,7 @@ SysModModel::SysModModel() :Module("Model") {
 
   USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
+  USER_PRINTF("Reading model from /model.json... (deserializeConfigFromFS)\n");
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     print->printJson("Read model", *model);
     web->sendDataWs(nullptr, false); //send new data: all clients, no def, no ws here yet!!!

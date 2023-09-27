@@ -19,9 +19,9 @@ bool SysModModules::isConnected = false;
 std::vector<Module *> SysModModules::modules;
 
 SysModModules::SysModModules() :Module("Modules") {
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 void SysModModules::setup() {
@@ -69,7 +69,7 @@ void SysModModules::setup() {
     } else { //read array and set module enabled
       for (bool isEnabled:var["value"].as<JsonArray>()) {
         if (modules[rowNr]->isEnabled != isEnabled) {
-          print->print("  mdlEnabled.chFun %d %s: %d->%d\n", rowNr, modules[rowNr]->name, modules[rowNr]->isEnabled, isEnabled);
+          USER_PRINTF("  mdlEnabled.chFun %d %s: %d->%d\n", rowNr, modules[rowNr]->name, modules[rowNr]->isEnabled, isEnabled);
           modules[rowNr]->isEnabled = isEnabled;
           modules[rowNr]->enabledChanged();
         }

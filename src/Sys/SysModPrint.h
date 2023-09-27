@@ -11,6 +11,8 @@
 #pragma once
 #include "Module.h"
 
+#define USER_PRINTF(x...) print->print(x)
+
 class SysModPrint:public Module {
 
 public:

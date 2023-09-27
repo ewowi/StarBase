@@ -40,7 +40,7 @@ public:
 
   void setup() {
     Module::setup();
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
 
@@ -49,7 +49,7 @@ public:
     }, [](JsonObject var) { //chFun
       uint8_t bri = var["value"];
       FastLED.setBrightness(bri);
-      print->print("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
+      USER_PRINTF("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
     });
 
     ui->initSelect(parentVar, "fx", 0, false, [](JsonObject var) { //uiFun
@@ -61,12 +61,12 @@ public:
       }
     }, [](JsonObject var) { //chFun
       uint8_t fx = var["value"];
-      print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
+      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
 
       doMap = effects.setEffect("fx", fx);
     });
 
-    print->print("afterfx");
+    USER_PRINTF("afterfx");
 
     ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun.
       // web->addResponse(var["id"], "label", "Effect");
@@ -77,7 +77,7 @@ public:
       select.add("Distance from point"); //2
       select.add("Distance from centre"); //3
     }, [](JsonObject var) { //chFun
-      print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::projectionNr = var["value"];
       doMap = true;
@@ -113,7 +113,7 @@ public:
         web->addResponse("pview", "file", fileName);
       }
     }, [](JsonObject var) { //chFun
-      print->print("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::ledFixNr = var["value"];
       doMap = true;
@@ -148,7 +148,7 @@ public:
       web->addResponse(var["id"], "comment", "Frames per second");
     }, [](JsonObject var) { //chFun
       AppModLeds::fps = var["value"];
-      print->print("fps changed %d\n", AppModLeds::fps);
+      USER_PRINTF("fps changed %d\n", AppModLeds::fps);
     });
 
     ui->initText(parentVar, "realFps", nullptr, true, [](JsonObject var) { //uiFun
@@ -163,7 +163,7 @@ public:
       // e131mod->patchChannel(4, "ledFix", 5); //assuming 5!!!
     #endif
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {
@@ -212,7 +212,7 @@ public:
             after = strtok(NULL, " ");
             uint16_t startLed = atoi(before);
             uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
-            print->print("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
+            USER_PRINTF("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
 
             //commented pins: error: static assertion failed: Invalid pin specified
             switch (pinNr) {
@@ -267,7 +267,7 @@ public:
               // case 48: FastLED.addLeds<NEOPIXEL, 48>(ledsP, startLed, nrOfLeds); break;
               // case 49: FastLED.addLeds<NEOPIXEL, 49>(ledsP, startLed, nrOfLeds); break;
               // case 50: FastLED.addLeds<NEOPIXEL, 50>(ledsP, startLed, nrOfLeds); break;
-              default: print->print("FastLedPin assignment: pin not supported %d\n", pinNr);
+              default: USER_PRINTF("FastLedPin assignment: pin not supported %d\n", pinNr);
             }
           }
         }

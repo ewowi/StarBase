@@ -36,17 +36,17 @@ public:
   static IPAddress targetIp; //tbd: targetip also configurable from fixtures, and ddp instead of pin output
 
   UserModDDP() :Module("DDP") {
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
     isEnabled = false; //default off
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     Module::setup();
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
 
@@ -65,11 +65,11 @@ public:
       size_t ddpInst = var["value"];
       if (ddpInst >=0 && ddpInst < UserModInstances::nodes.size()) {
         targetIp = UserModInstances::nodes[ddpInst].ip;
-        print->print("Start DDP to %s\n", targetIp.toString().c_str());
+        USER_PRINTF("Start DDP to %s\n", targetIp.toString().c_str());
       }
     }); //ddpInst
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){
@@ -101,7 +101,7 @@ public:
       if (sequenceNumber > 15) sequenceNumber = 0;
 
       if (!ddpUdp.beginPacket(targetIp, DDP_DEFAULT_PORT)) {  // port defined in ESPAsyncE131.h
-        print->print("DDP WiFiUDP.beginPacket returned an error\n");
+        USER_PRINTF("DDP WiFiUDP.beginPacket returned an error\n");
         return; // borked
       }
 
@@ -141,7 +141,7 @@ public:
       }
 
       if (!ddpUdp.endPacket()) {
-        print->print("DDP WiFiUDP.endPacket returned an error\n");
+        USER_PRINTF("DDP WiFiUDP.endPacket returned an error\n");
         return; // problem
       }
       channel += packetSize;

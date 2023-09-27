@@ -17,7 +17,7 @@ PinObject SysModPins::pinObjects[NUM_PINS];
 bool SysModPins::pinsChanged = false;
 
 SysModPins::SysModPins() :Module("Pins") {
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
   pinMode(2, OUTPUT);
   pinMode(4, OUTPUT);
@@ -28,12 +28,12 @@ SysModPins::SysModPins() :Module("Pins") {
     deallocatePin(i, pinObjects[i].owner);
   }
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 void SysModPins::setup() {
   Module::setup();
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
 
@@ -84,7 +84,7 @@ void SysModPins::setup() {
   ui->initCheckBox(parentVar, "pin4", false, false);
   ui->initCheckBox(parentVar, "pin33", true, false);
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModPins::loop(){
@@ -106,7 +106,7 @@ void SysModPins::updateGPIO(JsonObject var) {
     bool pinValue = var["value"];
     JsonString id = var["id"];
 
-    print->print("updateGPIO %s:=%d\n", id.c_str(), pinValue);
+    USER_PRINTF("updateGPIO %s:=%d\n", id.c_str(), pinValue);
 
     if (id == "pin2") digitalWrite(2, pinValue?HIGH:LOW);
     if (id == "pin4") digitalWrite(4, pinValue?HIGH:LOW);
@@ -115,10 +115,10 @@ void SysModPins::updateGPIO(JsonObject var) {
 }
 
 void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * details) {
-  print->print("allocatePin %d %s %s\n", pinNr, owner, details);
+  USER_PRINTF("allocatePin %d %s %s\n", pinNr, owner, details);
   if (pinNr < NUM_PINS) {
     if (strcmp(pinObjects[pinNr].owner, "") != 0 && strcmp(pinObjects[pinNr].owner, owner) != 0)
-      print->print("allocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
+      USER_PRINTF("allocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
     else {
       strncpy(pinObjects[pinNr].owner, owner, sizeof(PinObject::owner)-1);  
       strncpy(pinObjects[pinNr].details, details, sizeof(PinObject::details)-1);  
@@ -128,10 +128,10 @@ void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * det
 }
 
 void SysModPins::deallocatePin(uint8_t pinNr, const char * owner) {
-  // print->print("deallocatePin %d %s\n", pinNr, owner);
+  // USER_PRINTF("deallocatePin %d %s\n", pinNr, owner);
   if (pinNr < NUM_PINS) {
     if (strcmp(pinObjects[pinNr].owner, owner) != 0)
-      print->print("deallocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
+      USER_PRINTF("deallocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
     else {
       strcpy(pinObjects[pinNr].owner, "");  
       strcpy(pinObjects[pinNr].details, "");  

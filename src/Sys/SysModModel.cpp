@@ -25,7 +25,7 @@ SysModModel::SysModModel() :Module("Model") {
 
   JsonArray root = model->to<JsonArray>(); //create
 
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
   print->println(F("Reading model from /model.json... (deserializeConfigFromFS)"));
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
@@ -33,13 +33,13 @@ SysModModel::SysModModel() :Module("Model") {
     web->sendDataWs(nullptr, false); //send new data: all clients, no def, no ws here yet!!!
   }
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModModel::setup() {
   Module::setup();
 
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
 
@@ -68,11 +68,11 @@ void SysModModel::setup() {
   ui->initButton(parentVar, "deleteModel", nullptr, false, [](JsonObject var) {
     web->addResponse(var["id"], "comment", "Back to defaults");
   }, [](JsonObject var) {
-    print->print("delete model json\n");
+    USER_PRINTF("delete model json\n");
     files->remove("/model.json");
   });
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
   void SysModModel::loop() {
@@ -145,7 +145,7 @@ JsonObject SysModModel::setValueC(const char * id, const char * value) {
   JsonObject var = findVar(id);
   if (!var.isNull()) {
     if (var["value"].isNull() || var["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
+      // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
       if (var["ro"]) { // do not update var["value"]
         ui->setChFunAndWs(var, value); //value: bypass var["value"]
       } else {
@@ -155,7 +155,7 @@ JsonObject SysModModel::setValueC(const char * id, const char * value) {
     }
   }
   else
-    print->print("setValue Var %s not found\n", id);
+    USER_PRINTF("setValue Var %s not found\n", id);
   return var;
 }
 
@@ -164,13 +164,13 @@ JsonObject SysModModel::setValueI(const char * id, int value) {
   JsonObject var = findVar(id);
   if (!var.isNull()) {
     if (var["value"].isNull() || var["value"] != value) {
-      // print->print("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
+      // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
       var["value"] = value;
       ui->setChFunAndWs(var);
     }
   }
   else
-    print->print("setValue Var %s not found\n", id);
+    USER_PRINTF("setValue Var %s not found\n", id);
 
   return var;
 }
@@ -181,7 +181,7 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
     // print->printJson("setValueB", var);
     if (rowNr == (uint8_t)-1) { //normal situation
       if (var["value"].isNull() || var["value"] != value) {
-        print->print("setValueB changed %s (%d) %s->%s\n", id, rowNr, var["value"].as<String>().c_str(), value?"true":"false");
+        USER_PRINTF("setValueB changed %s (%d) %s->%s\n", id, rowNr, var["value"].as<String>().c_str(), value?"true":"false");
         var["value"] = value;
         ui->setChFunAndWs(var);
       }
@@ -190,7 +190,7 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        print->print("setValueB var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
+        USER_PRINTF("setValueB var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
         // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
         var.createNestedArray("value");
       }
@@ -203,11 +203,11 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
         }
       }
       else 
-        print->print("setValueB %s could not create value array\n", id);
+        USER_PRINTF("setValueB %s could not create value array\n", id);
     }
   }
   else
-    print->print("setValue Var %s not found\n", id);
+    USER_PRINTF("setValue Var %s not found\n", id);
   return var;
 }
 
@@ -233,7 +233,7 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
   // size_t len = vprintf(format, args);
   char value[128];
   vsnprintf(value, sizeof(value)-1, format, args);
-  print->print("%s\n", value);
+  USER_PRINTF("%s\n", value);
 
   va_end(args);
 
@@ -245,7 +245,7 @@ JsonVariant SysModModel::getValue(const char * id) {
   if (!var.isNull())
     return var["value"];
   else {
-    print->print("Value of Var %s does not exist!!\n", id);
+    USER_PRINTF("Value of Var %s does not exist!!\n", id);
     return JsonVariant();
   }
 }

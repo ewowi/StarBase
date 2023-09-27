@@ -68,10 +68,10 @@ void LedsV::ledFixProjectAndMap() {
 
     //lookFor leds array and for each item in array call lambdo to make a projection
     jrdws.lookFor("leds", [](std::vector<uint16_t> uint16CollectList) { //this will be called for each tuple of coordinates!
-      // print->print("funList ");
+      // USER_PRINTF("funList ");
       // for (uint16_t num:uint16CollectList)
-      //   print->print(" %d", num);
-      // print->print("\n");
+      //   USER_PRINTF(" %d", num);
+      // USER_PRINTF("\n");
 
       uint8_t ledFixDimension = uint16CollectList.size();
 
@@ -81,7 +81,7 @@ void LedsV::ledFixProjectAndMap() {
         uint16_t y = (ledFixDimension>=2)?uint16CollectList[1] / 10 : 1;
         uint16_t z = (ledFixDimension>=3)?uint16CollectList[2] / 10 : 1;
 
-        // print->print("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", LedsV::projectionNr, LedsV::fxDimension, ledFixDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
+        // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", LedsV::projectionNr, LedsV::fxDimension, ledFixDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
         if (LedsV::projectionNr == p_DistanceFromPoint || LedsV::projectionNr == p_DistanceFromCentre) {
           uint16_t bucket;// = -1;
           if (LedsV::fxDimension == 1) { //if effect is 1D
@@ -101,7 +101,7 @@ void LedsV::ledFixProjectAndMap() {
               bucket = x;
             else if (ledFixDimension == 2) {//ledfix is 2D 
               bucket = distance(x,y,0,pointX,pointY,0);
-              // print->print("bucket %d-%d %d-%d %d\n", x,y, pointX, pointY, bucket);
+              // USER_PRINTF("bucket %d-%d %d-%d %d\n", x,y, pointX, pointY, bucket);
             }
             else if (ledFixDimension == 3) //ledfix is 3D
               bucket = distance(x,y,z,pointX, pointY, pointZ);
@@ -123,14 +123,14 @@ void LedsV::ledFixProjectAndMap() {
               x = (x+1) * scale - 1;
               y = (y+1) * scale - 1;
               bucket = x + y * widthV;
-              // print->print("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
+              // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
             }
             else if (ledFixDimension == 3) {//ledfix is 3D
               widthV = widthP + heightP;
               heightV = depthP;
               depthV = 1;
               bucket = (x + y + 1) + z * widthV;
-              // print->print("2D to 3D bucket %d %d\n", bucket, widthV);
+              // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, widthV);
             }
           }
           //tbd: effect is 3D
@@ -138,12 +138,12 @@ void LedsV::ledFixProjectAndMap() {
           if (bucket != -1) {
             //add physical tables if not present
             if (bucket >= NUM_LEDS_Preview) {
-              print->print("mapping add physMap %d %d too big\n", bucket, mappingTable.size());
+              USER_PRINTF("mapping add physMap %d %d too big\n", bucket, mappingTable.size());
             }
             else {
               if (bucket >= mappingTable.size()) {
                 for (int i = mappingTable.size(); i<=bucket;i++) {
-                  // print->print("mapping add physMap %d %d\n", bucket, mappingTable.size());
+                  // USER_PRINTF("mapping add physMap %d %d\n", bucket, mappingTable.size());
                   std::vector<uint16_t> physMap;
                   mappingTable.push_back(physMap);
                 }
@@ -153,7 +153,7 @@ void LedsV::ledFixProjectAndMap() {
           }
         }
 
-        // print->print("mapping %d V:%d P:%d\n", dist, mappingTable.size(), mappingTableLedCounter);
+        // USER_PRINTF("mapping %d V:%d P:%d\n", dist, mappingTable.size(), mappingTableLedCounter);
 
         // delay(1); //feed the watchdog
         mappingTableLedCounter++;
@@ -173,7 +173,7 @@ void LedsV::ledFixProjectAndMap() {
             uint16_t startLed = atoi(before);
             uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
             print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevLeds, startLed), max((uint16_t)(mappingTableLedCounter - 1), nrOfLeds)); //careful: AppModLeds:loop uses this to assign to FastLed
-            print->print("pins extend leds %d: %s\n", currPin, details);
+            USER_PRINTF("pins extend leds %d: %s\n", currPin, details);
             //tbd: more check
 
             strncpy(SysModPins::pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
@@ -182,7 +182,7 @@ void LedsV::ledFixProjectAndMap() {
         else {//allocate new pin
           //tbd: check if free
           print->fFormat(details, sizeof(details)-1, "%d-%d", prevLeds, mappingTableLedCounter - 1); //careful: AppModLeds:loop uses this to assign to FastLed
-          print->print("pins %d: %s\n", currPin, details);
+          USER_PRINTF("pins %d: %s\n", currPin, details);
           pins->allocatePin(currPin, "Leds", details);
         }
 
@@ -207,25 +207,25 @@ void LedsV::ledFixProjectAndMap() {
         // uint16_t y=0;
         // for (std::vector<uint16_t>physMap:mappingTable) {
         //   if (physMap.size()) {
-        //     print->print("ledV %d mapping: firstLedP: %d #ledsP: %d", x, physMap[0], physMap.size());
+        //     USER_PRINTF("ledV %d mapping: firstLedP: %d #ledsP: %d", x, physMap[0], physMap.size());
         //     // for (uint16_t pos:physMap) {
-        //     //   print->print(" %d", pos);
+        //     //   USER_PRINTF(" %d", pos);
         //     //   y++;
         //     // }
-        //     print->print("\n");
+        //     USER_PRINTF("\n");
         //   }
         //   x++;
         // }
       }
 
-      print->print("ledFixProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLedsV);
+      USER_PRINTF("ledFixProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLedsV);
       mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
 
     } // if deserialize
   } //if fileName
   else
-    print->print("ledFixProjectAndMap: Filename for ledfix %d not found\n", ledFixNr);
+    USER_PRINTF("ledFixProjectAndMap: Filename for ledfix %d not found\n", ledFixNr);
 }
 
 // ledsV[indexV] stores indexV locally

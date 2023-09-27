@@ -19,15 +19,15 @@
 bool SysModFiles::filesChanged = false;
 
 SysModFiles::SysModFiles() :Module("Files") {
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
   if (!LittleFS.begin(true)) { //true: formatOnFail
-    print->print(" An Error has occurred while mounting File system");
-    print->print(" fail\n");
+    USER_PRINTF(" An Error has occurred while mounting File system");
+    USER_PRINTF(" fail\n");
     success = false;
   }
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 //setup filesystem
@@ -59,7 +59,7 @@ void SysModFiles::setup() {
   ui->initButton(parentVar, "deleteFiles", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "All but model.json");
   }, [](JsonObject var) {
-    print->print("delete files\n");
+    USER_PRINTF("delete files\n");
     files->removeFiles("model.json", true); //all but model.json
   });
 
@@ -90,7 +90,7 @@ void SysModFiles::loop(){
 
 bool SysModFiles::remove(const char * path) {
   filesChange();
-  print->print("File remove %s\n", path);
+  USER_PRINTF("File remove %s\n", path);
   return LittleFS.remove(path);
 }
 
@@ -167,15 +167,15 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
   // if (doCloseFile) closeFile();
   File f = open(path, "r");
   if (!f) {
-    print->print("File %s open not successful\n", path);
+    USER_PRINTF("File %s open not successful\n", path);
     return false;
   }
   else { 
-    print->print(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
+    USER_PRINTF(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
     DeserializationError error = deserializeJson(*dest, f);
     if (error) {
       print->printJDocInfo("readObjectFromFile", *dest);
-      print->print("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
+      USER_PRINTF("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
       f.close();
       return false;
     } else {

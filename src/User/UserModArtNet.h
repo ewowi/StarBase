@@ -20,17 +20,17 @@ public:
   static IPAddress targetIp; //tbd: targetip also configurable from fixtures and artnet instead of pin output
 
   UserModArtNet() :Module("ArtNet") {
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
     isEnabled = false; //default off
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     Module::setup();
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
 
@@ -49,11 +49,11 @@ public:
       size_t ddpInst = var["value"];
       if (ddpInst >=0 && ddpInst < UserModInstances::nodes.size()) {
         targetIp = UserModInstances::nodes[ddpInst].ip;
-        print->print("Start ArtNet to %s\n", targetIp.toString().c_str());
+        USER_PRINTF("Start ArtNet to %s\n", targetIp.toString().c_str());
       }
     }); //ddpInst
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){
@@ -86,7 +86,7 @@ public:
       if (sequenceNumber > 255) sequenceNumber = 0;
 
       if (!ddpUdp.beginPacket(targetIp, ARTNET_DEFAULT_PORT)) {
-        print->print("Art-Net WiFiUDP.beginPacket returned an error\n");
+        USER_PRINTF("Art-Net WiFiUDP.beginPacket returned an error\n");
         return; // borked
       }
 
@@ -118,7 +118,7 @@ public:
       }
 
       if (!ddpUdp.endPacket()) {
-        print->print("Art-Net WiFiUDP.endPacket returned an error\n");
+        USER_PRINTF("Art-Net WiFiUDP.endPacket returned an error\n");
         return; // borked
       }
       channel += packetSize;

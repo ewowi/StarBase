@@ -690,7 +690,7 @@ public:
   bool setEffect(const char * id, size_t index) {
     bool doMap = false;
 
-    print->print("setEffect %d %d %d \n", index, effects.size(), size());
+    USER_PRINTF("setEffect %d %d %d \n", index, effects.size(), size());
     if (index < size()) {
 
       //tbd: make property of effects
@@ -729,7 +729,7 @@ public:
   }
 
   void loop(size_t index) {
-    // print->print("loop %d\n", index);
+    // USER_PRINTF("loop %d\n", index);
 
     effects[index]->loop();
   }

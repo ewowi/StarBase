@@ -27,7 +27,7 @@ SysModNetwork::SysModNetwork() :Module("Network") {};
 //setup wifi an async webserver
 void SysModNetwork::setup() {
   Module::setup();
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
   ui->initText(parentVar, "ssid", "", false);
@@ -43,7 +43,7 @@ void SysModNetwork::setup() {
     web->addResponse(var["id"], "label", "Status");
   });
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModNetwork::loop() {
@@ -53,13 +53,13 @@ void SysModNetwork::loop() {
 
 void SysModNetwork::handleConnection() {
   if (lastReconnectAttempt == 0) { // do this only once
-    print->print("lastReconnectAttempt == 0\n");
+    USER_PRINTF("lastReconnectAttempt == 0\n");
     initConnection();
     return;
   }
 
   if (forceReconnect) {
-    print->print("Forcing reconnect.");
+    USER_PRINTF("Forcing reconnect.");
     initConnection();
     interfacesInited = false;
     forceReconnect = false;
@@ -68,13 +68,13 @@ void SysModNetwork::handleConnection() {
   }
   if (!(WiFi.localIP()[0] != 0 && WiFi.status() == WL_CONNECTED)) { //!Network.interfacesInited()
     if (interfacesInited) {
-      print->print("Disconnected!\n");
+      USER_PRINTF("Disconnected!\n");
       interfacesInited = false;
       initConnection();
     }
 
     if (!apActive && millis() - lastReconnectAttempt > 12000 ) { //&& (!wasConnected || apBehavior == AP_BEHAVIOR_NO_CONN)
-      print->print("Not connected AP.\n");
+      USER_PRINTF("Not connected AP.\n");
       initAP();
     }
   } else if (!interfacesInited) { //newly connected
@@ -103,7 +103,7 @@ void SysModNetwork::initConnection() {
   lastReconnectAttempt = millis();
 
   if (!apActive) {
-    print->print("Access point disabled (init).\n");
+    USER_PRINTF("Access point disabled (init).\n");
     WiFi.softAPdisconnect(true);
     WiFi.mode(WIFI_STA);
   }
@@ -116,15 +116,15 @@ void SysModNetwork::initConnection() {
   if (ssid && strlen(ssid)>0) {
     char passXXX [32] = "";
     for (int i = 0; i < strlen(password); i++) strncat(passXXX, "*", sizeof(passXXX)-1);
-    print->print("Connecting to WiFi %s / %s\n", ssid, passXXX);
+    USER_PRINTF("Connecting to WiFi %s / %s\n", ssid, passXXX);
     WiFi.begin(ssid, password);
   }
   else
-    print->print("No SSID");
+    USER_PRINTF("No SSID");
 }
 
 void SysModNetwork::initAP() {
-  print->print("Opening access point %s\n", apSSID);
+  USER_PRINTF("Opening access point %s\n", apSSID);
   WiFi.softAPConfig(IPAddress(4, 3, 2, 1), IPAddress(4, 3, 2, 1), IPAddress(255, 255, 255, 0));
   WiFi.softAP(apSSID, apPass, apChannel, apHide);
   if (!apActive) // start captive portal if AP active

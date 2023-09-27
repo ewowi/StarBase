@@ -19,24 +19,24 @@ public:
   uint8_t fftResults[NUM_GEQ_CHANNELS]= {0};
 
   UserModWLEDAudio() :Module("WLED Audio Sync Receiver") {
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
     isEnabled = false; //default off
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     Module::setup();
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void onOffChanged() {
     if (SysModModules::isConnected && isEnabled) {
-      print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+      USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
       sync.begin();
     } else {
       // sync.end();???
@@ -46,13 +46,13 @@ public:
   void loop(){
     // Module::loop();
     if (sync.read()) {
-      if(debug) print->print("WLED-Sync: ");
+      if(debug) USER_PRINTF("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
         uint8_t val = sync.fftResult[b];
         fftResults[b] = val;
-        if(debug) print->print("%u ", val);
+        if(debug) USER_PRINTF("%u ", val);
       }
-      if(debug) print->print("\n");
+      if(debug) USER_PRINTF("\n");
     }
   }
 

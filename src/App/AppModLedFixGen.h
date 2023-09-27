@@ -29,9 +29,9 @@ public:
   File f;
 
   GenFix() {
-    print->print("GenFix construct\n");
+    USER_PRINTF("GenFix construct\n");
     if (!mdl->getValue("pinList").isNull()) {
-      print->print( "pinlist %s\n",mdl->getValue("pinList").as<const char *>());
+      USER_PRINTF( "pinlist %s\n",mdl->getValue("pinList").as<const char *>());
       char str[32];
       strncpy(str, mdl->getValue("pinList").as<const char *>(), sizeof(str)-1);
       const char s[2] = ","; //delimiter
@@ -41,7 +41,7 @@ public:
       /* walk through other tokens */
       while( token != NULL ) 
       {
-        print->print( " %s(%d) %d\n", token, atoi(token), nrOfPins );
+        USER_PRINTF( " %s(%d) %d\n", token, atoi(token), nrOfPins );
         pinList[nrOfPins++] = atoi(token);
         token = strtok(NULL, s);
       }
@@ -49,7 +49,7 @@ public:
   }
 
   ~GenFix() {
-    print->print("GenFix destruct\n");
+    USER_PRINTF("GenFix destruct\n");
   }
 
   void openHeader(const char * format, ...) {
@@ -63,7 +63,7 @@ public:
 
     f = files->open("/temp.json", "w");
     if (!f)
-      print->print("GenFix could not open temp file for writing\n");
+      USER_PRINTF("GenFix could not open temp file for writing\n");
 
     f.print(",\"outputs\":[");
     strcpy(pinSep, "");
@@ -72,7 +72,7 @@ public:
   void closeHeader() {
     f.print("]"); //outputs
 
-    print->print("closeHeader %d-%d-%d %d\n", width, height, depth, nrOfLeds);
+    USER_PRINTF("closeHeader %d-%d-%d %d\n", width, height, depth, nrOfLeds);
     f.close();
     f = files->open("/temp.json", "r");
 
@@ -151,7 +151,7 @@ public:
     va_end(args);
 
     f.print(name);          
-    // print->print("GenFix printf %s\n", format);
+    // USER_PRINTF("GenFix printf %s\n", format);
   }
 
   void spiral1D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t ledCount) {
@@ -345,7 +345,7 @@ public:
       }
     }
 
-    // print->print("plane3DFindNextPoint %d %d %d %d \n", axis, point->x, point->y, point->z);
+    // USER_PRINTF("plane3DFindNextPoint %d %d %d %d \n", axis, point->x, point->y, point->z);
   }
 
   void plane3D (Coordinate first, Coordinate last, bool clockWise) {
@@ -363,7 +363,7 @@ public:
 
       //check if next point is end point
       cont = (point.x != last.x || point.y != last.y || point.z != last.z);
-      // print->print("plane3DFindNextPoint p:%d %d %d %d l:%d %d %d \n", cont, point.x, point.y, point.z, last.x, last.y, last.z);
+      // USER_PRINTF("plane3DFindNextPoint p:%d %d %d %d l:%d %d %d \n", cont, point.x, point.y, point.z, last.x, last.y, last.z);
     }
 
     closePin();
@@ -487,7 +487,7 @@ public:
 
   void setup() {
     Module::setup();
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
 
@@ -520,7 +520,7 @@ public:
       generateChFun(var);
     });
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {
@@ -754,7 +754,7 @@ public:
 
     File f = files->open(fileName, "w");
     if (!f)
-      print->print("ledFixGen Could not open file %s for writing\n", fileName);
+      USER_PRINTF("ledFixGen Could not open file %s for writing\n", fileName);
 
     return f;
   }

@@ -23,7 +23,7 @@ int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::varLoopsChanged = false;;
 
 SysModUI::SysModUI() :Module("UI") {
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
   success &= web->addURL("/", "text/html", nullptr, PAGE_index, PAGE_index_L);
   // success &= web->addURL("/index.js", "application/javascript", nullptr, PAGE_indexJs, PAGE_indexJs_length);
@@ -32,14 +32,14 @@ SysModUI::SysModUI() :Module("UI") {
 
   success &= web->setupJsonHandlers("/json", processJson);
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 //serve index.htm
 void SysModUI::setup() {
   Module::setup();
 
-  print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = initModule(parentVar, name);
 
@@ -65,7 +65,7 @@ void SysModUI::setup() {
     web->addResponse(var["id"], "label", "Loops p s");
   });
 
-  print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModUI::loop() {
@@ -84,7 +84,7 @@ void SysModUI::loop() {
 
         //send leds info in binary data format
         //tbd: this can crash on 64*64 matrices...
-        // print->print("bufSize %d\n", varLoop->bufSize);
+        // USER_PRINTF("bufSize %d\n", varLoop->bufSize);
         AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 4);
         if (wsBuf) {//out of memory
           wsBuf->lock();
@@ -94,13 +94,13 @@ void SysModUI::loop() {
           buffer[0] = varLoop->bufSize / 256;
           buffer[1] = varLoop->bufSize % 256;
           //buffer[2] can be removed
-          // print->print("interval1 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1]);
+          // USER_PRINTF("interval1 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1]);
 
           varLoop->loopFun(varLoop->var, buffer); //call the function and fill the buffer
 
           varLoop->bufSize = buffer[0] * 256 + buffer[1];
           varLoop->interval = buffer[3]*10; //from cs to ms
-          // print->print("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
+          // USER_PRINTF("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
           for (auto client:SysModWeb::ws->getClients()) {
             if (client->status() == WS_CONNECTED && !client->queueIsFull()) 
@@ -114,7 +114,7 @@ void SysModUI::loop() {
           SysModWeb::ws->_cleanBuffers();
         }
         else {
-          print->print("loopFun WS buffer allocation failed\n");
+          USER_PRINTF("loopFun WS buffer allocation failed\n");
           SysModWeb::ws->closeAll(1013); //code 1013 = temporary overload, try again later
           SysModWeb::ws->cleanupClients(0); //disconnect all clients to release memory
           SysModWeb::ws->_cleanBuffers();
@@ -122,7 +122,7 @@ void SysModUI::loop() {
       }
 
       varLoop->counter++;
-      // print->print("%s %u %u %d %d\n", varLoop->var["id"].as<const char *>(), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
+      // USER_PRINTF("%s %u %u %d %d\n", varLoop->var["id"].as<const char *>(), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
     }
   }
 
@@ -143,7 +143,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
   //create new var
   if (var.isNull()) {
-    print->print("initVar create new %s: %s\n", type, id);
+    USER_PRINTF("initVar create new %s: %s\n", type, id);
     if (parent.isNull()) {
       JsonArray vars = SysModModel::model->as<JsonArray>();
       var = vars.createNestedObject();
@@ -155,7 +155,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     var["id"] = (char *)id; //copy!!
   }
   else
-    print->print("Object %s already defined\n", id);
+    USER_PRINTF("Object %s already defined\n", id);
 
   if (!var.isNull()) {
     if (var["type"] != type) 
@@ -199,11 +199,11 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       loopFunctions.push_back(loop);
       var["loopFun"] = loopFunctions.size()-1;
       varLoopsChanged = true;
-      // print->print("iObject loopFun %s %u %u %d %d\n", var["id"].as<const char *>());
+      // USER_PRINTF("iObject loopFun %s %u %u %d %d\n", var["id"].as<const char *>());
     }
   }
   else
-    print->print("initVar could not find or create var %s with %s\n", id, type);
+    USER_PRINTF("initVar could not find or create var %s with %s\n", id, type);
 
   return var;
 }
@@ -217,7 +217,7 @@ void SysModUI::setChFunAndWs(JsonObject var, const char * value) { //value: bypa
     if (funNr < ucFunctions.size()) 
       ucFunctions[funNr](var);
     else    
-      print->print("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
+      USER_PRINTF("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
   }
 
   JsonDocument *responseDoc = web->getResponseDoc();
@@ -236,7 +236,7 @@ void SysModUI::setChFunAndWs(JsonObject var, const char * value) { //value: bypa
     else if (var["value"].is<JsonArray>())
       web->addResponseArray(var["id"], "value", var["value"].as<JsonArray>());
     else {
-      print->print("unknown type for %s\n", var["value"].as<String>().c_str());
+      USER_PRINTF("unknown type for %s\n", var["value"].as<String>().c_str());
       web->addResponse(var["id"], "value", var["value"]);
     }
     // if (var["id"] == "pview" || var["id"] == "fx") {
@@ -267,7 +267,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
                 if (funNr < ucFunctions.size())
                   ucFunctions[funNr](var);
                 else    
-                  print->print("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
+                  USER_PRINTF("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
 
                 //if select var, send value back
                 if (var["type"] == "select")
@@ -277,10 +277,10 @@ const char * SysModUI::processJson(JsonVariant &json) {
               }
             }
             else
-              print->print("processJson Command %s var %s not found\n", key, value2.as<String>().c_str());
+              USER_PRINTF("processJson Command %s var %s not found\n", key, value2.as<String>().c_str());
           }
         } else
-          print->print("processJson value not array? %s %s\n", key, value.as<String>().c_str());
+          USER_PRINTF("processJson value not array? %s %s\n", key, value.as<String>().c_str());
       } 
       else { //normal change
         if (!value.is<JsonObject>()) { //no vars (inserted by uiFun responses)
@@ -294,7 +294,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
 
           JsonObject var = mdl->findVar(key);
 
-          print->print("processJson k:%s r:%s (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value.as<String>().c_str(), var["value"] == value);
+          USER_PRINTF("processJson k:%s r:%s (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value.as<String>().c_str(), var["value"] == value);
 
           if (!var.isNull())
           {
@@ -314,7 +314,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
               changed = var["value"] != value;
 
             if (changed) {
-              // print->print("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
+              // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 
               //set new value
               if (value.is<const char *>())
@@ -324,20 +324,20 @@ const char * SysModUI::processJson(JsonVariant &json) {
               else if (value.is<int>())
                 mdl->setValueI(key, value.as<int>());
               else {
-                print->print("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
+                USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
               }
             }
             else if (var["type"] == "button") //button always
               setChFunAndWs(var); //setValue without assignment
           }
           else
-            print->print("Object %s not found\n", key);
+            USER_PRINTF("Object %s not found\n", key);
         }
       }
     } //for json pairs
   }
   else
-    print->print("Json not object???\n");
+    USER_PRINTF("Json not object???\n");
   return nullptr;
 }
 

@@ -16,14 +16,14 @@ class JsonRDWS {
   public:
 
   JsonRDWS(const char * path, const char * mode = "r") {
-    print->print("JsonRDWS constructing %s %s\n", path, mode);
+    USER_PRINTF("JsonRDWS constructing %s %s\n", path, mode);
     f = files->open(path, mode);
     if (!f)
-      print->print("JsonRDWS open %s for %s failed", path, mode);
+      USER_PRINTF("JsonRDWS open %s for %s failed", path, mode);
   }
 
   ~JsonRDWS() {
-    print->print("JsonRDWS destructing\n");
+    USER_PRINTF("JsonRDWS destructing\n");
     f.close();
   }
 
@@ -69,9 +69,9 @@ class JsonRDWS {
     while (f.available() && (!foundAll || !lazy))
       next();
     if (foundAll)
-      print->print("JsonRDWS found all what it was looking for %d >= %d\n", foundCounter, varDetails.size());
+      USER_PRINTF("JsonRDWS found all what it was looking for %d >= %d\n", foundCounter, varDetails.size());
     else
-      print->print("JsonRDWS Not all vars looked for where found %d < %d\n", foundCounter, varDetails.size());
+      USER_PRINTF("JsonRDWS Not all vars looked for where found %d < %d\n", foundCounter, varDetails.size());
     f.close();
     return foundAll;
   }
@@ -109,23 +109,23 @@ private:
 
   void next() {
     if (character=='{') { //object begin
-      // print->print("Object %c\n", character);
+      // USER_PRINTF("Object %c\n", character);
       varStack.push_back(lastVarId); //copy!!
-      // print->print("Object push %s %d\n", lastVarId, varStack.size());
+      // USER_PRINTF("Object push %s %d\n", lastVarId, varStack.size());
       strcpy(lastVarId, "");
       f.read(&character, sizeof(byte));
     }
     else if (character=='}') { //object end
       strncpy(lastVarId, varStack[varStack.size()-1].c_str(), sizeof(lastVarId)-1);
-      // print->print("Object pop %s %d\n", lastVarId, varStack.size());
+      // USER_PRINTF("Object pop %s %d\n", lastVarId, varStack.size());
       check(lastVarId);
       varStack.pop_back();
       f.read(&character, sizeof(byte));
     }
     else if (character=='[') { //array begin
-      // print->print("Array %c\n", character);
+      // USER_PRINTF("Array %c\n", character);
       varStack.push_back(lastVarId); //copy!!
-      // print->print("Array push %s %d\n", lastVarId, varStack.size());
+      // USER_PRINTF("Array push %s %d\n", lastVarId, varStack.size());
       strcpy(lastVarId, "");
       f.read(&character, sizeof(byte));
 
@@ -136,12 +136,12 @@ private:
     else if (character==']') { //array end
       //assign back the popped var id from [
       strncpy(lastVarId, varStack[varStack.size()-1].c_str(), sizeof(lastVarId)-1);
-      // print->print("Array pop %s %d %d\n", lastVarId, varStack.size(), uint16CollectList.size());
+      // USER_PRINTF("Array pop %s %d %d\n", lastVarId, varStack.size(), uint16CollectList.size());
       check(lastVarId);
 
       //check the parent array, if exists
       if (varStack.size()-2 >=0) {
-        // print->print("  Parent check %s\n", varStack[varStack.size()-2].c_str());
+        // USER_PRINTF("  Parent check %s\n", varStack[varStack.size()-2].c_str());
         strncpy(beforeLastVarId, varStack[varStack.size()-2].c_str(), sizeof(beforeLastVarId)-1);
         check(beforeLastVarId);
       }
@@ -156,11 +156,11 @@ private:
     
       //if no lastVar then var found
       if (strcmp(lastVarId, "") == 0) {
-        // print->print("Element [%s]\n", value);
+        // USER_PRINTF("Element [%s]\n", value);
         strncpy(lastVarId, value, sizeof(lastVarId)-1);
       }
       else { // if lastvar then string value found
-        // print->print("String var %s: [%s]\n", lastVarId, value);
+        // USER_PRINTF("String var %s: [%s]\n", lastVarId, value);
         check(lastVarId, value);
         strcpy(lastVarId, "");
       }
@@ -173,14 +173,14 @@ private:
       size_t len = 0;
       //readuntil not number
       while (isDigit(character)) {
-        // print->print("%c", character);
+        // USER_PRINTF("%c", character);
         value[len++] = character;
         f.read(&character, sizeof(byte));
       }
       value[len++] = '\0';
 
       //number value found
-      // print->print("Number var %s: [%s]\n", lastVarId, value);
+      // USER_PRINTF("Number var %s: [%s]\n", lastVarId, value);
       if (collectNumbers)
         uint16CollectList.push_back(atoi(value));
 
@@ -189,27 +189,27 @@ private:
       strcpy(lastVarId, "");
     }
     else if (character==':') {
-      // print->print("semicolon %c\n", character);
+      // USER_PRINTF("semicolon %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character==',') {
-      // print->print("sep %c\n", character);
+      // USER_PRINTF("sep %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character==']') {
-      // print->print("close %c\n", character);
+      // USER_PRINTF("close %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character=='}') {
-      print->print("close %c\n", character);
+      USER_PRINTF("close %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character=='\n') { //skip new lines
-      // print->print("skip newline \n");
+      // USER_PRINTF("skip newline \n");
       f.read(&character, sizeof(byte));
     }
     else {
-      print->print("%c", character);
+      USER_PRINTF("%c", character);
       f.read(&character, sizeof(byte));
     }
   } //next
@@ -217,9 +217,9 @@ private:
   void check(char * varId, char * value = nullptr) {
     //check if var is in lookFor list
     for (std::vector<VarDetails>::iterator vd=varDetails.begin(); vd!=varDetails.end(); ++vd) {
-      // print->print("check %s %s %s\n", vd->id, varId, value);
+      // USER_PRINTF("check %s %s %s\n", vd->id, varId, value);
       if (strcmp(vd->id, varId)==0) {
-        // print->print("JsonRDWS found %s:%s %d %s\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size());
+        // USER_PRINTF("JsonRDWS found %s:%s %d %s\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size());
         if (strcmp(vd->type, "uint8") ==0) *uint8List[vd->index] = atoi(value);
         if (strcmp(vd->type, "uint16") ==0) *uint16List[vd->index] = atoi(value);
         if (strcmp(vd->type, "char") ==0) strncpy(charList[vd->index], value, 31); //assuming size 32-1 here
@@ -273,7 +273,7 @@ private:
       f.printf("%s", variant.as<bool>()?"true":"false");      
     }
     else
-      print->print("%s not supported", variant.as<String>());
+      USER_PRINTF("%s not supported", variant.as<String>());
   }
 
 };

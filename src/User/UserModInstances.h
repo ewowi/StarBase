@@ -26,15 +26,15 @@ public:
   static std::vector<NodeInfo> nodes;
 
   UserModInstances() :Module("Instances") {
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     Module::setup();
-    print->print("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
 
@@ -69,7 +69,7 @@ public:
       web->addResponse(var["id"], "label", "Show");
     });
 
-    print->print("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void onOffChanged() {
@@ -112,7 +112,7 @@ public:
 
         udp.read(packetBuffer, packetSize);
 
-        print->print("Instance: %s (%u) %s\n", remoteIp.toString().c_str(), packetSize, nodeName);
+        USER_PRINTF("Instance: %s (%u) %s\n", remoteIp.toString().c_str(), packetSize, nodeName);
 
         bool found = false;
         //iterate vector pointers so we can update the nodes
@@ -125,7 +125,7 @@ public:
         }
 
         if (!found) {
-          // print->print("new node: %s (%u) %s\n", remoteIp.toString().c_str(), packetSize, nodeName);
+          // USER_PRINTF("new node: %s (%u) %s\n", remoteIp.toString().c_str(), packetSize, nodeName);
           NodeInfo newNode;
           newNode.ip = remoteIp;
           if (packetSize == 44)

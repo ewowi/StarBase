@@ -13,17 +13,17 @@ class UserModExample:public Module {
 public:
 
   UserModExample() :Module("Usermod example") {
-    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     Module::setup();
-    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){

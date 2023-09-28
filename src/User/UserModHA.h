@@ -18,11 +18,11 @@ class UserModHA:public Module {
 public:
 
   UserModHA() :Module("Home Assistant support") {
-    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     isEnabled = false;
 
-    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   static void onStateCommand(bool state, HALight* sender) {
@@ -51,7 +51,7 @@ public:
   }
 
   void connectedChanged() {
-    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
     if (SysModModules::isConnected) {
       // set device's details (optional)
       device.setName("StarMod");
@@ -77,7 +77,7 @@ public:
     light->onRGBColorCommand(onRGBColorCommand); // optional
 
     mqtt->begin(BROKER_ADDR);
-    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop(){

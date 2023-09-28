@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      UserModInstances.h
-   @date      20230730
+   @date      20230928
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -19,6 +19,25 @@ struct NodeInfo {
   JsonVariant json; //tbd
 };
 
+struct UDPWLEDMessage {
+  byte token;       //0: 'binary token 255'
+  byte id;          //1: id '1'
+  byte ip0;         //2: uint32_t ip takes 6 bytes instead of 4 ?!?! so splitting it into bytes
+  byte ip1;         //3
+  byte ip2;         //4
+  byte ip3;         //5
+  char name[32];    //6..37: server name
+  byte type;        //38: node type id
+  byte nodeId;      //39: node id
+  uint32_t version; //40..43: version ID (here it takes 4 bytes (as it should)
+}; //total 44 bytes!
+
+//compatible with WLED nodes as it only interprets first 44 bytes
+struct UDPStarModMessage {
+  UDPWLEDMessage header;
+  char body[1428]; //1472 - 44, one udp frame
+};
+
 class UserModInstances:public Module {
 
 public:
@@ -26,15 +45,15 @@ public:
   static std::vector<NodeInfo> nodes;
 
   UserModInstances() :Module("Instances") {
-    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     Module::setup();
-    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
 
@@ -69,12 +88,23 @@ public:
       web->addResponse(var["id"], "label", "Show");
     });
 
-    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    if (sizeof(UDPWLEDMessage) != 44) {
+      USER_PRINTF("Program error: Size of UDP message is not 44: %d\n", sizeof(UDPWLEDMessage));
+      // USER_PRINTF("udpMessage size %d = %d + %d + %d + ...\n", sizeof(UDPWLEDMessage), sizeof(udpMessage.ip0), sizeof(udpMessage.version), sizeof(udpMessage.name));
+      success = false;
+    }
+    if (sizeof(UDPStarModMessage) != 1472) { //size of UDP Packet
+      USER_PRINTF("Program error: Size of UDP message is not 44: %d\n", sizeof(UDPStarModMessage));
+      // USER_PRINTF("udpMessage size %d = %d + %d + %d + ...\n", sizeof(UDPWLEDMessage), sizeof(udpMessage.ip0), sizeof(udpMessage.version), sizeof(udpMessage.name));
+      success = false;
+    }
+    
+    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void onOffChanged() {
     if (SysModModules::isConnected && isEnabled) {
-      udp.begin(65506);
+      udp2Connected = instanceUDP.begin(instanceUDPPort);
     } else {
       nodes.clear();
       ui->processUiFun("insTbl");
@@ -88,76 +118,154 @@ public:
     //everysecond better to save on cpu?
     if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
-      if(!SysModModules::isConnected) return;
 
-      int packetSize = udp.parsePacket();
+      handleNotifications();
+    }
 
-      if (packetSize) {
-        IPAddress remoteIp = udp.remoteIP();
-        // TODO: actually look at the contents of the packet to fetch version, name etc
-        uint8_t udpIn[1472+1];
-        udp.read(udpIn, packetSize);
-        //for WLED see handleNotifications and sendSysInfoUDP
-        //  0: 1 byte 'binary token 255'
-        //  1: 1 byte id '1'
-        //  2: 4 byte ip
-        //  6: 32 char name
-        // 38: 1 byte node type id
-        // 39: 1 byte node id
-        // 40: 4 byte version ID
-        // 44 bytes total
-        char nodeName[33] = { 0 };
-        memcpy(&nodeName[0], reinterpret_cast<byte *>(&udpIn[6]), 32);
-        nodeName[32] = 0;
+  }
 
-        udp.read(packetBuffer, packetSize);
+  void handleNotifications()
+  {
+    if(!SysModModules::isConnected) return;
 
-        USER_PRINTF("Instance: %s (%u) %s\n", remoteIp.toString().c_str(), packetSize, nodeName);
+    int packetSize = instanceUDP.parsePacket();
 
-        bool found = false;
-        //iterate vector pointers so we can update the nodes
-        for (std::vector<NodeInfo>::iterator node=nodes.begin(); node!=nodes.end(); ++node) {
-          if (node->ip == remoteIp) {
-            found = true;
-            node->timeStamp = millis(); //update timestamp
-            strncpy(node->details, nodeName, sizeof(node->details)-1); //update name (in case changed)
-          }
-        }
+    if (packetSize) {
+      IPAddress remoteIp = instanceUDP.remoteIP();
+      // TODO: actually look at the contents of the packet to fetch version, name etc
 
-        if (!found) {
-          // USER_PRINTF("new node: %s (%u) %s\n", remoteIp.toString().c_str(), packetSize, nodeName);
-          NodeInfo newNode;
-          newNode.ip = remoteIp;
-          if (packetSize == 44)
-            strcpy(newNode.type, "WLED");
-          else
-            strcpy(newNode.type, "Unknown");
-          newNode.timeStamp = millis();
-          strncpy(newNode.details, nodeName, sizeof(newNode.details)-1);
-          nodes.push_back(newNode);
-          ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
-          ui->processUiFun("artInst"); //show the new instance in the dropdown  
-        }
-        ui->processUiFun("insTbl");
-      } //packetSize
+      USER_PRINTF("UDPStarModMessage %d check %d or %d\n", packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
 
-      //remove inactive nodes
-      size_t index = 0;
-      for (std::vector<NodeInfo>::iterator node=nodes.begin(); node!=nodes.end(); ++node) {
-        if (millis() - node->timeStamp > 32000) { //assuming a ping each 30 seconds
-          nodes.erase(nodes.begin() + index);
-          ui->processUiFun("insTbl");
-          ui->processUiFun("ddpInst");
-          ui->processUiFun("artInst");
-        }
-        index++;
+      if (packetSize == sizeof(UDPWLEDMessage)) { //WLED instance
+        UDPWLEDMessage udpMessage;
+        uint8_t *udpIn = (uint8_t *)&udpMessage;
+        instanceUDP.read(udpIn, packetSize);
+
+        updateNode(udpMessage);
       }
+      else if (packetSize == sizeof(UDPStarModMessage)) {
+        // uint8_t udpIn[1472+1];
+        UDPStarModMessage starModMessage;
+        uint8_t *udpIn = (uint8_t *)&starModMessage;
+        instanceUDP.read(udpIn, packetSize);
+
+        updateNode(starModMessage.header, starModMessage.body);
+      }
+      else {
+        USER_PRINTF("packetSize %d not equal to %d or %d\n", packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
+      }
+
+    } //packetSize
+    else {
+      if (millis() - second30Millis >= 10000) {
+        second30Millis = millis();
+        if(!SysModModules::isConnected) return;
+
+        sendSysInfoUDP(); 
+        
+        //instance is not catching it's own udp message...
+
+      }
+    }
+
+    //remove inactive nodes
+    size_t index = 0;
+    for (std::vector<NodeInfo>::iterator node=nodes.begin(); node!=nodes.end(); ++node) {
+      if (millis() - node->timeStamp > 32000) { //assuming a ping each 30 seconds
+        nodes.erase(nodes.begin() + index);
+        ui->processUiFun("insTbl");
+        ui->processUiFun("ddpInst");
+        ui->processUiFun("artInst");
+      }
+      index++;
     }
   }
 
+  void sendSysInfoUDP()
+  {
+    if (!udp2Connected) return;
+
+    IPAddress ip = WiFi.localIP();
+    if (!ip || ip == IPAddress(255,255,255,255)) ip = IPAddress(4,3,2,1);
+
+    UDPStarModMessage starModMessage;
+    starModMessage.header.token = 255;
+    starModMessage.header.id = 1;
+    // starModMessage.header.ip = ip[0]*256*256*256 + ip[1]*256*256 + ip[2]*256 + ip[3];
+    starModMessage.header.ip0 = ip[0];
+    starModMessage.header.ip1 = ip[1];
+    starModMessage.header.ip2 = ip[2];
+    starModMessage.header.ip3 = ip[3];
+    strncpy(starModMessage.header.name, serverDescription, 32);
+    starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
+    starModMessage.header.nodeId = ip[3];
+    starModMessage.header.version = 2309280; //tbd
+    strncpy(starModMessage.body, "Effect x, Projection y, Leds begin..end", 1428-1);
+
+    // const char *bump = reinterpret_cast<const char*>(starModMessage.body);
+    // bump = "SM";
+
+    updateNode(starModMessage.header, starModMessage.body); //temp? to show new node in list
+
+    IPAddress broadcastIP(255, 255, 255, 255);
+    if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
+      USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:%d\n", (uint8_t*)&starModMessage, sizeof(UDPStarModMessage), instanceUDPPort, ip[3]);
+      // for (size_t x = 0; x < sizeof(UDPWLEDMessage); x++) {
+      //   char* xx = (char*)&udpMessage;
+      //   Serial.printf("%d: %d - %c\n", x, xx[x], xx[x]);
+      // }
+
+      instanceUDP.write((uint8_t*)&starModMessage, sizeof(UDPStarModMessage));
+      instanceUDP.endPacket();
+    }
+    else {
+      USER_PRINTF("sendSysInfoUDP error\n");
+    }
+  }
+
+  void updateNode( UDPWLEDMessage udpMessage, char *body = nullptr) {
+    USER_PRINTF("Instance: %d.%d.%d.%d %s\n", udpMessage.ip0, udpMessage.ip1, udpMessage.ip2, udpMessage.ip3, udpMessage.name );
+    if (body) {
+      // const char *bump = reinterpret_cast<const char*>(body);
+      USER_PRINTF("body %s\n", body);
+    }
+
+    bool found = false;
+    //iterate vector pointers so we can update the nodes
+    for (std::vector<NodeInfo>::iterator node=nodes.begin(); node!=nodes.end(); ++node) {
+      if (node->ip == IPAddress(udpMessage.ip0, udpMessage.ip1, udpMessage.ip2, udpMessage.ip3)) {
+        found = true;
+        node->timeStamp = millis(); //update timestamp
+        strncpy(node->details, udpMessage.name, sizeof(node->details)-1); //update name (in case changed)
+        strncat(node->details, " ", sizeof(node->details)-1);
+        strncat(node->details, body, sizeof(node->details)-1);
+      }
+    }
+
+    if (!found) {
+      // USER_PRINTF("new node: %s (%u) %s\n", remoteIp.toString().c_str(), packetSize, nodeName);
+      NodeInfo newNode;
+      newNode.ip = IPAddress(udpMessage.ip0, udpMessage.ip1, udpMessage.ip2, udpMessage.ip3);
+      if (body == nullptr)
+        strcpy(newNode.type, "WLED");
+      else
+        strcpy(newNode.type, "StarMod");
+      newNode.timeStamp = millis();
+      strncpy(newNode.details, udpMessage.name, sizeof(newNode.details)-1);
+      nodes.push_back(newNode);
+      ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
+      ui->processUiFun("artInst"); //show the new instance in the dropdown  
+    }
+    ui->processUiFun("insTbl");
+
+  }
+
   private:
-    char packetBuffer[255];
-    WiFiUDP udp;
+    WiFiUDP instanceUDP;
+    uint16_t instanceUDPPort = 65506;
+    bool udp2Connected = false;
+    unsigned long second30Millis = 0;
+    char serverDescription[33] = "StarModInstance"; //tbd
 
 };
 

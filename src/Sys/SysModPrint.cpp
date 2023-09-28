@@ -15,18 +15,18 @@
 #include "SysModWeb.h"
 
 SysModPrint::SysModPrint() :Module("Print") {
-  print("%s %s\n", __PRETTY_FUNCTION__, name);
+  // print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   Serial.begin(115200);
   delay(5000); //if (!Serial) doesn't seem to work, check with SoftHack007
 
-  print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
+  // print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 };
 
 void SysModPrint::setup() {
   Module::setup();
 
-  print("%s %s\n", __PRETTY_FUNCTION__, name);
+  // print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
 
@@ -46,7 +46,7 @@ void SysModPrint::setup() {
     web->addResponse(var["id"], "comment", "Show the printed log");
   });
 
-  print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
+  // print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 }
 
 void SysModPrint::loop() {
@@ -72,7 +72,7 @@ size_t SysModPrint::print(const char * format, ...) {
           Serial.print(va_arg(args, unsigned int));
           break;
         case 'c':
-          Serial.print(va_arg(args, int));
+          Serial.print(va_arg(args, char));
           break;
         case 'd':
           Serial.print(va_arg(args, int));

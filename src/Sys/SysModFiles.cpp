@@ -19,7 +19,7 @@
 bool SysModFiles::filesChanged = false;
 
 SysModFiles::SysModFiles() :Module("Files") {
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   if (!LittleFS.begin(true)) { //true: formatOnFail
     USER_PRINTF(" An Error has occurred while mounting File system");
@@ -27,7 +27,7 @@ SysModFiles::SysModFiles() :Module("Files") {
     success = false;
   }
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 //setup filesystem

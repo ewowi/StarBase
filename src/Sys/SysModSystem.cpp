@@ -22,7 +22,7 @@ SysModSystem::SysModSystem() :Module("System") {};
 
 void SysModSystem::setup() {
   Module::setup();
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
 
@@ -74,7 +74,7 @@ void SysModSystem::setup() {
   //   default: ui->initText(parentVar, "e32flashtext")] = F(" (other)"); break;
   // }
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModSystem::loop() {

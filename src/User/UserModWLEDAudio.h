@@ -19,24 +19,24 @@ public:
   uint8_t fftResults[NUM_GEQ_CHANNELS]= {0};
 
   UserModWLEDAudio() :Module("WLED Audio Sync Receiver") {
-    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     isEnabled = false; //default off
 
-    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     Module::setup();
-    USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void onOffChanged() {
     if (SysModModules::isConnected && isEnabled) {
-      USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+      USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
       sync.begin();
     } else {
       // sync.end();???

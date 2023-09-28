@@ -17,7 +17,7 @@ PinObject SysModPins::pinObjects[NUM_PINS];
 bool SysModPins::pinsChanged = false;
 
 SysModPins::SysModPins() :Module("Pins") {
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   pinMode(2, OUTPUT);
   pinMode(4, OUTPUT);
@@ -28,12 +28,12 @@ SysModPins::SysModPins() :Module("Pins") {
     deallocatePin(i, pinObjects[i].owner);
   }
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 void SysModPins::setup() {
   Module::setup();
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
 
@@ -84,7 +84,7 @@ void SysModPins::setup() {
   ui->initCheckBox(parentVar, "pin4", false, false);
   ui->initCheckBox(parentVar, "pin33", true, false);
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModPins::loop(){

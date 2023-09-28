@@ -25,7 +25,7 @@ SysModModel::SysModModel() :Module("Model") {
 
   JsonArray root = model->to<JsonArray>(); //create
 
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   USER_PRINTF("Reading model from /model.json... (deserializeConfigFromFS)\n");
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
@@ -33,13 +33,13 @@ SysModModel::SysModModel() :Module("Model") {
     web->sendDataWs(nullptr, false); //send new data: all clients, no def, no ws here yet!!!
   }
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModModel::setup() {
   Module::setup();
 
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
 
@@ -72,7 +72,7 @@ void SysModModel::setup() {
     files->remove("/model.json");
   });
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
   void SysModModel::loop() {
@@ -83,7 +83,7 @@ void SysModModel::setup() {
     cleanUpModel(model->as<JsonArray>());
   }
   if (doWriteModel) {
-    print->println(F("Writing model to /model.json... (serializeConfig)"));
+    USER_PRINTF("Writing model to /model.json... (serializeConfig)\n");
 
     // files->writeObjectToFile("/model.json", model);
 

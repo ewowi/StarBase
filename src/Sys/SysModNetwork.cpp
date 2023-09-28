@@ -27,7 +27,7 @@ SysModNetwork::SysModNetwork() :Module("Network") {};
 //setup wifi an async webserver
 void SysModNetwork::setup() {
   Module::setup();
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
   ui->initText(parentVar, "ssid", "", false);
@@ -43,7 +43,7 @@ void SysModNetwork::setup() {
     web->addResponse(var["id"], "label", "Status");
   });
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModNetwork::loop() {

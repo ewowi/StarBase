@@ -27,7 +27,6 @@ public:
     this->name = name;
     success = true;
     isEnabled = true;
-    // Serial.printf("Constructor %s %s\n", __PRETTY_FUNCTION__, name);
   }
 
   virtual void setup() {}

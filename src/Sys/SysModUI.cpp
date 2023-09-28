@@ -23,7 +23,7 @@ int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::varLoopsChanged = false;;
 
 SysModUI::SysModUI() :Module("UI") {
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   success &= web->addURL("/", "text/html", nullptr, PAGE_index, PAGE_index_L);
   // success &= web->addURL("/index.js", "application/javascript", nullptr, PAGE_indexJs, PAGE_indexJs_length);
@@ -32,14 +32,14 @@ SysModUI::SysModUI() :Module("UI") {
 
   success &= web->setupJsonHandlers("/json", processJson);
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 //serve index.htm
 void SysModUI::setup() {
   Module::setup();
 
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = initModule(parentVar, name);
 
@@ -65,7 +65,7 @@ void SysModUI::setup() {
     web->addResponse(var["id"], "label", "Loops p s");
   });
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModUI::loop() {
@@ -154,8 +154,9 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     }
     var["id"] = (char *)id; //copy!!
   }
-  else
-    USER_PRINTF("Object %s already defined\n", id);
+  else {
+    USER_PRINT_NOT("Object %s already defined\n", id);
+  }
 
   if (!var.isNull()) {
     if (var["type"] != type) 

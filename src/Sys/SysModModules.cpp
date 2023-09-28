@@ -19,9 +19,9 @@ bool SysModModules::isConnected = false;
 std::vector<Module *> SysModModules::modules;
 
 SysModModules::SysModModules() :Module("Modules") {
-  USER_PRINTF("%s %s\n", __PRETTY_FUNCTION__, name);
+  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  USER_PRINTF("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 void SysModModules::setup() {

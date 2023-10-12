@@ -416,7 +416,7 @@ bool SysModWeb::addURL(const char * uri, const char * contentType, const char * 
       request->send(LittleFS, path, contentType);
     }
     else {
-      USER_PRINT_Async("Webserver: addUrl %s %s csdata", uri, contentType);
+      USER_PRINT_Async("Webserver: addUrl %s %s csdata %d-%d (%s)", uri, contentType, content, len, request->url().c_str());
 
       // if (handleIfNoneMatchCacheHeader(request)) return;
 

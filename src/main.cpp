@@ -23,6 +23,7 @@
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
 #include "User/UserModInstances.h"
+#include "User/UserModMDNS.h"
 #ifdef APPMOD_LEDS
   #include "App/AppModLeds.h"
   #include "App/AppModLedFixGen.h"
@@ -56,6 +57,7 @@ void setup() {
   sys = new SysModSystem();
   pins = new SysModPins();
   instances = new UserModInstances();
+  mdns = new UserModMDNS();
   #ifdef APPMOD_LEDS
     lds = new AppModLeds();
     lfg = new AppModLedFixGen();
@@ -109,6 +111,7 @@ void setup() {
   #ifdef USERMOD_WLEDAUDIO
     mdls->add(wledAudioMod);
   #endif
+  // mdls->add(mdns); //no ui
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

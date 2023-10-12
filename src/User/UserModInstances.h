@@ -226,7 +226,7 @@ public:
   }
 
   void updateNode( UDPWLEDMessage udpMessage, char *body = nullptr) {
-    USER_PRINTF("Instance: %d.%d.%d.%d %s\n", udpMessage.ip0, udpMessage.ip1, udpMessage.ip2, udpMessage.ip3, udpMessage.name );
+    USER_PRINTF("Instance: %d.%d.%d.%d n:%s b:%s\n", udpMessage.ip0, udpMessage.ip1, udpMessage.ip2, udpMessage.ip3, udpMessage.name, body );
     if (body) {
       // const char *bump = reinterpret_cast<const char*>(body);
       USER_PRINTF("body %s\n", body);
@@ -239,8 +239,10 @@ public:
         found = true;
         node->timeStamp = millis(); //update timestamp
         strncpy(node->details, udpMessage.name, sizeof(node->details)-1); //update name (in case changed)
-        strncat(node->details, " ", sizeof(node->details)-1);
-        strncat(node->details, body, sizeof(node->details)-1);
+        if (body) {
+          strncat(node->details, " ", sizeof(node->details)-1);
+          strncat(node->details, body, sizeof(node->details)-1);
+        }
       }
     }
 

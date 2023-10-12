@@ -30,6 +30,12 @@ public:
     // Module::loop();
   }
 
+  void onOffChanged() {
+    if (SysModModules::isConnected && isEnabled) {
+    } else {
+    }
+  }
+
 };
 
 static UserModExample *example;

@@ -84,10 +84,10 @@ void SysModSystem::loop() {
   if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
-    mdl->setValueV("upTime", "%lu s", millis()/1000);
-    mdl->setValueV("loops", "%lu /s", loopCounter);
-    mdl->setValueV("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
-    mdl->setValueV("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
+    mdl->setValueLossy("upTime", "%lu s", millis()/1000);
+    mdl->setValueLossy("loops", "%lu /s", loopCounter);
+    mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
+    mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
 
     loopCounter = 0;
   }

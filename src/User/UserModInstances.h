@@ -35,7 +35,7 @@ struct UDPWLEDMessage {
 //compatible with WLED nodes as it only interprets first 44 bytes
 struct UDPStarModMessage {
   UDPWLEDMessage header;
-  char body[1428]; //1472 - 44, one udp frame
+  char body[1416]; //1460 - 44, one udp frame should be 1460, not 1472 (then split by network in 1460 and 12)
 };
 
 class UserModInstances:public Module {
@@ -93,7 +93,7 @@ public:
       // USER_PRINTF("udpMessage size %d = %d + %d + %d + ...\n", sizeof(UDPWLEDMessage), sizeof(udpMessage.ip0), sizeof(udpMessage.version), sizeof(udpMessage.name));
       success = false;
     }
-    if (sizeof(UDPStarModMessage) != 1472) { //size of UDP Packet
+    if (sizeof(UDPStarModMessage) != 1460) { //size of UDP Packet
       USER_PRINTF("Program error: Size of UDP message is not 44: %d\n", sizeof(UDPStarModMessage));
       // USER_PRINTF("udpMessage size %d = %d + %d + %d + ...\n", sizeof(UDPWLEDMessage), sizeof(udpMessage.ip0), sizeof(udpMessage.version), sizeof(udpMessage.name));
       success = false;
@@ -128,13 +128,15 @@ public:
   {
     if(!SysModModules::isConnected) return;
 
+    instanceUDP.flush(); //tbd: test if needed
+ 
     int packetSize = instanceUDP.parsePacket();
 
     if (packetSize) {
       IPAddress remoteIp = instanceUDP.remoteIP();
       // TODO: actually look at the contents of the packet to fetch version, name etc
 
-      USER_PRINTF("UDPStarModMessage %d check %d or %d\n", packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
+      USER_PRINTF("UDPStarModMessage %s %d check %d or %d\n", remoteIp.toString().c_str(), packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
 
       if (packetSize == sizeof(UDPWLEDMessage)) { //WLED instance
         UDPWLEDMessage udpMessage;
@@ -200,7 +202,7 @@ public:
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
     starModMessage.header.nodeId = ip[3];
     starModMessage.header.version = 2309280; //tbd
-    strncpy(starModMessage.body, "Effect x, Projection y, Leds begin..end", 1428-1);
+    strncpy(starModMessage.body, "Effect x, Projection y, Leds begin..end", 1416-1);
 
     // const char *bump = reinterpret_cast<const char*>(starModMessage.body);
     // bump = "SM";

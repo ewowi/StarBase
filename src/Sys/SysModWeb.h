@@ -32,13 +32,7 @@ public:
   static void printClient(const char * text, AsyncWebSocketClient * client);
 
   //send json to client or all clients
-  static void sendDataWs(AsyncWebSocketClient * client = nullptr, JsonVariant json = JsonVariant());
-
-  //specific json data send to all clients
-  static void sendDataWs(JsonVariant json);
-
-  //complete document send to client or all clients
-  static void sendDataWs(AsyncWebSocketClient * client = nullptr, bool inclDef = false);
+  static void sendDataWs(JsonVariant json = JsonVariant(), AsyncWebSocketClient * client = nullptr);
 
   //add an url to the webserver to listen to
   bool addURL(const char * uri, const char * contentType, const char * path = nullptr, const uint8_t * content = nullptr, size_t len = -1);
@@ -75,6 +69,7 @@ public:
   
   static unsigned long wsSendBytesCounter;
   static unsigned long wsSendJsonCounter;
+  static unsigned long wsSendDataWsCounter;
 private:
   bool modelUpdated = false;
 

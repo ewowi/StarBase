@@ -77,7 +77,7 @@ void SysModFiles::loop(){
   if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
 
-    mdl->setValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
+    mdl->setValueLossy("drsize", "%d / %d B", usedBytes(), totalBytes());
 
         // if something changed in fileTbl
     if (filesChanged) {

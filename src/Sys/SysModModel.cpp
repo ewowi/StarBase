@@ -30,7 +30,7 @@ SysModModel::SysModModel() :Module("Model") {
   USER_PRINTF("Reading model from /model.json... (deserializeConfigFromFS)\n");
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     print->printJson("Read model", *model);
-    web->sendDataWs(nullptr, false); //send new data: all clients, no def, no ws here yet!!!
+    web->sendDataWs(*model);
   }
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -99,7 +99,7 @@ void SysModModel::setup() {
 
   if (millis() - secondMillis >= 1000) {
     secondMillis = millis();
-    setValueV("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
+    setValueLossy("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
   }
 
   if (model->memoryUsage() / model->capacity() > 0.95) {
@@ -148,6 +148,8 @@ JsonObject SysModModel::setValueC(const char * id, const char * value) {
       // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
       if (var["ro"]) { // do not update var["value"]
         ui->setChFunAndWs(var, value); //value: bypass var["value"]
+        //now only used for ro not lossy
+        USER_PRINTF("setValueC: RO non lossy %s %s\n", id, value);
       } else {
         var["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
         ui->setChFunAndWs(var);
@@ -238,6 +240,34 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
   va_end(args);
 
   return setValueC(id, value);
+}
+
+void SysModModel::setValueLossy(const char * id, const char * format, ...) {
+
+  va_list args;
+  va_start(args, format);
+
+  // size_t len = vprintf(format, args);
+  char value[128];
+  vsnprintf(value, sizeof(value)-1, format, args);
+
+  va_end(args);
+
+  JsonDocument *responseDoc = web->getResponseDoc();
+  responseDoc->clear(); //needed for deserializeJson?
+  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+
+  web->addResponse(id, "value", value);
+
+  bool isOk = true;
+  for (auto client:SysModWeb::ws->getClients()) {
+      if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>1) //lossy
+        isOk = false;
+  }
+  if (isOk)
+    web->sendDataWs(responseVariant);
+  else
+    USER_PRINTF(".");
 }
 
 JsonVariant SysModModel::getValue(const char * id) {

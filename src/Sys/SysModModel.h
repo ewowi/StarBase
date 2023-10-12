@@ -42,6 +42,9 @@ public:
   //Set value with argument list and print
   JsonObject setValueP(const char * id, const char * format, ...);
 
+  //Send value directly to ws (tbd: no model function but web?)
+  void setValueLossy(const char * id, const char * format, ...);
+
   //tbd
   // template <typename Type>
   // static JsonObject setValue(const char * id, Type value) {

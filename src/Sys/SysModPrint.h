@@ -14,7 +14,7 @@
 #define USER_PRINTF(x...) print->print(x)
 #define USER_PRINT_FUNCTION(x...) //print->print(x)
 #define USER_PRINT_NOT(x...) //print->print(x)
-#define USER_PRINT_Async(x...) //print->print(x)
+#define USER_PRINT_Async(x...) print->print(x)
 
 class SysModPrint:public Module {
 

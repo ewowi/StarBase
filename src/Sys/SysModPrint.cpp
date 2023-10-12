@@ -72,7 +72,7 @@ size_t SysModPrint::print(const char * format, ...) {
           Serial.print(va_arg(args, unsigned int));
           break;
         case 'c':
-          Serial.print(va_arg(args, char));
+          Serial.print(va_arg(args, int));
           break;
         case 'd':
           Serial.print(va_arg(args, int));

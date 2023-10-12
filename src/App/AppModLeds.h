@@ -188,7 +188,7 @@ public:
     //update ui
     if (millis() - secondMillis >= 1000) {
       secondMillis = millis();
-      mdl->setValueV("realFps", "%lu /s", frameCounter);
+      mdl->setValueLossy("realFps", "%lu /s", frameCounter);
       frameCounter = 0;
     }
 

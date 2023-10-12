@@ -32,6 +32,7 @@ bool SysModWeb::clientsChanged = false;
 
 unsigned long SysModWeb::wsSendBytesCounter = 0;
 unsigned long SysModWeb::wsSendJsonCounter = 0;
+unsigned long SysModWeb::wsSendDataWsCounter = 0;
 
 SysModWeb::SysModWeb() :Module("Web") {
   ws = new AsyncWebSocket("/ws");
@@ -71,6 +72,9 @@ void SysModWeb::setup() {
     select.add("Connected"); //1
     select.add("Disconnecting"); //2
   });
+  ui->initNumber(tableVar, "clLength", -1, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Length");
+  });
 
   ui->initText(parentVar, "wsSendBytes");
   ui->initText(parentVar, "wsSendJson");
@@ -86,7 +90,8 @@ void SysModWeb::loop() {
 
   //currently not used as each variable is send individually
   if (this->modelUpdated) {
-    sendDataWs(nullptr, false); //send new data, all clients, no def
+    sendDataWs(*SysModModel::model); //send new data, all clients, no def
+
     this->modelUpdated = false;
   }
 
@@ -96,20 +101,21 @@ void SysModWeb::loop() {
     // if something changed in clTbl
     if (clientsChanged) {
       clientsChanged = false;
-
-      ui->processUiFun("clTbl");
     }
 
-    uint8_t rowNr = 0;
-    for (auto client:SysModWeb::ws->getClients()) {
-      mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
-      mdl->setValueI("clStatus", client->status());
-      rowNr++;
-    }
+    ui->processUiFun("clTbl"); //every second (temp)
 
-    mdl->setValueV("wsSendBytes", "%lu /s", wsSendBytesCounter);
+    // uint8_t rowNr = 0;
+    // for (auto client:SysModWeb::ws->getClients()) {
+    //   mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
+    //   mdl->setValueI("clStatus", client->status(), rowNr);
+    //   mdl->setValueI("clLength", client->queueLength(), rowNr);
+    //   rowNr++;
+    // }
+
+    mdl->setValueLossy("wsSendBytes", "%lu /s", wsSendBytesCounter);
     wsSendBytesCounter = 0;
-    mdl->setValueV("wsSendJson", "%lu /s", wsSendJsonCounter);
+    mdl->setValueLossy("wsSendJson", "%lu /s", wsSendJsonCounter);
     wsSendJsonCounter = 0;
   }
 }
@@ -142,7 +148,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   // }
   if (type == WS_EVT_CONNECT) {
     printClient("WS client connected", client);
-    sendDataWs(client, true); //send definition to client
+    sendDataWs(*SysModModel::model, client); //send definition to client
     clientsChanged = true;
   } else if (type == WS_EVT_DISCONNECT) {
     printClient("WS Client disconnected", client);
@@ -186,7 +192,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
               if (responseVariant["uiFun"].isNull())
                 sendDataWs(responseVariant);
               else
-                sendDataWs(client, responseVariant);
+                sendDataWs(responseVariant, client);
             }
             else {
               USER_PRINT_Async("WS_EVT_DATA no responseDoc\n");
@@ -345,16 +351,23 @@ void SysModWeb::wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client,
 
 
 void SysModWeb::printClient(const char * text, AsyncWebSocketClient * client) {
-  USER_PRINT_Async("%s client: %d %s q:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", client->queueIsFull(), client->status(), ws->count());
+  USER_PRINT_Async("%s client: %d %s q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", client->queueIsFull(), client->queueLength(), client->status(), ws->count());
   //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
 }
 
-void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
+void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
   if (!ws) {
     USER_PRINT_Async("sendDataWs no ws\n");
     return;
   }
-  // return;
+
+  wsSendDataWsCounter++;
+  if (wsSendDataWsCounter > 1) {
+    USER_PRINT_Async("sendDataWs parallel %d %s\n", wsSendDataWsCounter, pcTaskGetTaskName(NULL));
+    wsSendDataWsCounter--;
+    return;
+  }
+
   wsSendJsonCounter++;
   ws->cleanupClients();
 
@@ -392,16 +405,7 @@ void SysModWeb::sendDataWs(AsyncWebSocketClient * client, JsonVariant json) {
       ws->_cleanBuffers();
     }
   }
-}
-
-//specific json data send to all clients
-void SysModWeb::sendDataWs(JsonVariant json) {
-  sendDataWs(nullptr, json);
-}
-
-void SysModWeb::sendDataWs(AsyncWebSocketClient * client, bool inclDef) {
-  //tbd: remove inclDef paramater (now only used to type overload sendDataWS)
-  sendDataWs(client, *SysModModel::model);
+  wsSendDataWsCounter--;
 }
 
 //add an url to the webserver to listen to
@@ -574,6 +578,7 @@ void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filte
       row.add((char *)client->remoteIP().toString().c_str()); //create a copy!
       row.add(client->queueIsFull());
       row.add(client->status());
+      row.add(client->queueLength());
     }
   }
 }

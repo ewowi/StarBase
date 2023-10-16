@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModWeb.h
-   @date      20230810
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -48,7 +48,7 @@ public:
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
-  //curl -X POST "http://192.168.8.152/json" -d '{"fx":2}' -H "Content-Type: application/json"
+  //curl -X POST "http://192.168.8.102/json" -d '{"fx":2}' -H "Content-Type: application/json"
   //curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
 
   bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &));
@@ -66,6 +66,8 @@ public:
 
   //gets the right responseDoc, depending on which task you are in
   JsonDocument * getResponseDoc();
+
+  static void serveJson(AsyncWebServerRequest *request);
   
   static unsigned long wsSendBytesCounter;
   static unsigned long wsSendJsonCounter;

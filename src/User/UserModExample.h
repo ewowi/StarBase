@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      UserModExample.h
-   @date      20230810
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -26,7 +26,7 @@ public:
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
-  void loop(){
+  void loop() {
     // Module::loop();
   }
 

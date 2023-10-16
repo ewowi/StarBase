@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModUI.cpp
-   @date      20230810
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -30,7 +30,9 @@ SysModUI::SysModUI() :Module("UI") {
   // success &= web->addURL("/app.js", "application/javascript", nullptr, PAGE_appJs, PAGE_appJs_length);
   // success &= web->addURL("/index.css", "text/css", "/index.css");
 
-  success &= web->setupJsonHandlers("/json", processJson);
+  success &= web->setupJsonHandlers("/json", processJson); //for websocket ("GET") and curl (POST)
+
+  web->processURL("/json", web->serveJson);
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
@@ -107,7 +109,7 @@ void SysModUI::loop() {
               client->binary(wsBuf);
             else {
               // web->clientsChanged = true; tbd: changed also if full status changes
-              web->printClient("loopFun skip frame", client);
+              // web->printClient("loopFun skip frame", client);
             }
           }
           wsBuf->unlock();

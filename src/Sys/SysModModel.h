@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModModel.h
-   @date      20230810
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -31,7 +31,7 @@ public:
   static JsonObject setValueC(const char * id, const char * value);
 
   //setValue int
-  static JsonObject setValueI(const char * id, int value);
+  static JsonObject setValueI(const char * id, int value, uint8_t rowNr=-1);
 
   //setValue bool
   static JsonObject setValueB(const char * id, bool value, uint8_t rowNr=-1);

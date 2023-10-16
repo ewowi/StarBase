@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModSystem.cpp
-   @date      20230810
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -26,6 +26,10 @@ void SysModSystem::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
+  ui->initText(parentVar, "serverName", "StarMod", false, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Name");
+    web->addResponse(var["id"], "comment", "Instance name");
+  });
   ui->initText(parentVar, "upTime", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Uptime of board");
   });

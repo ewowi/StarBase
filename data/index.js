@@ -1,6 +1,6 @@
 // @title     StarMod
 // @file      index.css
-// @date      20230810
+// @date      20231016
 // @repo      https://github.com/ewowi/StarMod
 // @Authors   https://github.com/ewowi/StarMod/commits/main
 // @Copyright (c) 2023 Github StarMod Commit Authors

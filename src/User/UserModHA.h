@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      UserModHA.h
-   @date      20230731
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -80,7 +80,7 @@ public:
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
-  void loop(){
+  void loop() {
     // Module::loop();
     mqtt->loop();
   }

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppEffects.h
-   @date      20230810
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -334,7 +334,7 @@ public:
     Effect::loop();
 
     const uint16_t cols = LedsV::widthV;
-    const uint16_t rows = LedsV::widthV;
+    const uint16_t rows = LedsV::heightV;
 
     uint8_t speed = mdl->getValue("speed").as<int>()/32;
     uint8_t scale = mdl->getValue("scale").as<int>()/32;
@@ -382,6 +382,73 @@ public:
     return true;
   }
 }; // DistortionWaves2D
+
+class Octopus2D: public Effect {
+public:
+  const char * name() {
+    return "Octopus 2D";
+  }
+
+    // typedef struct {
+    //   uint8_t angle;
+    //   uint8_t radius;
+    // } map_t;
+
+    // map_t rMap ;
+
+  void setup() {
+    // fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100); //like more the gradual change
+  }
+
+  void loop() {
+    Effect::loop();
+
+    const uint16_t cols = LedsV::widthV;
+    const uint16_t rows = LedsV::widthV;
+
+    uint8_t offsX = mdl->getValue("Offset X").as<uint8_t>();
+    uint8_t offsYX = mdl->getValue("Offset Y").as<uint8_t>();
+    uint8_t legs = mdl->getValue("Legs").as<uint8_t>();
+
+    // const uint8_t mapp = 180 / MAX(cols,rows);
+
+    // // re-init if SEGMENT dimensions or offset changed
+    // if (SEGENV.call == 0 || SEGENV.aux0 != cols || SEGENV.aux1 != rows || offsX != *offsX || offsY != *offsY) {
+    //   SEGENV.step = 0; // t
+    //   SEGENV.aux0 = cols;
+    //   SEGENV.aux1 = rows;
+    //   *offsX = offsX;
+    //   *offsY = offsY;
+    //   const uint8_t C_X = cols / 2 + (offsX - 128)*cols/255;
+    //   const uint8_t C_Y = rows / 2 + (offsY - 128)*rows/255;
+    //   for (int x = 0; x < cols; x++) {
+    //     for (int y = 0; y < rows; y++) {
+    //       rMap[XY(x, y)].angle = 40.7436f * atan2f(y - C_Y, x - C_X); // avoid 128*atan2()/PI
+    //       rMap[XY(x, y)].radius = hypotf(x - C_X, y - C_Y) * mapp; //thanks Sutaburosu
+    //     }
+    //   }
+    // }
+
+    // SEGENV.step += SEGMENT.speed / 32 + 1;  // 1-4 range
+    // for (int x = 0; x < cols; x++) {
+    //   for (int y = 0; y < rows; y++) {
+    //     byte angle = rMap[XY(x,y)].angle;
+    //     byte radius = rMap[XY(x,y)].radius;
+    //     //CRGB c = CHSV(SEGENV.step / 2 - radius, 255, sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step) + radius - SEGENV.step * 2 + angle * (legs/3+1)));
+    //     uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step/2) + radius - SEGENV.step + angle * (legs/4+1));
+    //     intensity = map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
+    //     CRGB c = ColorFromPalette(SEGPALETTE, SEGENV.step / 2 - radius, intensity);
+    //     SEGMENT.setPixelColorXY(x, y, c);
+    //   }
+    // }
+  }
+  bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "Offset X", false, false);
+    ui->initSlider(parentVar, "Offset Y", false, false);
+    ui->initSlider(parentVar, "Legs", false, false);
+    return true;
+  }
+}; // Octopus2D
 
 
 //BouncingBalls1D  inspired by WLED
@@ -464,7 +531,7 @@ public:
     ui->initSlider(parentVar, "nrOfBalls", 128, false);
     return true;
   }
-}; // DistortionWaves2D
+}; // BouncingBalls2D
 
 class RingEffect:public Effect {
   protected:
@@ -675,6 +742,7 @@ public:
     effects.push_back(new Frizzles2D);
     effects.push_back(new Lines2D);
     effects.push_back(new DistortionWaves2D);
+    effects.push_back(new Octopus2D);
     effects.push_back(new BouncingBalls1D);
     effects.push_back(new RingRandomFlow);
     #ifdef USERMOD_WLEDAUDIO

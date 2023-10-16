@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      main.cpp
-   @date      20230810
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -111,7 +111,7 @@ void setup() {
   #ifdef USERMOD_WLEDAUDIO
     mdls->add(wledAudioMod);
   #endif
-  // mdls->add(mdns); //no ui
+  mdls->add(mdns); //no ui
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

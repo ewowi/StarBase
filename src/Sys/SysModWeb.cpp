@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModWeb.cpp
-   @date      20230810
+   @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -14,6 +14,8 @@
 #include "SysModPrint.h"
 #include "SysModFiles.h"
 #include "SysModModules.h"
+
+#include "User/UserModMDNS.h"
 
 #include "AsyncJson.h"
 
@@ -101,17 +103,18 @@ void SysModWeb::loop() {
     // if something changed in clTbl
     if (clientsChanged) {
       clientsChanged = false;
+      ui->processUiFun("clTbl"); //every second (temp)
     }
 
-    ui->processUiFun("clTbl"); //every second (temp)
 
-    // uint8_t rowNr = 0;
-    // for (auto client:SysModWeb::ws->getClients()) {
-    //   mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
-    //   mdl->setValueI("clStatus", client->status(), rowNr);
-    //   mdl->setValueI("clLength", client->queueLength(), rowNr);
-    //   rowNr++;
-    // }
+    uint8_t rowNr = 0;
+    for (auto client:SysModWeb::ws->getClients()) {
+      // printClient("up", client);
+      mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
+      mdl->setValueI("clStatus", client->status(), rowNr);
+      mdl->setValueI("clLength", client->queueLength(), rowNr);
+      rowNr++;
+    }
 
     mdl->setValueLossy("wsSendBytes", "%lu /s", wsSendBytesCounter);
     wsSendBytesCounter = 0;
@@ -485,10 +488,6 @@ bool SysModWeb::addUpload(const char * uri) {
 
 bool SysModWeb::addFileServer(const char * uri) {
 
-  // AsyncCallbackJsonWebHandler* handler = new AsyncCallbackJsonWebHandler("/json", [](AsyncWebServerRequest *request) {
-  // });
-  // server->addHandler(handler);
-
   server->on(uri, HTTP_GET, [uri](AsyncWebServerRequest *request){
     const char * ddd = request->url().c_str();
     const char * path = ddd + strlen(uri); //remove the uri from the path (skip their positions)
@@ -503,8 +502,8 @@ bool SysModWeb::addFileServer(const char * uri) {
 bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &)) {
   processWSFunc = processFunc; //for WebSocket requests
 
-  //URL handler
-  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler("/json", [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
+  //URL handler, e.g. for curl calls
+  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler(uri, [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
     JsonDocument *responseDoc = web->getResponseDoc();
     responseDoc->clear(); //needed for deserializeJson?
     JsonVariant responseVariant = responseDoc->as<JsonVariant>();
@@ -588,3 +587,52 @@ JsonDocument * SysModWeb::getResponseDoc() {
 
   return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?web->responseDocLoopTask:web->responseDocAsyncTCP;
 }
+
+void SysModWeb::serveJson(AsyncWebServerRequest *request) {
+  JsonArray model = SysModModel::model->as<JsonArray>();
+  USER_PRINTF("serveJson %s, %s %d %d %d %d\n", request->client()->remoteIP().toString().c_str(), request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), SysModModel::model->capacity());
+
+  AsyncJsonResponse * response;
+
+  if (request->url().indexOf("si")    > 0) {
+    response = new AsyncJsonResponse(false, 5000); //object
+    JsonObject root = response->getRoot();
+
+    //temporary set all WLED variables (as otherwise WLED-native does not show the instance): tbd: clean up
+    const char* jsonState = "{\"on\":true,\"bri\":10,\"transition\":7,\"ps\":9,\"pl\":-1,\"AudioReactive\":{\"on\":false},\"CustomEffects\":{\"on\":true},\"nl\":{\"on\":false,\"dur\":60,\"mode\":1,\"tbri\":0,\"rem\":-1},\"udpn\":{\"send\":false,\"recv\":true},\"lor\":0,\"mainseg\":0,\"seg\":[{\"id\":0,\"start\":0,\"stop\":144,\"len\":144,\"grp\":1,\"spc\":0,\"of\":0,\"on\":true,\"frz\":false,\"bri\":255,\"cct\":127,\"col\":[[182,15,98,0],[0,0,0,0],[255,224,160,0]],\"fx\":174,\"sx\":128,\"ix\":128,\"pal\":11,\"c1\":8,\"c2\":20,\"c3\":31,\"sel\":true,\"rev\":false,\"mi\":false,\"o1\":false,\"o2\":false,\"o3\":false,\"ssim\":0,\"mp12\":1}]}";
+    const char* jsonInfo = "{\"ver\":\"0.14.0-mdev\",\"vid\":2209091,\"leds\":{\"count\":144,\"pwr\":248,\"fps\":41,\"maxpwr\":2000,\"maxseg\":32,\"cpal\":0,\"seglc\":[11],\"lc\":11,\"rgbw\":true,\"wv\":2,\"cct\":0},\"str\":false,\"name\":\"StarModewowi\",\"udpport\":21324,\"live\":false,\"liveseg\":-1,\"lm\":\"\",\"lip\":\"\",\"ws\":0,\"fxcount\":177,\"palcount\":71,\"maps\":[0],\"wifi\":{\"bssid\":\"96:83:C4:2D:4B:8A\",\"rssi\":-43,\"signal\":100,\"channel\":11},\"fs\":{\"u\":45,\"t\":983,\"pmt\":0},\"ndc\":1,\"arch\":\"esp32\",\"core\":\"v3.3.6-16-gcc5440f6a2\",\"lwip\":0,\"freeheap\":173488,\"uptime\":31264,\"u\":{\"Temperature\":[0,\" Sensor Error!\"],\"opt\":111,\"brand\":\"StarMod\",\"product\":\"LED\",\"mac\":\"3ce90e874ac0\",\"ip\":\"192.168.8.102\"}";
+    StaticJsonDocument<5000> docState;
+    deserializeJson(docState, jsonState);
+    StaticJsonDocument<5000> docInfo;
+    deserializeJson(docInfo, jsonInfo);
+    root["state"] = docState;
+    root["info"] = docInfo;
+
+
+    root["state"]["bri"] = mdl->getValue("bri");
+    root["state"]["on"] = true;
+    root["info"]["name"] = mdl->getValue("serverName");
+    // root["info"]["ver"] = "0.14.0-mdev";
+    // root["info"]["arch"] = "esp32"; //platformName
+    // root["info"]["wifi"]["rssi"] = -42;
+    String escapedMac;
+    escapedMac = WiFi.macAddress();
+    escapedMac.replace(":", "");
+    escapedMac.toLowerCase();
+    root["info"]["mac"] = (char *)escapedMac.c_str(); //copy mdns->escapedMac gives LoadProhibited crash, tbd: find out why
+    root["info"]["ip"] = (char *)WiFi.localIP().toString().c_str();
+    // print->printJson("serveJson", root);
+  }
+  else { // return model.json
+    response = new AsyncJsonResponse(true,  model.memoryUsage()); //array tbd: here copy is mode, see WLED for using reference
+    JsonArray root = response->getRoot();
+
+    // root = module does not work? so add ead element individually
+    for (JsonObject module: model)
+      root.add(module);
+
+  }
+
+  response->setLength();
+  request->send(response);
+} //serveJson

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      UserModInstances.h
-   @date      20230928
+   @date      20231016
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
    @Copyright (c) 2023 Github StarMod Commit Authors
@@ -112,11 +112,12 @@ public:
     }
   }
 
-  void loop(){
+  void loop() {
     // Module::loop();
 
     //everysecond better to save on cpu?
     if (millis() - secondMillis >= 1000) {
+      USER_PRINTF(".");
       secondMillis = millis();
 
       handleNotifications();
@@ -171,15 +172,16 @@ public:
     }
 
     //remove inactive nodes
-    size_t index = 0;
-    for (std::vector<NodeInfo>::iterator node=nodes.begin(); node!=nodes.end(); ++node) {
+    // size_t index = 0;
+    for (std::vector<NodeInfo>::iterator node=nodes.begin(); node!=nodes.end(); ) {
       if (millis() - node->timeStamp > 32000) { //assuming a ping each 30 seconds
-        nodes.erase(nodes.begin() + index);
+        node = nodes.erase(node);
         ui->processUiFun("insTbl");
         ui->processUiFun("ddpInst");
         ui->processUiFun("artInst");
       }
-      index++;
+      else
+        ++node;
     }
   }
 
@@ -198,14 +200,11 @@ public:
     starModMessage.header.ip1 = ip[1];
     starModMessage.header.ip2 = ip[2];
     starModMessage.header.ip3 = ip[3];
-    strncpy(starModMessage.header.name, serverDescription, 32);
+    strncpy(starModMessage.header.name, mdl->getValue("serverName").as<const char *>(), 32);
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
     starModMessage.header.nodeId = ip[3];
     starModMessage.header.version = 2309280; //tbd
     strncpy(starModMessage.body, "Effect x, Projection y, Leds begin..end", 1416-1);
-
-    // const char *bump = reinterpret_cast<const char*>(starModMessage.body);
-    // bump = "SM";
 
     updateNode(starModMessage.header, starModMessage.body); //temp? to show new node in list
 
@@ -227,10 +226,9 @@ public:
 
   void updateNode( UDPWLEDMessage udpMessage, char *body = nullptr) {
     USER_PRINTF("Instance: %d.%d.%d.%d n:%s b:%s\n", udpMessage.ip0, udpMessage.ip1, udpMessage.ip2, udpMessage.ip3, udpMessage.name, body );
-    if (body) {
-      // const char *bump = reinterpret_cast<const char*>(body);
-      USER_PRINTF("body %s\n", body);
-    }
+    // if (body) {
+    //   USER_PRINTF("body %s\n", body);
+    // }
 
     bool found = false;
     //iterate vector pointers so we can update the nodes
@@ -260,6 +258,7 @@ public:
       ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
       ui->processUiFun("artInst"); //show the new instance in the dropdown  
     }
+
     ui->processUiFun("insTbl");
 
   }
@@ -269,8 +268,6 @@ public:
     uint16_t instanceUDPPort = 65506;
     bool udp2Connected = false;
     unsigned long second30Millis = 0;
-    char serverDescription[33] = "StarModInstance"; //tbd
-
 };
 
 static UserModInstances *instances;

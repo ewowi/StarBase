@@ -177,10 +177,27 @@ public:
 
     openPin();
 
-    for (uint8_t y = 0; y<height; y++) //1cm distance between leds
-      for (uint16_t x = 0; x<width ; x++) {
-        write2D(x*10+startX,y*10+startY);
+    //qad setup of serpentine, should be done better!
+    bool serpentine = mdl->getValue("serpentine");
+
+    if (serpentine) {
+      for (uint8_t y = 0; y<height; y++) { //1cm distance between leds
+        if (y%2==0)
+          for (uint16_t x = 0; x<width ; x++) {
+            write2D(x*10+startX,y*10+startY);
+          }
+        else
+          for (int x = width-1; x>=0 ; x--) {
+            write2D(x*10+startX,y*10+startY);
+          }
       }
+    }
+    else {
+      for (uint8_t y = 0; y<height; y++) //1cm distance between leds
+        for (uint16_t x = 0; x<width ; x++) {
+          write2D(x*10+startX,y*10+startY);
+        }
+    }
 
     closePin();
   }

@@ -31,6 +31,8 @@ SysModModel::SysModModel() :Module("Model") {
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     print->printJson("Read model", *model);
     web->sendDataWs(*model);
+  } else {
+    root = model->to<JsonArray>(); //re create the model as it is corrupted by readFromFile
   }
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -288,7 +290,7 @@ void SysModModel::setValueLossy(const char * id, const char * format, ...) {
   if (isOk)
     web->sendDataWs(responseVariant);
   else
-    USER_PRINTF(".");
+    USER_PRINTF("x");
 }
 
 JsonVariant SysModModel::getValue(const char * id) {

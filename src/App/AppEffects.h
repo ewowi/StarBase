@@ -7,6 +7,7 @@
    @Copyright (c) 2023 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
+
 #ifdef USERMOD_WLEDAUDIO
   #include "User/UserModWLEDAudio.h"
 #endif
@@ -14,24 +15,64 @@
   #include "../User/UserModE131.h"
 #endif
 
-
 static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-static unsigned long call = 0; //for 3D effects (temporary)
-static unsigned long step = 0; //for GEQ (temporary)
+static unsigned long call = 0; //not used at the moment (don't use in effect calculations)
+static unsigned long now = millis();
+
+class SharedData {
+  private:
+    byte *data;
+    uint16_t index = 0;
+    uint16_t bytesAllocated = 0;
+
+  public:
+  SharedData() {
+    bytesAllocated = 1024;
+    data = (byte*) malloc(bytesAllocated); //start with 100 bytes
+  }
+
+  void clear() {
+    memset(data, 0, bytesAllocated);
+  }
+
+  void allocate(size_t size) {
+    index = 0;
+    if (size > bytesAllocated) {
+      USER_PRINTF("realloc %d %d %d\n", index, size, bytesAllocated);
+      data = (byte*)realloc(data, size);
+      bytesAllocated = size;
+    }
+  }
+
+  template <typename Type>
+  Type* bind(int length = 1) {
+    Type* returnValue = reinterpret_cast<Type*>(data + index);
+    index += length * sizeof(Type); //add consumed amount of bytes, index is next byte which will be pointed to
+    if (index > bytesAllocated) {
+      USER_PRINTF("bind too big %d %d\n", index, bytesAllocated);
+      return nullptr;
+    }
+    return returnValue;
+  }
+
+  bool allocated() {
+    if (index>bytesAllocated) {
+      USER_PRINTF("not all variables bound %d %d\n", index, bytesAllocated);
+      return false;
+    }
+    return true;
+  }
+
+} sharedData;
 
 //should not contain variables/bytes to keep mem as small as possible!!
 class Effect {
 public:
-  virtual const char * name() { return nullptr;}
+  virtual const char * name() {return nullptr;}
 
   virtual void setup() {}
 
-  virtual void loop() {
-    call++;
-
-    // do some periodic updates
-    EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  }
+  virtual void loop() {}
 
   virtual bool controls(JsonObject parentVar) {return false;}
 };
@@ -41,9 +82,7 @@ public:
   const char * name() {
     return "Rainbow 1D";
   }
-  void setup() {}
   void loop() {
-    Effect::loop();
     // FastLED's built-in rainbow generator
     fill_rainbow( ledsP, LedsV::nrOfLedsP, gHue, 7);
   }
@@ -54,9 +93,7 @@ public:
   const char * name() {
     return "Rainbow with glitter 1D";
   }
-  void setup() {}
   void loop() {
-    Effect::loop();
     // built-in FastLED rainbow, plus some random sparkly glitter
     RainbowEffect::loop();
     addGlitter(80);
@@ -74,9 +111,7 @@ public:
   const char * name() {
     return "Sinelon 1D";
   }
-  void setup() {}
   void loop() {
-    Effect::loop();
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
     int pos = beatsin16( mdl->getValue("speed").as<int>(), 0, LedsV::nrOfLedsV-1 );
@@ -96,9 +131,7 @@ public:
   const char * name() {
     return "Running 1D";
   }
-  void setup() {}
   void loop() {
-    Effect::loop();
     // a colored dot sweeping back and forth, with fading trails
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, mdl->getValue("fade").as<int>()); //physical leds
     int pos = map(beat16( mdl->getValue("speed").as<int>()), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 ); //instead of call%LedsV::nrOfLedsV
@@ -120,9 +153,7 @@ public:
   const char * name() {
     return "Confetti 1D";
   }
-  void setup() {}
   void loop() {
-    Effect::loop();
     // random colored speckles that blink in and fade smoothly
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 10);
     int pos = random16(LedsV::nrOfLedsP);
@@ -135,15 +166,13 @@ public:
   const char * name() {
     return "Beats per minute 1D";
   }
-  void setup() {}
+
   void loop() {
-    Effect::loop();
     // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
     uint8_t BeatsPerMinute = 62;
-    CRGBPalette16 palette = PartyColors_p;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for( int i = 0; i < LedsV::nrOfLedsV; i++) { //9948
-      ledsV[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
+      ledsV[i] = ColorFromPalette(PartyColors_p, gHue+(i*2), beat-gHue+(i*10)); //tbd: PartyColors_p to palette UI
     }
   }
   bool controls(JsonObject parentVar) {
@@ -156,9 +185,7 @@ public:
   const char * name() {
     return "Juggle 1D";
   }
-  void setup() {}
   void loop() {
-    Effect::loop();
     // eight colored dots, weaving in and out of sync with each other
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
     uint8_t dothue = 0;
@@ -174,9 +201,7 @@ public:
   const char * name() {
     return "Ripples 3D";
   }
-  void setup() {}
   void loop() {
-    Effect::loop();
     uint8_t interval = mdl->getValue("interval");
 
     float ripple_interval = 1.3 * (interval/128.0);
@@ -191,7 +216,7 @@ public:
     for (int z=0; z<mD; z++) {
         for (int x=0; x<mW; x++) {
             float d = distance(3.5, 3.5, 0, x, z, 0)/9.899495*mH;
-            uint16_t height = floor(mH/2.0+sinf(d/ripple_interval + call/((256.0-128.0)/20.0))*mH/2.0); //between 0 and 8
+            uint16_t height = floor(mH/2.0+sinf(d/ripple_interval + now/100/((256.0-128.0)/20.0))*mH/2.0); //between 0 and 8
 
             ledsV[x + height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
         }
@@ -208,16 +233,14 @@ public:
   const char * name() {
     return "SphereMove 3D";
   }
-  void setup() {}
   void loop() {
-    Effect::loop();
     uint16_t origin_x, origin_y, origin_z, d;
     float diameter;
 
     fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
     // fill(CRGB::Black);
 
-    uint32_t interval = call/((256.0-128.0)/20.0);
+    uint32_t interval = now/100/((256.0-128.0)/20.0);
 
     uint16_t mW = LedsV::widthV;
     uint16_t mH = LedsV::heightV;
@@ -256,19 +279,13 @@ public:
     return "Frizzles 2D";
   }
 
-  void setup() {
-    // fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100); //like more the gradual change
-  }
-
   void loop() {
-    Effect::loop();
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
-    CRGBPalette16 palette = PartyColors_p;
 
     for (size_t i = 8; i > 0; i--) {
       uint8_t x = beatsin8(mdl->getValue("speed").as<int>()/8 + i, 0, LedsV::widthV - 1);
       uint8_t y = beatsin8(mdl->getValue("intensity").as<int>()/8 - i, 0, LedsV::heightV - 1);
-      CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
+      CRGB color = ColorFromPalette(PartyColors_p, beatsin8(12, 0, 255), 255); //tbd: PartyColors_p to palette UI
       ledsV[x + y * LedsV::widthV] = color;
     }
     blur2d(ledsP, LedsV::widthP, LedsV::heightP, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
@@ -287,12 +304,8 @@ public:
     return "Lines 2D";
   }
 
-  void setup() {}
-
   void loop() {
-    Effect::loop();
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100);
-    CRGBPalette16 palette = PartyColors_p;
 
     if (mdl->getValue("Vertical").as<bool>()) {
       size_t x = map(beat16( mdl->getValue("speed").as<int>()), 0, uint16_t(-1), 0, LedsV::widthV-1 ); //instead of call%width
@@ -319,20 +332,14 @@ uint8_t gamma8(uint8_t b) { //we do nothing with gamma for now
   return b;
 }
 
-//DistortionWaves2D  inspired by WLED, ldirko, https://editor.soulmatelights.com/gallery/1089-distorsion-waves
+//DistortionWaves2D inspired by WLED, ldirko and blazoncek, https://editor.soulmatelights.com/gallery/1089-distorsion-waves
 class DistortionWaves2D: public Effect {
 public:
   const char * name() {
     return "DistortionWaves 2D";
   }
 
-  void setup() {
-    // fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100); //like more the gradual change
-  }
-
   void loop() {
-    Effect::loop();
-
     const uint16_t cols = LedsV::widthV;
     const uint16_t rows = LedsV::heightV;
 
@@ -341,7 +348,7 @@ public:
 
     uint8_t  w = 2;
 
-    uint16_t a  = millis()/32;
+    uint16_t a  = now/32;
     uint16_t a2 = a/2;
     uint16_t a3 = a/3;
 
@@ -383,108 +390,117 @@ public:
   }
 }; // DistortionWaves2D
 
+//Octopus2D inspired by WLED, Stepko and Sutaburosu and blazoncek 
+//Idea from https://www.youtube.com/watch?v=HsA-6KIbgto&ab_channel=GreatScott%21 (https://editor.soulmatelights.com/gallery/671-octopus)
 class Octopus2D: public Effect {
 public:
   const char * name() {
     return "Octopus 2D";
   }
 
-    // typedef struct {
-    //   uint8_t angle;
-    //   uint8_t radius;
-    // } map_t;
-
-    // map_t rMap ;
-
-  void setup() {
-    // fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100); //like more the gradual change
-  }
+  typedef struct {
+    uint8_t angle;
+    uint8_t radius;
+  } map_t;
 
   void loop() {
-    Effect::loop();
 
     const uint16_t cols = LedsV::widthV;
-    const uint16_t rows = LedsV::widthV;
+    const uint16_t rows = LedsV::heightV;
+    const uint8_t mapp = 180 / max(cols,rows);
 
-    uint8_t offsX = mdl->getValue("Offset X").as<uint8_t>();
-    uint8_t offsYX = mdl->getValue("Offset Y").as<uint8_t>();
-    uint8_t legs = mdl->getValue("Legs").as<uint8_t>();
+    uint8_t speed = mdl->getValue("speed");
+    uint8_t offsetX = mdl->getValue("Offset X");
+    uint8_t offsetY = mdl->getValue("Offset Y");
+    uint8_t legs = mdl->getValue("Legs").as<uint8_t>() / 8;
 
-    // const uint8_t mapp = 180 / MAX(cols,rows);
+    sharedData.allocate(sizeof(map_t) * cols * rows + 2 * sizeof(uint8_t) + 2 * sizeof(uint16_t) + sizeof(uint32_t));
+    map_t *rMap = sharedData.bind<map_t>(cols * rows); //array
+    uint8_t *offsX = sharedData.bind<uint8_t>();
+    uint8_t *offsY = sharedData.bind<uint8_t>();
+    uint16_t *aux0 = sharedData.bind<uint16_t>();
+    uint16_t *aux1 = sharedData.bind<uint16_t>();
+    uint32_t *step = sharedData.bind<uint32_t>();
+    if (!sharedData.allocated()) return;
 
-    // // re-init if SEGMENT dimensions or offset changed
-    // if (SEGENV.call == 0 || SEGENV.aux0 != cols || SEGENV.aux1 != rows || offsX != *offsX || offsY != *offsY) {
-    //   SEGENV.step = 0; // t
-    //   SEGENV.aux0 = cols;
-    //   SEGENV.aux1 = rows;
-    //   *offsX = offsX;
-    //   *offsY = offsY;
-    //   const uint8_t C_X = cols / 2 + (offsX - 128)*cols/255;
-    //   const uint8_t C_Y = rows / 2 + (offsY - 128)*rows/255;
-    //   for (int x = 0; x < cols; x++) {
-    //     for (int y = 0; y < rows; y++) {
-    //       rMap[XY(x, y)].angle = 40.7436f * atan2f(y - C_Y, x - C_X); // avoid 128*atan2()/PI
-    //       rMap[XY(x, y)].radius = hypotf(x - C_X, y - C_Y) * mapp; //thanks Sutaburosu
-    //     }
-    //   }
-    // }
+    // re-init if SEGMENT dimensions or offset changed
+    if (*aux0 != cols || *aux1 != rows || offsetX != *offsX || offsetY != *offsY) {
+      // *step = 0;
+      *aux0 = cols;
+      *aux1 = rows;
+      *offsX = offsetX;
+      *offsY = offsetY;
+      const uint8_t C_X = cols / 2 + (offsetX - 128)*cols/255;
+      const uint8_t C_Y = rows / 2 + (offsetY - 128)*rows/255;
+      for (int x = 0; x < cols; x++) {
+        for (int y = 0; y < rows; y++) {
+          rMap[XY(x, y)].angle = 40.7436f * atan2f(y - C_Y, x - C_X); // avoid 128*atan2()/PI
+          rMap[XY(x, y)].radius = hypotf(x - C_X, y - C_Y) * mapp; //thanks Sutaburosu
+        }
+      }
+    }
 
-    // SEGENV.step += SEGMENT.speed / 32 + 1;  // 1-4 range
-    // for (int x = 0; x < cols; x++) {
-    //   for (int y = 0; y < rows; y++) {
-    //     byte angle = rMap[XY(x,y)].angle;
-    //     byte radius = rMap[XY(x,y)].radius;
-    //     //CRGB c = CHSV(SEGENV.step / 2 - radius, 255, sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step) + radius - SEGENV.step * 2 + angle * (legs/3+1)));
-    //     uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step/2) + radius - SEGENV.step + angle * (legs/4+1));
-    //     intensity = map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
-    //     CRGB c = ColorFromPalette(SEGPALETTE, SEGENV.step / 2 - radius, intensity);
-    //     SEGMENT.setPixelColorXY(x, y, c);
-    //   }
-    // }
+    *step = now * (speed / 32 + 1) / 10;//mdl->getValue("realFps").as<int>();  // WLEDMM 40fps
+
+    for (int x = 0; x < cols; x++) {
+      for (int y = 0; y < rows; y++) {
+        byte angle = rMap[XY(x,y)].angle;
+        byte radius = rMap[XY(x,y)].radius;
+        //CRGB c = CHSV(SEGENV.step / 2 - radius, 255, sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step) + radius - SEGENV.step * 2 + angle * (SEGMENT.custom3/3+1)));
+        uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + *step/2) + radius - *step + angle * (legs/4+1));
+        intensity = map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
+        CRGB color = ColorFromPalette(PartyColors_p, *step / 2 - radius, intensity); //tbd: PartyColors_p to palette UI
+        ledsV[x + y * LedsV::widthV] = color;
+      }
+    }
   }
   bool controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "Offset X", false, false);
-    ui->initSlider(parentVar, "Offset Y", false, false);
-    ui->initSlider(parentVar, "Legs", false, false);
+    ui->initSlider(parentVar, "speed", 128, false);
+    ui->initSlider(parentVar, "Offset X", 128, false);
+    ui->initSlider(parentVar, "Offset Y", 128, false);
+    ui->initSlider(parentVar, "Legs", 128, false);
     return true;
   }
 }; // Octopus2D
 
 
-//BouncingBalls1D  inspired by WLED
-//each needs 12 bytes
-typedef struct Ball {
-  unsigned long lastBounceTime;
-  float impactVelocity;
-  float height;
-} ball;
-
 #define maxNumBalls 16
 
 class BouncingBalls1D: public Effect {
 public:
-  Ball balls[maxNumBalls];
+  //BouncingBalls1D  inspired by WLED
+  //each needs 12 bytes
+  typedef struct Ball {
+    unsigned long lastBounceTime;
+    float impactVelocity;
+    float height;
+  } ball;
 
   const char * name() {
     return "Bouncing Balls 1D";
   }
 
-  void setup() {
-    for (size_t i = 0; i < maxNumBalls; i++) balls[i].lastBounceTime = millis();
-  }
-
   void loop() {
-    Effect::loop();
-
     uint8_t grav = mdl->getValue("gravity");
     uint8_t nrOfBalls = mdl->getValue("nrOfBalls");
 
+    sharedData.allocate(sizeof(Ball) * maxNumBalls);
+    Ball *balls = sharedData.bind<Ball>(maxNumBalls); //array
+    if (!sharedData.allocated()) return;
+
+    fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
+
     // number of balls based on intensity setting to max of 7 (cycles colors)
     // non-chosen color is a random color
-    uint16_t numBalls = (grav * (maxNumBalls - 1)) / 255 + 1; // minimum 1 ball
+    uint16_t numBalls = (nrOfBalls * (maxNumBalls - 1)) / 255 + 1; // minimum 1 ball
     const float gravity = -9.81f; // standard value of gravity
     // const bool hasCol2 = SEGCOLOR(2);
-    const unsigned long time = millis();
+    const unsigned long time = now;
+
+    //not necessary as sharedData is cleared at setup()
+    // if (call == 0) {
+    //   for (size_t i = 0; i < maxNumBalls; i++) balls[i].lastBounceTime = time;
+    // }
 
     for (size_t i = 0; i < numBalls; i++) {
       float timeSinceLastBounce = (time - balls[i].lastBounceTime)/((255-grav)/64 +1);
@@ -516,14 +532,12 @@ public:
 
       int pos = roundf(balls[i].height * (LedsV::nrOfLedsV - 1));
 
-      CRGBPalette16 palette = PartyColors_p;
-
-      CRGB color = ColorFromPalette(palette, i*(256/max(numBalls, (uint16_t)8)), 255);
+      CRGB color = ColorFromPalette(PartyColors_p, i*(256/max(numBalls, (uint16_t)8)), 255); //tbd: PartyColors_p to palette UI
 
       ledsV[pos] = color;
       // if (SEGLEN<32) SEGMENT.setPixelColor(indexToVStrip(pos, stripNr), color); // encode virtual strip into index
       // else           SEGMENT.setPixelColor(balls[i].height + (stripNr+1)*10.0f, color);
-    } //nrOfBalls
+    } //balls
   }
 
   bool controls(JsonObject parentVar) {
@@ -535,11 +549,8 @@ public:
 
 class RingEffect:public Effect {
   protected:
-    CRGBPalette16 palette = PartyColors_p;
-    bool INWARD; // TODO: param
-    uint8_t hue[9]; // TODO: needs to match LedsV::nrOfLedsV
 
-    void setRing(int ring, CRGB colour) {
+    void setRing(int ring, CRGB colour) { //so britisch ;-)
       ledsV[ring] = colour;
     }
 
@@ -550,8 +561,12 @@ public:
   const char * name() {
     return "RingRandomFlow 1D";
   }
-  void setup() {}
+
   void loop() {
+    sharedData.allocate(sizeof(uint8_t) * LedsV::nrOfLedsV);
+    uint8_t *hue = sharedData.bind<uint8_t>(LedsV::nrOfLedsV); //array
+    if (!sharedData.allocated()) return;
+
     hue[0] = random(0, 255);
     for (int r = 0; r < LedsV::nrOfLedsV; r++) {
       setRing(r, CHSV(hue[r], 255, 255));
@@ -568,23 +583,23 @@ public:
 
 class GEQEffect:public Effect {
 public:
-  byte previousBarHeight[1024];
-
   const char * name() {
     return "GEQ 2D";
   }
 
   void setup() {
     fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
-    for (int i=0; i<LedsV::widthV; i++) previousBarHeight[i] = 0;
   }
 
   void loop() {
+    sharedData.allocate(sizeof(uint16_t) * LedsV::widthV + sizeof(uint32_t));
+    uint16_t *previousBarHeight = sharedData.bind<uint16_t>(LedsV::widthV); //array
+    uint32_t *step = sharedData.bind<uint32_t>();
+    if (!sharedData.allocated()) return;
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
     const uint16_t cols = LedsV::widthV;
     const uint16_t rows = LedsV::heightV; 
-
 
     uint8_t *fftResult = wledAudioMod->fftResults;
     #ifdef SR_DEBUG
@@ -597,8 +612,8 @@ public:
     bool smoothBars = mdl->getValue("smoothBars");
 
     bool rippleTime = false;
-    if (millis() - step >= (256U - intensity)) {
-      step = millis();
+    if (now - *step >= (256U - intensity)) {
+      *step = now;
       rippleTime = true;
     }
 
@@ -648,8 +663,7 @@ public:
         if (colorBars) //color_vertical / color bars toggle
           colorIndex = map(y, 0, rows-1, 0, 255);
 
-        CRGBPalette16 palette = PartyColors_p;
-        ledColor = ColorFromPalette(palette, (uint8_t)colorIndex);
+        ledColor = ColorFromPalette(PartyColors_p, (uint8_t)colorIndex); //tbd: PartyColors_p to palette UI
 
         ledsV.setPixelColor(x + LedsV::widthV * (rows-1 - y), ledColor);
       }
@@ -663,8 +677,8 @@ public:
   }
 
   bool controls(JsonObject parentVar) {
-    ui->initNumber(parentVar, "fadeOut", 255, false);
-    ui->initNumber(parentVar, "intensity", 255, false);
+    ui->initSlider(parentVar, "fadeOut", 255, false);
+    ui->initSlider(parentVar, "intensity", 255, false);
     ui->initCheckBox(parentVar, "colorBars", false, false); //
     ui->initCheckBox(parentVar, "smoothBars", false, false);
 
@@ -678,48 +692,50 @@ public:
 };
 
 class AudioRings:public RingEffect {
-  private:
+public:
+  const char * name() {
+    return "AudioRings 1D";
+  }
+
+  void loop() {
     uint8_t *fftResult = wledAudioMod->fftResults;
 
-  public:
-    const char * name() {
-      return "AudioRings 1D";
-    }
-    void setup() {}
+    for (int i = 0; i < 7; i++) { // 7 rings
 
-    void setRingFromFtt(int index, int ring) {
-      uint8_t val = fftResult[index];
-      // Visualize leds to the beat
-      CRGB color = ColorFromPalette(palette, val, 255);
-      color.nscale8_video(val);
-      setRing(ring, color);
-    }
-
-
-    void loop() {
-      for (int i = 0; i < 7; i++) { // 7 rings
-
-        uint8_t val;
-        if(INWARD) {
-          val = fftResult[(i*2)];
-        }
-        else {
-          int b = 14 -(i*2);
-          val = fftResult[b];
-        }
-    
-        // Visualize leds to the beat
-        CRGB color = ColorFromPalette(palette, val, val);
-  //      CRGB color = ColorFromPalette(currentPalette, val, 255, currentBlending);
-  //      color.nscale8_video(val);
-        setRing(i, color);
-  //        setRingFromFtt((i * 2), i); 
+      uint8_t val;
+      if(mdl->getValue("inWards").as<bool>()) {
+        val = fftResult[(i*2)];
       }
-
-      setRingFromFtt(2, 7); // set outer ring to bass
-      setRingFromFtt(0, 8); // set outer ring to bass
-
+      else {
+        int b = 14 -(i*2);
+        val = fftResult[b];
+      }
+  
+      // Visualize leds to the beat
+      CRGB color = ColorFromPalette(PartyColors_p, val, val); //tbd: PartyColors_p to palette UI
+//      CRGB color = ColorFromPalette(currentPalette, val, 255, currentBlending);
+//      color.nscale8_video(val);
+      setRing(i, color);
+//        setRingFromFtt((i * 2), i); 
     }
+
+    setRingFromFtt(2, 7); // set outer ring to bass
+    setRingFromFtt(0, 8); // set outer ring to bass
+
+  }
+  void setRingFromFtt(int index, int ring) {
+    uint8_t *fftResult = wledAudioMod->fftResults;
+    uint8_t val = fftResult[index];
+    // Visualize leds to the beat
+    CRGB color = ColorFromPalette(PartyColors_p, val, 255); //tbd: PartyColors_p to palette UI
+    color.nscale8_video(val);
+    setRing(ring, color);
+  }
+
+  bool controls(JsonObject parentVar) {
+    ui->initCheckBox(parentVar, "inWards", false, false); //
+    return true;
+  }
 };
 
 #endif // End Audio Effects
@@ -749,6 +765,42 @@ public:
       effects.push_back(new GEQEffect);
       effects.push_back(new AudioRings);
     #endif
+  }
+
+  void setup() {
+    //check of no local variables (should be only 4 bytes): tbd: can we loop over effects (sizeof(effect does not work))
+    // for (Effect *effect:effects) {
+    //     USER_PRINTF("Size of %s is %d\n", effect->name(), sizeof(*effect));
+    // }
+    USER_PRINTF("Size of %s is %d\n", "RainbowEffect", sizeof(RainbowEffect));
+    USER_PRINTF("Size of %s is %d\n", "RainbowWithGlitterEffect", sizeof(RainbowWithGlitterEffect));
+    USER_PRINTF("Size of %s is %d\n", "SinelonEffect", sizeof(SinelonEffect));
+    USER_PRINTF("Size of %s is %d\n", "RunningEffect", sizeof(RunningEffect));
+    USER_PRINTF("Size of %s is %d\n", "ConfettiEffect", sizeof(ConfettiEffect));
+    USER_PRINTF("Size of %s is %d\n", "BPMEffect", sizeof(BPMEffect));
+    USER_PRINTF("Size of %s is %d\n", "JuggleEffect", sizeof(JuggleEffect));
+    USER_PRINTF("Size of %s is %d\n", "Ripples3DEffect", sizeof(Ripples3DEffect));
+    USER_PRINTF("Size of %s is %d\n", "SphereMove3DEffect", sizeof(SphereMove3DEffect));
+    USER_PRINTF("Size of %s is %d\n", "Frizzles2D", sizeof(Frizzles2D));
+    USER_PRINTF("Size of %s is %d\n", "Lines2D", sizeof(Lines2D));
+    USER_PRINTF("Size of %s is %d\n", "DistortionWaves2D", sizeof(DistortionWaves2D));
+    USER_PRINTF("Size of %s is %d\n", "Octopus2D", sizeof(Octopus2D));
+    USER_PRINTF("Size of %s is %d\n", "BouncingBalls1D", sizeof(BouncingBalls1D));
+    USER_PRINTF("Size of %s is %d\n", "RingRandomFlow", sizeof(RingRandomFlow));
+    #ifdef USERMOD_WLEDAUDIO
+      USER_PRINTF("Size of %s is %d\n", "GEQEffect", sizeof(GEQEffect));
+      USER_PRINTF("Size of %s is %d\n", "AudioRings", sizeof(AudioRings));
+    #endif
+  }
+
+  void loop(size_t index) {
+    now = millis(); //tbd timebase
+
+    effects[index]->loop();
+
+    call++;
+
+    EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
   }
 
   size_t size() {
@@ -781,25 +833,20 @@ public:
         }
       }
 
+      sharedData.clear(); //make sure all values are 0
+
       JsonObject parentVar = mdl->findVar(id);
       parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
       Effect* effect = effects[index];
-      effect->setup(); //if changed then run setup once (like call==0 in WLED)
       effect->controls(parentVar);
+      effect->setup(); //if changed then run setup once (like call==0 in WLED)
 
       print->printJson("parentVar", parentVar);
       web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
     } // fx < size
 
     return doMap;
-
-  }
-
-  void loop(size_t index) {
-    // USER_PRINTF("loop %d\n", index);
-
-    effects[index]->loop();
   }
 
 };

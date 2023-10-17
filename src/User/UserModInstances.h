@@ -200,7 +200,8 @@ public:
     starModMessage.header.ip1 = ip[1];
     starModMessage.header.ip2 = ip[2];
     starModMessage.header.ip3 = ip[3];
-    strncpy(starModMessage.header.name, mdl->getValue("serverName").as<const char *>(), 32);
+    const char * serverName = mdl->getValue("serverName").as<const char *>();
+    strncpy(starModMessage.header.name, serverName?serverName:"StarMod", 32);
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
     starModMessage.header.nodeId = ip[3];
     starModMessage.header.version = 2309280; //tbd

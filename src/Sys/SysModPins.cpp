@@ -53,13 +53,13 @@ void SysModPins::setup() {
       pinNr++;
     }
   });
-  ui->initNumber(tableVar, "pinNr", -1, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "pinNr", 0, 0, NUM_PINS, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Pin");
   });
-  ui->initText(tableVar, "pinOwner", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "pinOwner", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Owner");
   });
-  ui->initText(tableVar, "pinDetails", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "pinDetails", nullptr, 256, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Details");
   });
 
@@ -81,8 +81,8 @@ void SysModPins::setup() {
   });
 
   ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);
-  ui->initCheckBox(parentVar, "pin4", false, false);
-  ui->initCheckBox(parentVar, "pin33", true, false);
+  ui->initCheckBox(parentVar, "pin4");
+  ui->initCheckBox(parentVar, "pin33", true);
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }

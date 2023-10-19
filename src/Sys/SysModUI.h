@@ -36,57 +36,57 @@ public:
 
   void loop();
 
-  JsonObject initModule(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "module", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initModule(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "module", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initTable(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "table", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initTable(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "table", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initText(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "text", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initText(JsonObject parent, const char * id, const char * value = nullptr, uint16_t max = 32, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "text", value, 0, max, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "password", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, uint8_t max = 32, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "password", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initNumber(JsonObject parent, const char * id, int value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "number", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initNumber(JsonObject parent, const char * id, int value, int min = 0, int max = (uint16_t)-1, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "number", value, min, max, readOnly, uiFun, chFun, loopFun);
   }
 
   //init a range slider, range between 0 and 255!
-  JsonObject initSlider(JsonObject parent, const char * id, int value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "range", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initSlider(JsonObject parent, const char * id, int value, int min = 0, int max = 255, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "range", value, min, max, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initCanvas(JsonObject parent, const char * id, int value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "canvas", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initCanvas(JsonObject parent, const char * id, int value, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "canvas", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initCheckBox(JsonObject parent, const char * id, bool value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<bool>(parent, id, "checkbox", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initCheckBox(JsonObject parent, const char * id, bool value = false, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<bool>(parent, id, "checkbox", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initButton(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "button", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initButton(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "button", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initSelect(JsonObject parent, const char * id, uint8_t value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<uint8_t>(parent, id, "select", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initSelect(JsonObject parent, const char * id, uint8_t value, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<uint8_t>(parent, id, "select", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initTextArea(JsonObject parent, const char * id, const char * value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "textarea", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initTextArea(JsonObject parent, const char * id, const char * value, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "textarea", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initURL(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "url", value, readOnly, uiFun, chFun, loopFun);
+  JsonObject initURL(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "url", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
   template <typename Type>
-  JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type value, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+  JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type value, int min, int max, bool readOnly = true, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
     JsonObject var = initVar(parent, id, type, readOnly, uiFun, chFun, loopFun);
     bool isPointer = std::is_pointer<Type>::value;
     //set a default if not a value yet
@@ -97,6 +97,8 @@ public:
       else
         var["value"] = value; //if value is a pointer, it needs to have a value
     }
+    if (min) var["min"] = min;
+    if (max) var["max"] = max;
     //no call of fun for buttons otherwise all buttons will be fired including restart delete model.json and all that jazz!!! 
     if (strcmp(type,"button")!=0 && chFun && (!isPointer || value)) chFun(var); //!isPointer because 0 is also a value then
     return var;

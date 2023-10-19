@@ -45,7 +45,7 @@ void SysModModel::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
-  ui->initText(parentVar, "mSize", nullptr, true, [](JsonObject var) {
+  ui->initText(parentVar, "mSize", nullptr, 32, true, [](JsonObject var) {
     web->addResponse(var["id"], "label", "Size");
   });
 

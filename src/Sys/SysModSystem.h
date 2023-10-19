@@ -23,6 +23,7 @@ public:
 
 private:
   unsigned long loopCounter = 0;
+  unsigned long tenSecondMillis = 0;
 
   void addResetReasonsSelect(JsonArray select);
   void addRestartReasonsSelect(JsonArray select);

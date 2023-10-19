@@ -30,8 +30,8 @@ void SysModNetwork::setup() {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
-  ui->initText(parentVar, "ssid", "", false);
-  ui->initPassword(parentVar, "pw", "", false, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "ssid", "", 32, false);
+  ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Password");
   });
   ui->initButton(parentVar, "connect", nullptr, false, [](JsonObject var) {
@@ -39,7 +39,7 @@ void SysModNetwork::setup() {
   }, [](JsonObject var) {
     forceReconnect = true;
   });
-  ui->initText(parentVar, "nwstatus", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
   });
 

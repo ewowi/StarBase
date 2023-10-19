@@ -528,8 +528,8 @@ public:
       ledFixGenChFun(var);
     }); //ledFixGen
 
-    ui->initText(parentVar, "pinList", "12,13,14,15,16,17", false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "comment", "One or more e.g. 12,13");
+    ui->initText(parentVar, "pinList", "16", 32, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "comment", "One or more e.g. 12,13,14");
     });
 
     ui->initButton(parentVar, "generate", nullptr, false, [](JsonObject var) { //uiFun
@@ -568,26 +568,26 @@ public:
     uint8_t value = var["value"];
     
     if (value == f_1DSpiral) {
-      ui->initNumber(parentVar, "ledCount", 64, false);
+      ui->initNumber(parentVar, "ledCount", 64, 1, NUM_LEDS_Preview);
     }
     else if (value == f_2DRing) {
-      ui->initNumber(parentVar, "ledCount", 24, false);
+      ui->initNumber(parentVar, "ledCount", 24, 1, NUM_LEDS_Preview);
     }
     else if (value == f_2DRings241) {
-      ui->initCheckBox(parentVar, "in2out", true, false);
+      ui->initCheckBox(parentVar, "in2out", true);
     }
     else if (value == f_2DWheel) {
-      ui->initNumber(parentVar, "nrOfSpokes", 36, false);
-      ui->initNumber(parentVar, "ledsPerSpoke", 24, false);
+      ui->initNumber(parentVar, "nrOfSpokes", 36, 1, 360);
+      ui->initNumber(parentVar, "ledsPerSpoke", 24, 1, 360);
     }
     else if (value == f_3DCone) {
-      ui->initCheckBox(parentVar, "in2out", true, false);
-      ui->initNumber(parentVar, "nrOfRings", 24, false);
+      ui->initCheckBox(parentVar, "in2out", true);
+      ui->initNumber(parentVar, "nrOfRings", 24, 1, 360);
     }
     else if (value == f_2DMatrix) {
-      ui->initNumber(parentVar, "width", 8, false);
+      ui->initNumber(parentVar, "width", 8, 1, 255);
 
-      ui->initNumber(parentVar, "height", 8, false);
+      ui->initNumber(parentVar, "height", 8, 1, 255);
 
       ui->initSelect(parentVar, "firstLedX", 0, false, [](JsonObject var) { //uiFun
         // web->addResponse(var["id"], "label", "Ledfix generator");
@@ -602,19 +602,19 @@ public:
         select.add("Bottom"); //1
       });
 
-      ui->initCheckBox(parentVar, "serpentine", false, false);
+      ui->initCheckBox(parentVar, "serpentine");
     }
     else if (value == f_3DCube) {
-      ui->initNumber(parentVar, "width", 8, false);
-      ui->initNumber(parentVar, "height", 8, false);
-      ui->initNumber(parentVar, "depth", 8, false);
+      ui->initNumber(parentVar, "width", 8, 1, 16);
+      ui->initNumber(parentVar, "height", 8, 1, 16);
+      ui->initNumber(parentVar, "depth", 8, 1, 16);
     }
     else if (value == f_3DSideCube) {
-      ui->initNumber(parentVar, "length", 8, false);
-      ui->initNumber(parentVar, "sides", 5, false);
+      ui->initNumber(parentVar, "length", 8, 1, 32);
+      ui->initNumber(parentVar, "sides", 5, 1, 6);
     }
     else if (value == f_3DGlobe) {
-      ui->initNumber(parentVar, "width", 24, false);
+      ui->initNumber(parentVar, "width", 24, 1, 16);
     }
 
     web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui

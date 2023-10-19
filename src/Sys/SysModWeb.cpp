@@ -55,10 +55,10 @@ void SysModWeb::setup() {
     JsonArray rows = web->addResponseA(var["id"], "table");
     web->clientsToJson(rows);
   });
-  ui->initNumber(tableVar, "clNr", -1, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "clNr", 0, 0, 999, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Nr");
   });
-  ui->initText(tableVar, "clIp", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "IP");
   });
   ui->initCheckBox(tableVar, "clIsFull", false, true, [](JsonObject var) { //uiFun
@@ -74,13 +74,13 @@ void SysModWeb::setup() {
     select.add("Connected"); //1
     select.add("Disconnecting"); //2
   });
-  ui->initNumber(tableVar, "clLength", -1, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "clLength", 0, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Length");
   });
 
-  ui->initText(parentVar, "wsSendBytes");
-  ui->initText(parentVar, "wsSendJson");
-  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "wsSendBytes", nullptr, 16, true);
+  ui->initText(parentVar, "wsSendJson", nullptr, 16, true);
+  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "32 not enough, investigate...");
   });
 

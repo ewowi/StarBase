@@ -42,17 +42,20 @@ void SysModFiles::setup() {
     dirToJson(rows);
 
   });
-  ui->initText(tableVar, "flName", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  ui->initText(tableVar, "flSize", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "flSize", -1, 0, (uint16_t)-1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size (B)");
   });
   ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Show");
   });
 
-  ui->initText(parentVar, "drsize", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "drsize", nullptr, 32, true, [](JsonObject var) { //uiFun
+    char details[32] = "";
+    print->fFormat(details, sizeof(details)-1, "%d / %d B", files->usedBytes(), files->totalBytes());
+    web->addResponse(var["id"], "value", details);
     web->addResponse(var["id"], "label", "Total FS size");
   });
 
@@ -74,17 +77,16 @@ void SysModFiles::setup() {
 void SysModFiles::loop(){
   // Module::loop();
 
-  if (millis() - secondMillis >= 1000) {
-    secondMillis = millis();
+  // if (millis() - secondMillis >= 10000) {
+  //   secondMillis = millis();
+  //       // if something changed in fileTbl
+  // }
 
-    mdl->setValueLossy("drsize", "%d / %d B", usedBytes(), totalBytes());
+  if (filesChanged) {
+    mdl->setValueP("drsize", "%d / %d B", usedBytes(), totalBytes());
+    filesChanged = false;
 
-        // if something changed in fileTbl
-    if (filesChanged) {
-      filesChanged = false;
-
-      ui->processUiFun("fileTbl");
-    }
+    ui->processUiFun("fileTbl");
   }
 }
 

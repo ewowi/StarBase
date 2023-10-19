@@ -72,16 +72,16 @@ public:
         row.add((char *)urlString);  //create a copy!
       }
     });
-    ui->initText(tableVar, "insIp", nullptr, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insIp", nullptr, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "IP");
     });
-    ui->initText(tableVar, "insType", nullptr, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insType", nullptr, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Type");
     });
-    ui->initText(tableVar, "insTime", nullptr, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "insTime", -1, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Timestamp");
     });
-    ui->initText(tableVar, "insDetail", nullptr, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insDetail", nullptr, 1024, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Detail");
     });
     ui->initURL(tableVar, "insLink", nullptr, true, [](JsonObject var) { //uiFun

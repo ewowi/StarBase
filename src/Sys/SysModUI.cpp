@@ -60,10 +60,10 @@ void SysModUI::setup() {
       varLoop->counter = 0;
     }
   });
-  initText(tableVar, "vlVar", nullptr, true, [](JsonObject var) { //uiFun
+  initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  initNumber(tableVar, "vlLoopps", -1, true, [](JsonObject var) { //uiFun
+  initNumber(tableVar, "vlLoopps", 0, 0, 999, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Loops p s");
   });
 

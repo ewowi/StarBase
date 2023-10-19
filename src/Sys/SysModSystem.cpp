@@ -26,18 +26,18 @@ void SysModSystem::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
-  ui->initText(parentVar, "serverName", "StarMod", false, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
     web->addResponse(var["id"], "comment", "Instance name");
   });
-  ui->initText(parentVar, "upTime", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "upTime", nullptr, 16, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Uptime of board");
   });
-  ui->initText(parentVar, "loops");
-  ui->initText(parentVar, "heap", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "loops", nullptr, 16, true);
+  ui->initText(parentVar, "heap", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Free / Total (largest free)");
   });
-  ui->initText(parentVar, "stack");
+  ui->initText(parentVar, "stack", nullptr, 16, true);
 
   ui->initButton(parentVar, "restart", nullptr, false, nullptr, [](JsonObject var) {  //chFun
     SysModWeb::ws->closeAll(1012);
@@ -90,10 +90,13 @@ void SysModSystem::loop() {
 
     mdl->setValueLossy("upTime", "%lu s", millis()/1000);
     mdl->setValueLossy("loops", "%lu /s", loopCounter);
-    mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
-    mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
 
     loopCounter = 0;
+  }
+  if (millis() - tenSecondMillis >= 10000) {
+    tenSecondMillis = millis();
+    mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
+    mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
   }
 }
 

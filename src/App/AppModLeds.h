@@ -44,43 +44,12 @@ public:
 
     parentVar = ui->initModule(parentVar, name);
 
-    ui->initSlider(parentVar, "bri", 5, false, [](JsonObject var) { //uiFun
+    ui->initSlider(parentVar, "bri", 5, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Brightness");
     }, [](JsonObject var) { //chFun
       uint8_t bri = var["value"];
       FastLED.setBrightness(bri);
       USER_PRINTF("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
-    });
-
-    ui->initSelect(parentVar, "fx", 0, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Effect");
-      web->addResponse(var["id"], "comment", "Effect to show");
-      JsonArray select = web->addResponseA(var["id"], "select");
-      for (Effect *effect:effects.effects) {
-        select.add(effect->name());
-      }
-    }, [](JsonObject var) { //chFun
-      uint8_t fx = var["value"];
-      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
-
-      doMap = effects.setEffect("fx", fx);
-    });
-
-    USER_PRINTF("afterfx");
-
-    ui->initSelect(parentVar, "projection", 0, false, [](JsonObject var) { //uiFun.
-      // web->addResponse(var["id"], "label", "Effect");
-      web->addResponse(var["id"], "comment", "How to project fx to fixture");
-      JsonArray select = web->addResponseA(var["id"], "select");
-      select.add("None"); // 0
-      select.add("Random"); // 1
-      select.add("Distance from point"); //2
-      select.add("Distance from centre"); //3
-    }, [](JsonObject var) { //chFun
-      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
-
-      LedsV::projectionNr = var["value"];
-      doMap = true;
     });
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
@@ -99,6 +68,61 @@ public:
       buffer[0] = LedsV::nrOfLedsP/256;
       buffer[1] = LedsV::nrOfLedsP%256;
       buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
+    });
+
+    ui->initSelect(parentVar, "fx", 0, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Effect");
+      web->addResponse(var["id"], "comment", "Effect to show");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      for (Effect *effect:effects.effects) {
+        select.add(effect->name());
+      }
+    }, [](JsonObject var) { //chFun
+      uint8_t fx = var["value"];
+      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
+
+      doMap = effects.setEffect("fx", fx);
+    });
+
+    ui->initSelect(parentVar, "palette", 4, false, [](JsonObject var) { //uiFun.
+      JsonArray select = web->addResponseA(var["id"], "select");
+      select.add("CloudColors");
+      select.add("LavaColors");
+      select.add("OceanColors");
+      select.add("ForestColors");
+      select.add("RainbowColors");
+      select.add("RainbowStripeColors");
+      select.add("PartyColors");
+      select.add("HeatColors");
+    }, [](JsonObject var) { //chFun
+      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+      switch (var["value"].as<uint8_t>()) {
+        case 0: palette = CloudColors_p; break;
+        case 1: palette = LavaColors_p; break;
+        case 2: palette = OceanColors_p; break;
+        case 3: palette = ForestColors_p; break;
+        case 4: palette = RainbowColors_p; break;
+        case 5: palette = RainbowStripeColors_p; break;
+        case 6: palette = PartyColors_p; break;
+        case 7: palette = HeatColors_p; break;
+        default: palette = PartyColors_p; break;
+      }
+      
+    });
+
+    ui->initSelect(parentVar, "projection", 2, false, [](JsonObject var) { //uiFun.
+      // web->addResponse(var["id"], "label", "Effect");
+      web->addResponse(var["id"], "comment", "How to project fx to fixture");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      select.add("None"); // 0
+      select.add("Random"); // 1
+      select.add("Distance from point"); //2
+      select.add("Distance from centre"); //3
+    }, [](JsonObject var) { //chFun
+      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+
+      LedsV::projectionNr = var["value"];
+      doMap = true;
     });
 
     ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
@@ -131,27 +155,27 @@ public:
       }
     }); //ledFix
 
-    ui->initText(parentVar, "dimensions", nullptr, true, [](JsonObject var) { //uiFun
+    ui->initText(parentVar, "dimensions", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
       print->fFormat(details, sizeof(details)-1, "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
       web->addResponse(var["id"], "value", details);
     });
 
-    ui->initText(parentVar, "nrOfLeds", nullptr, true, [](JsonObject var) { //uiFun
+    ui->initText(parentVar, "nrOfLeds", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
       print->fFormat(details, sizeof(details)-1, "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
       web->addResponse(var["id"], "value", details);
       web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Preview);
     });
 
-    ui->initNumber(parentVar, "fps", fps, false, [](JsonObject var) { //uiFun
+    ui->initNumber(parentVar, "fps", fps, 1, 999, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Frames per second");
     }, [](JsonObject var) { //chFun
       AppModLeds::fps = var["value"];
       USER_PRINTF("fps changed %d\n", AppModLeds::fps);
     });
 
-    ui->initText(parentVar, "realFps", nullptr, true, [](JsonObject var) { //uiFun
+    ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
     });
 

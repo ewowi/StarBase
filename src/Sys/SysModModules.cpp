@@ -43,7 +43,7 @@ void SysModModules::setup() {
       row.add(module->isEnabled);
     }
   });
-  ui->initText(tableVar, "mdlName", nullptr, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "mdlName", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
   ui->initCheckBox(tableVar, "mdlSucces", false, true, [](JsonObject var) { //uiFun

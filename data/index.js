@@ -261,12 +261,18 @@ function generateHTML(parentNode, json, rowNr = -1) {
           } else if (json.type == "range") {
             valueNode = cE("input");
             valueNode.type = json.type;
-            valueNode.max = 255;
+            valueNode.min = json.min?json.min:0;
+            valueNode.max = json.max?json.max:255; //range slider default 0..255
             // valueNode.addEventListener('input', (event) => {console.log(json.type + " input", event);gId(json.id + "_rv").innerText = this.value;});
             valueNode.disabled = json.ro;
+            if (json.value) valueNode.value = json.value;
+            //numerical ui value changes while draging the slider (oninput)
+            valueNode.addEventListener('input', (event) => {
+              gId(json.id + "_rv").innerText = event.target.value;
+            });
+            //server value changes after draging the slider (onchange)
             valueNode.addEventListener('change', (event) => {
               console.log(json.type + " change", event.target, json.id);
-              gId(json.id + "_rv").innerText = event.target.value;
               setInput(event.target);
             });
             rangeValueNode = cE("span");
@@ -292,9 +298,14 @@ function generateHTML(parentNode, json, rowNr = -1) {
               //   buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
               // }
               if (json.type == "number") {
-                valueNode.setAttribute('size', '4');
-                valueNode.maxlength = 4;
+                if (json.min) valueNode.min = json.min;
+                if (json.max) valueNode.max = json.max;
+                // valueNode.setAttribute('size', '4');
+                // valueNode.maxlength = 4;
                 // valueNode.size = 4;
+              }
+              else {
+                if (json.max) valueNode.setAttribute('maxlength', json.max); //for text and textarea set max length valueNode.maxlength is not working for some reason
               }
             }
           } //not checkbox or button or range

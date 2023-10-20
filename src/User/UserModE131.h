@@ -128,7 +128,8 @@ public:
   private:
     ESPAsyncE131 e131;
     boolean e131Created = false;
-    int universe, universeCount = 1;
+    uint16_t universe = 1;
+    uint8_t universeCount = 1;
 
 };
 

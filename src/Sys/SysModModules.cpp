@@ -68,7 +68,7 @@ void SysModModules::setup() {
       }
     } else { //read array and set module enabled
       for (bool isEnabled:var["value"].as<JsonArray>()) {
-        if (modules[rowNr]->isEnabled != isEnabled) {
+        if ((modules[rowNr]->isEnabled && !isEnabled) || (!modules[rowNr]->isEnabled && isEnabled)) {
           USER_PRINTF("  mdlEnabled.chFun %d %s: %d->%d\n", rowNr, modules[rowNr]->name, modules[rowNr]->isEnabled, isEnabled);
           modules[rowNr]->isEnabled = isEnabled;
           modules[rowNr]->enabledChanged();
@@ -94,6 +94,11 @@ void SysModModules::loop() {
     isConnected = true;
     connectedChanged();
   }
+  if (millis() - secondMillis >= 5000) {
+    secondMillis = millis();
+    USER_PRINTF("❤️"); //heartbeat
+  }
+
 }
 
 void SysModModules::add(Module* module) {

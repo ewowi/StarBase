@@ -44,17 +44,23 @@ public:
 
     parentVar = ui->initModule(parentVar, name);
 
-    ui->initSlider(parentVar, "bri", 5, 0, 255, false, [](JsonObject var) { //uiFun
+    //logarithmic slider (10)
+    ui->initSlider(parentVar, "bri", 5, 0, 255, 10, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Brightness");
     }, [](JsonObject var) { //chFun
       uint8_t bri = var["value"];
-      FastLED.setBrightness(bri);
-      USER_PRINTF("Set Brightness to %d -> %d\n", var["value"].as<int>(), bri);
+
+      uint8_t result = linearToLogarithm(var, bri);
+
+      FastLED.setBrightness(result);
+
+      USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
+      SysModUI::valChangedForInstancesTemp = true;
     });
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Preview");
-      web->addResponse(var["id"], "comment", "Shows the preview");
+      web->addResponse(var["id"], "comment", "Shows the fixture");
       // web->addResponse(var["id"], "comment", "Click to enlarge");
     }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
       // send leds preview to clients
@@ -82,6 +88,7 @@ public:
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
 
       doMap = effects.setEffect("fx", fx);
+      SysModUI::valChangedForInstancesTemp = true;
     });
 
     ui->initSelect(parentVar, "palette", 4, false, [](JsonObject var) { //uiFun.
@@ -107,7 +114,7 @@ public:
         case 7: palette = HeatColors_p; break;
         default: palette = PartyColors_p; break;
       }
-      
+      SysModUI::valChangedForInstancesTemp = true;
     });
 
     ui->initSelect(parentVar, "projection", 2, false, [](JsonObject var) { //uiFun.
@@ -123,6 +130,7 @@ public:
 
       LedsV::projectionNr = var["value"];
       doMap = true;
+      SysModUI::valChangedForInstancesTemp = true;
     });
 
     ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
@@ -180,11 +188,23 @@ public:
     });
 
     #ifdef USERMOD_E131
-      e131mod->patchChannel(1, "bri", 255); //should be 256??
-      e131mod->patchChannel(2, "fx", effects.size());
-      // //add these temporary to test remote changing of this values do not crash the system
-      // e131mod->patchChannel(3, "projection", Projections::count);
-      // e131mod->patchChannel(4, "ledFix", 5); //assuming 5!!!
+      // if (e131mod->isEnabled) {
+        ui->initNumber(parentVar, "dmxChannel", 1, 1, 512, false, [](JsonObject var) { //uiFun
+          web->addResponse(var["id"], "comment", "First channel (bri, fx, palette + fx channels, total 5 now)");
+        }, [](JsonObject var) { //chFun
+          uint16_t dmxChannel = var["value"];
+          e131mod->patchChannel(dmxChannel + 0, "bri", 255); //should be 256??
+          e131mod->patchChannel(dmxChannel + 1, "fx", effects.size());
+          e131mod->patchChannel(dmxChannel + 2, "palette", 8); //tbd: calculate nr of palettes (from select)
+
+          ui->valChangedForInstancesTemp = true;
+        });
+        // //add these temporary to test remote changing of this values do not crash the system
+        // e131mod->patchChannel(3, "projection", Projections::count);
+        // e131mod->patchChannel(4, "ledFix", 5); //assuming 5!!!
+      // }
+      // else
+      //   USER_PRINTF("Leds e131 not enabled\n");
     #endif
 
     effects.setup();

@@ -90,6 +90,26 @@ function makeWS() {
   }
 }
 
+function linearToLogarithm(json, value) {
+  if (value == 0) return 0;
+
+  var minp = json.min?json.min:0;
+  var maxp = json.max?json.max:255;
+
+  // The result should be between 100 an 10000000
+  var minv = minp?Math.log(minp):0;
+  var maxv = Math.log(maxp);
+
+  // calculate adjustment factor
+  var scale = (maxv-minv) / (maxp - minp);
+
+  let result = Math.exp(minv + scale*(value-minp));
+
+  console.log(json, minv, maxv, scale, result);
+
+  return Math.round(result);
+}
+
 function generateHTML(parentNode, json, rowNr = -1) {
   // console.log("generateHTML", parentNode, json);
   if (Array.isArray(json)) {
@@ -221,7 +241,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
     
           let valueNode = cE("a");
           valueNode.setAttribute('href', json.value);
-          valueNode.setAttribute('target', "_blank");
+          // valueNode.setAttribute('target', "_blank"); //does not work well on mobile
           valueNode.innerText = json.value;
     
           if (rowNr == -1) {
@@ -263,21 +283,19 @@ function generateHTML(parentNode, json, rowNr = -1) {
             valueNode.type = json.type;
             valueNode.min = json.min?json.min:0;
             valueNode.max = json.max?json.max:255; //range slider default 0..255
-            // valueNode.addEventListener('input', (event) => {console.log(json.type + " input", event);gId(json.id + "_rv").innerText = this.value;});
             valueNode.disabled = json.ro;
             if (json.value) valueNode.value = json.value;
             //numerical ui value changes while draging the slider (oninput)
             valueNode.addEventListener('input', (event) => {
-              gId(json.id + "_rv").innerText = event.target.value;
+              gId(json.id + "_rv").innerText = json.log?linearToLogarithm(json, event.target.value):event.target.value;
             });
             //server value changes after draging the slider (onchange)
             valueNode.addEventListener('change', (event) => {
-              console.log(json.type + " change", event.target, json.id);
               setInput(event.target);
             });
             rangeValueNode = cE("span");
             rangeValueNode.id = json.id + "_rv"; //rangeValue
-            if (json.value) rangeValueNode.innerText = json.value;
+            if (json.value) rangeValueNode.innerText = json.log?linearToLogarithm(json, json.value):json.value;
           } else {
             //input types: text, search, tel, url, email, and password.
 
@@ -306,6 +324,8 @@ function generateHTML(parentNode, json, rowNr = -1) {
               }
               else {
                 if (json.max) valueNode.setAttribute('maxlength', json.max); //for text and textarea set max length valueNode.maxlength is not working for some reason
+                if (json.id == "serverName")
+                  gId("instanceName").innerText = json.value;
               }
             }
           } //not checkbox or button or range
@@ -386,7 +406,7 @@ function processUpdate(json) {
   else { //uiFun or {variable:{label:value}}
     for (var key of Object.keys(json)) {
       if (key != "uiFun") { //was the request
-        if (gId(key)) {
+        if (gId(key)) { //is the key a var?
           processVarNode(gId(key), key, json[key]);
         }
         else
@@ -400,7 +420,8 @@ function processVarNode(node, key, json) {
   let overruleValue = false;
   
   if (json.hasOwnProperty("label")) {
-    console.log("processUpdate label", key, json.label);
+    if (key != "insTbl") // tbd: table should not update
+      console.log("processVarNode label", key, json.label);
     if (node.nodeName.toLocaleLowerCase() == "input" && node.type == "button") {
       node.value = initCap(json.label);
     }
@@ -416,7 +437,8 @@ function processVarNode(node, key, json) {
     }
   }
   if (json.hasOwnProperty("comment")) {
-    console.log("processUpdate comment", key, json.comment);
+    if (key != "insTbl") // tbd: table should not update
+      console.log("processVarNode comment", key, json.comment);
     // normal: <p><label><input id><comment></p>
     // table or canvas <p><label><comment></p><canvas id>
     // 1) if exist then replace else add
@@ -439,14 +461,14 @@ function processVarNode(node, key, json) {
     commentNode.innerText = json.comment;        
   }
   if (json.hasOwnProperty("select")) {
-    console.log("processUpdate select", key, json.select);
+    console.log("processVarNode select", key, json.select);
     if (node.nodeName.toLocaleLowerCase() == "span") { //readonly. tbd: only the displayed value needs to be in the select
       var index = 0;
       for (var value of json.select) {
         if (parseInt(node.textContent) == index) {
-          // console.log("processUpdate select1", value, node, node.textContent, index);
+          // console.log("processVarNode select1", value, node, node.textContent, index);
           node.textContent = value; //replace the id by its value
-          // console.log("processUpdate select2", value, node, node.textContent, index);
+          // console.log("processVarNode select2", value, node, node.textContent, index);
           overruleValue = true; //in this case we do not want the value set
         }
         index++;
@@ -473,7 +495,8 @@ function processVarNode(node, key, json) {
     
     //find model info
     let variable = findVar(key);
-    console.log("processUpdate table", key, variable, json.table);
+    if (key != "insTbl") // tbd: table should not update
+      console.log("processVarNode table", key, variable, json.table);
 
     //add each row
     let rowNr = 0;
@@ -511,7 +534,7 @@ function processVarNode(node, key, json) {
   if (json.hasOwnProperty("value") && !overruleValue) { //after select, in case used
     //hasOwnProperty needed to catch also boolean json.value when it is false
     // if (key=="mdlEnabled" || key=="clIsFull" || key=="pin2")
-    //   console.log("processUpdate value", key, json, json.value, node);
+    //   console.log("processVarNode value", key, json, json.value, node);
     if (node.nodeName.toLocaleLowerCase() == "span") //read only vars
       node.textContent = json.value;
     else if (node.nodeName.toLocaleLowerCase() == "a") { //url links
@@ -524,21 +547,23 @@ function processVarNode(node, key, json) {
     else if (Array.isArray(json.value)) { //table column
       let rowNr = 0;
       for (let x of json.value) {
-        console.log(key, gId(key + "#" + rowNr), x);
+        // console.log(key, gId(key + "#" + rowNr), x);
         if (gId(key + "#" + rowNr) && gId(key + "#" + rowNr).checked)
           gId(key + "#" + rowNr).checked = x; //tbd support all types!!
         rowNr++;
       }
       // node.checked = json.value;
-    } else //inputs
+    } else {//inputs
       node.value = json.value;
+      node.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
+    }
   }
   if (json.hasOwnProperty("json")) { //json send html nodes cannot process, store in jsonValues array
-    console.log("processUpdate json", key, json.json, node);
+    console.log("processVarNode json", key, json.json, node);
     jsonValues[key] = json.json;
   }
   if (json.hasOwnProperty("file")) { //json send html nodes cannot process, store in jsonValues array
-    console.log("processUpdate file", key, json.file, node);
+    console.log("processVarNode file", key, json.file, node);
   
     //we need to send a request which the server can handle using request variable
     let url = `http://${window.location.hostname}/file`;

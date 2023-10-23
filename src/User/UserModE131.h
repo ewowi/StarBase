@@ -13,7 +13,7 @@
 
 #include <vector>
 
-#define maxChannels 10
+#define maxChannels 20
 
 struct VarToWatch {
   const char * id = nullptr;
@@ -30,7 +30,7 @@ public:
   UserModE131() :Module("e131-sACN") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    isEnabled = false; //defailt off
+    isEnabled = false; //default off
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
@@ -100,7 +100,7 @@ public:
 
           if (varsToWatch[i].id != nullptr && varsToWatch[i].max != 0) {
             USER_PRINTF(" varsToWatch: %s\n", varsToWatch[i].id);
-            mdl->setValueI(varsToWatch[i].id, varsToWatch[i].savedValue%varsToWatch[i].max); // TODO: ugly to have magic string 
+            mdl->setValueI(varsToWatch[i].id, varsToWatch[i].savedValue%(varsToWatch[i].max+1)); // TODO: ugly to have magic string 
           }
           else
             USER_PRINTF("\n");

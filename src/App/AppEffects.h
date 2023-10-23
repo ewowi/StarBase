@@ -9,7 +9,7 @@
 */
 
 #ifdef USERMOD_WLEDAUDIO
-  #include "User/UserModWLEDAudio.h"
+  #include "../User/UserModWLEDAudio.h"
 #endif
 #ifdef USERMOD_E131
   #include "../User/UserModE131.h"
@@ -141,7 +141,7 @@ public:
     // ledsV[LedsV::nrOfLedsV -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
   bool controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var) { //uiFun
+    ui->initSlider(parentVar, "BPM", 60, 0, 255, 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "in BPM!");
     });
     ui->initSlider(parentVar, "fade", 128);
@@ -735,8 +735,15 @@ public:
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 
-    e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
-    e131mod->patchChannel(4, "ripple", 255);
+    #ifdef USERMOD_E131
+
+      if (e131mod->isEnabled) {
+        uint16_t dmxChannel = mdl->getValue("dmxChannel");
+        e131mod->patchChannel(dmxChannel + 3, "fadeOut", 255); // TODO: add constant for name
+        e131mod->patchChannel(dmxChannel + 4, "ripple", 255);
+      }
+
+    #endif
 
     return true;
   }
@@ -849,7 +856,7 @@ public:
   void loop(size_t index) {
     now = millis(); //tbd timebase
 
-    effects[index]->loop();
+    effects[index%effects.size()]->loop();
 
     call++;
 

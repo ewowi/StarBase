@@ -18,6 +18,8 @@
 // #include <Esp.h>
 #include <rom/rtc.h>
 
+char SysModSystem::version[16] = "";
+
 SysModSystem::SysModSystem() :Module("System") {};
 
 void SysModSystem::setup() {
@@ -60,6 +62,25 @@ void SysModSystem::setup() {
     web->addResponse(var["id"], "comment", "Reason restart");
     sys->addRestartReasonsSelect(web->addResponseA(var["id"], "select"));
   });
+
+  //calculate version in format YYMMDDHH
+  //https://forum.arduino.cc/t/can-you-format-__date__/200818/10
+  int month, day, year, hour, minute, second;
+  static const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+  sscanf(__DATE__, "%s %d %d", version, &day, &year); // Oct 20 2023
+  month = (strstr(month_names, version)-month_names)/3+1;
+  sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //11:20:23
+  print->fFormat(version, sizeof(version)-1, "%02d%02d%02d%02d", year-2000, month, day, hour);
+
+  USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
+
+  ui->initText(parentVar, "version", nullptr, 16, true, [](JsonObject var) { //uiFun
+    mdl->setValueP("version", "%s", version); //make sure ui shows the right version
+    // var["value"] = version;
+  });
+  // ui->initText(parentVar, "date", __DATE__, 16, true);
+  // ui->initText(parentVar, "time", __TIME__, 16, true);
+
 
   // static char msgbuf[32];
   // snprintf(msgbuf, sizeof(msgbuf)-1, "%s rev.%d", ESP.getChipModel(), ESP.getChipRevision());

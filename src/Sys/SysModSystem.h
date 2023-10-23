@@ -8,6 +8,8 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
 
+#pragma once
+
 #include "Module.h"
 
 #include "ArduinoJson.h"
@@ -15,6 +17,7 @@
 class SysModSystem:public Module {
 
 public:
+  static char version[16];
 
   SysModSystem();
   void setup();

@@ -51,6 +51,14 @@ void SysModFiles::setup() {
   ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Show");
   });
+  ui->initButton(tableVar, "flDel", "⌫", false, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Delete"); //table header title
+  }, [](JsonObject var) { //chFun
+    print->printJson("chFun", var); //not called yet for buttons...
+    //instead:
+    // processJson k:flDel r:6 (⌫ == ⌫ ? 1)
+    // we want an array for value but :  {"id":"flDel","type":"button","ro":false,"o":23,"uiFun":25,"chFun":26,"value":"⌫"}
+  });
 
   ui->initText(parentVar, "drsize", nullptr, 32, true, [](JsonObject var) { //uiFun
     char details[32] = "";
@@ -69,6 +77,7 @@ void SysModFiles::setup() {
   // ui->initURL(parentVar, "urlTest", "file/3DCube202005.json", true);
 
   web->addUpload("/upload");
+  web->addUpdate("/update");
 
   web->addFileServer("/file");
 
@@ -126,6 +135,7 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
         char urlString[32] = "file/";
         strncat(urlString, file.name(), sizeof(urlString)-1);
         row.add((char *)urlString);  //create a copy!
+        row.add("⌫");  //delete placeholder
       }
       // USER_PRINTF("FILE: %s %d\n", file.name(), file.size());
     }

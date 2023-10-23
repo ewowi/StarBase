@@ -42,12 +42,21 @@ void SysModNetwork::setup() {
   ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
   });
+  ui->initText(parentVar, "rssi", nullptr, 32, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Wifi signal");
+  });
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModNetwork::loop() {
   // Module::loop();
+  if (millis() - secondMillis >= 1000) {
+    secondMillis = millis();
+
+    mdl->setValueLossy("rssi", "%d dBm", WiFi.RSSI());
+  }
+
   handleConnection();
 }
 

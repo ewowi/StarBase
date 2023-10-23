@@ -80,9 +80,9 @@ void SysModPins::setup() {
     buffer[3] = 10*10; //every 10 sec 
   });
 
-  ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);
-  ui->initCheckBox(parentVar, "pin4");
-  ui->initCheckBox(parentVar, "pin33", true);
+  // ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);
+  // ui->initCheckBox(parentVar, "pin4");
+  // ui->initCheckBox(parentVar, "pin33", true);
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }

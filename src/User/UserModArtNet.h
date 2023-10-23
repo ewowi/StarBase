@@ -42,7 +42,7 @@ public:
         char option[32] = { 0 };
         strncpy(option, node.ip.toString().c_str(), sizeof(option)-1);
         strncat(option, " ", sizeof(option)-1);
-        strncat(option, node.details, sizeof(option)-1);
+        strncat(option, node.name, sizeof(option)-1);
         select.add(option);
       }
     }, [](JsonObject var) { //chFun

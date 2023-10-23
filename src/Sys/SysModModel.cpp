@@ -258,7 +258,7 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
   // size_t len = vprintf(format, args);
   char value[128];
   vsnprintf(value, sizeof(value)-1, format, args);
-  USER_PRINTF("%s\n", value);
+  // USER_PRINTF("%s\n", value);
 
   va_end(args);
 

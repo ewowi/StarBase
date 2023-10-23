@@ -19,6 +19,8 @@
 
 #include "AsyncJson.h"
 
+#include <ArduinoOTA.h>
+
 //https://techtutorialsx.com/2018/08/24/esp32-web-server-serving-html-from-file-system/
 //https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
 
@@ -444,7 +446,6 @@ bool SysModWeb::processURL(const char * uri, void (*func)(AsyncWebServerRequest 
   return true;
 }
 
-// curl -F 'data=@ledfix1.json' 192.168.8.213/upload
 bool SysModWeb::addUpload(const char * uri) {
 
   // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
@@ -481,6 +482,34 @@ bool SysModWeb::addUpload(const char * uri) {
       // }
       // cacheInvalidate++;
      files->filesChange();
+    }
+  });
+  return true;
+}
+
+bool SysModWeb::addUpdate(const char * uri) {
+
+  // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
+  server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
+  [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
+                size_t len, bool final) {
+    USER_PRINT_Async("handleUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+    if(!index){
+      USER_PRINTF("OTA Update Start\n");
+      // WLED::instance().disableWatchdog();
+      // usermods.onUpdateBegin(true); // notify usermods that update is about to begin (some may require task de-init)
+      // lastEditTime = millis(); // make sure PIN does not lock during update
+      Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000);
+    }
+    if(!Update.hasError()) Update.write(data, len);
+    if(final){
+      if(Update.end(true)){
+        USER_PRINTF("Update Success\n");
+      } else {
+        USER_PRINTF("Update Failed\n");
+        // usermods.onUpdateBegin(false); // notify usermods that update has failed (some may require task init)
+        // WLED::instance().enableWatchdog();
+      }
     }
   });
   return true;

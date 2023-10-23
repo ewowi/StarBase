@@ -19,6 +19,7 @@
 std::vector<void(*)(JsonObject var)> SysModUI::ucFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
 int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
+bool SysModUI::valChangedForInstancesTemp = false;
 
 bool SysModUI::varLoopsChanged = false;;
 

@@ -33,6 +33,9 @@
   #ifdef USERMOD_DDP
     #include "User/UserModDDP.h"
   #endif
+  #ifdef USERMOD_HUB75
+    #include "User/UserModHub75.h"
+  #endif
 #endif
 #ifdef USERMOD_E131
   #include "User/UserModE131.h"
@@ -43,6 +46,7 @@
 #ifdef USERMOD_WLEDAUDIO
   #include "User/UserModWLEDAudio.h"
 #endif
+
 
 //setup all modules
 void setup() {
@@ -76,6 +80,9 @@ void setup() {
   #endif
   #ifdef USERMOD_WLEDAUDIO
     wledAudioMod = new UserModWLEDAudio();
+  #endif
+  #ifdef USERMOD_HUB75
+    hub75Mod = new UserModHub75();
   #endif
 
   //prefered default order in the UI. 
@@ -112,6 +119,9 @@ void setup() {
     mdls->add(wledAudioMod);
   #endif
   mdls->add(mdns); //no ui
+  #ifdef USERMOD_HUB75
+    mdls->add(hub75Mod);
+  #endif
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

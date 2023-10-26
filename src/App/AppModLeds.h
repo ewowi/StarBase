@@ -19,6 +19,15 @@
 #include <vector>
 #include "FastLED.h"
 
+// #define FASTLED_RGBW
+
+//https://www.partsnotincluded.com/fastled-rgbw-neopixels-sk6812/
+inline uint16_t getRGBWsize(uint16_t nleds){
+	uint16_t nbytes = nleds * 4;
+	if(nbytes % 3 > 0) return nbytes / 3 + 1;
+	else return nbytes / 3;
+}
+
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
@@ -43,6 +52,9 @@ public:
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
+
+    ui->initCheckBox(parentVar, "on");
+    // ui->initCheckBox(parentVar, "v");
 
     //logarithmic slider (10)
     ui->initSlider(parentVar, "bri", 5, 0, 255, 10, false, [](JsonObject var) { //uiFun

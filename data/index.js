@@ -105,7 +105,7 @@ function linearToLogarithm(json, value) {
 
   let result = Math.exp(minv + scale*(value-minp));
 
-  console.log(json, minv, maxv, scale, result);
+  // console.log(json, minv, maxv, scale, result);
 
   return Math.round(result);
 }
@@ -316,11 +316,8 @@ function generateHTML(parentNode, json, rowNr = -1) {
               //   buttonCancelNode.addEventListener('click', (event) => {console.log(json.type + " click", event);});
               // }
               if (json.type == "number") {
-                if (json.min) valueNode.min = json.min;
+                valueNode.min = json.min?json.min:0; //if not specified then unsigned value (min=0)
                 if (json.max) valueNode.max = json.max;
-                // valueNode.setAttribute('size', '4');
-                // valueNode.maxlength = 4;
-                // valueNode.size = 4;
               }
               else {
                 if (json.max) valueNode.setAttribute('maxlength', json.max); //for text and textarea set max length valueNode.maxlength is not working for some reason

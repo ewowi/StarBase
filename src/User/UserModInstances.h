@@ -19,14 +19,14 @@ struct AppData {
   uint8_t fx;
   uint8_t palette;
   uint8_t projection;
-};
+}; // 4 bytes
 
 struct SysData {
   unsigned long upTime;
   uint8_t type;
   uint8_t syncGroups;
   uint16_t dmxChannel; 
-};
+}; //8 bytes
 
 struct NodeInfo {
   IPAddress ip;
@@ -53,8 +53,8 @@ struct UDPWLEDMessage {
 //compatible with WLED nodes as it only interprets first 44 bytes
 struct UDPStarModMessage {
   UDPWLEDMessage header; // 44 bytes
-  SysData sys;
-  AppData app;
+  SysData sys; //44
+  AppData app; //52
   char body[1460 - sizeof(UDPWLEDMessage) - sizeof(SysData) - sizeof(AppData)];
 };
 
@@ -149,7 +149,7 @@ public:
       web->addResponse(var["id"], "label", "Show");
     });
 
-    ui->initNumber(parentVar, "syncGroups", 0, 0, 99, false, [](JsonObject var) { //uiFun
+    ui->initNumber(parentVar, "syncGroups", 0, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "0=no sync");
     }, [](JsonObject var) { //chFun
       ui->valChangedForInstancesTemp = true;
@@ -222,9 +222,9 @@ public:
         uint8_t *udpIn = (uint8_t *)&udpSyncMessage;
         notifierUdp.read(udpIn, packetSize);
 
-        for (int i=0; i<40; i++) {
-          Serial.printf("%d: %d\n", i, udpIn[i]);
-        }
+        // for (int i=0; i<40; i++) {
+        //   Serial.printf("%d: %d\n", i, udpIn[i]);
+        // }
 
         USER_PRINTF("   %d %d p:%d\n", udpSyncMessage.bri, udpSyncMessage.mainsegMode, packetSize);
 
@@ -336,14 +336,15 @@ public:
     starModMessage.app.fx = mdl->getValue("fx");
     starModMessage.app.palette = mdl->getValue("palette");
     starModMessage.app.projection = mdl->getValue("projection");
+    // strncpy(starModMessage.body, "Effect x, Projection y, Leds begin..end", 1404-1);
 
     updateNode(starModMessage); //temp? to show own node in list as instance is not catching it's own udp message...
 
     IPAddress broadcastIP(255, 255, 255, 255);
     if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
       USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:%d\n", (uint8_t*)&starModMessage, sizeof(UDPStarModMessage), instanceUDPPort, ip[3]);
-      // for (size_t x = 0; x < sizeof(UDPWLEDMessage); x++) {
-      //   char* xx = (char*)&udpMessage;
+      // for (size_t x = 0; x < sizeof(UDPWLEDMessage) + sizeof(SysData) + sizeof(AppData); x++) {
+      //   char* xx = (char*)&starModMessage;
       //   Serial.printf("%d: %d - %c\n", x, xx[x], xx[x]);
       // }
 

@@ -115,7 +115,7 @@ public:
       else
         var["value"] = value; //if value is a pointer, it needs to have a value
     }
-    
+
     if (min) var["min"] = min;
     if (max) var["max"] = max;
 
@@ -138,7 +138,7 @@ public:
   //run the change function and send response to all? websocket clients
   static void setChFunAndWs(JsonObject var, const char * value = nullptr);
 
-  //interpret json and run commands or set values
+  //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
   static const char * processJson(JsonVariant &json); //static for setupJsonHandlers
 
   //called to rebuild selects and tables (tbd: also label and comments is done again, that is not needed)

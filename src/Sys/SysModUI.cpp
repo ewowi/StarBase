@@ -259,7 +259,11 @@ const char * SysModUI::processJson(JsonVariant &json) {
       JsonVariant value = pair.value();
 
       // commands
-      if (pair.key() == "uiFun") { //JsonString can do ==
+      if (pair.key() == "v") {
+        // do nothing as it is no real var bu  the verbose command of WLED
+        USER_PRINTF("processJson v type\n", pair.value().as<String>());
+      }
+      else if (pair.key() == "uiFun") { //JsonString can do ==
         //find the select var and collect it's options...
         if (value.is<JsonArray>()) { //should be
           for (JsonVariant value2: value.as<JsonArray>()) {

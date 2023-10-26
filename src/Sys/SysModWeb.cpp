@@ -41,6 +41,12 @@ unsigned long SysModWeb::wsSendDataWsCounter = 0;
 SysModWeb::SysModWeb() :Module("Web") {
   ws = new AsyncWebSocket("/ws");
   server = new AsyncWebServer(80);
+
+  //CORS compatiblity
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Origin"), "*");
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), "*");
+  DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), "*");
+
   responseDocLoopTask = new DynamicJsonDocument(2048);
   responseDocAsyncTCP = new DynamicJsonDocument(3072);
 };
@@ -187,7 +193,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
             USER_PRINT_Async("wsEvent deserializeJson failed with code %s\n", error.c_str());
             client->text("{\"success\":true}"); // we have to send something back otherwise WS connection closes
           } else {
-            const char * error = processWSFunc(responseVariant); //processJson, adds to responsedoc
+            const char * error = processWSFunc(responseVariant); //processJson, adds to responseDoc / responseVariant
 
             if (responseVariant.size()) {
               print->printJson("WS_EVT_DATA json", responseVariant);
@@ -539,14 +545,21 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
 
     print->printJson("AsyncCallbackJsonWebHandler", json);
     const char * pErr = processFunc(json); //processJson
-    if (responseVariant.size()) {
+
+    //WLED compatibility
+    if (json["v"]) { //WLED compatibility: verbose response
+      serveJson (request);
+    }
+    else
+    if (responseVariant.size()) { //responseVariant set by processFunc
       char resStr[200]; 
       serializeJson(responseVariant, resStr, 200);
       USER_PRINT_Async("processJsonUrl response %s\n", resStr);
-      request->send(200, "text/plain", resStr);
+      request->send(200, "application/json", resStr);
     }
     else
-      request->send(200, "text/plain", "OKOK");
+      // request->send(200, "text/plain", "OK");
+      request->send(200, "application/json", F("{\"success\":true}"));
   });
   server->addHandler(handler);
   return true;
@@ -618,32 +631,33 @@ JsonDocument * SysModWeb::getResponseDoc() {
 }
 
 void SysModWeb::serveJson(AsyncWebServerRequest *request) {
-  JsonArray model = SysModModel::model->as<JsonArray>();
-  USER_PRINTF("serveJson %s, %s %d %d %d %d\n", request->client()->remoteIP().toString().c_str(), request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), SysModModel::model->capacity());
 
   AsyncJsonResponse * response;
 
-  if (request->url().indexOf("si")    > 0) {
+  // if (request->url().indexOf("si")    > 0) {
+    USER_PRINTF("serveJson si %s, %s\n", request->client()->remoteIP().toString().c_str(), request->url().c_str());
     response = new AsyncJsonResponse(false, 5000); //object
     JsonObject root = response->getRoot();
 
-    //temporary set all WLED variables (as otherwise WLED-native does not show the instance): tbd: clean up
-    const char* jsonState = "{\"on\":true,\"bri\":10,\"transition\":7,\"ps\":9,\"pl\":-1,\"AudioReactive\":{\"on\":false},\"CustomEffects\":{\"on\":true},\"nl\":{\"on\":false,\"dur\":60,\"mode\":1,\"tbri\":0,\"rem\":-1},\"udpn\":{\"send\":false,\"recv\":true},\"lor\":0,\"mainseg\":0,\"seg\":[{\"id\":0,\"start\":0,\"stop\":144,\"len\":144,\"grp\":1,\"spc\":0,\"of\":0,\"on\":true,\"frz\":false,\"bri\":255,\"cct\":127,\"col\":[[182,15,98,0],[0,0,0,0],[255,224,160,0]],\"fx\":174,\"sx\":128,\"ix\":128,\"pal\":11,\"c1\":8,\"c2\":20,\"c3\":31,\"sel\":true,\"rev\":false,\"mi\":false,\"o1\":false,\"o2\":false,\"o3\":false,\"ssim\":0,\"mp12\":1}]}";
-    const char* jsonInfo = "{\"ver\":\"0.14.0-mdev\",\"vid\":2209091,\"leds\":{\"count\":144,\"pwr\":248,\"fps\":41,\"maxpwr\":2000,\"maxseg\":32,\"cpal\":0,\"seglc\":[11],\"lc\":11,\"rgbw\":true,\"wv\":2,\"cct\":0},\"str\":false,\"name\":\"StarModewowi\",\"udpport\":21324,\"live\":false,\"liveseg\":-1,\"lm\":\"\",\"lip\":\"\",\"ws\":0,\"fxcount\":177,\"palcount\":71,\"maps\":[0],\"wifi\":{\"bssid\":\"96:83:C4:2D:4B:8A\",\"rssi\":-43,\"signal\":100,\"channel\":11},\"fs\":{\"u\":45,\"t\":983,\"pmt\":0},\"ndc\":1,\"arch\":\"esp32\",\"core\":\"v3.3.6-16-gcc5440f6a2\",\"lwip\":0,\"freeheap\":173488,\"uptime\":31264,\"u\":{\"Temperature\":[0,\" Sensor Error!\"],\"opt\":111,\"brand\":\"StarMod\",\"product\":\"LED\",\"mac\":\"3ce90e874ac0\",\"ip\":\"192.168.8.102\"}";
+    //temporary set all WLED variables (as otherwise WLED-native does not show the instance): tbd: clean up (state still needed, info not)
+    const char* jsonState = "{\"transition\":7,\"ps\":9,\"pl\":-1,\"nl\":{\"on\":false,\"dur\":60,\"mode\":1,\"tbri\":0,\"rem\":-1},\"udpn\":{\"send\":false,\"recv\":true},\"lor\":0,\"mainseg\":0,\"seg\":[{\"id\":0,\"start\":0,\"stop\":144,\"len\":144,\"grp\":1,\"spc\":0,\"of\":0,\"on\":true,\"frz\":false,\"bri\":255,\"cct\":127,\"col\":[[182,15,98,0],[0,0,0,0],[255,224,160,0]],\"fx\":0,\"sx\":128,\"ix\":128,\"pal\":11,\"c1\":8,\"c2\":20,\"c3\":31,\"sel\":true,\"rev\":false,\"mi\":false,\"o1\":false,\"o2\":false,\"o3\":false,\"ssim\":0,\"mp12\":1}]}";
     StaticJsonDocument<5000> docState;
     deserializeJson(docState, jsonState);
-    StaticJsonDocument<5000> docInfo;
-    deserializeJson(docInfo, jsonInfo);
     root["state"] = docState;
-    root["info"] = docInfo;
-
 
     root["state"]["bri"] = mdl->getValue("bri");
-    root["state"]["on"] = true;
+    root["state"]["on"] = mdl->getValue("on").as<bool>();
     root["info"]["name"] = mdl->getValue("serverName");
-    // root["info"]["ver"] = "0.14.0-mdev";
-    // root["info"]["arch"] = "esp32"; //platformName
-    // root["info"]["wifi"]["rssi"] = -42;
+    root["info"]["arch"] = "esp32"; //platformName
+
+    root["info"]["rel"] = "StarMod";
+    root["info"]["ver"] = "0.0.1";
+    root["info"]["vid"] = mdl->getValue("version").as<uint32_t>(); //WLED-native needs int otherwise status offline!!!
+    root["info"]["leds"]["count"] = 999;
+    root["info"]["leds"]["countP"] = 998;
+    root["info"]["leds"]["fps"] = mdl->getValue("fps"); //tbd: should be realFps but is ro var
+    root["info"]["wifi"]["rssi"] = WiFi.RSSI();// mdl->getValue("rssi"); (ro)
+
     String escapedMac;
     escapedMac = WiFi.macAddress();
     escapedMac.replace(":", "");
@@ -651,16 +665,18 @@ void SysModWeb::serveJson(AsyncWebServerRequest *request) {
     root["info"]["mac"] = (char *)escapedMac.c_str(); //copy mdns->escapedMac gives LoadProhibited crash, tbd: find out why
     root["info"]["ip"] = (char *)WiFi.localIP().toString().c_str();
     // print->printJson("serveJson", root);
-  }
-  else { // return model.json
-    response = new AsyncJsonResponse(true,  model.memoryUsage()); //array tbd: here copy is mode, see WLED for using reference
-    JsonArray root = response->getRoot();
+  // }
+  // else { // return model.json
+  //   JsonArray model = SysModModel::model->as<JsonArray>();
+  //   USER_PRINTF("serveJson model %s, %s %d %d %d %d\n", request->client()->remoteIP().toString().c_str(), request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), SysModModel::model->capacity());
 
-    // root = module does not work? so add ead element individually
-    for (JsonObject module: model)
-      root.add(module);
+  //   response = new AsyncJsonResponse(true,  model.memoryUsage()); //array tbd: here copy is mode, see WLED for using reference
+  //   JsonArray root = response->getRoot();
 
-  }
+  //   // root = module does not work? so add each element individually
+  //   for (JsonObject module: model)
+  //     root.add(module);
+  // }
 
   response->setLength();
   request->send(response);

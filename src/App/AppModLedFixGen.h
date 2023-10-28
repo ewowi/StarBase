@@ -524,7 +524,7 @@ public:
       select.add("3DCube"); //9
       select.add("3DGlobe WIP"); //10
       select.add("3DGeodesicDome WIP"); //11
-    }, [](JsonObject var) { //chFun
+    }, [this](JsonObject var) { //chFun
       ledFixGenChFun(var);
     }); //ledFixGen
 
@@ -533,7 +533,7 @@ public:
     });
 
     ui->initButton(parentVar, "generate", nullptr, false, [](JsonObject var) { //uiFun
-    }, [](JsonObject var) {
+    }, [this](JsonObject var) {
       generateChFun(var);
     });
 
@@ -562,7 +562,7 @@ public:
   };
 
   //generate dynamic html for fixture controls
-  static void ledFixGenChFun(JsonObject var) {
+  void ledFixGenChFun(JsonObject var) {
     JsonObject parentVar = mdl->findVar(var["id"]);
     parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
     uint8_t value = var["value"];
@@ -620,7 +620,7 @@ public:
     web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
   }
 
-  static void generateChFun(JsonObject var) {
+  void generateChFun(JsonObject var) {
 
     uint8_t fix = mdl->getValue("ledFixGen");
 

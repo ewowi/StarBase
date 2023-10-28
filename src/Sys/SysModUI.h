@@ -13,7 +13,8 @@
 #include "ArduinoJson.h"
 #include "Module.h"
 
-typedef void(*UCFun)(JsonObject);
+// https://stackoverflow.com/questions/59111610/how-do-you-declare-a-lambda-function-using-typedef-and-then-use-it-by-passing-to
+typedef std::function<void(JsonObject)> UCFun;
 typedef void(*LoopFun)(JsonObject, uint8_t*);
 
 struct VarLoop {

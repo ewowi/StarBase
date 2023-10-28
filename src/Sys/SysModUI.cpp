@@ -16,7 +16,7 @@
 #include "html_ui.h"
 
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-std::vector<void(*)(JsonObject var)> SysModUI::ucFunctions;
+std::vector<UCFun> SysModUI::ucFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
 int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::valChangedForInstancesTemp = false;
@@ -172,25 +172,28 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     //if uiFun, add it to the list
     if (uiFun) {
       //if fun already in ucFunctions then reuse, otherwise add new fun in ucFunctions
-      std::vector<void(*)(JsonObject var)>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), uiFun);
-      if (itr!=ucFunctions.end()) //found
-        var["uiFun"] = distance(ucFunctions.begin(), itr); //assign found function
-      else { //not found
+      //lambda update: when replacing typedef void(*UCFun)(JsonObject); with typedef std::function<void(JsonObject)> UCFun; this gives error:
+      //  mismatched types 'T*' and 'std::function<void(ArduinoJson::V6213PB2::JsonObject)>' { return *__it == _M_value; }
+      //  it also looks like functions are not added more then once anyway
+      // std::vector<UCFun>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), uiFun);
+      // if (itr!=ucFunctions.end()) //found
+      //   var["uiFun"] = distance(ucFunctions.begin(), itr); //assign found function
+      // else { //not found
         ucFunctions.push_back(uiFun); //add new function
         var["uiFun"] = ucFunctions.size()-1;
-      }
+      // }
     }
 
     //if chFun, add it to the list
     if (chFun) {
       //if fun already in ucFunctions then reuse, otherwise add new fun in ucFunctions
-      std::vector<void(*)(JsonObject var)>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), chFun);
-      if (itr!=ucFunctions.end()) //found
-        var["chFun"] = distance(ucFunctions.begin(), itr); //assign found function
-      else { //not found
+      // std::vector<UCFun>::iterator itr = find(ucFunctions.begin(), ucFunctions.end(), chFun);
+      // if (itr!=ucFunctions.end()) //found
+      //   var["chFun"] = distance(ucFunctions.begin(), itr); //assign found function
+      // else { //not found
         ucFunctions.push_back(chFun); //add new function
         var["chFun"] = ucFunctions.size()-1;
-      }
+      // }
     }
 
     //if loopFun, add it to the list

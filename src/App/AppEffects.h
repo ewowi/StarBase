@@ -739,8 +739,8 @@ public:
 
       if (e131mod->isEnabled) {
         uint16_t dmxChannel = mdl->getValue("dmxChannel");
-        e131mod->patchChannel(dmxChannel + 3, "fadeOut", 255); // TODO: add constant for name
-        e131mod->patchChannel(dmxChannel + 4, "ripple", 255);
+        e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
+        e131mod->patchChannel(4, "ripple", 255);
       }
 
     #endif

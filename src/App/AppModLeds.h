@@ -201,19 +201,15 @@ public:
 
     #ifdef USERMOD_E131
       // if (e131mod->isEnabled) {
-        ui->initNumber(parentVar, "dmxChannel", 1, 1, 512, false, [](JsonObject var) { //uiFun
-          web->addResponse(var["id"], "comment", "First channel (bri, fx, palette + fx channels, total 5 now)");
-        }, [](JsonObject var) { //chFun
-          uint16_t dmxChannel = var["value"];
-          e131mod->patchChannel(dmxChannel + 0, "bri", 255); //should be 256??
-          e131mod->patchChannel(dmxChannel + 1, "fx", effects.size());
-          e131mod->patchChannel(dmxChannel + 2, "palette", 8); //tbd: calculate nr of palettes (from select)
+          e131mod->patchChannel(0, "bri", 255); //should be 256??
+          e131mod->patchChannel(1, "fx", effects.size());
+          e131mod->patchChannel(2, "palette", 8); //tbd: calculate nr of palettes (from select)
+          // //add these temporary to test remote changing of this values do not crash the system
+          // e131mod->patchChannel(3, "projection", Projections::count);
+          // e131mod->patchChannel(4, "ledFix", 5); //assuming 5!!!
 
           ui->valChangedForInstancesTemp = true;
-        });
-        // //add these temporary to test remote changing of this values do not crash the system
-        // e131mod->patchChannel(3, "projection", Projections::count);
-        // e131mod->patchChannel(4, "ledFix", 5); //assuming 5!!!
+          
       // }
       // else
       //   USER_PRINTF("Leds e131 not enabled\n");

@@ -34,14 +34,14 @@ public:
 
     parentVar = ui->initModule(parentVar, name);
 
-    ui->initNumber(parentVar, "dmxUni", universe, 1, 512, false, [](JsonObject var) { //uiFun
+    ui->initNumber(parentVar, "dmxUni", universe, 0, 7, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Universe");
     }, [this](JsonObject var) { //chFun
       universe = var["value"];
       ui->valChangedForInstancesTemp = true;
     });
 
-    ui->initNumber(parentVar, "dmxChannel", 1, 1, 512, false, [](JsonObject var) { //uiFun
+    ui->initNumber(parentVar, "dmxChannel", 1, 0, 511, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Channel");
       web->addResponse(var["id"], "comment", "First channel");
     }, [](JsonObject var) { //chFun

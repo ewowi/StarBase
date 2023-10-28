@@ -19,14 +19,22 @@ struct AppData {
   uint8_t fx;
   uint8_t palette;
   uint8_t projection;
-}; // 4 bytes
+};
+
+struct DMX {
+  uint8_t universe:3; //3 bits / 8
+  uint16_t start:9; //9 bits / 512
+  uint8_t count:4; // 4 bits / 16
+}; //total 16 bits
 
 struct SysData {
   unsigned long upTime;
   uint8_t type;
   uint8_t syncGroups;
-  uint16_t dmxChannel; 
-}; //8 bytes
+  DMX dmx;
+};
+
+//note: changing AppData and SysData sizes: all instances should have the same version so change with care
 
 struct NodeInfo {
   IPAddress ip;
@@ -52,9 +60,9 @@ struct UDPWLEDMessage {
 
 //compatible with WLED nodes as it only interprets first 44 bytes
 struct UDPStarModMessage {
-  UDPWLEDMessage header; // 44 bytes
-  SysData sys; //44
-  AppData app; //52
+  UDPWLEDMessage header; // 44 bytes fixed!
+  SysData sys;
+  AppData app;
   char body[1460 - sizeof(UDPWLEDMessage) - sizeof(SysData) - sizeof(AppData)];
 };
 
@@ -121,7 +129,7 @@ public:
         }
         else {
           row.add("StarMod");
-          print->fFormat(text, sizeof(text)-1, "ver:%d up:%d br:%d fx:%d pal:%d pro:%d syn:%d d:%d", node.version, node.sys.upTime, node.app.bri, node.app.fx, node.app.palette, node.app.projection, node.sys.syncGroups, node.sys.dmxChannel);
+          print->fFormat(text, sizeof(text)-1, "ver:%d up:%d br:%d fx:%d pal:%d pro:%d syn:%d d:%d:%d-%d", node.version, node.sys.upTime, node.app.bri, node.app.fx, node.app.palette, node.app.projection, node.sys.syncGroups, node.sys.dmx.universe, node.sys.dmx.start, node.sys.dmx.start + node.sys.dmx.count - 1);
         }
 
         row.add(text);
@@ -197,7 +205,6 @@ public:
       ui->valChangedForInstancesTemp = false;
 
       sendSysInfoUDP(); 
-
     }
   }
 
@@ -327,10 +334,15 @@ public:
     starModMessage.sys.type = 1; //StarMod
     starModMessage.sys.upTime = millis()/1000;
     starModMessage.sys.syncGroups = mdl->getValue("syncGroups");
-    starModMessage.sys.dmxChannel = 0;
+    starModMessage.sys.dmx.universe = 0;
+    starModMessage.sys.dmx.start = 0;
+    starModMessage.sys.dmx.count = 0;
     #ifdef USERMOD_E131
-      if (e131mod->isEnabled)
-        starModMessage.sys.dmxChannel = mdl->getValue("dmxChannel");
+      if (e131mod->isEnabled) {
+        starModMessage.sys.dmx.universe = mdl->getValue("dmxUni");
+        starModMessage.sys.dmx.start = mdl->getValue("dmxChannel");
+        starModMessage.sys.dmx.count = 3;//e131->varsToWatch.size();
+      }
     #endif
     starModMessage.app.bri = mdl->getValue("bri");
     starModMessage.app.fx = mdl->getValue("fx");
@@ -375,7 +387,9 @@ public:
         node.sys.type = 0; //WLED
         //updated in udp sync message:
         node.sys.upTime = 0;
-        node.sys.dmxChannel = 0;
+        node.sys.dmx.universe = 0;
+        node.sys.dmx.start = 0;
+        node.sys.dmx.count = 0;
         node.sys.syncGroups = 0;
         node.app.bri = 0; 
         node.app.fx = 0;

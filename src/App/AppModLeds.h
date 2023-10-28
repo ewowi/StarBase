@@ -38,12 +38,10 @@ public:
   unsigned long frameCounter = 0;
   bool newFrame = false; //for other modules (DDP)
 
-  //need to make these static as they are called in lambda functions 
-  static uint16_t fps;
+  uint16_t fps = 60;
   unsigned long lastMappingMillis = 0;
-  static bool doMap;
-
-  static Effects effects;
+  bool doMap = false;
+  Effects effects;
 
   AppModLeds() :Module("Leds") {};
 
@@ -67,7 +65,7 @@ public:
       FastLED.setBrightness(result);
 
       USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
-      SysModUI::valChangedForInstancesTemp = true;
+      ui->valChangedForInstancesTemp = true;
     });
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
@@ -88,19 +86,19 @@ public:
       buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
-    ui->initSelect(parentVar, "fx", 0, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
       JsonArray select = web->addResponseA(var["id"], "select");
       for (Effect *effect:effects.effects) {
         select.add(effect->name());
       }
-    }, [](JsonObject var) { //chFun
+    }, [this](JsonObject var) { //chFun
       uint8_t fx = var["value"];
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
 
       doMap = effects.setEffect("fx", fx);
-      SysModUI::valChangedForInstancesTemp = true;
+      ui->valChangedForInstancesTemp = true;
     });
 
     ui->initSelect(parentVar, "palette", 4, false, [](JsonObject var) { //uiFun.
@@ -126,7 +124,7 @@ public:
         case 7: palette = HeatColors_p; break;
         default: palette = PartyColors_p; break;
       }
-      SysModUI::valChangedForInstancesTemp = true;
+      ui->valChangedForInstancesTemp = true;
     });
 
     ui->initSelect(parentVar, "projection", 2, false, [](JsonObject var) { //uiFun.
@@ -137,12 +135,12 @@ public:
       select.add("Random"); // 1
       select.add("Distance from point"); //2
       select.add("Distance from centre"); //3
-    }, [](JsonObject var) { //chFun
+    }, [this](JsonObject var) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::projectionNr = var["value"];
       doMap = true;
-      SysModUI::valChangedForInstancesTemp = true;
+      ui->valChangedForInstancesTemp = true;
     });
 
     ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
@@ -156,7 +154,7 @@ public:
       if (files->seqNrToName(fileName, var["value"])) {
         web->addResponse("pview", "file", fileName);
       }
-    }, [](JsonObject var) { //chFun
+    }, [this](JsonObject var) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       LedsV::ledFixNr = var["value"];
@@ -190,9 +188,9 @@ public:
 
     ui->initNumber(parentVar, "fps", fps, 1, 999, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Frames per second");
-    }, [](JsonObject var) { //chFun
-      AppModLeds::fps = var["value"];
-      USER_PRINTF("fps changed %d\n", AppModLeds::fps);
+    }, [this](JsonObject var) { //chFun
+      fps = var["value"];
+      USER_PRINTF("fps changed %d\n", fps);
     });
 
     ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var) { //uiFun
@@ -333,7 +331,3 @@ public:
 };
 
 static AppModLeds *lds;
-
-uint16_t AppModLeds::fps = 120;
-bool AppModLeds::doMap = false;
-Effects AppModLeds::effects;

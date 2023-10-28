@@ -738,7 +738,6 @@ public:
     #ifdef USERMOD_E131
 
       if (e131mod->isEnabled) {
-        uint16_t dmxChannel = mdl->getValue("dmxChannel");
         e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
         e131mod->patchChannel(4, "ripple", 255);
       }

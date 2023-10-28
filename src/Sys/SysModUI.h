@@ -46,7 +46,7 @@ static uint8_t linearToLogarithm(JsonObject var, uint8_t value) {
 class SysModUI:public Module {
 
 public:
-  static bool valChangedForInstancesTemp;
+  bool valChangedForInstancesTemp = false;
 
   SysModUI();
 

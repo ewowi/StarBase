@@ -81,9 +81,9 @@ public:
         buffer[i*3+4+2] = ledsP[i].blue;
       }
       //new values
-      buffer[0] = LedsV::nrOfLedsP/256;
-      buffer[1] = LedsV::nrOfLedsP%256;
-      buffer[3] = max(LedsV::nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
+      buffer[0] = ledsV.nrOfLedsP/256;
+      buffer[1] = ledsV.nrOfLedsP%256;
+      buffer[3] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
     ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
@@ -138,7 +138,7 @@ public:
     }, [this](JsonObject var) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-      LedsV::projectionNr = var["value"];
+      ledsV.projectionNr = var["value"];
       doMap = true;
       ui->valChangedForInstancesTemp = true;
     });
@@ -157,11 +157,11 @@ public:
     }, [this](JsonObject var) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-      LedsV::ledFixNr = var["value"];
+      ledsV.ledFixNr = var["value"];
       doMap = true;
 
       char fileName[32] = "";
-      if (files->seqNrToName(fileName, LedsV::ledFixNr)) {
+      if (files->seqNrToName(fileName, ledsV.ledFixNr)) {
         //send to pview a message to get file filename
         JsonDocument *responseDoc = web->getResponseDoc();
         responseDoc->clear(); //needed for deserializeJson?
@@ -175,13 +175,13 @@ public:
 
     ui->initText(parentVar, "dimensions", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
-      print->fFormat(details, sizeof(details)-1, "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
+      print->fFormat(details, sizeof(details)-1, "P:%dx%dx%d V:%dx%dx%d", ledsV.widthP, ledsV.heightP, ledsV.depthP, ledsV.widthV, ledsV.heightV, ledsV.depthV);
       web->addResponse(var["id"], "value", details);
     });
 
     ui->initText(parentVar, "nrOfLeds", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
-      print->fFormat(details, sizeof(details)-1, "P:%d V:%d", LedsV::nrOfLedsP, LedsV::nrOfLedsV);
+      print->fFormat(details, sizeof(details)-1, "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
       web->addResponse(var["id"], "value", details);
       web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Preview);
     });

@@ -17,21 +17,6 @@
 #include "../Sys/SysJsonRDWS.h"
 #include "../Sys/SysModPins.h"
 
-std::vector<std::vector<uint16_t>> LedsV::mappingTable;
-uint16_t LedsV::mappingTableLedCounter = 0;
-uint16_t LedsV::nrOfLedsP = 64; //amount of physical leds
-uint16_t LedsV::nrOfLedsV = 64;  //amount of virtual leds (calculated by projection)
-uint16_t LedsV::widthP = 8; 
-uint16_t LedsV::heightP = 8; 
-uint16_t LedsV::depthP = 1; 
-uint16_t LedsV::widthV = 8; 
-uint16_t LedsV::heightV = 8; 
-uint16_t LedsV::depthV = 1; 
-
-uint8_t LedsV::projectionNr = -1;
-uint8_t LedsV::ledFixNr = -1;
-uint8_t LedsV::fxDimension = -1;
-
 //load ledfix json file, parse it and depending on the projection, create a mapping for it
 void LedsV::ledFixProjectAndMap() {
   char fileName[32] = "";
@@ -54,9 +39,6 @@ void LedsV::ledFixProjectAndMap() {
       pinNr++;
     }
 
-    //track pins and leds
-    static uint8_t currPin;
-    static uint16_t prevLeds;
     prevLeds = 0;
 
     //what to deserialize
@@ -67,7 +49,7 @@ void LedsV::ledFixProjectAndMap() {
     jrdws.lookFor("pin", &currPin);
 
     //lookFor leds array and for each item in array call lambdo to make a projection
-    jrdws.lookFor("leds", [](std::vector<uint16_t> uint16CollectList) { //this will be called for each tuple of coordinates!
+    jrdws.lookFor("leds", [this](std::vector<uint16_t> uint16CollectList) { //this will be called for each tuple of coordinates!
       // USER_PRINTF("funList ");
       // for (uint16_t num:uint16CollectList)
       //   USER_PRINTF(" %d", num);
@@ -81,20 +63,20 @@ void LedsV::ledFixProjectAndMap() {
         uint16_t y = (ledFixDimension>=2)?uint16CollectList[1] / 10 : 1;
         uint16_t z = (ledFixDimension>=3)?uint16CollectList[2] / 10 : 1;
 
-        // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", LedsV::projectionNr, LedsV::fxDimension, ledFixDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
-        if (LedsV::projectionNr == p_DistanceFromPoint || LedsV::projectionNr == p_DistanceFromCentre) {
+        // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", projectionNr, fxDimension, ledFixDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
+        if (projectionNr == p_DistanceFromPoint || projectionNr == p_DistanceFromCentre) {
           uint16_t bucket;// = -1;
-          if (LedsV::fxDimension == 1) { //if effect is 1D
+          if (fxDimension == 1) { //if effect is 1D
 
             uint16_t pointX, pointY, pointZ;
-            if (LedsV::projectionNr == p_DistanceFromPoint) {
+            if (projectionNr == p_DistanceFromPoint) {
               pointX = 0;
               pointY = 0;
               pointZ = 0;
             } else {
-              pointX = LedsV::widthP / 2;
-              pointY = LedsV::heightP / 2;
-              pointZ = LedsV::depthP / 2;
+              pointX = widthP / 2;
+              pointY = heightP / 2;
+              pointZ = depthP / 2;
             }
 
             if (ledFixDimension == 1) //ledfix is 1D
@@ -107,7 +89,7 @@ void LedsV::ledFixProjectAndMap() {
               bucket = distance(x,y,z,pointX, pointY, pointZ);
 
           }
-          else if (LedsV::fxDimension == 2) { //effect is 2D
+          else if (fxDimension == 2) { //effect is 2D
             depthV = 1;
             if (ledFixDimension == 1) //ledfix is 1D
               bucket = x;
@@ -219,7 +201,7 @@ void LedsV::ledFixProjectAndMap() {
       }
 
       USER_PRINTF("ledFixProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLedsV);
-      mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", LedsV::widthP, LedsV::heightP, LedsV::depthP, LedsV::widthV, LedsV::heightV, LedsV::depthV);
+      mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", widthP, heightP, depthP, widthV, heightV, depthV);
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
 
     } // if deserialize

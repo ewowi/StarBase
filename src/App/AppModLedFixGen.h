@@ -484,7 +484,7 @@ public:
   //https://opengl.org.ru/docs/pg/0208.html
   void geodesicDome3D (uint16_t startX, uint16_t startY, uint16_t startZ) {
  
-    static uint8_t tindices[20][3] = {    {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},       {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},       {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6},    {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} };
+    uint8_t tindices[20][3] = {    {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},       {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},       {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6},    {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} };
 
     openPin();
 
@@ -764,17 +764,17 @@ public:
     ui->processUiFun("ledFix");
   }
 
-  static File openFile(const char * name) {
-    char fileName[30] = "/";
-    strncat(fileName, name, sizeof(fileName)-1);
-    strncat(fileName, ".json", sizeof(fileName)-1);
+  // File openFile(const char * name) {
+  //   char fileName[30] = "/";
+  //   strncat(fileName, name, sizeof(fileName)-1);
+  //   strncat(fileName, ".json", sizeof(fileName)-1);
 
-    File f = files->open(fileName, "w");
-    if (!f)
-      USER_PRINTF("ledFixGen Could not open file %s for writing\n", fileName);
+  //   File f = files->open(fileName, "w");
+  //   if (!f)
+  //     USER_PRINTF("ledFixGen Could not open file %s for writing\n", fileName);
 
-    return f;
-  }
+  //   return f;
+  // }
 
 };
 

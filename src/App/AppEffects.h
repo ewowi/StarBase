@@ -15,10 +15,10 @@
   #include "../User/UserModE131.h"
 #endif
 
-static uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-static unsigned long call = 0; //not used at the moment (don't use in effect calculations)
-static unsigned long now = millis();
-static CRGBPalette16 palette = PartyColors_p;
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+unsigned long call = 0; //not used at the moment (don't use in effect calculations)
+unsigned long now = millis();
+CRGBPalette16 palette = PartyColors_p;
 
 class SharedData {
   private:
@@ -85,7 +85,7 @@ public:
   }
   void loop() {
     // FastLED's built-in rainbow generator
-    fill_rainbow( ledsP, LedsV::nrOfLedsP, gHue, 7);
+    fill_rainbow( ledsP, ledsV.nrOfLedsP, gHue, 7);
   }
 };
 
@@ -99,10 +99,10 @@ public:
     RainbowEffect::loop();
     addGlitter(80);
   }
-  static void addGlitter( fract8 chanceOfGlitter) 
+  void addGlitter( fract8 chanceOfGlitter) 
   {
     if( random8() < chanceOfGlitter) {
-      ledsP[ random16(LedsV::nrOfLedsP) ] += CRGB::White;
+      ledsP[ random16(ledsV.nrOfLedsP) ] += CRGB::White;
     }
   }
 };
@@ -114,8 +114,8 @@ public:
   }
   void loop() {
     // a colored dot sweeping back and forth, with fading trails
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
-    int pos = beatsin16( mdl->getValue("BPM").as<int>(), 0, LedsV::nrOfLedsV-1 );
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 20);
+    int pos = beatsin16( mdl->getValue("BPM").as<int>(), 0, ledsV.nrOfLedsV-1 );
     // ledsV[pos] += CHSV( gHue, 255, 192);
     ledsV[pos] = ledsV.getPixelColor(pos) + CHSV( gHue, 255, 192);
     // CRGB x = ledsV[pos];
@@ -134,11 +134,11 @@ public:
   }
   void loop() {
     // a colored dot sweeping back and forth, with fading trails
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, mdl->getValue("fade").as<int>()); //physical leds
-    int pos = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 ); //instead of call%LedsV::nrOfLedsV
-    // int pos2 = map(beat16( mdl->getValue("BPM").as<int>(), 1000), 0, uint16_t(-1), 0, LedsV::nrOfLedsV-1 ); //one second later
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, mdl->getValue("fade").as<int>()); //physical leds
+    int pos = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, ledsV.nrOfLedsV-1 ); //instead of call%ledsV.nrOfLedsV
+    // int pos2 = map(beat16( mdl->getValue("BPM").as<int>(), 1000), 0, uint16_t(-1), 0, ledsV.nrOfLedsV-1 ); //one second later
     ledsV[pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
-    // ledsV[LedsV::nrOfLedsV -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
+    // ledsV[ledsV.nrOfLedsV -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
   bool controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "BPM", 60, 0, 255, 0, false, [](JsonObject var) { //uiFun
@@ -156,8 +156,8 @@ public:
   }
   void loop() {
     // random colored speckles that blink in and fade smoothly
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 10);
-    int pos = random16(LedsV::nrOfLedsP);
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 10);
+    int pos = random16(ledsV.nrOfLedsP);
     ledsP[pos] += CHSV( gHue + random8(64), 200, 255);
   }
 };
@@ -172,7 +172,7 @@ public:
     // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
     uint8_t BeatsPerMinute = 62;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-    for( int i = 0; i < LedsV::nrOfLedsV; i++) { //9948
+    for( int i = 0; i < ledsV.nrOfLedsV; i++) { //9948
       ledsV[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
     }
   }
@@ -188,10 +188,10 @@ public:
   }
   void loop() {
     // eight colored dots, weaving in and out of sync with each other
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 20);
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 20);
     uint8_t dothue = 0;
     for( int i = 0; i < 8; i++) {
-      ledsP[beatsin16( i+7, 0, LedsV::nrOfLedsP-1 )] |= CHSV(dothue, 200, 255);
+      ledsP[beatsin16( i+7, 0, ledsV.nrOfLedsP-1 )] |= CHSV(dothue, 200, 255);
       dothue += 32;
     }
   }
@@ -207,16 +207,16 @@ public:
 
     float ripple_interval = 1.3 * (interval/128.0);
 
-    fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
+    fill_solid(ledsP, ledsV.nrOfLedsP, CRGB::Black);
     // fill(CRGB::Black);
 
-    uint16_t mW = LedsV::widthV;
-    uint16_t mH = LedsV::heightV;
-    uint16_t mD = LedsV::depthV;
+    uint16_t mW = ledsV.widthV;
+    uint16_t mH = ledsV.heightV;
+    uint16_t mD = ledsV.depthV;
 
     for (int z=0; z<mD; z++) {
         for (int x=0; x<mW; x++) {
-            float d = distance(3.5, 3.5, 0, x, z, 0)/9.899495*mH;
+            float d = ledsV.distance(3.5, 3.5, 0, x, z, 0)/9.899495*mH;
             uint16_t height = floor(mH/2.0+sinf(d/ripple_interval + now/100/((256.0-128.0)/20.0))*mH/2.0); //between 0 and 8
 
             ledsV[x + height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
@@ -238,14 +238,14 @@ public:
     uint16_t origin_x, origin_y, origin_z, d;
     float diameter;
 
-    fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
+    fill_solid(ledsP, ledsV.nrOfLedsP, CRGB::Black);
     // fill(CRGB::Black);
 
     uint32_t interval = now/100/((256.0-128.0)/20.0);
 
-    uint16_t mW = LedsV::widthV;
-    uint16_t mH = LedsV::heightV;
-    uint16_t mD = LedsV::depthV;
+    uint16_t mW = ledsV.widthV;
+    uint16_t mH = ledsV.heightV;
+    uint16_t mD = ledsV.depthV;
 
     origin_x = 3.5+sinf(interval)*2.5;
     origin_y = 3.5+cosf(interval)*2.5;
@@ -257,10 +257,10 @@ public:
     for (int x=0; x<mW; x++) {
         for (int y=0; y<mH; y++) {
             for (int z=0; z<mD; z++) {
-                d = distance(x, y, z, origin_x, origin_y, origin_z);
+                d = ledsV.distance(x, y, z, origin_x, origin_y, origin_z);
 
                 if (d>diameter && d<diameter+1) {
-                    ledsV[x + LedsV::heightV * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+                    ledsV[x + ledsV.heightV * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
                 }
             }
         }
@@ -270,7 +270,7 @@ public:
 
 //XY used by blur2d
 uint16_t XY( uint8_t x, uint8_t y) {
-  return x + y * LedsV::widthV;
+  return x + y * ledsV.widthV;
 }
 
 //Frizzles2D inspired by WLED, Stepko, Andrew Tuline, https://editor.soulmatelights.com/gallery/640-color-frizzles
@@ -281,15 +281,15 @@ public:
   }
 
   void loop() {
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 16);
 
     for (size_t i = 8; i > 0; i--) {
-      uint8_t x = beatsin8(mdl->getValue("BPM").as<int>()/8 + i, 0, LedsV::widthV - 1);
-      uint8_t y = beatsin8(mdl->getValue("intensity").as<int>()/8 - i, 0, LedsV::heightV - 1);
+      uint8_t x = beatsin8(mdl->getValue("BPM").as<int>()/8 + i, 0, ledsV.widthV - 1);
+      uint8_t y = beatsin8(mdl->getValue("intensity").as<int>()/8 - i, 0, ledsV.heightV - 1);
       CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
-      ledsV[x + y * LedsV::widthV] = color;
+      ledsV[x + y * ledsV.widthV] = color;
     }
-    blur2d(ledsP, LedsV::widthP, LedsV::heightP, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
+    blur2d(ledsP, ledsV.widthP, ledsV.heightP, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
   }
   bool controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "BPM", 60);
@@ -306,18 +306,18 @@ public:
   }
 
   void loop() {
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 100);
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 100);
 
     if (mdl->getValue("Vertical").as<bool>()) {
-      size_t x = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, LedsV::widthV-1 ); //instead of call%width
+      size_t x = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, ledsV.widthV-1 ); //instead of call%width
 
-      for (size_t y = 0; y <  LedsV::heightV; y++) {
-        ledsV[x + y * LedsV::widthV] = CHSV( gHue, 255, 192);
+      for (size_t y = 0; y <  ledsV.heightV; y++) {
+        ledsV[x + y * ledsV.widthV] = CHSV( gHue, 255, 192);
       }
     } else {
-      size_t y = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, LedsV::heightV-1 ); //instead of call%height
-      for (size_t x = 0; x <  LedsV::widthV; x++) {
-        ledsV[x + y * LedsV::widthV] = CHSV( gHue, 255, 192);
+      size_t y = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, ledsV.heightV-1 ); //instead of call%height
+      for (size_t x = 0; x <  ledsV.widthV; x++) {
+        ledsV[x + y * ledsV.widthV] = CHSV( gHue, 255, 192);
       }
     }
   }
@@ -341,8 +341,8 @@ public:
   }
 
   void loop() {
-    const uint16_t cols = LedsV::widthV;
-    const uint16_t rows = LedsV::heightV;
+    const uint16_t cols = ledsV.widthV;
+    const uint16_t rows = ledsV.heightV;
 
     uint8_t speed = mdl->getValue("speed").as<int>()/32;
     uint8_t scale = mdl->getValue("scale").as<int>()/32;
@@ -380,7 +380,7 @@ public:
         valueG = gamma8(cos8(valueG));
         valueB = gamma8(cos8(valueB));
 
-        ledsV[x + y * LedsV::widthV] = CRGB(valueR, valueG, valueB);
+        ledsV[x + y * ledsV.widthV] = CRGB(valueR, valueG, valueB);
       }
     }
   }
@@ -406,8 +406,8 @@ public:
 
   void loop() {
 
-    const uint16_t cols = LedsV::widthV;
-    const uint16_t rows = LedsV::heightV;
+    const uint16_t cols = ledsV.widthV;
+    const uint16_t rows = ledsV.heightV;
     const uint8_t mapp = 180 / max(cols,rows);
 
     uint8_t speed = mdl->getValue("speed");
@@ -451,7 +451,7 @@ public:
         uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + *step/2) + radius - *step + angle * legs);
         intensity = map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
         CRGB color = ColorFromPalette(palette, *step / 2 - radius, intensity);
-        ledsV[x + y * LedsV::widthV] = color;
+        ledsV[x + y * ledsV.widthV] = color;
       }
     }
   }
@@ -473,15 +473,15 @@ public:
 
   void loop() {
 
-    const uint16_t cols = LedsV::widthV;
-    const uint16_t rows = LedsV::heightV;
+    const uint16_t cols = ledsV.widthV;
+    const uint16_t rows = ledsV.heightV;
 
     uint8_t freqX = mdl->getValue("X frequency");
     uint8_t fadeRate = mdl->getValue("Fade rate");
     uint8_t speed = mdl->getValue("Speed");
     bool smooth = mdl->getValue("Smooth");
 
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, fadeRate);
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, fadeRate);
 
     uint_fast16_t phase = now * speed / 256;  // allow user to control rotation speed, speed between 0 and 255!
 
@@ -494,7 +494,7 @@ public:
           //SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing
           unsigned palIndex = (256*ylocn) + phase/2 + (i* freqX)/64;
           // SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(palIndex, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing - color follows rotation
-          ledsV[xlocn + ylocn * LedsV::widthV] = ColorFromPalette(palette, palIndex);
+          ledsV[xlocn + ylocn * ledsV.widthV] = ColorFromPalette(palette, palIndex);
         }
     } else
     for (int i=0; i < 256; i ++) {
@@ -504,7 +504,7 @@ public:
       xlocn = (cols < 2) ? 1 : (map(2*xlocn, 0,511, 0,2*(cols-1)) +1) /2;    // softhack007: "*2 +1" for proper rounding
       ylocn = (rows < 2) ? 1 : (map(2*ylocn, 0,511, 0,2*(rows-1)) +1) /2;    // "rows > 2" is needed to avoid div/0 in map()
       // SEGMENT.setPixelColorXY((uint8_t)xlocn, (uint8_t)ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0));
-      ledsV[xlocn + ylocn * LedsV::widthV] = ColorFromPalette(palette, now/100+i);
+      ledsV[xlocn + ylocn * ledsV.widthV] = ColorFromPalette(palette, now/100+i);
     }
   }
   bool controls(JsonObject parentVar) {
@@ -541,7 +541,7 @@ public:
     Ball *balls = sharedData.bind<Ball>(maxNumBalls); //array
     if (!sharedData.allocated()) return;
 
-    fill_solid(ledsP, LedsV::nrOfLedsP, CRGB::Black);
+    fill_solid(ledsP, ledsV.nrOfLedsP, CRGB::Black);
 
     // non-chosen color is a random color
     const float gravity = -9.81f; // standard value of gravity
@@ -581,7 +581,7 @@ public:
       //   color = SEGCOLOR(i % NUM_COLORS);
       // }
 
-      int pos = roundf(balls[i].height * (LedsV::nrOfLedsV - 1));
+      int pos = roundf(balls[i].height * (ledsV.nrOfLedsV - 1));
 
       CRGB color = ColorFromPalette(palette, i*(256/max(numBalls, (uint8_t)8)), 255);
 
@@ -614,15 +614,15 @@ public:
   }
 
   void loop() {
-    sharedData.allocate(sizeof(uint8_t) * LedsV::nrOfLedsV);
-    uint8_t *hue = sharedData.bind<uint8_t>(LedsV::nrOfLedsV); //array
+    sharedData.allocate(sizeof(uint8_t) * ledsV.nrOfLedsV);
+    uint8_t *hue = sharedData.bind<uint8_t>(ledsV.nrOfLedsV); //array
     if (!sharedData.allocated()) return;
 
     hue[0] = random(0, 255);
-    for (int r = 0; r < LedsV::nrOfLedsV; r++) {
+    for (int r = 0; r < ledsV.nrOfLedsV; r++) {
       setRing(r, CHSV(hue[r], 255, 255));
     }
-    for (int r = (LedsV::nrOfLedsV - 1); r >= 1; r--) {
+    for (int r = (ledsV.nrOfLedsV - 1); r >= 1; r--) {
       hue[r] = hue[(r - 1)]; // set this ruing based on the inner
     }
     // FastLED.delay(SPEED);
@@ -639,18 +639,18 @@ public:
   }
 
   void setup() {
-    fadeToBlackBy( ledsP, LedsV::nrOfLedsP, 16);
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 16);
   }
 
   void loop() {
-    sharedData.allocate(sizeof(uint16_t) * LedsV::widthV + sizeof(uint32_t));
-    uint16_t *previousBarHeight = sharedData.bind<uint16_t>(LedsV::widthV); //array
+    sharedData.allocate(sizeof(uint16_t) * ledsV.widthV + sizeof(uint32_t));
+    uint16_t *previousBarHeight = sharedData.bind<uint16_t>(ledsV.widthV); //array
     uint32_t *step = sharedData.bind<uint32_t>();
     if (!sharedData.allocated()) return;
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
-    const uint16_t cols = LedsV::widthV;
-    const uint16_t rows = LedsV::heightV; 
+    const uint16_t cols = ledsV.widthV;
+    const uint16_t rows = ledsV.heightV; 
 
     uint8_t *fftResult = wledAudioMod->fftResults;
     #ifdef SR_DEBUG
@@ -671,7 +671,7 @@ public:
     int fadeoutDelay = (256 - fadeOut) / 64; //256..1 -> 4..0
     size_t beat = map(beat16( fadeOut), 0, uint16_t(-1), 0, fadeoutDelay-1 ); // instead of call%fadeOutDelay
 
-    if ((fadeoutDelay <= 1 ) || (beat == 0)) fadeToBlackBy( ledsP, LedsV::nrOfLedsP, fadeOut);
+    if ((fadeoutDelay <= 1 ) || (beat == 0)) fadeToBlackBy( ledsP, ledsV.nrOfLedsP, fadeOut);
 
     uint16_t lastBandHeight = 0;  // WLEDMM: for smoothing out bars
 
@@ -716,11 +716,11 @@ public:
 
         ledColor = ColorFromPalette(palette, (uint8_t)colorIndex);
 
-        ledsV.setPixelColor(x + LedsV::widthV * (rows-1 - y), ledColor);
+        ledsV.setPixelColor(x + ledsV.widthV * (rows-1 - y), ledColor);
       }
 
       if ((ripple < 255) && (previousBarHeight[x] > 0) && (previousBarHeight[x] < rows))  // WLEDMM avoid "overshooting" into other segments
-        ledsV.setPixelColor(x + LedsV::widthV * (rows - previousBarHeight[x]), ledColor); 
+        ledsV.setPixelColor(x + ledsV.widthV * (rows - previousBarHeight[x]), ledColor); 
 
       if (rippleTime && previousBarHeight[x]>0) previousBarHeight[x]--;    //delay/ripple effect
 
@@ -874,20 +874,20 @@ public:
 
       //tbd: make property of effects
       if (strstr(effects[index]->name(), "2D")) {
-        if (LedsV::fxDimension != 2) {
-          LedsV::fxDimension = 2;
+        if (ledsV.fxDimension != 2) {
+          ledsV.fxDimension = 2;
           doMap = true;
         }
       }
       else if (strstr(effects[index]->name(), "3D")) {
-        if (LedsV::fxDimension != 3) {
-          LedsV::fxDimension = 3;
+        if (ledsV.fxDimension != 3) {
+          ledsV.fxDimension = 3;
           doMap = true;
         }
       }
       else {
-        if (LedsV::fxDimension != 1) {
-          LedsV::fxDimension = 1;
+        if (ledsV.fxDimension != 1) {
+          ledsV.fxDimension = 1;
           doMap = true;
         }
       }

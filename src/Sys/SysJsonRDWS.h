@@ -57,7 +57,7 @@ class JsonRDWS {
   }
 
   //look for array of integers
-  void lookFor(const char * id, void(*fun)(std::vector<uint16_t>)) {
+  void lookFor(const char * id, std::function<void(std::vector<uint16_t>)> fun) {
     funList.push_back(fun);
     addToVars(id, "fun", funList.size()-1);
   }
@@ -89,7 +89,7 @@ private:
   std::vector<uint8_t *> uint8List; //pointer of uint8 to assign found values to (index of list stored in varDetails)
   std::vector<uint16_t *> uint16List; //same for uint16
   std::vector<char *> charList; //same for char
-  std::vector<void(*)(std::vector<uint16_t>)> funList; //same for function calls
+  std::vector<std::function<void(std::vector<uint16_t>)>> funList; //same for function calls
   std::vector<String> varStack; //objects and arrays store their names in a stack
   bool collectNumbers = false; //array can ask to store all numbers found in array (now used for x,y,z coordinates)
   std::vector<uint16_t> uint16CollectList; //collected numbers

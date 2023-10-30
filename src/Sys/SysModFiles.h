@@ -30,7 +30,7 @@ public:
   void filesChange();
 
   //get the file names and size in an array
-  static void dirToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
+  void dirToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
 
   //get back the name of a file based on the sequence
   bool seqNrToName(char * fileName, size_t seqNr);
@@ -50,7 +50,7 @@ public:
   bool readFile(const char * path);
 
 private:
-  static bool filesChanged;
+  bool filesChanged = false;
 
 };
 

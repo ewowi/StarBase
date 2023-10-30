@@ -16,8 +16,6 @@
 bool SysModModules::newConnection = false;
 bool SysModModules::isConnected = false;
 
-std::vector<Module *> SysModModules::modules;
-
 SysModModules::SysModModules() :Module("Modules") {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
@@ -32,11 +30,11 @@ void SysModModules::setup() {
   //do its own setup: will be shown as last module
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, false, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Modules");
     web->addResponse(var["id"], "comment", "List of modules");
     JsonArray rows = web->addResponseA(var["id"], "table");
-    for (Module *module:SysModModules::modules) {
+    for (Module *module:modules) {
       JsonArray row = rows.createNestedArray();
       row.add(module->name);  //create a copy!
       row.add(module->success);
@@ -52,7 +50,7 @@ void SysModModules::setup() {
   ui->initCheckBox(tableVar, "mdlEnabled", true, false, [](JsonObject var) { //uiFun not readonly! (tbd)
     //initially set to true, but as enabled are table cells, will be updated to an array
     web->addResponse(var["id"], "label", "Enabled");
-  }, [](JsonObject var) { //chFun
+  }, [this](JsonObject var) { //chFun
     print->printJson("mdlEnabled.chFun", var);
     uint8_t rowNr = 0;
 
@@ -80,9 +78,21 @@ void SysModModules::setup() {
 }
 
 void SysModModules::loop() {
+  bool oneSec = false;
+  bool tenSec = false;
+  if (millis() - oneSecondMillis >= 1000) {
+    oneSecondMillis = millis();
+    oneSec = true;
+  }
+  if (millis() - tenSecondMillis >= 10000) {
+    tenSecondMillis = millis();
+    tenSec = true;
+  }
   for (Module *module:modules) {
     if (module->isEnabled && module->success) {
       module->loop();
+      if (oneSec) module->loop1s();
+      if (tenSec) module->loop10s();
       // module->testManager();
       // module->performanceManager();
       // module->dataSizeManager();
@@ -93,10 +103,6 @@ void SysModModules::loop() {
     newConnection = false;
     isConnected = true;
     connectedChanged();
-  }
-  if (millis() - secondMillis >= 5000) {
-    secondMillis = millis();
-    USER_PRINTF("❤️"); //heartbeat
   }
 
 }

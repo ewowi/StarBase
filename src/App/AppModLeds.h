@@ -34,8 +34,6 @@ inline uint16_t getRGBWsize(uint16_t nleds){
 class AppModLeds:public Module {
 
 public:
-  unsigned long frameMillis = 0;
-  unsigned long frameCounter = 0;
   bool newFrame = false; //for other modules (DDP)
 
   uint16_t fps = 60;
@@ -237,13 +235,6 @@ public:
       newFrame = false;
     }
 
-    //update ui
-    if (millis() - secondMillis >= 1000) {
-      secondMillis = millis();
-      mdl->setValueLossy("realFps", "%lu /s", frameCounter);
-      frameCounter = 0;
-    }
-
     //update projection
     if (millis() - lastMappingMillis >= 1000 && doMap) { //not more then once per second (for E131)
       lastMappingMillis = millis();
@@ -327,6 +318,15 @@ public:
       }
     }
   } //loop
+
+  void loop1s() {
+    mdl->setValueLossy("realFps", "%lu /s", frameCounter);
+    frameCounter = 0;
+  }
+
+private:
+  unsigned long frameMillis = 0;
+  unsigned long frameCounter = 0;
 
 };
 

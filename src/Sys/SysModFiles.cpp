@@ -16,8 +16,6 @@
 
 // #include <FS.h>
 
-bool SysModFiles::filesChanged = false;
-
 SysModFiles::SysModFiles() :Module("Files") {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
@@ -35,7 +33,7 @@ void SysModFiles::setup() {
   Module::setup();
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Files");
     web->addResponse(var["id"], "comment", "List of files");
     JsonArray rows = web->addResponseA(var["id"], "table");
@@ -69,9 +67,9 @@ void SysModFiles::setup() {
 
   ui->initButton(parentVar, "deleteFiles", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "All but model.json");
-  }, [](JsonObject var) {
+  }, [this](JsonObject var) {
     USER_PRINTF("delete files\n");
-    files->removeFiles("model.json", true); //all but model.json
+    removeFiles("model.json", true); //all but model.json
   });
 
   // ui->initURL(parentVar, "urlTest", "file/3DCube202005.json", true);

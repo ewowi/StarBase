@@ -54,6 +54,7 @@ public:
   void setup();
 
   void loop();
+  void loop1s();
 
   JsonObject initModule(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<const char *>(parent, id, "module", value, 0, 0, readOnly, uiFun, chFun, loopFun);

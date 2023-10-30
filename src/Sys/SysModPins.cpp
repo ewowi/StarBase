@@ -87,17 +87,11 @@ void SysModPins::setup() {
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
-void SysModPins::loop(){
-  // Module::loop();
+void SysModPins::loop1s() {
+  if (pinsChanged) {
+    pinsChanged = false;
 
-  if (millis() - secondMillis >= 1000) {
-    secondMillis = millis();
-
-    if (pinsChanged) {
-      pinsChanged = false;
-
-      ui->processUiFun("pinTbl");
-    }
+    ui->processUiFun("pinTbl");
   }
 }
 

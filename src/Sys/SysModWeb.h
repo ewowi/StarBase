@@ -21,8 +21,8 @@ public:
   SysModWeb();
 
   void setup();
-
   void loop();
+  void loop1s();
 
   void connectedChanged();
 

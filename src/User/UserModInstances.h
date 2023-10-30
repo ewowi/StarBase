@@ -196,16 +196,13 @@ public:
 
     handleNotifications();
 
-    //if value changed or every x seconds
-    if (ui->valChangedForInstancesTemp ||  millis() - updateMillis >= 10000) {
-      updateMillis = millis();
-
-      if(!SysModModules::isConnected) return;
-
+    if (ui->valChangedForInstancesTemp) {
       ui->valChangedForInstancesTemp = false;
-
       sendSysInfoUDP(); 
     }
+  }
+  void loop10s() {
+    sendSysInfoUDP(); 
   }
 
   void handleNotifications()
@@ -314,6 +311,7 @@ public:
 
   void sendSysInfoUDP()
   {
+    if(!SysModModules::isConnected) return;
     if (!udp2Connected) return;
 
     IPAddress ip = WiFi.localIP();
@@ -468,7 +466,6 @@ public:
     uint16_t instanceUDPPort = 65506;
     bool udp2Connected = false;
 
-    unsigned long updateMillis = 0;
 };
 
 static UserModInstances *instances;

@@ -18,11 +18,12 @@ class SysModModel:public Module {
 public:
 
   // StaticJsonDocument<24576> model; //not static as that blows up the stack. Use extern??
-  static DynamicJsonDocument *model;
+  static DynamicJsonDocument *model; //needs to be static as loopTask and asyncTask is using it...
 
   SysModModel();
   void setup();
   void loop();
+  void loop1s();
 
   //scan all vars in the model and remove the s element 
   void cleanUpModel(JsonArray vars);
@@ -69,8 +70,8 @@ public:
   static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
   
 private:
-  static bool doWriteModel;
-  static bool doShowObsolete;
+  bool doWriteModel = false;
+  bool doShowObsolete = false;
   bool cleanUpModelDone = false;
 
 };

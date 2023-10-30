@@ -22,11 +22,12 @@ public:
   SysModSystem();
   void setup();
   void loop();
+  void loop1s();
+  void loop10s();
 
 
 private:
   unsigned long loopCounter = 0;
-  unsigned long tenSecondMillis = 0;
 
   void addResetReasonsSelect(JsonArray select);
   void addRestartReasonsSelect(JsonArray select);

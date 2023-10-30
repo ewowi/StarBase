@@ -75,7 +75,7 @@ void SysModSystem::setup() {
   USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
   ui->initText(parentVar, "version", nullptr, 16, true, [](JsonObject var) { //uiFun
-    mdl->setValueP("version", "%s", version); //make sure ui shows the right version
+    // mdl->setValueP("version", "%s", version); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
     // var["value"] = version;
   });
   // ui->initText(parentVar, "date", __DATE__, 16, true);
@@ -106,19 +106,18 @@ void SysModSystem::loop() {
   // Module::loop();
 
   loopCounter++;
-  if (millis() - secondMillis >= 1000) {
-    secondMillis = millis();
+}
+void SysModSystem::loop1s() {
+  mdl->setValueLossy("upTime", "%lu s", millis()/1000);
+  mdl->setValueLossy("loops", "%lu /s", loopCounter);
 
-    mdl->setValueLossy("upTime", "%lu s", millis()/1000);
-    mdl->setValueLossy("loops", "%lu /s", loopCounter);
-
-    loopCounter = 0;
-  }
-  if (millis() - tenSecondMillis >= 10000) {
-    tenSecondMillis = millis();
-    mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
-    mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
-  }
+  loopCounter = 0;
+}
+void SysModSystem::loop10s() {
+  mdl->setValueC("version", version); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
+  mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
+  mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
+  USER_PRINTF("❤️"); //heartbeat
 }
 
 //replace code by sentence as soon it occurs, so we know what will happen and what not

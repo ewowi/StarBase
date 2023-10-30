@@ -51,13 +51,12 @@ void SysModNetwork::setup() {
 
 void SysModNetwork::loop() {
   // Module::loop();
-  if (millis() - secondMillis >= 1000) {
-    secondMillis = millis();
-
-    mdl->setValueLossy("rssi", "%d dBm", WiFi.RSSI());
-  }
 
   handleConnection();
+}
+
+void SysModNetwork::loop1s() {
+  mdl->setValueLossy("rssi", "%d dBm", WiFi.RSSI());
 }
 
 void SysModNetwork::handleConnection() {

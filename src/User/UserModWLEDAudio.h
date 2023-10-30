@@ -21,8 +21,6 @@ public:
   UserModWLEDAudio() :Module("WLED Audio Sync Receiver") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    isEnabled = false; //default off
-
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 

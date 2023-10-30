@@ -16,8 +16,6 @@
 #include "SysModFiles.h"
 #include "SysJsonRDWS.h"
 
-bool SysModModel::doWriteModel = false;
-bool SysModModel::doShowObsolete = false;
 DynamicJsonDocument * SysModModel::model = nullptr;
 
 SysModModel::SysModModel() :Module("Model") {
@@ -51,13 +49,13 @@ void SysModModel::setup() {
 
   ui->initButton(parentVar, "saveModel", nullptr, false, [](JsonObject var) {
     web->addResponse(var["id"], "comment", "Write to model.json (manual save only currently)");
-  }, [](JsonObject var) {
+  }, [this](JsonObject var) {
     doWriteModel = true;
   });
 
   ui->initCheckBox(parentVar, "showObsolete", false, false, [](JsonObject var) {
     web->addResponse(var["id"], "comment", "Show in UI (refresh)");
-  }, [](JsonObject var) {
+  }, [this](JsonObject var) {
     doShowObsolete = var["value"];
   });
 
@@ -99,17 +97,15 @@ void SysModModel::setup() {
     doWriteModel = false;
   }
 
-  if (millis() - secondMillis >= 1000) {
-    secondMillis = millis();
-    setValueLossy("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
-  }
-
   if (model->memoryUsage() / model->capacity() > 0.95) {
     print->printJDocInfo("model", *model);
     size_t memBefore = model->memoryUsage();
     model->garbageCollect();
     print->printJDocInfo("garbageCollect", *model);
   }
+}
+void SysModModel::loop1s() {
+  setValueLossy("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
 }
 
 void SysModModel::cleanUpModel(JsonArray vars) {

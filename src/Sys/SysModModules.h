@@ -16,7 +16,7 @@
 class SysModModules:public Module {
 public:
   static bool newConnection; //need to be static otherwise crash
-  static bool isConnected;
+  static bool isConnected; //need to be static otherwise crash
 
   SysModModules();
 
@@ -29,7 +29,9 @@ public:
   void connectedChanged();
 
 private:
-  static std::vector<Module *> modules;
+  std::vector<Module *> modules;
+  unsigned long oneSecondMillis = 0; // Feels like it should be private, bit doesn't compile if set as such
+  unsigned long tenSecondMillis = 0; // Feels like it should be private, bit doesn't compile if set as such
 };
 
 static SysModModules *mdls;

@@ -19,7 +19,6 @@ public:
   const char * name;
   bool success;
   bool isEnabled;
-  unsigned long secondMillis = 0; // Feels like it should be private, bit doesn't compile if set as such
 
   JsonObject parentVar;
 
@@ -32,6 +31,8 @@ public:
   virtual void setup() {}
 
   virtual void loop() {}
+  virtual void loop1s() {}
+  virtual void loop10s() {}
 
   virtual void connectedChanged() {onOffChanged();}
   virtual void enabledChanged() {onOffChanged();}

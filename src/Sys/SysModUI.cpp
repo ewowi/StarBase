@@ -127,16 +127,16 @@ void SysModUI::loop() {
     }
   }
 
-  if (millis() - secondMillis >= 1000) {
-    secondMillis = millis();
+}
 
-    //if something changed in vloops
-    if (varLoopsChanged) {
-      varLoopsChanged = false;
+void SysModUI::loop1s() {
+  //if something changed in vloops
+  if (varLoopsChanged) {
+    varLoopsChanged = false;
 
-      processUiFun("vlTbl");
-    }
+    processUiFun("vlTbl");
   }
+
 }
 
 JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, UCFun uiFun, UCFun chFun, LoopFun loopFun) {

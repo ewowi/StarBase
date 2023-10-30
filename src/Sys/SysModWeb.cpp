@@ -88,9 +88,7 @@ void SysModWeb::setup() {
 
   ui->initText(parentVar, "wsSendBytes", nullptr, 16, true);
   ui->initText(parentVar, "wsSendJson", nullptr, 16, true);
-  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "32 not enough, investigate...");
-  });
+  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
@@ -105,30 +103,28 @@ void SysModWeb::loop() {
     this->modelUpdated = false;
   }
 
-  if (millis() - secondMillis >= 1000) {
-    secondMillis = millis();
+}
 
-    // if something changed in clTbl
-    if (clientsChanged) {
-      clientsChanged = false;
-      ui->processUiFun("clTbl"); //every second (temp)
-    }
-
-
-    uint8_t rowNr = 0;
-    for (auto client:SysModWeb::ws->getClients()) {
-      // printClient("up", client);
-      mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
-      mdl->setValueI("clStatus", client->status(), rowNr);
-      mdl->setValueI("clLength", client->queueLength(), rowNr);
-      rowNr++;
-    }
-
-    mdl->setValueLossy("wsSendBytes", "%lu /s", wsSendBytesCounter);
-    wsSendBytesCounter = 0;
-    mdl->setValueLossy("wsSendJson", "%lu /s", wsSendJsonCounter);
-    wsSendJsonCounter = 0;
+void SysModWeb::loop1s() {
+  // if something changed in clTbl
+  if (clientsChanged) {
+    clientsChanged = false;
+    ui->processUiFun("clTbl"); //every second (temp)
   }
+
+  uint8_t rowNr = 0;
+  for (auto client:SysModWeb::ws->getClients()) {
+    // printClient("up", client);
+    mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
+    mdl->setValueI("clStatus", client->status(), rowNr);
+    mdl->setValueI("clLength", client->queueLength(), rowNr);
+    rowNr++;
+  }
+
+  mdl->setValueLossy("wsSendBytes", "%lu /s", wsSendBytesCounter);
+  wsSendBytesCounter = 0;
+  mdl->setValueLossy("wsSendJson", "%lu /s", wsSendJsonCounter);
+  wsSendJsonCounter = 0;
 }
 
 void SysModWeb::connectedChanged() {

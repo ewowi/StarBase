@@ -22,6 +22,7 @@ public:
   void setup();
 
   void loop();
+  void loop1s();
 
   void handleConnection();
 

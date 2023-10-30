@@ -16,6 +16,8 @@
 
 // #include <FS.h>
 
+bool SysModFiles::filesChanged = false;
+
 SysModFiles::SysModFiles() :Module("Files") {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 

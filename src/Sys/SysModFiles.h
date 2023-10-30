@@ -50,7 +50,7 @@ public:
   bool readFile(const char * path);
 
 private:
-  bool filesChanged = false;
+  static bool filesChanged;// = false;
 
 };
 

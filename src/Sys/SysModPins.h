@@ -8,7 +8,7 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  */
 
-#include "Module.h"
+#include "SysModule.h"
 
 #include "ArduinoJson.h"
 
@@ -20,7 +20,7 @@ struct PinObject {
   char details[32]; //info about pin usage
 };
 
-class SysModPins:public Module {
+class SysModPins:public SysModule {
 
 public:
 

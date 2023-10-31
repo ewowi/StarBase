@@ -12,13 +12,13 @@
 
 #include <WLED-sync.h> // https://github.com/netmindz/WLED-sync
 
-class UserModWLEDAudio:public Module {
+class UserModWLEDAudio:public SysModule {
 
 public:
 
   uint8_t fftResults[NUM_GEQ_CHANNELS]= {0};
 
-  UserModWLEDAudio() :Module("WLED Audio Sync Receiver") {
+  UserModWLEDAudio() :SysModule("WLED Audio Sync Receiver") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -26,14 +26,14 @@ public:
 
   //setup filesystem
   void setup() {
-    Module::setup();
+    SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void onOffChanged() {
-    if (SysModModules::isConnected && isEnabled) {
+    if (SysModules::isConnected && isEnabled) {
       USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
       sync.begin();
     } else {
@@ -42,8 +42,8 @@ public:
   }
 
   void loop() {
-    // Module::loop();
-    if (sync.read()) {
+    // SysModule::loop();
+    if (SysModules::isConnected && sync.read()) {
       if(debug) USER_PRINTF("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
         uint8_t val = sync.fftResult[b];

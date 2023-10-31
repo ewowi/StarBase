@@ -9,10 +9,10 @@
  */
 
 #pragma once
-#include "Module.h"
+#include "SysModule.h"
 #include "LittleFS.h"
 
-class SysModFiles:public Module {
+class SysModFiles: public SysModule {
 
 public:
   SysModFiles();

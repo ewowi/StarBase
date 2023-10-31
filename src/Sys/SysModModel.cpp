@@ -9,7 +9,7 @@
  */
 
 #include "SysModModel.h"
-#include "Module.h"
+#include "SysModule.h"
 #include "SysModWeb.h"
 #include "SysModPrint.h"
 #include "SysModUI.h"
@@ -18,7 +18,7 @@
 
 DynamicJsonDocument * SysModModel::model = nullptr;
 
-SysModModel::SysModModel() :Module("Model") {
+SysModModel::SysModModel() :SysModule("Model") {
   model = new DynamicJsonDocument(24576);
 
   JsonArray root = model->to<JsonArray>(); //create
@@ -37,7 +37,7 @@ SysModModel::SysModModel() :Module("Model") {
 }
 
 void SysModModel::setup() {
-  Module::setup();
+  SysModule::setup();
 
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
@@ -76,7 +76,7 @@ void SysModModel::setup() {
 }
 
   void SysModModel::loop() {
-  // Module::loop();
+  // SysModule::loop();
 
   if (!cleanUpModelDone) { //do after all setups
     cleanUpModelDone = true;
@@ -234,7 +234,6 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
 
 //Set value with argument list
 JsonObject SysModModel::setValueV(const char * id, const char * format, ...) {
-  // return JsonObject();
   va_list args;
   va_start(args, format);
 
@@ -254,7 +253,7 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
   // size_t len = vprintf(format, args);
   char value[128];
   vsnprintf(value, sizeof(value)-1, format, args);
-  // USER_PRINTF("%s\n", value);
+  USER_PRINTF("%s\n", value);
 
   va_end(args);
 

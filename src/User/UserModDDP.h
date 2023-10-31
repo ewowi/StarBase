@@ -29,13 +29,13 @@
 #define DDP_TYPE_RGB24  0x0B // 00 001 011 (RGB , 8 bits per channel, 3 channels)
 #define DDP_TYPE_RGBW32 0x1B // 00 011 011 (RGBW, 8 bits per channel, 4 channels)
 
-class UserModDDP:public Module {
+class UserModDDP:public SysModule {
 
 public:
 
   static IPAddress targetIp; //tbd: targetip also configurable from fixtures, and ddp instead of pin output
 
-  UserModDDP() :Module("DDP") {
+  UserModDDP() :SysModule("DDP") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     isEnabled = false; //default off
@@ -45,7 +45,7 @@ public:
 
   //setup filesystem
   void setup() {
-    Module::setup();
+    SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
@@ -73,9 +73,9 @@ public:
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
 
-    if(!SysModModules::isConnected) return;
+    if(!SysModules::isConnected) return;
 
     if(!targetIp) return;
 

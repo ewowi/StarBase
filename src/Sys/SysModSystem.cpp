@@ -9,7 +9,6 @@
 */
 
 #include "SysModSystem.h"
-#include "Module.h"
 #include "SysModPrint.h"
 #include "SysModUI.h"
 #include "SysModWeb.h"
@@ -20,10 +19,10 @@
 
 char SysModSystem::version[16] = "";
 
-SysModSystem::SysModSystem() :Module("System") {};
+SysModSystem::SysModSystem() :SysModule("System") {};
 
 void SysModSystem::setup() {
-  Module::setup();
+  SysModule::setup();
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
@@ -74,10 +73,7 @@ void SysModSystem::setup() {
 
   USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
-  ui->initText(parentVar, "version", nullptr, 16, true, [](JsonObject var) { //uiFun
-    // mdl->setValueP("version", "%s", version); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
-    // var["value"] = version;
-  });
+  ui->initText(parentVar, "version", nullptr, 16, true);
   // ui->initText(parentVar, "date", __DATE__, 16, true);
   // ui->initText(parentVar, "time", __TIME__, 16, true);
 
@@ -103,7 +99,7 @@ void SysModSystem::setup() {
 }
 
 void SysModSystem::loop() {
-  // Module::loop();
+  // SysModule::loop();
 
   loopCounter++;
 }

@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "Module.h"
+#include "SysModule.h"
 
 #include "ArduinoJson.h"
 
-class SysModSystem:public Module {
+class SysModSystem:public SysModule {
 
 public:
   static char version[16];

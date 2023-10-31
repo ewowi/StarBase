@@ -9,11 +9,11 @@
 */
 
 #pragma once
-#include "Module.h"
+#include "SysModule.h"
 
 #include <ESPAsyncWebServer.h>
 
-class SysModWeb:public Module {
+class SysModWeb:public SysModule {
 
 public:
   static AsyncWebSocket *ws;
@@ -28,8 +28,6 @@ public:
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
   static void wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
-
-  static void printClient(const char * text, AsyncWebSocketClient * client);
 
   //send json to client or all clients
   static void sendDataWs(JsonVariant json = JsonVariant(), AsyncWebSocketClient * client = nullptr);

@@ -8,7 +8,7 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  */
 
-#include "Module.h"
+#include "SysModule.h"
 
 #include "AppLedsV.h"
 #include "AppEffects.h"
@@ -31,7 +31,7 @@ inline uint16_t getRGBWsize(uint16_t nleds){
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
-class AppModLeds:public Module {
+class AppModLeds:public SysModule {
 
 public:
   bool newFrame = false; //for other modules (DDP)
@@ -41,19 +41,23 @@ public:
   bool doMap = false;
   Effects effects;
 
-  AppModLeds() :Module("Leds") {};
+  AppModLeds() :SysModule("Leds") {};
 
   void setup() {
-    Module::setup();
+    SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
 
-    ui->initCheckBox(parentVar, "on");
+    ui->initCheckBox(parentVar, "on", false, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "On");
+    }, [](JsonObject var) { //chFunFun
+      ui->valChangedForInstancesTemp = true;
+    });
     // ui->initCheckBox(parentVar, "v");
 
     //logarithmic slider (10)
-    ui->initSlider(parentVar, "bri", 5, 0, 255, 10, false, [](JsonObject var) { //uiFun
+    JsonObject var = ui->initSlider(parentVar, "bri", 10, 0, 255, 10, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Brightness");
     }, [](JsonObject var) { //chFun
       uint8_t bri = var["value"];
@@ -65,6 +69,8 @@ public:
       USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
       ui->valChangedForInstancesTemp = true;
     });
+    var["log"] = true;
+    var["stage"] = true;
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Preview");
@@ -217,7 +223,7 @@ public:
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
 
     //set new frame
     if (millis() - frameMillis >= 1000.0/fps) {

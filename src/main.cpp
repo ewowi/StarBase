@@ -12,8 +12,8 @@
 // git reset --hard HEAD^
 // git push origin -f
 
-#include "Module.h"
-#include "Sys/SysModModules.h"
+#include "SysModule.h"
+#include "SysModules.h"
 #include "Sys/SysModPrint.h"
 #include "Sys/SysModWeb.h"
 #include "Sys/SysModUI.h"
@@ -46,7 +46,7 @@
 
 //setup all modules
 void setup() {
-  mdls = new SysModModules();
+  mdls = new SysModules();
   
   print = new SysModPrint();
   files = new SysModFiles();

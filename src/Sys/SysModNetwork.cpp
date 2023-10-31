@@ -9,9 +9,7 @@
  */
 
 #include "SysModNetwork.h"
-#include "Module.h"
-#include "SysModModules.h"
-
+#include "SysModules.h"
 #include "SysModPrint.h"
 #include "SysModWeb.h"
 #include "SysModUI.h"
@@ -19,14 +17,11 @@
 
 #include <WiFi.h>
 
-//init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-bool SysModNetwork::forceReconnect = false;
-
-SysModNetwork::SysModNetwork() :Module("Network") {};
+SysModNetwork::SysModNetwork() :SysModule("Network") {};
 
 //setup wifi an async webserver
 void SysModNetwork::setup() {
-  Module::setup();
+  SysModule::setup();
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
@@ -36,7 +31,7 @@ void SysModNetwork::setup() {
   });
   ui->initButton(parentVar, "connect", nullptr, false, [](JsonObject var) {
     web->addResponse(var["id"], "comment", "Force reconnect (you loose current connection)");
-  }, [](JsonObject var) {
+  }, [this](JsonObject var) {
     forceReconnect = true;
   });
   ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var) { //uiFun
@@ -50,7 +45,7 @@ void SysModNetwork::setup() {
 }
 
 void SysModNetwork::loop() {
-  // Module::loop();
+  // SysModule::loop();
 
   handleConnection();
 }
@@ -90,7 +85,7 @@ void SysModNetwork::handleConnection() {
 
     interfacesInited = true;
 
-    SysModModules::newConnection = true; // send all modules connect notification
+    SysModules::newConnection = true; // send all modules connect notification
 
     // shut down AP
     if (apActive) { //apBehavior != AP_BEHAVIOR_ALWAYS
@@ -139,11 +134,11 @@ void SysModNetwork::initAP() {
   {
     mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
-    SysModModules::newConnection = true; // send all modules connect notification
-
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());
+    apActive = true;
+
+    SysModules::newConnection = true; // send all modules connect notification
   }
 
-  apActive = true;
 }

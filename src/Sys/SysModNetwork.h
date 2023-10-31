@@ -8,11 +8,11 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  */
 
-#include "Module.h"
+#include "SysModule.h"
 
 #include <DNSServer.h>
 
-class SysModNetwork:public Module {
+class SysModNetwork:public SysModule {
 
 public:
 
@@ -41,7 +41,8 @@ private:
   DNSServer dnsServer;
   bool noWifiSleep = true;
 
-  static bool forceReconnect;
+  //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
+  bool forceReconnect = false;
 };
   
 static SysModNetwork *net;

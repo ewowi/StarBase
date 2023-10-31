@@ -21,7 +21,7 @@ std::vector<VarLoop> SysModUI::loopFunctions;
 int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::varLoopsChanged = false;;
 
-SysModUI::SysModUI() :Module("UI") {
+SysModUI::SysModUI() :SysModule("UI") {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   success &= web->addURL("/", "text/html", nullptr, PAGE_index, PAGE_index_L);
@@ -38,7 +38,7 @@ SysModUI::SysModUI() :Module("UI") {
 
 //serve index.htm
 void SysModUI::setup() {
-  Module::setup();
+  SysModule::setup();
 
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
@@ -70,7 +70,7 @@ void SysModUI::setup() {
 }
 
 void SysModUI::loop() {
-  // Module::loop();
+  // SysModule::loop();
 
   for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
     if (millis() - varLoop->lastMillis >= varLoop->interval) {
@@ -108,7 +108,7 @@ void SysModUI::loop() {
               client->binary(wsBuf);
             else {
               // web->clientsChanged = true; tbd: changed also if full status changes
-              // web->printClient("loopFun skip frame", client);
+              // print->printClient("loopFun skip frame", client);
             }
           }
           wsBuf->unlock();

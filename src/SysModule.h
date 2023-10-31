@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      Module.h
+   @file      SysModule.h
    @date      20231016
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -13,7 +13,7 @@
 
 #include "ArduinoJson.h"
 
-class Module {
+class SysModule {
 
 public:
   const char * name;
@@ -22,7 +22,7 @@ public:
 
   JsonObject parentVar;
 
-  Module(const char * name) {
+  SysModule(const char * name) {
     this->name = name;
     success = true;
     isEnabled = true;

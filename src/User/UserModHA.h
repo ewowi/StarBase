@@ -13,11 +13,11 @@
 
 #define BROKER_ADDR     IPAddress(192,168,178,42) //ewowi: could we scan that instead of hard coded?
 
-class UserModHA:public Module {
+class UserModHA:public SysModule {
 
 public:
 
-  UserModHA() :Module("Home Assistant support") {
+  UserModHA() :SysModule("Home Assistant support") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     isEnabled = false;
@@ -52,7 +52,7 @@ public:
 
   void connectedChanged() {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-    if (SysModModules::isConnected) {
+    if (SysModules::isConnected) {
       // set device's details (optional)
       device.setName("StarMod");
       device.setSoftwareVersion("0.0.1");
@@ -81,7 +81,7 @@ public:
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
     mqtt->loop();
   }
 

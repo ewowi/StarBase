@@ -18,7 +18,7 @@
 
 bool SysModFiles::filesChanged = false;
 
-SysModFiles::SysModFiles() :Module("Files") {
+SysModFiles::SysModFiles() :SysModule("Files") {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   if (!LittleFS.begin(true)) { //true: formatOnFail
@@ -32,7 +32,7 @@ SysModFiles::SysModFiles() :Module("Files") {
 
 //setup filesystem
 void SysModFiles::setup() {
-  Module::setup();
+  SysModule::setup();
   parentVar = ui->initModule(parentVar, name);
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var) { //uiFun
@@ -84,7 +84,7 @@ void SysModFiles::setup() {
 }
 
 void SysModFiles::loop(){
-  // Module::loop();
+  // SysModule::loop();
 
   // if (millis() - secondMillis >= 10000) {
   //   secondMillis = millis();
@@ -163,6 +163,7 @@ bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
       root.close();
       strncat(fileName, "/", 31); //add root prefix, fileName is 32 bytes but sizeof doesn't know so cheating
       strncat(fileName, file.name(), 31);
+      file.close();
       return true;
     }
 

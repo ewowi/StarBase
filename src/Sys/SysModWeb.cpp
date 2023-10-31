@@ -13,7 +13,7 @@
 #include "SysModUI.h"
 #include "SysModPrint.h"
 #include "SysModFiles.h"
-#include "SysModModules.h"
+#include "SysModules.h"
 
 #include "User/UserModMDNS.h"
 
@@ -38,7 +38,7 @@ unsigned long SysModWeb::wsSendBytesCounter = 0;
 unsigned long SysModWeb::wsSendJsonCounter = 0;
 unsigned long SysModWeb::wsSendDataWsCounter = 0;
 
-SysModWeb::SysModWeb() :Module("Web") {
+SysModWeb::SysModWeb() :SysModule("Web") {
   ws = new AsyncWebSocket("/ws");
   server = new AsyncWebServer(80);
 
@@ -52,7 +52,7 @@ SysModWeb::SysModWeb() :Module("Web") {
 };
 
 void SysModWeb::setup() {
-  Module::setup();
+  SysModule::setup();
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
@@ -94,7 +94,7 @@ void SysModWeb::setup() {
 }
 
 void SysModWeb::loop() {
-  // Module::loop();
+  // SysModule::loop();
 
   //currently not used as each variable is send individually
   if (this->modelUpdated) {
@@ -114,7 +114,7 @@ void SysModWeb::loop1s() {
 
   uint8_t rowNr = 0;
   for (auto client:SysModWeb::ws->getClients()) {
-    // printClient("up", client);
+    // print->printClient("up", client);
     mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
     mdl->setValueI("clStatus", client->status(), rowNr);
     mdl->setValueI("clLength", client->queueLength(), rowNr);
@@ -128,7 +128,7 @@ void SysModWeb::loop1s() {
 }
 
 void SysModWeb::connectedChanged() {
-  if (SysModModules::isConnected) {
+  if (SysModules::isConnected) {
     ws->onEvent(wsEvent);
     // ws->onEvent(wsEvent2);
     server->addHandler(ws);
@@ -154,25 +154,25 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   //   return;
   // }
   if (type == WS_EVT_CONNECT) {
-    printClient("WS client connected", client);
+    print->printClient("WS client connected", client);
     sendDataWs(*SysModModel::model, client); //send definition to client
     clientsChanged = true;
   } else if (type == WS_EVT_DISCONNECT) {
-    printClient("WS Client disconnected", client);
+    print->printClient("WS Client disconnected", client);
     clientsChanged = true;
   } else if (type == WS_EVT_DATA) {
     AwsFrameInfo * info = (AwsFrameInfo*)arg;
     String msg = "";
     // USER_PRINT_Async("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
     if (info->final && info->index == 0 && info->len == len) { //not multipart
-      printClient("WS event data", client);
+      print->printClient("WS event data", client);
       // the whole message is in a single frame and we got all of its data (max. 1450 bytes)
       if (info->opcode == WS_TEXT)
       {
         if (len > 0 && len < 10 && data[0] == 'p') {
           // application layer ping/pong heartbeat.
           // client-side socket layer ping packets are unresponded (investigate)
-          // printClient("WS client pong", client); //crash?
+          // print->printClient("WS client pong", client); //crash?
           USER_PRINT_Async("pong\n");
           client->text("pong");
           return;
@@ -269,13 +269,13 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
     }
   } else if (type == WS_EVT_ERROR){
     //error was received from the other end
-    // printClient("WS error", client); //crashes
+    // print->printClient("WS error", client); //crashes
     // USER_PRINT_Async("WS error\n");
     USER_PRINT_Async("ws[%s][%u] error(): \n", server->url(), client->id());//, *((uint16_t*)arg));//, (char*)data);
 
   } else if (type == WS_EVT_PONG){
     //pong message was received (in response to a ping request maybe)
-    // printClient("WS pong", client); //crashes!
+    // print->printClient("WS pong", client); //crashes!
     // USER_PRINT_Async("WS pong\n");
     // USER_PRINT_Async("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
     USER_PRINT_Async("ws[%s][%u] pong[%u]: \n", server->url(), client->id(), len);//, (len)?(char*)data:"");
@@ -357,11 +357,6 @@ void SysModWeb::wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client,
 }
 
 
-void SysModWeb::printClient(const char * text, AsyncWebSocketClient * client) {
-  USER_PRINT_Async("%s client: %d %s q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", client->queueIsFull(), client->queueLength(), client->status(), ws->count());
-  //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
-}
-
 void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
   if (!ws) {
     USER_PRINT_Async("sendDataWs no ws\n");
@@ -389,7 +384,7 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
         if (client->status() == WS_CONNECTED && !client->queueIsFull())
           client->text(wsBuf);
         else 
-          printClient("sendDataWs client full or not connected", client);
+          print->printClient("sendDataWs client full or not connected", client);
 
         // DEBUG_PRINTLN("to a single client.");
       } else {

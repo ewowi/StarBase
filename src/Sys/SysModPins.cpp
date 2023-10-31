@@ -16,7 +16,7 @@
 PinObject SysModPins::pinObjects[NUM_PINS];
 bool SysModPins::pinsChanged = false;
 
-SysModPins::SysModPins() :Module("Pins") {
+SysModPins::SysModPins() :SysModule("Pins") {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   pinMode(2, OUTPUT);
@@ -32,7 +32,7 @@ SysModPins::SysModPins() :Module("Pins") {
 };
 
 void SysModPins::setup() {
-  Module::setup();
+  SysModule::setup();
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);

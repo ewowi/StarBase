@@ -9,14 +9,16 @@
 */
 
 #pragma once
-#include "Module.h"
+#include "SysModule.h"
+
+#include <ESPAsyncWebServer.h>
 
 #define USER_PRINTF(x...) print->print(x)
 #define USER_PRINT_FUNCTION(x...) //print->print(x)
 #define USER_PRINT_NOT(x...) //print->print(x)
 #define USER_PRINT_Async(x...) print->print(x)
 
-class SysModPrint:public Module {
+class SysModPrint:public SysModule {
 
 public:
 
@@ -36,6 +38,8 @@ public:
   size_t fFormat(char * buf, size_t size, const char * format, ...);
 
   void printJDocInfo(const char * text, DynamicJsonDocument source);
+
+  void printClient(const char * text, AsyncWebSocketClient * client);
 
 private:
   bool setupsDone = false;

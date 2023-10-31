@@ -15,11 +15,11 @@
 
 #define maxChannels 513
 
-class UserModE131:public Module {
+class UserModE131:public SysModule {
 
 public:
 
-  UserModE131() :Module("e131-sACN") {
+  UserModE131() :SysModule("e131-sACN") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -27,7 +27,7 @@ public:
 
   //setup filesystem
   void setup() {
-    Module::setup();
+    SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
@@ -87,7 +87,7 @@ public:
 
   void onOffChanged() {
 
-    if (SysModModules::isConnected && isEnabled) {
+    if (SysModules::isConnected && isEnabled) {
       USER_PRINTF("UserModE131::connected && enabled\n");
 
       if (e131Created) { // TODO: crashes here - no idea why!
@@ -113,7 +113,7 @@ public:
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
     if(!e131Created) {
       return;
     }

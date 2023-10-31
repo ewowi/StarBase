@@ -34,6 +34,7 @@ class JsonRDWS {
   //serializeJson
   void writeJsonDocToFile(JsonDocument* dest) {
     writeJsonVariantToFile(dest->as<JsonVariant>());
+    f.close();
     files->filesChange();
   }
 

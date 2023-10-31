@@ -10,13 +10,13 @@
 
 #include <ESPmDNS.h>
 
-class UserModMDNS:public Module {
+class UserModMDNS:public SysModule {
 
 public:
   String escapedMac;
   char cmDNS[64] = "";
 
-  UserModMDNS() :Module("MDNS") {
+  UserModMDNS() :SysModule("MDNS") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -24,7 +24,7 @@ public:
 
   //setup filesystem
   void setup() {
-    Module::setup();
+    SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     escapedMac = WiFi.macAddress();
@@ -38,11 +38,11 @@ public:
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
   }
 
   void onOffChanged() {
-    if (SysModModules::isConnected && isEnabled) {
+    if (SysModules::isConnected && isEnabled) {
 
       // print->fFormat(cmDNS, sizeof(cmDNS)-1, "wled-%*s", WiFi.macAddress().c_str() + 6);
 

@@ -9,11 +9,11 @@
  */
 
 #pragma once
-#include "Module.h"
+#include "SysModule.h"
 
 #include "ArduinoJson.h"
 
-class SysModModel:public Module {
+class SysModModel:public SysModule {
 
 public:
 

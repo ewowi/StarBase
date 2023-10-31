@@ -731,7 +731,7 @@ public:
     ui->initSlider(parentVar, "fadeOut", 255);
     ui->initSlider(parentVar, "ripple", 255);
     ui->initCheckBox(parentVar, "colorBars");
-    ui->initCheckBox(parentVar, "smoothBars");
+    ui->initCheckBox(parentVar, "smoothBars", true); //default on
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 

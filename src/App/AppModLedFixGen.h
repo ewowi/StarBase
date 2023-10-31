@@ -8,7 +8,7 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
 
-#include "Module.h"
+#include "SysModule.h"
 
 class GenFix {
 
@@ -496,14 +496,14 @@ public:
 
 };
 
-class AppModLedFixGen:public Module {
+class AppModLedFixGen:public SysModule {
 
 public:
 
-  AppModLedFixGen() :Module("LedFixGen") {};
+  AppModLedFixGen() :SysModule("LedFixGen") {};
 
   void setup() {
-    Module::setup();
+    SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
@@ -541,7 +541,7 @@ public:
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
   }
 
   enum Fixtures

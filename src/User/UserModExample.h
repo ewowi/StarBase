@@ -8,11 +8,11 @@
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 */
 
-class UserModExample:public Module {
+class UserModExample:public SysModuleule {
 
 public:
 
-  UserModExample() :Module("Usermod example") {
+  UserModExample() :SysModule(le("Usermod example") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -20,18 +20,18 @@ public:
 
   //setup filesystem
   void setup() {
-    Module::setup();
+    SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
   }
 
   void onOffChanged() {
-    if (SysModModules::isConnected && isEnabled) {
+    if (SysModules::isConnected && isEnabled) {
     } else {
     }
   }

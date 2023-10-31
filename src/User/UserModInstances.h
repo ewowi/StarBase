@@ -94,13 +94,13 @@ struct UDPWLEDSyncMessage { //see notify( in WLED
   char body[1193 - 37]; //41 +(32*36)+0 = 1193
 };
 
-class UserModInstances:public Module {
+class UserModInstances:public SysModule {
 
 public:
 
   static std::vector<NodeInfo> nodes; //static because used in uiFun
 
-  UserModInstances() :Module("Instances") {
+  UserModInstances() :SysModule("Instances") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -108,7 +108,7 @@ public:
 
   //setup filesystem
   void setup() {
-    Module::setup();
+    SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
@@ -132,6 +132,9 @@ public:
           print->fFormat(text, sizeof(text)-1, "ver:%d up:%d br:%d fx:%d pal:%d pro:%d syn:%d d:%d:%d-%d", node.version, node.sys.upTime, node.app.bri, node.app.fx, node.app.palette, node.app.projection, node.sys.syncGroups, node.sys.dmx.universe, node.sys.dmx.start, node.sys.dmx.start + node.sys.dmx.count - 1);
         }
 
+        row.add(node.app.fx);
+        row.add(false);
+        row.add(node.app.bri);
         row.add(text);
         char urlString[32] = "http://";
         strncat(urlString, node.ip.toString().c_str(), sizeof(urlString)-1);
@@ -150,6 +153,43 @@ public:
     // ui->initNumber(tableVar, "insTime", -1, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
     //   web->addResponse(var["id"], "label", "Timestamp");
     // });
+    for (int i=0; i<1; i++) {
+      JsonObject var = mdl->findVar("fx");
+      char text[32] = "ins";
+      strcat(text, var["id"]);
+      if (var["type"] == "select") {
+        JsonObject newVar = ui->initSelect(tableVar, text, 0, false, nullptr, [](JsonObject var) { //chFun
+          USER_PRINTF("flex %s %s changed\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+        });
+        newVar["uiFun"] = var["uiFun"];
+      }
+
+      // JsonObject var = mdl->findVar("serverName");
+      // char text[32] = "ins";
+      // strcat(text, var["id"]);
+      // JsonObject newVar = ui->initText(tableVar, text, nullptr, var["max"], false, nullptr, [](JsonObject var) { //chFun
+          // USER_PRINTF("flex %s %s changed\n", var["id"].as<const char *>(), var["value"].as<const char *>());
+      // });
+      // newVar["uiFun"] = var["uiFun"];
+      {
+        JsonObject var = mdl->findVar("on");
+        char text[32] = "ins";
+        strcat(text, var["id"]);
+        JsonObject newVar = ui->initCheckBox(tableVar, text, false, false, nullptr, [](JsonObject var) { //chFun
+          USER_PRINTF("flex %s %d changed\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+        });
+        newVar["uiFun"] = var["uiFun"];
+      }
+      {
+        JsonObject var = mdl->findVar("bri");
+        char text[32] = "ins";
+        strcat(text, var["id"]);
+        JsonObject newVar = ui->initSlider(tableVar, text, 0, 0, 255, {0}, false, nullptr, [](JsonObject var) { //chFun
+          USER_PRINTF("flex %s %d changed\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+        });
+        newVar["uiFun"] = var["uiFun"];
+      }
+    }
     ui->initText(tableVar, "insDetail", nullptr, 1024, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Detail");
     });
@@ -181,10 +221,12 @@ public:
   }
 
   void onOffChanged() {
-    if (SysModModules::isConnected && isEnabled) {
+    if (SysModules::isConnected && isEnabled) {
       udpConnected = notifierUdp.begin(notifierUDPPort); //sync
       udp2Connected = instanceUDP.begin(instanceUDPPort); //nodes
     } else {
+      udpConnected = false;
+      udp2Connected = false;
       nodes.clear();
       ui->processUiFun("insTbl");
       //udp off ??
@@ -192,7 +234,7 @@ public:
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
 
     handleNotifications();
 
@@ -207,7 +249,7 @@ public:
 
   void handleNotifications()
   {
-    if(!SysModModules::isConnected) return;
+    if(!SysModules::isConnected) return;
 
     // instanceUDP.flush(); //tbd: test if needed
 
@@ -311,7 +353,7 @@ public:
 
   void sendSysInfoUDP()
   {
-    if(!SysModModules::isConnected) return;
+    if(!SysModules::isConnected) return;
     if (!udp2Connected) return;
 
     IPAddress ip = WiFi.localIP();

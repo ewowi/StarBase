@@ -874,20 +874,20 @@ public:
 
       //tbd: make property of effects
       if (strstr(effects[index]->name(), "2D")) {
-        if (ledsV.fxDimension != 2) {
-          ledsV.fxDimension = 2;
+        if (ledsV.effectDimension != 2) {
+          ledsV.effectDimension = 2;
           doMap = true;
         }
       }
       else if (strstr(effects[index]->name(), "3D")) {
-        if (ledsV.fxDimension != 3) {
-          ledsV.fxDimension = 3;
+        if (ledsV.effectDimension != 3) {
+          ledsV.effectDimension = 3;
           doMap = true;
         }
       }
       else {
-        if (ledsV.fxDimension != 1) {
-          ledsV.fxDimension = 1;
+        if (ledsV.effectDimension != 1) {
+          ledsV.effectDimension = 1;
           doMap = true;
         }
       }

@@ -86,6 +86,8 @@ void SysModUI::loop() {
         //send leds info in binary data format
         //tbd: this can crash on 64*64 matrices...
         // USER_PRINTF("bufSize %d\n", varLoop->bufSize);
+        if (SysModWeb::ws->count() == 0) USER_PRINTF("%s ws count 0\n", __PRETTY_FUNCTION__);
+        if (!SysModWeb::ws->enabled()) USER_PRINTF("%s ws not enabled\n", __PRETTY_FUNCTION__);
         AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 4);
         if (wsBuf) {//out of memory
           wsBuf->lock();

@@ -13,6 +13,8 @@
 
 #include "ArduinoJson.h"
 
+typedef std::function<void(JsonObject)> FindFun;
+
 class SysModModel:public SysModule {
 
 public:
@@ -68,6 +70,7 @@ public:
 
   //returns the var defined by id (parent to recursively call findVar)
   static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
+  void findVars(const char * id, bool value, FindFun fun, JsonArray parent = JsonArray());
   
 private:
   bool doWriteModel = false;

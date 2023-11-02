@@ -318,3 +318,20 @@ JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
   }
   return foundVar;
 }
+
+void SysModModel::findVars(const char * id, bool value, FindFun fun, JsonArray parent) {
+  JsonArray root;
+  // print ->print("findVar %s %s\n", id, parent.isNull()?"root":"n");
+  if (parent.isNull()) {
+    root = model->as<JsonArray>();
+  }
+  else {
+    root = parent;
+  }
+  for(JsonObject var : root) {
+      if (var[id] == value)
+        fun(var);
+      if (!var["n"].isNull())
+        findVars(id, value, fun, var["n"]);
+  }
+}

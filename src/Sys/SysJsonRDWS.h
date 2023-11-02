@@ -9,7 +9,7 @@
  */
 
 //Lazy Json Read Deserialize Write Serialize (write / serialize not implemented yet)
-//ArduinoJson won't work on very large LedFix.json, this does
+//ArduinoJson won't work on very large fixture.json, this does
 //only support what is currently needed: read / deserialize uint8/16/char var elements (arrays not yet)
 class JsonRDWS {
 

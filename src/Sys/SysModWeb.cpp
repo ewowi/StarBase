@@ -445,7 +445,7 @@ bool SysModWeb::processURL(const char * uri, void (*func)(AsyncWebServerRequest 
 
 bool SysModWeb::addUpload(const char * uri) {
 
-  // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
+  // curl -F 'data=@fixture1.json' 192.168.8.213/upload
   server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
   [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
                 size_t len, bool final) {
@@ -486,7 +486,7 @@ bool SysModWeb::addUpload(const char * uri) {
 
 bool SysModWeb::addUpdate(const char * uri) {
 
-  // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
+  // curl -F 'data=@fixture1.json' 192.168.8.213/upload
   server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
   [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
                 size_t len, bool final) {

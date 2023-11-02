@@ -38,7 +38,7 @@ public:
   //not used at the moment
   bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *));
 
-  // curl -F 'data=@ledfix1.json' 192.168.8.213/upload
+  // curl -F 'data=@fixture1.json' 192.168.8.213/upload
   bool addUpload(const char * uri);
   // curl -s -F "update=@/Users/ewoudwijma/Developer/GitHub/ewowi/StarMod/.pio/build/esp32dev/firmware.bin" 192.168.8.102/update /dev/null &
   bool addUpdate(const char * uri);

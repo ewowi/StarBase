@@ -48,16 +48,15 @@ public:
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initModule(parentVar, name);
+    JsonObject currentVar;
 
-    ui->initCheckBox(parentVar, "on", false, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "On");
-    }, [](JsonObject var) { //chFunFun
+    currentVar = ui->initCheckBox(parentVar, "on", true, false, nullptr, [](JsonObject var) { //chFun
       ui->valChangedForInstancesTemp = true;
     });
-    // ui->initCheckBox(parentVar, "v");
+    currentVar["stage"] = true;
 
     //logarithmic slider (10)
-    JsonObject var = ui->initSlider(parentVar, "bri", 10, 0, 255, 10, false, [](JsonObject var) { //uiFun
+    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, 10, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Brightness");
     }, [](JsonObject var) { //chFun
       uint8_t bri = var["value"];
@@ -69,8 +68,8 @@ public:
       USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
       ui->valChangedForInstancesTemp = true;
     });
-    var["log"] = true;
-    var["stage"] = true;
+    currentVar["log"] = true;
+    currentVar["stage"] = true; //these values override model.json???
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Preview");
@@ -90,7 +89,7 @@ public:
       buffer[3] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
-    ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
+    currentVar = ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
       JsonArray select = web->addResponseA(var["id"], "select");
@@ -104,8 +103,9 @@ public:
       doMap = effects.setEffect("fx", fx);
       ui->valChangedForInstancesTemp = true;
     });
+    currentVar["stage"] = true;
 
-    ui->initSelect(parentVar, "palette", 4, false, [](JsonObject var) { //uiFun.
+    currentVar = ui->initSelect(parentVar, "palette", 4, false, [](JsonObject var) { //uiFun.
       JsonArray select = web->addResponseA(var["id"], "select");
       select.add("CloudColors");
       select.add("LavaColors");
@@ -130,8 +130,9 @@ public:
       }
       ui->valChangedForInstancesTemp = true;
     });
+    currentVar["stage"] = true;
 
-    ui->initSelect(parentVar, "projection", 2, false, [](JsonObject var) { //uiFun.
+    currentVar = ui->initSelect(parentVar, "projection", 2, false, [](JsonObject var) { //uiFun.
       // web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
       JsonArray select = web->addResponseA(var["id"], "select");
@@ -139,6 +140,11 @@ public:
       select.add("Random"); // 1
       select.add("Distance from point"); //2
       select.add("Distance from centre"); //3
+      select.add("Mirror"); //4
+      select.add("Reverse"); //5
+      select.add("Multiply"); //6
+      select.add("Kaleidoscope"); //7
+      select.add("Fun"); //8
     }, [this](JsonObject var) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
@@ -146,9 +152,9 @@ public:
       doMap = true;
       ui->valChangedForInstancesTemp = true;
     });
+    currentVar["stage"] = true;
 
-    ui->initSelect(parentVar, "ledFix", 0, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "LedFix");
+    ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
       JsonArray select = web->addResponseA(var["id"], "select");
       files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
@@ -161,11 +167,11 @@ public:
     }, [this](JsonObject var) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
-      ledsV.ledFixNr = var["value"];
+      ledsV.fixtureNr = var["value"];
       doMap = true;
 
       char fileName[32] = "";
-      if (files->seqNrToName(fileName, ledsV.ledFixNr)) {
+      if (files->seqNrToName(fileName, ledsV.fixtureNr)) {
         //send to pview a message to get file filename
         JsonDocument *responseDoc = web->getResponseDoc();
         responseDoc->clear(); //needed for deserializeJson?
@@ -173,9 +179,9 @@ public:
 
         web->addResponse("pview", "file", fileName);
         web->sendDataWs(responseVariant);
-        print->printJson("ledfix chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
+        print->printJson("fixture chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
       }
-    }); //ledFix
+    }); //fixture
 
     ui->initText(parentVar, "dimensions", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
@@ -208,7 +214,7 @@ public:
           e131mod->patchChannel(2, "palette", 8); //tbd: calculate nr of palettes (from select)
           // //add these temporary to test remote changing of this values do not crash the system
           // e131mod->patchChannel(3, "projection", Projections::count);
-          // e131mod->patchChannel(4, "ledFix", 5); //assuming 5!!!
+          // e131mod->patchChannel(4, "fixture", 5); //assuming 5!!!
 
           ui->valChangedForInstancesTemp = true;
           
@@ -245,7 +251,7 @@ public:
     if (millis() - lastMappingMillis >= 1000 && doMap) { //not more then once per second (for E131)
       lastMappingMillis = millis();
       doMap = false;
-      ledsV.ledFixProjectAndMap();
+      ledsV.fixtureProjectAndMap();
 
       //https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples
 

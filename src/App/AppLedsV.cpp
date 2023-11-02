@@ -17,11 +17,15 @@
 #include "../Sys/SysJsonRDWS.h"
 #include "../Sys/SysModPins.h"
 
-//load ledfix json file, parse it and depending on the projection, create a mapping for it
-void LedsV::ledFixProjectAndMap() {
+#define _1D 1
+#define _2D 2
+#define _3D 3
+
+//load fixture json file, parse it and depending on the projection, create a mapping for it
+void LedsV::fixtureProjectAndMap() {
   char fileName[32] = "";
 
-  if (files->seqNrToName(fileName, ledFixNr)) {
+  if (files->seqNrToName(fileName, fixtureNr)) {
     JsonRDWS jrdws(fileName); //open fileName for deserialize
 
     mappingTableLedCounter = 0;
@@ -41,6 +45,24 @@ void LedsV::ledFixProjectAndMap() {
 
     prevLeds = 0;
 
+    //pre-processing
+    switch(projectionNr) {
+      case p_None:
+        break;
+      case p_Random:
+        break;
+      case p_DistanceFromPoint:
+        pointX = 0;
+        pointY = 0;
+        pointZ = 0;
+        break;
+      case p_DistanceFromCentre:
+        pointX = widthP / 2;
+        pointY = heightP / 2;
+        pointZ = depthP / 2;
+        break;
+    }
+
     //what to deserialize
     jrdws.lookFor("width", &widthP);
     jrdws.lookFor("height", &heightP);
@@ -55,72 +77,154 @@ void LedsV::ledFixProjectAndMap() {
       //   USER_PRINTF(" %d", num);
       // USER_PRINTF("\n");
 
-      uint8_t ledFixDimension = uint16CollectList.size();
+      uint8_t fixtureDimension = 0;
+      if (widthP>1) fixtureDimension++;
+      if (heightP>1) fixtureDimension++;
+      if (depthP>1) fixtureDimension++;
 
-      if (ledFixDimension>=1 && ledFixDimension<=3) { //we only comprehend 1D, 2D, 3D 
+      if (uint16CollectList.size()>=1 && fixtureDimension>=1 && fixtureDimension<=3) {
 
         uint16_t x = uint16CollectList[0] / 10;
-        uint16_t y = (ledFixDimension>=2)?uint16CollectList[1] / 10 : 1;
-        uint16_t z = (ledFixDimension>=3)?uint16CollectList[2] / 10 : 1;
+        uint16_t y = (fixtureDimension>=2)?uint16CollectList[1] / 10 : 1;
+        uint16_t z = (fixtureDimension>=3)?uint16CollectList[2] / 10 : 1;
 
-        // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", projectionNr, fxDimension, ledFixDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
-        if (projectionNr == p_DistanceFromPoint || projectionNr == p_DistanceFromCentre) {
-          uint16_t bucket;// = -1;
-          if (fxDimension == 1) { //if effect is 1D
+        // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, fixtureDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
 
-            uint16_t pointX, pointY, pointZ;
-            if (projectionNr == p_DistanceFromPoint) {
-              pointX = 0;
-              pointY = 0;
-              pointZ = 0;
-            } else {
-              pointX = widthP / 2;
-              pointY = heightP / 2;
-              pointZ = depthP / 2;
+        //processing: buckets
+        uint16_t bucket = -1;
+        switch(projectionNr) {
+          case p_None:
+            break;
+          case p_Random:
+            break;
+          case p_DistanceFromPoint:
+          case p_DistanceFromCentre:
+            if (effectDimension == _1D) {
+              if (fixtureDimension == _1D)
+                bucket = distance(x,0, 0,pointX,0,0);
+              else if (fixtureDimension == _2D) { 
+                bucket = distance(x,y,0,pointX,pointY,0);
+                // USER_PRINTF("bucket %d-%d %d-%d %d\n", x,y, pointX, pointY, bucket);
+              }
+              else if (fixtureDimension == _3D)
+                bucket = distance(x,y,z,pointX, pointY, pointZ);
             }
+            else if (effectDimension == _2D) {
+              depthV = 1; //no 3D
+              if (fixtureDimension == _1D)
+                bucket = x;
+              else if (fixtureDimension == _2D) {
+                widthV = widthP;
+                heightV = heightP;
+                depthV = 1;
 
-            if (ledFixDimension == 1) //ledfix is 1D
-              bucket = x;
-            else if (ledFixDimension == 2) {//ledfix is 2D 
-              bucket = distance(x,y,0,pointX,pointY,0);
-              // USER_PRINTF("bucket %d-%d %d-%d %d\n", x,y, pointX, pointY, bucket);
+                //scaling (check rounding errors)
+                float scale = 1;
+                if (widthV * heightV > 1024)
+                  scale = round(sqrt((float)1024.0 / (widthV * heightV))); //avoid very high virtual resolutions
+                widthV *= scale;
+                heightV *= scale;
+                x = (x+1) * scale - 1;
+                y = (y+1) * scale - 1;
+
+                bucket = x + y * widthV;
+                // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
+              }
+              else if (fixtureDimension == _3D) {
+                widthV = widthP + heightP;
+                heightV = depthP;
+                depthV = 1;
+                bucket = (x + y + 1) + z * widthV;
+                // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, widthV);
+              }
             }
-            else if (ledFixDimension == 3) //ledfix is 3D
-              bucket = distance(x,y,z,pointX, pointY, pointZ);
+            //tbd: effect is 3D
+            break;
+          case p_Reverse:
+            break;
+          case p_Mirror:
+            break;
+          case p_Multiply:
+            break;
+          case p_Fun: //first attempt for distance from Circle 2D
+            if (effectDimension == _2D) {
+              depthV = 1; //no 3D
+              if (fixtureDimension == _2D) {
 
+                float xNew = sin(x * TWO_PI / (float)(widthP-1));
+                float yNew = cos(x * TWO_PI / (float)(widthP-1));
+
+                xNew = ((heightP-y-1) * xNew + widthP) / 2.0;
+                yNew = ((heightP-y-1) * -yNew + heightP) / 2.0;
+
+                USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
+                x = xNew;
+                y = yNew;
+
+                widthV = widthP;
+                heightV = heightP;
+                depthV = 1;
+                float scale = 1;
+                if (widthV * heightV > 256)
+                  scale = sqrt((float)256.0 / (widthV * heightV)); //avoid very high virtual resolutions
+                widthV *= scale;
+                heightV *= scale;
+                x = (x+1) * scale - 1;
+                y = (y+1) * scale - 1;
+                bucket = x + y * widthV;
+                // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
+              }
+            }
+            break;
+        }
+
+        if (bucket != (uint16_t)-1) {
+          //post processing: inverse mapping 
+          switch(projectionNr) {
+          case p_DistanceFromCentre:
+            switch (effectDimension) {
+            case _2D: 
+              switch (fixtureDimension) {
+              case _2D: 
+                float minDistance = 10;
+                // USER_PRINTF("checking bucket %d\n", bucket);
+                for (uint16_t y=0; y<heightV && minDistance > 0.5; y++)
+                for (uint16_t x=0; x<widthV && minDistance > 0.5; x++) {
+
+                  float xNew = sin(x * TWO_PI / (float)(widthV-1)) * widthV;
+                  float yNew = cos(x * TWO_PI / (float)(widthV-1)) * heightV;
+
+                  xNew = round((y/(heightV-1.0) * xNew + widthV) / 2.0);
+                  yNew = round((y/(heightV-1.0) * yNew + heightV) / 2.0);
+
+                  // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
+
+                  float distance = abs(bucket - xNew - yNew * widthV);
+
+                  //this should work (better) but needs more testing
+                  // if (distance < minDistance) {
+                  //   minDistance = distance;
+                  //   bucket = x+y*widthV;
+                  // }
+
+                  if (bucket == (uint8_t)xNew + (uint8_t)yNew * widthV) {
+                    // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", bucket, x+y*widthV, x,y, widthV, xNew, yNew, widthV, distance);
+                    bucket = x+y*widthV;
+                    minDistance = 0; // stop looking further
+                  }
+                }
+                if (minDistance > 0.5) bucket = -1;
+                break;
+              }
+              break;
+            }
+            break;
           }
-          else if (fxDimension == 2) { //effect is 2D
-            depthV = 1;
-            if (ledFixDimension == 1) //ledfix is 1D
-              bucket = x;
-            else if (ledFixDimension == 2) {//ledfix is 2D
-              widthV = widthP;
-              heightV = heightP;
-              depthV = 1;
-              float scale = 1;
-              if (widthV * heightV > 256)
-                scale = sqrt((float)256.0 / (widthV * heightV));
-              widthV *= scale;
-              heightV *= scale;
-              x = (x+1) * scale - 1;
-              y = (y+1) * scale - 1;
-              bucket = x + y * widthV;
-              // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
-            }
-            else if (ledFixDimension == 3) {//ledfix is 3D
-              widthV = widthP + heightP;
-              heightV = depthP;
-              depthV = 1;
-              bucket = (x + y + 1) + z * widthV;
-              // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, widthV);
-            }
-          }
-          //tbd: effect is 3D
 
-          if (bucket != -1) {
+          if (bucket != (uint16_t)-1) {
             //add physical tables if not present
             if (bucket >= NUM_LEDS_Preview) {
-              USER_PRINTF("mapping add physMap %d %d too big\n", bucket, mappingTable.size());
+              USER_PRINTF("mapping add physMap %d>=%d (%d) too big %d\n", bucket, NUM_LEDS_Preview, mappingTable.size(), (uint16_t)-1);
             }
             else {
               if (bucket >= mappingTable.size()) {
@@ -138,7 +242,7 @@ void LedsV::ledFixProjectAndMap() {
         // USER_PRINTF("mapping %d V:%d P:%d\n", dist, mappingTable.size(), mappingTableLedCounter);
 
         // delay(1); //feed the watchdog
-        mappingTableLedCounter++;
+        mappingTableLedCounter++; //also increase if no buffer created
       } //if 1D-3D
       else { // end of leds array
 
@@ -200,14 +304,14 @@ void LedsV::ledFixProjectAndMap() {
         // }
       }
 
-      USER_PRINTF("ledFixProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLedsV);
+      USER_PRINTF("fixtureProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLedsV);
       mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", widthP, heightP, depthP, widthV, heightV, depthV);
       mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
 
     } // if deserialize
   } //if fileName
   else
-    USER_PRINTF("ledFixProjectAndMap: Filename for ledfix %d not found\n", ledFixNr);
+    USER_PRINTF("fixtureProjectAndMap: Filename for fixture %d not found\n", fixtureNr);
 }
 
 // ledsV[indexV] stores indexV locally

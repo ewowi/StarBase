@@ -20,6 +20,11 @@ enum Projections
   p_Random,
   p_DistanceFromPoint,
   p_DistanceFromCentre,
+  p_Reverse,
+  p_Mirror,
+  p_Multiply,
+  p_Kaleidoscope,
+  p_Fun,
   count
 };
 
@@ -53,18 +58,19 @@ public:
   uint16_t depthV = 1; 
 
   uint8_t projectionNr = -1;
-  uint8_t ledFixNr = -1;
-  uint8_t fxDimension = -1;
+  uint8_t fixtureNr = -1;
+  uint8_t effectDimension = -1;
 
   //track pins and leds
   uint8_t currPin;
   uint16_t prevLeds;
+  uint16_t pointX, pointY, pointZ; //for distance from 
 
   float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16_t y2, uint16_t z2) {
     return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
   }
 
-  void ledFixProjectAndMap();
+  void fixtureProjectAndMap();
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=
 

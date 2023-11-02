@@ -84,7 +84,7 @@
           "value": 2
         },
         {
-          "id": "ledFix",
+          "id": "fixture",
           "type": "select",
           "ro": false,
           "o": 12,
@@ -132,13 +132,13 @@
       ]
     },
     {
-      "id": "LedFixGen",
+      "id": "FixtureGen",
       "type": "module",
       "ro": false,
       "o": 17,
       "n": [
         {
-          "id": "ledFixGen",
+          "id": "fixtureGen",
           "type": "select",
           "ro": false,
           "o": 18,

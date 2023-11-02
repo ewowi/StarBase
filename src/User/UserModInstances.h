@@ -120,6 +120,9 @@ public:
       for (auto node: nodes) {
         JsonArray row = rows.createNestedArray();
         row.add((char *)node.name);
+        char urlString[32] = "http://";
+        strncat(urlString, node.ip.toString().c_str(), sizeof(urlString)-1);
+        row.add((char *)urlString);  //create a copy!
         row.add((char *)node.ip.toString().c_str());
         // row.add(node.timeStamp / 1000);
         char text[100];
@@ -136,14 +139,15 @@ public:
         row.add(false);
         row.add(node.app.bri);
         row.add(text);
-        char urlString[32] = "http://";
-        strncat(urlString, node.ip.toString().c_str(), sizeof(urlString)-1);
-        row.add((char *)urlString);  //create a copy!
       }
     });
     ui->initText(tableVar, "insName", nullptr, 32, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Name");
     });
+    ui->initURL(tableVar, "insLink", nullptr, true, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Show");
+    });
+
     ui->initText(tableVar, "insIp", nullptr, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "IP");
     });
@@ -153,6 +157,13 @@ public:
     // ui->initNumber(tableVar, "insTime", -1, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
     //   web->addResponse(var["id"], "label", "Timestamp");
     // });
+
+    //find stage variables
+    // JsonVariant x = true;
+    mdl->findVars("stage", true, [](JsonObject var) { //uiFun
+      USER_PRINTF("stage %s %s found\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+    });
+
     for (int i=0; i<1; i++) {
       JsonObject var = mdl->findVar("fx");
       char text[32] = "ins";
@@ -193,10 +204,6 @@ public:
     ui->initText(tableVar, "insDetail", nullptr, 1024, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Detail");
     });
-    ui->initURL(tableVar, "insLink", nullptr, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Show");
-    });
-
     ui->initNumber(parentVar, "syncGroups", 0, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "0=no sync");
     }, [](JsonObject var) { //chFun

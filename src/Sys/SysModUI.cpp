@@ -85,7 +85,7 @@ void SysModUI::loop() {
 
         //send leds info in binary data format
         //tbd: this can crash on 64*64 matrices...
-        // USER_PRINTF("bufSize %d\n", varLoop->bufSize);
+        // USER_PRINTF(" %d\n", varLoop->bufSize);
         if (SysModWeb::ws->count() == 0) USER_PRINTF("%s ws count 0\n", __PRETTY_FUNCTION__);
         if (!SysModWeb::ws->enabled()) USER_PRINTF("%s ws not enabled\n", __PRETTY_FUNCTION__);
         AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 4);
@@ -155,7 +155,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       var = parent["n"].createNestedObject();
       // serializeJson(model, Serial);Serial.println();
     }
-    var["id"] = (char *)id; //copy!!
+    var["id"] = (char *)id; //create a copy!
   }
   else {
     USER_PRINT_NOT("Object %s already defined\n", id);
@@ -163,7 +163,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
   if (!var.isNull()) {
     if (var["type"] != type) 
-      var["type"] = (char *)type; //copy!!
+      var["type"] = (char *)type; //create a copy!!
     if (var["ro"] != readOnly) 
       var["ro"] = readOnly;
     //readOnly's will be deleted, if not already so
@@ -264,7 +264,13 @@ const char * SysModUI::processJson(JsonVariant &json) {
       // commands
       if (pair.key() == "v") {
         // do nothing as it is no real var bu  the verbose command of WLED
-        USER_PRINTF("processJson v type\n", pair.value().as<String>());
+        USER_PRINTF("processJson v type %s\n", pair.value().as<String>());
+      }
+      else if (pair.key() == "view") {
+        // do nothing as it is no real var bu  the verbose command of WLED
+        JsonObject var = mdl->findVar("System");
+        USER_PRINTF("processJson view v:%s n: %d s:%s\n", pair.value().as<String>(), var.isNull(), var["id"].as<const char *>());
+        var["view"] = (char *)value.as<const char *>(); //create a copy!
       }
       else if (pair.key() == "uiFun") { //JsonString can do ==
         //find the select var and collect it's options...

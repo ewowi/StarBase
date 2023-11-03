@@ -17,8 +17,6 @@
 // #include <Esp.h>
 #include <rom/rtc.h>
 
-char SysModSystem::version[16] = "";
-
 SysModSystem::SysModSystem() :SysModule("System") {};
 
 void SysModSystem::setup() {
@@ -65,7 +63,7 @@ void SysModSystem::setup() {
   //calculate version in format YYMMDDHH
   //https://forum.arduino.cc/t/can-you-format-__date__/200818/10
   int month, day, year, hour, minute, second;
-  static const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+  const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
   sscanf(__DATE__, "%s %d %d", version, &day, &year); // Oct 20 2023
   month = (strstr(month_names, version)-month_names)/3+1;
   sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //11:20:23

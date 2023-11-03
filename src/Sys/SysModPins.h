@@ -25,17 +25,18 @@ class SysModPins:public SysModule {
 public:
 
   static PinObject pinObjects[NUM_PINS]; //all pins
-  static bool pinsChanged; //update pins table if pins changed
 
   SysModPins();
   void setup();
   void loop1s();
 
-  static void allocatePin(uint8_t pinNr, const char * owner, const char * details);
-  static void deallocatePin(uint8_t pinNr, const char * owner);
+  void allocatePin(uint8_t pinNr, const char * owner, const char * details);
+  void deallocatePin(uint8_t pinNr, const char * owner);
 
-  static void updateGPIO(JsonObject var);
+  void updateGPIO(JsonObject var);
 
+private:
+  static bool pinsChanged; //update pins table if pins changed
 };
 
 static SysModPins *pins;

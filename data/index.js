@@ -16,6 +16,7 @@ let htmlGenerated = false;
 let jsonValues = {};
 let uiFunCommands = [];
 let model = null; //model.json (as send by the server)
+let savedView = null;
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -62,6 +63,12 @@ function makeWS() {
             console.log("WS receive generateHTML", model);
             generateHTML(null, model); //no parentNode
             htmlGenerated = true;
+
+            if (savedView)
+              showHideModules(gId(savedView));
+            else
+              showHideModules(gId("vApp")); //default
+      
             //send request for uiFun
             if (uiFunCommands.length) { //flush commands not already send
               flushUIFunCommands();
@@ -126,6 +133,12 @@ function generateHTML(parentNode, json, rowNr = -1) {
     if (parentNode == null) {
       parentNode = gId("screenColumn" + screenColumnNr);
       screenColumnNr = (screenColumnNr +1)%nrOfScreenColumns;
+    }
+
+    if (json.id == "System") {
+      console.log("view", json);
+      if (json.view) 
+        savedView = json.view;
     }
 
     var newNode = null; //newNode will be appended to the parentNode after if then else
@@ -202,7 +215,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
             valueNode.addEventListener('change', (event) => {console.log("select change", event);setSelect(event.target);});
 
             if (isPartOfTable) {
-              console.log("genHTML select table", parentNode, json, rowNr, gId(json.id), gId(json.id).innerText, gId(json.id).innerHTML);
+              // console.log("genHTML select table", parentNode, json, rowNr, gId(json.id), gId(json.id).innerText, gId(json.id).innerHTML);
               valueNode.innerHTML = gId(json.id).innerHTML; //gId(json.id) is the <th> where uiFun assigned to option values to
               // let index = 0;
               // // for (var value of json.select) {
@@ -549,7 +562,9 @@ function processVarNode(node, key, json) {
       rowNr++;
     }
     //replace the table body
-    node.replaceChild(tbodyNode, node.lastChild); //replace <table><tbody>
+    node.replaceChild(tbodyNode, node.lastChild); //replace <table><tbody> by tbodyNode
+    if (node.id == "insTbl")
+      setInstanceTableColumns();
   }
   if (json.hasOwnProperty("value") && !overruleValue) { //after select, in case used
     //hasOwnProperty needed to catch also boolean json.value when it is false
@@ -695,11 +710,11 @@ function toggleModal(element) {
 
 	if (isModal) {
 
-    modalPlaceHolder = cE(element.nodeName.toLocaleLowerCase());
+    modalPlaceHolder = cE(element.nodeName.toLocaleLowerCase()); //create canvas or textarea
     modalPlaceHolder.width = element.width;
     modalPlaceHolder.height = element.height;
 
-    element.parentNode.replaceChild(modalPlaceHolder, element);
+    element.parentNode.replaceChild(modalPlaceHolder, element); //replace by modalPlaceHolder
 
     // let btn = cE("button");
     // btn.innerText = "close";
@@ -718,7 +733,7 @@ function toggleModal(element) {
 
     // console.log("toggleModal -", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
     
-    modalPlaceHolder.parentNode.replaceChild(element, modalPlaceHolder); //modalPlaceHolder loses rect
+    modalPlaceHolder.parentNode.replaceChild(element, modalPlaceHolder); // //replace by element. modalPlaceHolder loses rect
   }
 
 	gId('modalView').style.transform = (isModal) ? "translateY(0px)":"translateY(100%)";
@@ -869,4 +884,118 @@ function fetchAndExecute(url, name, parms, callback, callError = null)
   .finally(() => {
     // if (callback) setTimeout(callback,99);
   });
+}
+
+function setInstanceTableColumns() {
+  // let insCols = ["insName", "insLink", "insIp","insType"];
+  // let insTrNode = gId("insName").parentNode;
+
+  let tbl = gId("insTbl");
+  let toStage = tbl.parentElement.parentElement.className != "screenColumn";
+  let thead = tbl.getElementsByTagName('thead')[0];
+  let tbody = tbl.getElementsByTagName('tbody')[0];
+  // console.log("setInstanceTableColumns", tbl, thead, tbody);
+  for (let i=4 ; i<thead.firstChild.childNodes.length; i++) {
+    thead.firstChild.childNodes[i].hidden = !toStage;
+    for (let row of tbody.childNodes) {
+      // console.log("   row", row, row.childNodes, i);
+      if (i < row.childNodes.length) //currently there are comments in the table header ...
+        row.childNodes[i].hidden = !toStage;
+    }
+  }
+}
+
+function showHideModules(node) {
+
+  function toggleInstances(toStage) {
+    let child = gId("Instances");
+    if ((toStage && child.parentElement.className == "screenColumn") || (!toStage && child.parentElement.className != "screenColumn")) {
+      //move back to screenColumn3
+      modalPlaceHolder = cE("div");
+      modalPlaceHolder.id = toStage?"instPH2":"instPH";
+      child.parentNode.replaceChild(modalPlaceHolder, child); //replace by modalPlaceHolder
+      let element = gId(toStage?"instPH":"instPH2");
+      element.parentNode.replaceChild(child, element); //replace by child
+      // gId("instPH").remove();
+    }
+  }
+
+  let sysMods = ["Files", "Print", "System","Network","Model", "Pins", "Modules", "Web", "UI", "Instances"];
+  let panelParentNode = gId("System").parentNode.parentNode;
+  // console.log("showHideModules", node, node.value, node.id, panelParentNode, panelParentNode.childNodes);
+
+  gId("vApp").style.background = "none";
+  gId("vStage").style.background = "none";
+  gId("vUser").style.background = "none";
+  gId("vSys").style.background = "none";
+  gId("vAll").style.background = "none";
+  node.style.backgroundColor = "#FFFFFF";
+
+  switch (node.id) {
+    case "vApp":
+      toggleInstances(false); //put Instance back if needed
+
+      //hide all system modules, show the rest
+      for (let screenColumn of panelParentNode.childNodes) {
+        for (let child of screenColumn.childNodes) {
+          child.hidden = sysMods.includes(child.id);
+        }
+      }
+
+      break;
+    case "vStage":
+      
+      //hide all modules but show instances
+      for (let screenColumn of panelParentNode.childNodes) {
+        for (let child of screenColumn.childNodes) {
+          child.hidden = child.id != "Instances";
+        }
+      }
+
+      toggleInstances(true);
+
+      //set insColumns maximal
+      setInstanceTableColumns();
+
+      // for (let child of insTrNode.childNodes) {
+      //   child.hidden = false;
+      // }
+      // for (let i=4 ; insTrNode.childNodes.length; i++)
+      //   show_hide_column("insTbl", i, true)
+
+      break;
+    case "vSys":
+      //set all modules but sys hidden
+      for (let screenColumn of panelParentNode.childNodes) {
+        for (let child of screenColumn.childNodes) {
+          child.hidden = !sysMods.includes(child.id);
+        }
+      }
+
+      toggleInstances(false);
+
+      //set insColumns minimal
+      setInstanceTableColumns();
+      
+      // for (let child of insTrNode.childNodes) {
+      //   child.hidden = !insCols.includes(child.id);
+      // }
+      // for (let i=4 ; insTrNode.childNodes.length; i++)
+      //   show_hide_column("insTbl", i, false)
+
+      break;
+    case "vAll":
+      //set all modules visible
+      for (let screenColumn of panelParentNode.childNodes) {
+        for (let child of screenColumn.childNodes) {
+          child.hidden = false;
+        }
+      }
+      break;
+  }
+  var command = {};
+  command["view"] = node.id;
+  // console.log("setInput", command);
+
+  requestJson(command);
 }

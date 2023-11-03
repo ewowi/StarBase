@@ -593,7 +593,7 @@ public:
         // web->addResponse(var["id"], "label", "fixture generator");
         JsonArray select = web->addResponseA(var["id"], "select");
         select.add("Left"); //0
-        select.add("Richt"); //1
+        select.add("Right"); //1
       });
       ui->initSelect(parentVar, "firstLedY", 0, false, [](JsonObject var) { //uiFun
         // web->addResponse(var["id"], "label", "fixture generator");

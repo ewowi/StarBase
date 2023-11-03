@@ -17,7 +17,7 @@
 class SysModSystem:public SysModule {
 
 public:
-  static char version[16];
+  char version[16] = "";
 
   SysModSystem();
   void setup();

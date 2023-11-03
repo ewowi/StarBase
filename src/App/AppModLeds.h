@@ -130,7 +130,7 @@ public:
       }
       ui->valChangedForInstancesTemp = true;
     });
-    currentVar["stage"] = true;
+    currentVar["stage"] = false;
 
     currentVar = ui->initSelect(parentVar, "projection", 2, false, [](JsonObject var) { //uiFun.
       // web->addResponse(var["id"], "label", "Effect");
@@ -152,7 +152,7 @@ public:
       doMap = true;
       ui->valChangedForInstancesTemp = true;
     });
-    currentVar["stage"] = true;
+    currentVar["stage"] = false;
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
@@ -257,7 +257,7 @@ public:
 
       //allocatePins
       uint8_t pinNr=0;
-      for (PinObject pinObject:SysModPins::pinObjects) {
+      for (PinObject pinObject:pins->pinObjects) {
         if (strcmp(pinObject.owner, "Leds")== 0) {
           //dirty trick to decode nrOfLedsPerPin
           char * after = strtok((char *)pinObject.details, "-");

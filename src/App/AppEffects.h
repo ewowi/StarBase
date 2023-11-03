@@ -219,7 +219,7 @@ public:
             float d = ledsV.distance(3.5, 3.5, 0, x, z, 0)/9.899495*mH;
             uint16_t height = floor(mH/2.0+sinf(d/ripple_interval + now/100/((256.0-128.0)/20.0))*mH/2.0); //between 0 and 8
 
-            ledsV[x + height * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+            ledsV[ledsV.XYZ(x, height, z)] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
         }
     }
   }
@@ -260,7 +260,7 @@ public:
                 d = ledsV.distance(x, y, z, origin_x, origin_y, origin_z);
 
                 if (d>diameter && d<diameter+1) {
-                    ledsV[x + ledsV.heightV * mW + z * mW * mH] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+                  ledsV[ledsV.XYZ(x, ledsV.heightV, z)] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
                 }
             }
         }
@@ -270,7 +270,7 @@ public:
 
 //XY used by blur2d
 uint16_t XY( uint8_t x, uint8_t y) {
-  return x + y * ledsV.widthV;
+  return ledsV.XY(x,y);
 }
 
 //Frizzles2D inspired by WLED, Stepko, Andrew Tuline, https://editor.soulmatelights.com/gallery/640-color-frizzles
@@ -287,7 +287,7 @@ public:
       uint8_t x = beatsin8(mdl->getValue("BPM").as<int>()/8 + i, 0, ledsV.widthV - 1);
       uint8_t y = beatsin8(mdl->getValue("intensity").as<int>()/8 - i, 0, ledsV.heightV - 1);
       CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
-      ledsV[x + y * ledsV.widthV] = color;
+      ledsV[XY(x,y)] = color;
     }
     blur2d(ledsP, ledsV.widthP, ledsV.heightP, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
   }
@@ -312,12 +312,12 @@ public:
       size_t x = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, ledsV.widthV-1 ); //instead of call%width
 
       for (size_t y = 0; y <  ledsV.heightV; y++) {
-        ledsV[x + y * ledsV.widthV] = CHSV( gHue, 255, 192);
+        ledsV[XY(x,y)] = CHSV( gHue, 255, 192);
       }
     } else {
       size_t y = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, ledsV.heightV-1 ); //instead of call%height
       for (size_t x = 0; x <  ledsV.widthV; x++) {
-        ledsV[x + y * ledsV.widthV] = CHSV( gHue, 255, 192);
+        ledsV[XY(x,y)] = CHSV( gHue, 255, 192);
       }
     }
   }
@@ -380,7 +380,7 @@ public:
         valueG = gamma8(cos8(valueG));
         valueB = gamma8(cos8(valueB));
 
-        ledsV[x + y * ledsV.widthV] = CRGB(valueR, valueG, valueB);
+        ledsV[XY(x,y)] = CRGB(valueR, valueG, valueB);
       }
     }
   }
@@ -451,7 +451,7 @@ public:
         uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + *step/2) + radius - *step + angle * legs);
         intensity = map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
         CRGB color = ColorFromPalette(palette, *step / 2 - radius, intensity);
-        ledsV[x + y * ledsV.widthV] = color;
+        ledsV[XY(x,y)] = color;
       }
     }
   }
@@ -494,7 +494,7 @@ public:
           //SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing
           unsigned palIndex = (256*ylocn) + phase/2 + (i* freqX)/64;
           // SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(palIndex, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing - color follows rotation
-          ledsV[xlocn + ylocn * ledsV.widthV] = ColorFromPalette(palette, palIndex);
+          ledsV[XY(xlocn, ylocn)] = ColorFromPalette(palette, palIndex);
         }
     } else
     for (int i=0; i < 256; i ++) {
@@ -504,7 +504,7 @@ public:
       xlocn = (cols < 2) ? 1 : (map(2*xlocn, 0,511, 0,2*(cols-1)) +1) /2;    // softhack007: "*2 +1" for proper rounding
       ylocn = (rows < 2) ? 1 : (map(2*ylocn, 0,511, 0,2*(rows-1)) +1) /2;    // "rows > 2" is needed to avoid div/0 in map()
       // SEGMENT.setPixelColorXY((uint8_t)xlocn, (uint8_t)ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0));
-      ledsV[xlocn + ylocn * ledsV.widthV] = ColorFromPalette(palette, now/100+i);
+      ledsV[XY(xlocn, ylocn)] = ColorFromPalette(palette, now/100+i);
     }
   }
   bool controls(JsonObject parentVar) {
@@ -716,11 +716,11 @@ public:
 
         ledColor = ColorFromPalette(palette, (uint8_t)colorIndex);
 
-        ledsV.setPixelColor(x + ledsV.widthV * (rows-1 - y), ledColor);
+        ledsV.setPixelColor(XY(x, rows - 1 - y), ledColor);
       }
 
       if ((ripple < 255) && (previousBarHeight[x] > 0) && (previousBarHeight[x] < rows))  // WLEDMM avoid "overshooting" into other segments
-        ledsV.setPixelColor(x + ledsV.widthV * (rows - previousBarHeight[x]), ledColor); 
+        ledsV.setPixelColor(XY(x, rows - previousBarHeight[x]), ledColor); 
 
       if (rippleTime && previousBarHeight[x]>0) previousBarHeight[x]--;    //delay/ripple effect
 

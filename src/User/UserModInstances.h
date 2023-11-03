@@ -135,9 +135,12 @@ public:
           print->fFormat(text, sizeof(text)-1, "ver:%d up:%d br:%d fx:%d pal:%d pro:%d syn:%d d:%d:%d-%d", node.version, node.sys.upTime, node.app.bri, node.app.fx, node.app.palette, node.app.projection, node.sys.syncGroups, node.sys.dmx.universe, node.sys.dmx.start, node.sys.dmx.start + node.sys.dmx.count - 1);
         }
 
-        row.add(node.app.fx);
+        mdl->findVars("stage", true, [](JsonObject var) { //uiFun
+        });
+
         row.add(false);
         row.add(node.app.bri);
+        row.add(node.app.fx);
         row.add(text);
       }
     });
@@ -160,47 +163,31 @@ public:
 
     //find stage variables
     // JsonVariant x = true;
-    mdl->findVars("stage", true, [](JsonObject var) { //uiFun
+    mdl->findVars("stage", true, [tableVar](JsonObject var) { //uiFun
       USER_PRINTF("stage %s %s found\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-    });
-
-    for (int i=0; i<1; i++) {
-      JsonObject var = mdl->findVar("fx");
       char text[32] = "ins";
       strcat(text, var["id"]);
+      JsonObject newVar;
       if (var["type"] == "select") {
-        JsonObject newVar = ui->initSelect(tableVar, text, 0, false, nullptr, [](JsonObject var) { //chFun
+        newVar = ui->initSelect(tableVar, text, 0, false, nullptr, [](JsonObject var) { //chFun
           USER_PRINTF("flex %s %s changed\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
         });
-        newVar["uiFun"] = var["uiFun"];
+      }
+      else if (var["type"] == "checkbox") {
+        newVar = ui->initCheckBox(tableVar, text, false, false, nullptr, [](JsonObject var) { //chFun
+          USER_PRINTF("flex %s %d changed\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+        });
+      }
+      else if (var["type"] == "range") {
+        newVar = ui->initSlider(tableVar, text, 0, 0, 255, {0}, false, nullptr, [](JsonObject var) { //chFun
+          USER_PRINTF("flex %s %d changed\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+        });
       }
 
-      // JsonObject var = mdl->findVar("serverName");
-      // char text[32] = "ins";
-      // strcat(text, var["id"]);
-      // JsonObject newVar = ui->initText(tableVar, text, nullptr, var["max"], false, nullptr, [](JsonObject var) { //chFun
-          // USER_PRINTF("flex %s %s changed\n", var["id"].as<const char *>(), var["value"].as<const char *>());
-      // });
-      // newVar["uiFun"] = var["uiFun"];
-      {
-        JsonObject var = mdl->findVar("on");
-        char text[32] = "ins";
-        strcat(text, var["id"]);
-        JsonObject newVar = ui->initCheckBox(tableVar, text, false, false, nullptr, [](JsonObject var) { //chFun
-          USER_PRINTF("flex %s %d changed\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-        });
-        newVar["uiFun"] = var["uiFun"];
-      }
-      {
-        JsonObject var = mdl->findVar("bri");
-        char text[32] = "ins";
-        strcat(text, var["id"]);
-        JsonObject newVar = ui->initSlider(tableVar, text, 0, 0, 255, {0}, false, nullptr, [](JsonObject var) { //chFun
-          USER_PRINTF("flex %s %d changed\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-        });
-        newVar["uiFun"] = var["uiFun"];
-      }
-    }
+      if (newVar) newVar["uiFun"] = var["uiFun"];
+
+    });
+
     ui->initText(tableVar, "insDetail", nullptr, 1024, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Detail");
     });
@@ -377,7 +364,7 @@ public:
     strncpy(starModMessage.header.name, serverName?serverName:"StarMod", sizeof(starModMessage.header.name)-1);
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
     starModMessage.header.nodeId = ip[3]; //WLED: used in map of nodes as index!
-    starModMessage.header.version = atoi(SysModSystem::version);
+    starModMessage.header.version = atoi(sys->version);
     starModMessage.sys.type = 1; //StarMod
     starModMessage.sys.upTime = millis()/1000;
     starModMessage.sys.syncGroups = mdl->getValue("syncGroups");

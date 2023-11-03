@@ -559,7 +559,7 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
 void SysModWeb::addResponse(const char * id, const char * key, const char * value) {
   JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  responseVariant[id][key] = (char *)value; //copy!!
+  responseVariant[id][key] = (char *)value; //create a copy!!
 }
 
 void SysModWeb::addResponseArray(const char * id, const char * key, JsonArray value) {
@@ -625,8 +625,20 @@ void SysModWeb::serveJson(AsyncWebServerRequest *request) {
 
   AsyncJsonResponse * response;
 
-  // if (request->url().indexOf("si")    > 0) {
-    USER_PRINTF("serveJson si %s, %s\n", request->client()->remoteIP().toString().c_str(), request->url().c_str());
+  // return model.json
+  if (request->url().indexOf("mdl") > 0) {
+    JsonArray model = SysModModel::model->as<JsonArray>();
+    USER_PRINTF("serveJson model %s, %s %d %d %d %d\n", request->client()->remoteIP().toString().c_str(), request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), SysModModel::model->capacity());
+
+    response = new AsyncJsonResponse(true,  model.memoryUsage()); //array tbd: here copy is mode, see WLED for using reference
+    JsonArray root = response->getRoot();
+
+    // root = module does not work? so add each element individually
+    for (JsonObject module: model)
+      root.add(module);
+  }
+  else { //WLED compatible
+    USER_PRINTF("serveJson %s, %s\n", request->client()->remoteIP().toString().c_str(), request->url().c_str());
     response = new AsyncJsonResponse(false, 5000); //object
     JsonObject root = response->getRoot();
 
@@ -656,18 +668,7 @@ void SysModWeb::serveJson(AsyncWebServerRequest *request) {
     root["info"]["mac"] = (char *)escapedMac.c_str(); //copy mdns->escapedMac gives LoadProhibited crash, tbd: find out why
     root["info"]["ip"] = (char *)WiFi.localIP().toString().c_str();
     // print->printJson("serveJson", root);
-  // }
-  // else { // return model.json
-  //   JsonArray model = SysModModel::model->as<JsonArray>();
-  //   USER_PRINTF("serveJson model %s, %s %d %d %d %d\n", request->client()->remoteIP().toString().c_str(), request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), SysModModel::model->capacity());
-
-  //   response = new AsyncJsonResponse(true,  model.memoryUsage()); //array tbd: here copy is mode, see WLED for using reference
-  //   JsonArray root = response->getRoot();
-
-  //   // root = module does not work? so add each element individually
-  //   for (JsonObject module: model)
-  //     root.add(module);
-  // }
+  }
 
   response->setLength();
   request->send(response);

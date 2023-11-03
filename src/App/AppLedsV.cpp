@@ -37,7 +37,7 @@ void LedsV::fixtureProjectAndMap() {
 
     //deallocate all led pins
     uint8_t pinNr = 0;
-    for (PinObject pinObject: SysModPins::pinObjects) {
+    for (PinObject pinObject: pins->pinObjects) {
       if (strcmp(pinObject.owner, "Leds") == 0)
         pins->deallocatePin(pinNr, "Leds");
       pinNr++;
@@ -119,22 +119,23 @@ void LedsV::fixtureProjectAndMap() {
                 depthV = 1;
 
                 //scaling (check rounding errors)
+                //1024 crash in makebuffer...
                 float scale = 1;
-                if (widthV * heightV > 1024)
-                  scale = round(sqrt((float)1024.0 / (widthV * heightV))); //avoid very high virtual resolutions
+                if (widthV * heightV > 256)
+                  scale = (sqrt((float)256.0 / (widthV * heightV))); //avoid very high virtual resolutions
                 widthV *= scale;
                 heightV *= scale;
                 x = (x+1) * scale - 1;
                 y = (y+1) * scale - 1;
 
-                bucket = x + y * widthV;
+                bucket = XY(x, y);
                 // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
               }
               else if (fixtureDimension == _3D) {
                 widthV = widthP + heightP;
                 heightV = depthP;
                 depthV = 1;
-                bucket = (x + y + 1) + z * widthV;
+                bucket = XY(x + y + 1, z);
                 // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, widthV);
               }
             }
@@ -164,14 +165,8 @@ void LedsV::fixtureProjectAndMap() {
                 widthV = widthP;
                 heightV = heightP;
                 depthV = 1;
-                float scale = 1;
-                if (widthV * heightV > 256)
-                  scale = sqrt((float)256.0 / (widthV * heightV)); //avoid very high virtual resolutions
-                widthV *= scale;
-                heightV *= scale;
-                x = (x+1) * scale - 1;
-                y = (y+1) * scale - 1;
-                bucket = x + y * widthV;
+
+                bucket = XY(x, y);
                 // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
               }
             }
@@ -194,8 +189,8 @@ void LedsV::fixtureProjectAndMap() {
                   float xNew = sin(x * TWO_PI / (float)(widthV-1)) * widthV;
                   float yNew = cos(x * TWO_PI / (float)(widthV-1)) * heightV;
 
-                  xNew = round((y/(heightV-1.0) * xNew + widthV) / 2.0);
-                  yNew = round((y/(heightV-1.0) * yNew + heightV) / 2.0);
+                  xNew = round(((heightV-1.0-y)/(heightV-1.0) * xNew + widthV) / 2.0);
+                  yNew = round(((heightV-1.0-y)/(heightV-1.0) * yNew + heightV) / 2.0);
 
                   // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
 
@@ -209,7 +204,7 @@ void LedsV::fixtureProjectAndMap() {
 
                   if (bucket == (uint8_t)xNew + (uint8_t)yNew * widthV) {
                     // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", bucket, x+y*widthV, x,y, widthV, xNew, yNew, widthV, distance);
-                    bucket = x+y*widthV;
+                    bucket = XY(x, y);
                     minDistance = 0; // stop looking further
                   }
                 }
@@ -247,7 +242,7 @@ void LedsV::fixtureProjectAndMap() {
       else { // end of leds array
 
         //check if pin already allocated, if so, extend range in details
-        PinObject pinObject = SysModPins::pinObjects[currPin];
+        PinObject pinObject = pins->pinObjects[currPin];
         char details[32] = "";
         if (strcmp(pinObject.owner, "Leds") == 0) { //if owner
 
@@ -262,7 +257,7 @@ void LedsV::fixtureProjectAndMap() {
             USER_PRINTF("pins extend leds %d: %s\n", currPin, details);
             //tbd: more check
 
-            strncpy(SysModPins::pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
+            strncpy(pins->pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
           }
         }
         else {//allocate new pin

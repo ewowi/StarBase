@@ -29,7 +29,15 @@
   </script>
 </head>
 <body onload="onLoad()">
-  <h1>StarMod by MoonModules 💫 <div id="instanceName"></div></h1>
+  <div class="screenBox">
+    <h1>StarMod by MoonModules 💫 <div id="instanceName"></div></h1>
+    <input type="button" value="App" id="vApp" onclick="showHideModules(this)">
+    <input type="button" value="Stage" id="vStage" onclick="showHideModules(this)">
+    <input type="button" value="User" id="vUser" onclick="showHideModules(this)">
+    <input type="button" value="System" id="vSys" onclick="showHideModules(this)">
+    <input type="button" value="All" id="vAll" onclick="showHideModules(this)">
+    <div id="instPH"></div>
+  </div>
   <div class="container">
     <div id="screenColumn0" class = "screenColumn">
     </div>
@@ -42,5 +50,6 @@
   </div>
   <div id="connind">&#9790;</div>
   <div id="modalView" class="modal"></div>
+  <p style="color:grey;"> (c) 2023 MoonModules Licensed under GPL v3</p>
 </body>
 </html>

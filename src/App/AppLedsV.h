@@ -70,6 +70,13 @@ public:
     return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
   }
 
+  uint16_t XY( uint8_t x, uint8_t y) {
+    return x + y * widthV;
+  }
+  uint16_t XYZ( uint8_t x, uint8_t y, uint8_t z) {
+    return x + y * widthV + z * widthV * heightV;
+  }
+
   void fixtureProjectAndMap();
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=

@@ -33,7 +33,7 @@ class UserModDDP:public SysModule {
 
 public:
 
-  static IPAddress targetIp; //tbd: targetip also configurable from fixtures, and ddp instead of pin output
+  IPAddress targetIp; //tbd: targetip also configurable from fixtures, and ddp instead of pin output
 
   UserModDDP() :SysModule("DDP") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -54,17 +54,24 @@ public:
       web->addResponse(var["id"], "label", "Instance");
       web->addResponse(var["id"], "comment", "Instance to send data");
       JsonArray select = web->addResponseA(var["id"], "select");
-      for (NodeInfo node: UserModInstances::nodes) {
-        char option[32] = { 0 };
-        strncpy(option, node.ip.toString().c_str(), sizeof(option)-1);
-        strncat(option, " ", sizeof(option)-1);
-        strncat(option, node.name, sizeof(option)-1);
-        select.add(option);
+      JsonArray instanceObject = select.createNestedArray();
+      instanceObject.add(0);
+      instanceObject.add("no sync");
+      for (auto node=instances->nodes.begin(); node!=instances->nodes.end(); ++node) {
+        if (node->ip != WiFi.localIP()) {
+          char option[32] = { 0 };
+          strncpy(option, node->ip.toString().c_str(), sizeof(option)-1);
+          strncat(option, " ", sizeof(option)-1);
+          strncat(option, node->name, sizeof(option)-1);
+          instanceObject = select.createNestedArray();
+          instanceObject.add(node->ip[3]);
+          instanceObject.add(option);
+        }
       }
-    }, [](JsonObject var) { //chFun
+    }, [this](JsonObject var) { //chFun
       size_t ddpInst = var["value"];
-      if (ddpInst >=0 && ddpInst < UserModInstances::nodes.size()) {
-        targetIp = UserModInstances::nodes[ddpInst].ip;
+      if (ddpInst >=0 && ddpInst < instances->nodes.size()) {
+        targetIp = instances->nodes[ddpInst].ip;
         USER_PRINTF("Start DDP to %s\n", targetIp.toString().c_str());
       }
     }); //ddpInst
@@ -154,5 +161,3 @@ public:
 };
 
 static UserModDDP *ddpmod;
-
-IPAddress UserModDDP::targetIp;

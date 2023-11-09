@@ -141,7 +141,7 @@ public:
     // ledsV[ledsV.nrOfLedsV -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
   bool controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "BPM", 60, 0, 255, 0, false, [](JsonObject var) { //uiFun
+    ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "in BPM!");
     });
     ui->initSlider(parentVar, "fade", 128);
@@ -719,8 +719,8 @@ public:
         ledsV.setPixelColor(XY(x, rows - 1 - y), ledColor);
       }
 
-      if ((ripple < 255) && (previousBarHeight[x] > 0) && (previousBarHeight[x] < rows))  // WLEDMM avoid "overshooting" into other segments
-        ledsV.setPixelColor(XY(x, rows - previousBarHeight[x]), ledColor); 
+      if ((ripple > 0) && (previousBarHeight[x] > 0) && (previousBarHeight[x] < rows))  // WLEDMM avoid "overshooting" into other segments
+        ledsV.setPixelColor(XY(x, rows - previousBarHeight[x]), CHSV( gHue, 255, 192)); // take gHue color for the time being
 
       if (rippleTime && previousBarHeight[x]>0) previousBarHeight[x]--;    //delay/ripple effect
 
@@ -729,7 +729,7 @@ public:
 
   bool controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "fadeOut", 255);
-    ui->initSlider(parentVar, "ripple", 255);
+    ui->initSlider(parentVar, "ripple", 128);
     ui->initCheckBox(parentVar, "colorBars");
     ui->initCheckBox(parentVar, "smoothBars", true); //default on
 

@@ -98,7 +98,7 @@ void SysModWeb::loop() {
 
   //currently not used as each variable is send individually
   if (this->modelUpdated) {
-    sendDataWs(*SysModModel::model); //send new data, all clients, no def
+    sendDataWs(*mdl->model); //send new data, all clients, no def
 
     this->modelUpdated = false;
   }
@@ -155,7 +155,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   // }
   if (type == WS_EVT_CONNECT) {
     print->printClient("WS client connected", client);
-    sendDataWs(*SysModModel::model, client); //send definition to client
+    sendDataWs(*mdl->model, client); //send definition to client
     clientsChanged = true;
   } else if (type == WS_EVT_DISCONNECT) {
     print->printClient("WS Client disconnected", client);
@@ -498,15 +498,18 @@ bool SysModWeb::addUpdate(const char * uri) {
       // lastEditTime = millis(); // make sure PIN does not lock during update
       Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000);
     }
-    if(!Update.hasError()) Update.write(data, len);
-    if(final){
-      if(Update.end(true)){
-        USER_PRINTF("Update Success\n");
-      } else {
-        USER_PRINTF("Update Failed\n");
-        // usermods.onUpdateBegin(false); // notify usermods that update has failed (some may require task init)
-        // WLED::instance().enableWatchdog();
-      }
+    if (!Update.hasError()) Update.write(data, len);
+    if (final) {
+      char message[64];
+      const char * serverName = mdl->getValue("serverName");
+
+      print->fFormat(message, sizeof(message)-1, "Update of %s (%d) %s", serverName, WiFi.localIP()[3], Update.end(true)?"Successful":"Failed");
+
+      USER_PRINTF("%s\n", message);
+      request->send(200, "text/plain", message);
+
+      // usermods.onUpdateBegin(false); // notify usermods that update has failed (some may require task init)
+      // WLED::instance().enableWatchdog();
     }
   });
   return true;
@@ -627,8 +630,8 @@ void SysModWeb::serveJson(AsyncWebServerRequest *request) {
 
   // return model.json
   if (request->url().indexOf("mdl") > 0) {
-    JsonArray model = SysModModel::model->as<JsonArray>();
-    USER_PRINTF("serveJson model %s, %s %d %d %d %d\n", request->client()->remoteIP().toString().c_str(), request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), SysModModel::model->capacity());
+    JsonArray model = mdl->model->as<JsonArray>();
+    USER_PRINTF("serveJson model %s, %s %d %d %d %d\n", request->client()->remoteIP().toString().c_str(), request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), mdl->model->capacity());
 
     response = new AsyncJsonResponse(true,  model.memoryUsage()); //array tbd: here copy is mode, see WLED for using reference
     JsonArray root = response->getRoot();

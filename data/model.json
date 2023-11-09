@@ -70,14 +70,14 @@
           ]
         },
         {
-          "id": "palette",
+          "id": "pal",
           "type": "select",
           "ro": false,
           "o": 10,
           "value": "2"
         },
         {
-          "id": "projection",
+          "id": "pro",
           "type": "select",
           "ro": false,
           "o": 11,
@@ -330,7 +330,7 @@
           ]
         },
         {
-          "id": "syncGroups",
+          "id": "syncMaster",
           "type": "number",
           "ro": false,
           "o": 44,

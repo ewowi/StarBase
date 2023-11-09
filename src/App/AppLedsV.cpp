@@ -152,11 +152,11 @@ void LedsV::fixtureProjectAndMap() {
               depthV = 1; //no 3D
               if (fixtureDimension == _2D) {
 
-                float xNew = sin(x * TWO_PI / (float)(widthP-1));
-                float yNew = cos(x * TWO_PI / (float)(widthP-1));
+                float xNew = sin(x * TWO_PI / (float)(widthV-1)) * widthV;
+                float yNew = cos(x * TWO_PI / (float)(widthV-1)) * heightV;
 
-                xNew = ((heightP-y-1) * xNew + widthP) / 2.0;
-                yNew = ((heightP-y-1) * -yNew + heightP) / 2.0;
+                xNew = round(((heightV-1.0-y)/(heightV-1.0) * xNew + widthV) / 2.0);
+                yNew = round(((heightV-1.0-y)/(heightV-1.0) * yNew + heightV) / 2.0);
 
                 USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
                 x = xNew;

@@ -50,13 +50,15 @@ public:
     parentVar = ui->initModule(parentVar, name);
     JsonObject currentVar;
 
-    currentVar = ui->initCheckBox(parentVar, "on", true, false, nullptr, [](JsonObject var) { //chFun
+    currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "On/Off");
+    }, [](JsonObject var) { //chFun
       ui->valChangedForInstancesTemp = true;
     });
     currentVar["stage"] = true;
 
     //logarithmic slider (10)
-    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, 10, false, [](JsonObject var) { //uiFun
+    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Brightness");
     }, [](JsonObject var) { //chFun
       uint8_t bri = var["value"];
@@ -68,7 +70,7 @@ public:
       USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
       ui->valChangedForInstancesTemp = true;
     });
-    currentVar["log"] = true;
+    currentVar["log"] = true; //logarithmic
     currentVar["stage"] = true; //these values override model.json???
 
     ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
@@ -105,7 +107,8 @@ public:
     });
     currentVar["stage"] = true;
 
-    currentVar = ui->initSelect(parentVar, "palette", 4, false, [](JsonObject var) { //uiFun.
+    currentVar = ui->initSelect(parentVar, "pal", 4, false, [](JsonObject var) { //uiFun.
+      web->addResponse(var["id"], "label", "Palette");
       JsonArray select = web->addResponseA(var["id"], "select");
       select.add("CloudColors");
       select.add("LavaColors");
@@ -130,10 +133,10 @@ public:
       }
       ui->valChangedForInstancesTemp = true;
     });
-    currentVar["stage"] = false;
+    currentVar["stage"] = true;
 
-    currentVar = ui->initSelect(parentVar, "projection", 2, false, [](JsonObject var) { //uiFun.
-      // web->addResponse(var["id"], "label", "Effect");
+    currentVar = ui->initSelect(parentVar, "pro", 2, false, [](JsonObject var) { //uiFun.
+      web->addResponse(var["id"], "label", "Projection");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
       JsonArray select = web->addResponseA(var["id"], "select");
       select.add("None"); // 0
@@ -152,7 +155,7 @@ public:
       doMap = true;
       ui->valChangedForInstancesTemp = true;
     });
-    currentVar["stage"] = false;
+    currentVar["stage"] = true;
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
@@ -211,9 +214,9 @@ public:
       // if (e131mod->isEnabled) {
           e131mod->patchChannel(0, "bri", 255); //should be 256??
           e131mod->patchChannel(1, "fx", effects.size());
-          e131mod->patchChannel(2, "palette", 8); //tbd: calculate nr of palettes (from select)
+          e131mod->patchChannel(2, "pal", 8); //tbd: calculate nr of palettes (from select)
           // //add these temporary to test remote changing of this values do not crash the system
-          // e131mod->patchChannel(3, "projection", Projections::count);
+          // e131mod->patchChannel(3, "pro", Projections::count);
           // e131mod->patchChannel(4, "fixture", 5); //assuming 5!!!
 
           ui->valChangedForInstancesTemp = true;

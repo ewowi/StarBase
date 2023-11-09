@@ -59,7 +59,7 @@ size_t SysModPrint::print(const char * format, ...) {
 
   va_start(args, format);
 
-  Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"α":"β");
+  Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"λ":"α"); //looptask / asyncTCP task
 
   for (size_t i = 0; i < strlen(format); i++) 
   {
@@ -136,7 +136,12 @@ size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {
 }
 
 void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
-  print("%s  %u / %u (%u%%) (%u %u %u)\n", text, source.memoryUsage(), source.capacity(), 100 * source.memoryUsage() / source.capacity(), source.size(), source.overflowed(), source.nesting());
+  uint8_t percentage;
+  if (source.capacity() == 0)
+    percentage = 100;
+  else
+    percentage = 100 * source.memoryUsage() / source.capacity();
+  print("%s  %u / %u (%u%%) (%u %u %u)\n", text, source.memoryUsage(), source.capacity(), percentage, source.size(), source.overflowed(), source.nesting());
 }
 
 void SysModPrint::printClient(const char * text, AsyncWebSocketClient * client) {

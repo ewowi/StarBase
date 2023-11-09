@@ -15,7 +15,8 @@
 
 // https://stackoverflow.com/questions/59111610/how-do-you-declare-a-lambda-function-using-typedef-and-then-use-it-by-passing-to
 typedef std::function<void(JsonObject)> UCFun;
-typedef void(*LoopFun)(JsonObject, uint8_t*);
+// typedef void(*LoopFun)(JsonObject, uint8_t*); //std::function is crashing...
+typedef std::function<void(JsonObject, uint8_t*)> LoopFun;
 
 struct VarLoop {
   JsonObject var;
@@ -46,7 +47,7 @@ static uint8_t linearToLogarithm(JsonObject var, uint8_t value) {
 class SysModUI:public SysModule {
 
 public:
-  bool valChangedForInstancesTemp = false;
+  bool valChangedForInstancesTemp = false; //tbd: move mechanism to UserModInstances as there it will be used
 
   SysModUI();
 
@@ -77,7 +78,7 @@ public:
   }
 
   //init a range slider, range between 0 and 255!
-  JsonObject initSlider(JsonObject parent, const char * id, int value, int min = 0, int max = 255, int log = 0, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+  JsonObject initSlider(JsonObject parent, const char * id, int value, int min = 0, int max = 255, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "range", value, min, max, readOnly, uiFun, chFun, loopFun);
   }
 
@@ -138,12 +139,12 @@ public:
   void processUiFun(const char * id);
 
 private:
-  static bool varLoopsChanged;
+  static bool varLoopsChanged;// = false;
 
   static int varCounter; //not static crashes ??? (not called async...?)
 
-  static std::vector<UCFun> ucFunctions;
-  static std::vector<VarLoop> loopFunctions;
+  static std::vector<UCFun> ucFunctions; //static because of static functions setChFunAndWs, processJson...
+  static std::vector<VarLoop> loopFunctions; //non static crashing ...
 
 };
 

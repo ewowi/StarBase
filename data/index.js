@@ -135,10 +135,16 @@ function generateHTML(parentNode, json, rowNr = -1) {
       screenColumnNr = (screenColumnNr +1)%nrOfScreenColumns;
     }
 
+    if (json) {
     if (json.id == "System") {
       console.log("view", json);
       if (json.view) 
         savedView = json.view;
+    }
+    }
+    else {
+      console.log("json no ?", json);
+      return;
     }
 
     var newNode = null; //newNode will be appended to the parentNode after if then else
@@ -514,8 +520,14 @@ function processVarNode(node, key, json) {
       }
       for (var value of json.select) {
         let optNode = cE("option");
-        optNode.value = index;
-        optNode.text = value;
+        if (Array.isArray(value)) {
+          optNode.value = value[0];
+          optNode.text = value[1];
+        }
+        else {
+          optNode.value = index;
+          optNode.text = value;
+        }
         node.appendChild(optNode);
         index++;
       }
@@ -541,16 +553,16 @@ function processVarNode(node, key, json) {
 
         //call generateHTML to create the variable in the UI
         // console.log("table cell generateHTML", tdNode, variable, variable.n, colNr, rowNr);
-        let varx = variable.n[colNr];
-        let newNode = generateHTML(tdNode, varx, rowNr); //no <p><label>
+        let columnVar = variable.n[colNr];
+        let newNode = generateHTML(tdNode, columnVar, rowNr); //no <p><label>
         if (newNode) {
           //very strange: gId(newNode.id) is not working here. Delay before it is in the dom??? (workaround create processVarNode function)
           let updateJson;
-          if (varx.type == "checkbox" || varx.type == "number" || varx.type == "select")
+          if (typeof columnRow == 'number')
             updateJson = `{"value":${columnRow}}`;
           else
             updateJson = `{"value":"${columnRow}"}`
-          // console.log("tablecolumn", rowNr, colNr, newNode, varx, updateJson, JSON.parse(updateJson), gId(newNode.id));
+          // console.log("tablecolumn", rowNr, colNr, newNode, columnVar, updateJson, JSON.parse(updateJson), gId(newNode.id));
           //call processVarNode to give the variable a value
           processVarNode(newNode, newNode.id, JSON.parse(updateJson));
         }
@@ -894,14 +906,23 @@ function setInstanceTableColumns() {
   let toStage = tbl.parentElement.parentElement.className != "screenColumn";
   let thead = tbl.getElementsByTagName('thead')[0];
   let tbody = tbl.getElementsByTagName('tbody')[0];
-  // console.log("setInstanceTableColumns", tbl, thead, tbody);
-  for (let i=4 ; i<thead.firstChild.childNodes.length; i++) {
-    thead.firstChild.childNodes[i].hidden = !toStage;
+
+  function showHideColumn(colNr, doHide) {
+    thead.firstChild.childNodes[colNr].hidden = doHide;
     for (let row of tbody.childNodes) {
       // console.log("   row", row, row.childNodes, i);
-      if (i < row.childNodes.length) //currently there are comments in the table header ...
-        row.childNodes[i].hidden = !toStage;
+      if (colNr < row.childNodes.length) //currently there are comments in the table header ...
+        row.childNodes[colNr].hidden = doHide;
     }
+  }
+
+  // console.log("setInstanceTableColumns", tbl, thead, tbody);
+  columnNr = 2;
+  for (; columnNr<6; columnNr++) {
+    showHideColumn(columnNr, toStage);
+  }
+  for (; columnNr<thead.firstChild.childNodes.length; columnNr++) {
+    showHideColumn(columnNr, !toStage);
   }
 }
 

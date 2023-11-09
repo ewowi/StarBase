@@ -148,7 +148,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
   if (var.isNull()) {
     USER_PRINTF("initVar create new %s: %s\n", type, id);
     if (parent.isNull()) {
-      JsonArray vars = SysModModel::model->as<JsonArray>();
+      JsonArray vars = mdl->model->as<JsonArray>();
       var = vars.createNestedObject();
     } else {
       if (parent["n"].isNull()) parent.createNestedArray("n"); //if parent exist and no "n" array, create it

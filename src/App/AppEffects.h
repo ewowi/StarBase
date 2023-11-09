@@ -78,6 +78,26 @@ public:
   virtual bool controls(JsonObject parentVar) {return false;}
 };
 
+class SolidEffect: public Effect {
+public:
+  const char * name() {
+    return "Solid 1D";
+  }
+  void loop() {
+    uint8_t red = mdl->getValue("Red");
+    uint8_t green = mdl->getValue("Green");
+    uint8_t blue = mdl->getValue("Blue");
+    CRGB color = CRGB(red, green, blue);
+    fill_solid( ledsP, ledsV.nrOfLedsP, color);
+  }
+  bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "Red", 182);
+    ui->initSlider(parentVar, "Green", 15);
+    ui->initSlider(parentVar, "Blue", 98);
+    return true;
+  }
+};
+
 class RainbowEffect: public Effect {
 public:
   const char * name() {
@@ -803,6 +823,7 @@ public:
 
   Effects() {
     //create effects before fx.chFun is called
+    effects.push_back(new SolidEffect);
     effects.push_back(new RainbowEffect);
     effects.push_back(new RainbowWithGlitterEffect);
     effects.push_back(new SinelonEffect);

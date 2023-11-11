@@ -22,6 +22,7 @@
 #include "Sys/SysModModel.h"
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
+#include "Sys/SysModOTA.h"
 #include "User/UserModInstances.h"
 #include "User/UserModMDNS.h"
 #ifdef APPMOD_LEDS
@@ -56,6 +57,7 @@ void setup() {
   ui = new SysModUI();
   sys = new SysModSystem();
   pins = new SysModPins();
+  ota = new SysModOTA();
   instances = new UserModInstances();
   mdns = new UserModMDNS();
   #ifdef APPMOD_LEDS
@@ -92,6 +94,7 @@ void setup() {
   mdls->add(print);
   mdls->add(web);
   mdls->add(net);
+  mdls->add(ota);
   #ifdef APPMOD_LEDS
     #ifdef USERMOD_DDP
       mdls->add(ddpmod);

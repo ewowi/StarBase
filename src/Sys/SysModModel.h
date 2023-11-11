@@ -14,6 +14,7 @@
 #include "ArduinoJson.h"
 
 typedef std::function<void(JsonObject)> FindFun;
+typedef std::function<void(JsonObject, size_t)> ChangeFun;
 
 class SysModModel:public SysModule {
 
@@ -31,13 +32,13 @@ public:
   void cleanUpModel(JsonArray vars);
 
   //sets the value of var with id
-  static JsonObject setValueC(const char * id, const char * value);
+  static JsonObject setValueC(const char * id, const char * value, uint8_t rowNr = uint8Max);
 
   //setValue int
-  static JsonObject setValueI(const char * id, int value, uint8_t rowNr=-1);
+  static JsonObject setValueI(const char * id, int value, uint8_t rowNr = uint8Max);
 
   //setValue bool
-  static JsonObject setValueB(const char * id, bool value, uint8_t rowNr=-1);
+  static JsonObject setValueB(const char * id, bool value, uint8_t rowNr = uint8Max);
 
   //Set value with argument list
   static JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun
@@ -71,7 +72,9 @@ public:
   //returns the var defined by id (parent to recursively call findVar)
   static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
   void findVars(const char * id, bool value, FindFun fun, JsonArray parent = JsonArray());
-  
+
+  void setValueArray(JsonObject var, size_t arraySize, uint8_t *array, ChangeFun fun);
+
 private:
   bool doWriteModel = false;
   bool doShowObsolete = false;

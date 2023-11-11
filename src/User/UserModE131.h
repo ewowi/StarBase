@@ -68,10 +68,10 @@ public:
     ui->initText(tableVar, "e131Name", nullptr, 32, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Name");
     });
-    ui->initNumber(tableVar, "e131Max", -1, 0, (uint16_t)-1, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "e131Max", -1, 0, uint16Max, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Max");
     });
-    ui->initNumber(tableVar, "e131Value", -1, 0, (uint8_t)-1, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "e131Value", -1, 0, 255, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Value");
     });
 

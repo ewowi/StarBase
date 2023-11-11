@@ -139,23 +139,27 @@ void SysModModel::cleanUpModel(JsonArray vars) {
 
 //tbd: use template T
 //setValue char
-JsonObject SysModModel::setValueC(const char * id, const char * value) {
+JsonObject SysModModel::setValueC(const char * id, const char * value, uint8_t rowNr) {
   JsonObject var = findVar(id);
   if (!var.isNull()) {
-    if (var["value"].isNull() || var["value"] != value) {
-      // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
-      if (var["ro"]) { // do not update var["value"]
-        ui->setChFunAndWs(var, value); //value: bypass var["value"]
-        //now only used for ro not lossy
-        USER_PRINTF("setValueC: RO non lossy %s %s\n", id, value);
-      } else {
-        var["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-        ui->setChFunAndWs(var);
+    if (rowNr == uint8Max) { //normal situation
+      if (var["value"].isNull() || var["value"] != value) {
+        // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
+        if (var["ro"]) { // do not update var["value"]
+          ui->setChFunAndWs(var, value); //value: bypass var["value"]
+          //now only used for ro not lossy
+          USER_PRINTF("setValueC: RO non lossy %s %s\n", id, value);
+        } else {
+          var["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
+          ui->setChFunAndWs(var);
+        }
       }
+    } else {
+      USER_PRINTF("setValueC Var %s (%s) table row nr not implemented yet %d\n", id, value, rowNr);
     }
   }
   else
-    USER_PRINTF("setValue Var %s not found\n", id);
+    USER_PRINTF("setValueC Var %s not found\n", id);
   return var;
 }
 
@@ -163,7 +167,7 @@ JsonObject SysModModel::setValueC(const char * id, const char * value) {
 JsonObject SysModModel::setValueI(const char * id, int value, uint8_t rowNr) {
   JsonObject var = findVar(id);
   if (!var.isNull()) {
-    if (rowNr == (uint8_t)-1) { //normal situation
+    if (rowNr == uint8Max) { //normal situation
       if (var["value"].isNull() || var["value"] != value) {
         // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
         var["value"] = value;
@@ -174,7 +178,7 @@ JsonObject SysModModel::setValueI(const char * id, int value, uint8_t rowNr) {
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValueB var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
+        USER_PRINTF("setValueI var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
         // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
         var.createNestedArray("value");
       }
@@ -187,11 +191,11 @@ JsonObject SysModModel::setValueI(const char * id, int value, uint8_t rowNr) {
         }
       }
       else 
-        USER_PRINTF("setValueB %s could not create value array\n", id);
+        USER_PRINTF("setValueI %s could not create value array\n", id);
     }
   }
   else
-    USER_PRINTF("setValue Var %s not found\n", id);
+    USER_PRINTF("setValueI Var %s not found\n", id);
 
   return var;
 }
@@ -200,7 +204,7 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
   JsonObject var = findVar(id);
   if (!var.isNull()) {
     // print->printJson("setValueB", var);
-    if (rowNr == (uint8_t)-1) { //normal situation
+    if (rowNr == uint8Max) { //normal situation
       if (var["value"].isNull() || var["value"] != value) {
         USER_PRINTF("setValueB changed %s (%d) %s->%s\n", id, rowNr, var["value"].as<String>().c_str(), value?"true":"false");
         var["value"] = value;
@@ -228,7 +232,7 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
     }
   }
   else
-    USER_PRINTF("setValue Var %s not found\n", id);
+    USER_PRINTF("setValueB Var %s not found\n", id);
   return var;
 }
 
@@ -284,8 +288,8 @@ void SysModModel::setValueLossy(const char * id, const char * format, ...) {
   }
   if (isOk)
     web->sendDataWs(responseVariant);
-  else
-    USER_PRINTF("x");
+  // else
+  //   USER_PRINTF("x");
 }
 
 JsonVariant SysModModel::getValue(const char * id) {
@@ -335,3 +339,32 @@ void SysModModel::findVars(const char * id, bool value, FindFun fun, JsonArray p
         findVars(id, value, fun, var["n"]);
   }
 }
+
+  void SysModModel::setValueArray(JsonObject var, size_t arraySize, uint8_t *array, ChangeFun fun) {
+      //if value not array, create array
+    if (!var["value"].is<JsonArray>()) //comment if forced to recreate enabled array
+      var.createNestedArray("value");
+
+    size_t rowNr = 0;
+    //if value array not same size as nr of modules
+    if (var["value"].size() != arraySize) {
+      for (int i=0; i< arraySize; i++) {
+        USER_PRINTF("  %s[%d].sva reset %d->%d\n", var["id"].as<const char *>(), i, array[i], var["value"][i].as<uint8_t>());
+        var["value"][i] = array[i];
+      }
+    } else { //read array and set value if different
+      for (int i=0; i< arraySize; i++) {
+      // for (uint8_t valueElement:var["value"].as<JsonArray>()) {
+        // int value = nodes[rowNr].app.getVar(var["id"]);
+        if (var["value"][i] != array[i]) {
+          USER_PRINTF("  %s[%d].sva update %d->%d\n", var["id"].as<const char *>(), i, array[i], var["value"][i].as<uint8_t>());
+          // nodes[rowNr]->app.setVar(var["id"], valueElement);
+          // modules[rowNr]->enabledChanged();
+          // var["value"][i] = array[i];
+          fun(var, i);
+        }
+        rowNr++;
+      }
+    }
+  
+  }

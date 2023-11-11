@@ -91,7 +91,7 @@ void LedsV::fixtureProjectAndMap() {
         // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, fixtureDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
 
         //processing: buckets
-        uint16_t bucket = -1;
+        uint16_t bucket = uint16Max;
         switch(projectionNr) {
           case p_None:
             break;
@@ -173,7 +173,7 @@ void LedsV::fixtureProjectAndMap() {
             break;
         }
 
-        if (bucket != (uint16_t)-1) {
+        if (bucket != uint16Max) {
           //post processing: inverse mapping 
           switch(projectionNr) {
           case p_DistanceFromCentre:
@@ -216,10 +216,10 @@ void LedsV::fixtureProjectAndMap() {
             break;
           }
 
-          if (bucket != (uint16_t)-1) {
+          if (bucket != uint16Max) {
             //add physical tables if not present
             if (bucket >= NUM_LEDS_Preview) {
-              USER_PRINTF("mapping add physMap %d>=%d (%d) too big %d\n", bucket, NUM_LEDS_Preview, mappingTable.size(), (uint16_t)-1);
+              USER_PRINTF("mapping add physMap %d>=%d (%d) too big %d\n", bucket, NUM_LEDS_Preview, mappingTable.size(), uint16Max);
             }
             else {
               if (bucket >= mappingTable.size()) {

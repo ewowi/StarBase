@@ -12,6 +12,7 @@
 #include "Sys/SysModPrint.h"
 #include "Sys/SysModUI.h"
 #include "Sys/SysModWeb.h"
+#include "Sys/SysModModel.h"
 
 bool SysModules::newConnection = false;
 bool SysModules::isConnected = false;
@@ -53,28 +54,19 @@ void SysModules::setup() {
     web->addResponse(var["id"], "label", "Enabled");
   }, [this](JsonObject var) { //chFun
     print->printJson("mdlEnabled.chFun", var);
-    uint8_t rowNr = 0;
 
-    //if value not array, create array
-    if (!var["value"].is<JsonArray>()) //comment if forced to recreate enabled array
-      var.createNestedArray("value");
-
-    //if value array not same size as nr of modules
-    if (var["value"].size() != modules.size()) {
-      for (SysModule *module: modules) {
-        var["value"][rowNr] = module->isEnabled;
-        rowNr++;
-      }
-    } else { //read array and set module enabled
-      for (bool isEnabled:var["value"].as<JsonArray>()) {
-        if ((modules[rowNr]->isEnabled && !isEnabled) || (!modules[rowNr]->isEnabled && isEnabled)) {
-          USER_PRINTF("  mdlEnabled.chFun %d %s: %d->%d\n", rowNr, modules[rowNr]->name, modules[rowNr]->isEnabled, isEnabled);
-          modules[rowNr]->isEnabled = isEnabled;
-          modules[rowNr]->enabledChanged();
-        }
-        rowNr++;
-      }
+    uint8_t oldArray[20];
+    size_t arraySize = 0;
+    for (SysModule *module: modules) {
+      oldArray[arraySize] = module->isEnabled;
+      arraySize++;
     }
+    mdl->setValueArray(var, arraySize, oldArray, [this](JsonObject var, size_t index) { //changeFun
+      USER_PRINTF("something changed %d\n", index);
+      modules[index]->isEnabled = var["value"][index];
+      modules[index]->enabledChanged();
+    });
+
   });
 }
 

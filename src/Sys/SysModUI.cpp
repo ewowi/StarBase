@@ -320,32 +320,40 @@ const char * SysModUI::processJson(JsonVariant &json) {
             //if value not array we change it anyway
             if (rowNr) {
               //var value should be array
-              if (var["value"].is<JsonArray>())
-                changed = var["value"][atoi(rowNr)] != value;
+              if (var["value"].is<JsonArray>()) {
+                if (value.is<bool>()) {
+                  bool varValue = var["value"][atoi(rowNr)];
+                  bool newValue = value;
+                  changed = (varValue && !newValue) || (!varValue && newValue);
+                }
+                else
+                  changed = var["value"][atoi(rowNr)] != value;
+              }
               else {
-                print->printJson("we want an array for value but : ", var);
+                print->printJson("we want an array for value but var:", var);
+                print->printJson("   value:", value);
                 changed = true; //we should change anyway
               }
             }
             else //normal situation
               changed = var["value"] != value;
 
-            if (changed) {
+            if (var["type"] == "button") //button always
+              setChFunAndWs(var); //setValue without assignment
+            else if (changed) {
               // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 
               //set new value
               if (value.is<const char *>())
-                mdl->setValueC(key, value.as<const char *>());
+                mdl->setValueC(key, value.as<const char *>(), rowNr?atoi(rowNr):-1);
               else if (value.is<bool>())
                 mdl->setValueB(key, value.as<bool>(), rowNr?atoi(rowNr):-1);
               else if (value.is<int>())
-                mdl->setValueI(key, value.as<int>());
+                mdl->setValueI(key, value.as<int>(), rowNr?atoi(rowNr):-1);
               else {
                 USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
               }
             }
-            else if (var["type"] == "button") //button always
-              setChFunAndWs(var); //setValue without assignment
           }
           else
             USER_PRINTF("Object %s not found\n", key);

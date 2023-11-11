@@ -145,7 +145,7 @@ void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
 }
 
 void SysModPrint::printClient(const char * text, AsyncWebSocketClient * client) {
-  print("%s client: %d %s q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP().toString().c_str():"No", client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
+  print("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
   //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
 }
 

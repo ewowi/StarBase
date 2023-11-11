@@ -73,7 +73,7 @@ public:
     return initVarAndUpdate<const char *>(parent, id, "password", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initNumber(JsonObject parent, const char * id, int value, int min = 0, int max = (uint16_t)-1, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
+  JsonObject initNumber(JsonObject parent, const char * id, int value, int min = 0, int max = uint16Max, bool readOnly = false, UCFun uiFun = nullptr, UCFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "number", value, min, max, readOnly, uiFun, chFun, loopFun);
   }
 
@@ -120,7 +120,7 @@ public:
     }
 
     if (min) var["min"] = min;
-    if (max) var["max"] = max;
+    if (max && max != uint16Max) var["max"] = max;
 
     //no call of fun for buttons otherwise all buttons will be fired including restart delete model.json and all that jazz!!! 
     if (strcmp(type,"button")!=0 && chFun && (!isPointer || value)) chFun(var); //!isPointer because 0 is also a value then

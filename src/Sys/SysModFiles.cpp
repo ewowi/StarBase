@@ -45,7 +45,7 @@ void SysModFiles::setup() {
   ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  ui->initNumber(tableVar, "flSize", -1, 0, (uint16_t)-1, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "flSize", -1, 0, uint16Max, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size (B)");
   });
   ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun
@@ -54,7 +54,7 @@ void SysModFiles::setup() {
   ui->initButton(tableVar, "flDel", "⌫", false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Delete"); //table header title
   }, [](JsonObject var) { //chFun
-    print->printJson("chFun", var); //not called yet for buttons...
+    print->printJson("flDel chFun", var); //not called yet for buttons...
     //instead:
     // processJson k:flDel r:6 (⌫ == ⌫ ? 1)
     // we want an array for value but :  {"id":"flDel","type":"button","ro":false,"o":23,"uiFun":25,"chFun":26,"value":"⌫"}

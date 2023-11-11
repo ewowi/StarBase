@@ -539,7 +539,7 @@ function processVarNode(node, key, json) {
     
     //find model info
     let variable = findVar(key);
-    if (key != "insTbl") // tbd: table should not update
+    // if (key != "insTbl") // tbd: table should not update
       console.log("processVarNode table", key, variable, json.table);
 
     //add each row
@@ -558,7 +558,7 @@ function processVarNode(node, key, json) {
         if (newNode) {
           //very strange: gId(newNode.id) is not working here. Delay before it is in the dom??? (workaround create processVarNode function)
           let updateJson;
-          if (typeof columnRow == 'number')
+          if (typeof columnRow == 'number' || typeof columnRow == 'boolean')
             updateJson = `{"value":${columnRow}}`;
           else
             updateJson = `{"value":"${columnRow}"}`
@@ -707,7 +707,7 @@ function setButton(element) {
 
 function setSelect(element) {
   var command = {};
-  command[element.id] = element.value;
+  command[element.id] = Number(element.value)?Number(element.value):element.value; //type number is default but html converts numbers in <option> to string
   // console.log("setInput", command);
 
   requestJson(command);

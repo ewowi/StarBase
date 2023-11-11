@@ -13,6 +13,9 @@
 
 #include "ArduinoJson.h"
 
+#define uint8Max 255U
+#define uint16Max 65535U
+
 class SysModule {
 
 public:

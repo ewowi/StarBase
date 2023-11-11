@@ -16,20 +16,31 @@ class SysModOTA : public SysModule {
 
 public:
     SysModOTA() : SysModule("OTA") {
-        this->isEnabled = false;
-        this->success = false;
+        this->success = true;
+        this->started = false;
     };
 
     void connectedChanged() {
         if(!SysModules::isConnected) return;
         ArduinoOTA.begin();
-        this->success = true;
+        this->started = true;
+        USER_PRINTF("ArduinoOTA.begin()\n");
      }
 
-    void loop1s() {
-        ArduinoOTA.handle();
-        this->isEnabled = true;
+    void loop() {
+        if(this->started) {
+            ArduinoOTA.handle();
+        }
     }
+    
+    void loop10s() {
+        if(!this->started) {
+            USER_PRINTF("ArduinoOTA not started\n");
+        }
+    }
+
+private: 
+    bool started;
 };
 
 static SysModOTA *ota;

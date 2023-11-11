@@ -94,7 +94,6 @@ void setup() {
   mdls->add(print);
   mdls->add(web);
   mdls->add(net);
-  mdls->add(ota);
   #ifdef APPMOD_LEDS
     #ifdef USERMOD_DDP
       mdls->add(ddpmod);
@@ -115,6 +114,7 @@ void setup() {
     mdls->add(wledAudioMod);
   #endif
   mdls->add(mdns); //no ui
+  mdls->add(ota); // OTA need to be called after MDNS
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

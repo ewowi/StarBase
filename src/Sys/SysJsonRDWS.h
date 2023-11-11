@@ -202,7 +202,7 @@ private:
       f.read(&character, sizeof(byte));
     }
     else if (character=='}') {
-      USER_PRINTF("close %c\n", character);
+      // USER_PRINTF("close %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character=='\n') { //skip new lines
@@ -210,7 +210,7 @@ private:
       f.read(&character, sizeof(byte));
     }
     else {
-      USER_PRINTF("%c", character);
+      // USER_PRINTF("%c", character);
       f.read(&character, sizeof(byte));
     }
   } //next

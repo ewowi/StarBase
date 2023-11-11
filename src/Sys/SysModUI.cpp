@@ -16,7 +16,8 @@
 #include "html_ui.h"
 
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-std::vector<UCFun> SysModUI::ucFunctions;
+std::vector<UFun> SysModUI::uFunctions;
+std::vector<CFun> SysModUI::cFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
 int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::varLoopsChanged = false;;
@@ -81,7 +82,7 @@ void SysModUI::loop() {
         SysModWeb::wsSendBytesCounter++;
 
         //send var to notify client data coming is for var (client then knows it is canvas and expects data for it)
-        setChFunAndWs(varLoop->var, "new");
+        setChFunAndWs(varLoop->var, uint8Max, "new");
 
         //send leds info in binary data format
         //tbd: this can crash on 64*64 matrices...
@@ -141,7 +142,7 @@ void SysModUI::loop1s() {
 
 }
 
-JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, UCFun uiFun, UCFun chFun, LoopFun loopFun) {
+JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, UFun uiFun, CFun chFun, LoopFun loopFun) {
   JsonObject var = mdl->findVar(id);
 
   //create new var
@@ -179,8 +180,8 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       // if (itr!=ucFunctions.end()) //found
       //   var["uiFun"] = distance(ucFunctions.begin(), itr); //assign found function
       // else { //not found
-        ucFunctions.push_back(uiFun); //add new function
-        var["uiFun"] = ucFunctions.size()-1;
+        uFunctions.push_back(uiFun); //add new function
+        var["uiFun"] = uFunctions.size()-1;
       // }
     }
 
@@ -191,8 +192,8 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       // if (itr!=ucFunctions.end()) //found
       //   var["chFun"] = distance(ucFunctions.begin(), itr); //assign found function
       // else { //not found
-        ucFunctions.push_back(chFun); //add new function
-        var["chFun"] = ucFunctions.size()-1;
+        cFunctions.push_back(chFun); //add new function
+        var["chFun"] = cFunctions.size()-1;
       // }
     }
 
@@ -217,14 +218,15 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
 //tbd: use template T for value
 //run the change function and send response to all? websocket clients
-void SysModUI::setChFunAndWs(JsonObject var, const char * value) { //value: bypass var["value"]
+void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) { //value: bypass var["value"]
 
   if (!var["chFun"].isNull()) {//isNull needed here!
     size_t funNr = var["chFun"];
-    if (funNr < ucFunctions.size()) 
-      ucFunctions[funNr](var);
+    if (funNr < cFunctions.size()) {
+      cFunctions[funNr](var, rowNr);
+    }
     else    
-      USER_PRINTF("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
+      USER_PRINTF("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, cFunctions.size());
   }
 
   JsonDocument *responseDoc = web->getResponseDoc();
@@ -281,10 +283,10 @@ const char * SysModUI::processJson(JsonVariant &json) {
               //call ui function...
               if (!var["uiFun"].isNull()) {//isnull needed here!
                 size_t funNr = var["uiFun"];
-                if (funNr < ucFunctions.size())
-                  ucFunctions[funNr](var);
+                if (funNr < uFunctions.size())
+                  uFunctions[funNr](var);
                 else    
-                  USER_PRINTF("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ucFunctions.size());
+                  USER_PRINTF("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, uFunctions.size());
 
                 //if select var, send value back
                 if (var["type"] == "select")
@@ -339,7 +341,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
               changed = var["value"] != value;
 
             if (var["type"] == "button") //button always
-              setChFunAndWs(var); //setValue without assignment
+              setChFunAndWs(var, atoi(rowNr)); //setValue without assignment
             else if (changed) {
               // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 

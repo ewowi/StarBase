@@ -222,7 +222,7 @@ public:
         instanceObject.add(node->ip[3]);
         instanceObject.add(option);
       }
-    }, [](JsonObject var) { //chFun
+    }, [](JsonObject var, uint8_t) { //chFun
       ui->valChangedForInstancesTemp = true;
     }); //syncMaster
     currentVar["stage"] = true;
@@ -237,25 +237,18 @@ public:
       JsonObject newVar; // = ui->cloneVar(var, columnVarID, [this, var](JsonObject newVar){});
 
       if (var["type"] == "select") {
-        newVar = ui->initSelect(tableVar, columnVarID, 0, false, nullptr, [this, var](JsonObject newVar) { //chFun
+        newVar = ui->initSelect(tableVar, columnVarID, 0, false, nullptr, [this, var](JsonObject newVar, uint8_t rowNr) { //chFun
 
-          uint8_t oldArray[20];
-          size_t arraySize = 0;
-          for (auto node=nodes.begin(); node!=nodes.end(); ++node) {
-            oldArray[arraySize] = node->app.getVar(var["id"]);
-            arraySize++;
-          }
-          mdl->setValueArray(newVar, arraySize, oldArray, [this, var](JsonObject newVar, size_t index) { //changeFun
-            USER_PRINTF("something changed %d\n", index);
-
+          USER_PRINTF("chFun %s r:%d v:%s", newVar["id"].as<const char *>(), rowNr, newVar["value"][rowNr].as<String>());
+          if (rowNr != uint8Max) {
             // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
             HTTPClient http;
             char serverPath[32];
-            print->fFormat(serverPath, sizeof(serverPath)-1, "http://%s/json", nodes[index].ip.toString().c_str());
+            print->fFormat(serverPath, sizeof(serverPath)-1, "http://%s/json", nodes[rowNr].ip.toString().c_str());
             http.begin(serverPath);
             http.addHeader("Content-Type", "application/json");
             char postMessage[32];
-            print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), newVar["value"][index].as<uint8_t>());
+            print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), newVar["value"][rowNr].as<uint8_t>());
 
             USER_PRINTF("json post %s %s\n", serverPath, postMessage);
 
@@ -273,22 +266,26 @@ public:
             }
             // Free resources
             http.end();
-          });
+          }
+          else {
+            USER_PRINTF(" no rowNr!!");
+          }
+          print->printJson(" ", var);
 
         });
       }
       else if (var["type"] == "checkbox") {
-        newVar = ui->initCheckBox(tableVar, columnVarID, false, false, nullptr, [](JsonObject var) { //chFun
+        newVar = ui->initCheckBox(tableVar, columnVarID, false, false, nullptr, [](JsonObject var, uint8_t) { //chFun
           USER_PRINTF("stage %s : %s = %s changed\n", var["id"].as<const char *>(), var["type"].as<String>().c_str(), var["value"].as<String>().c_str());
         });
       }
       else if (var["type"] == "range") {
-        newVar = ui->initSlider(tableVar, columnVarID, 0, 0, 255, false, nullptr, [](JsonObject var) { //chFun
+        newVar = ui->initSlider(tableVar, columnVarID, 0, 0, 255, false, nullptr, [](JsonObject var, uint8_t) { //chFun
           USER_PRINTF("stage %s : %s = %s changed\n", var["id"].as<const char *>(), var["type"].as<String>().c_str(), var["value"].as<String>().c_str());
         });
       }
       else if (var["type"] == "number") {
-        newVar = ui->initNumber(tableVar, columnVarID, 0, 0, 255, false, nullptr, [](JsonObject var) { //chFun
+        newVar = ui->initNumber(tableVar, columnVarID, 0, 0, 255, false, nullptr, [](JsonObject var, uint8_t) { //chFun
           USER_PRINTF("stage %s : %s = %s changed\n", var["id"].as<const char *>(), var["type"].as<String>().c_str(), var["value"].as<String>().c_str());
         });
       }

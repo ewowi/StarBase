@@ -52,20 +52,17 @@ void SysModules::setup() {
   ui->initCheckBox(tableVar, "mdlEnabled", true, false, [](JsonObject var) { //uiFun not readonly! (tbd)
     //initially set to true, but as enabled are table cells, will be updated to an array
     web->addResponse(var["id"], "label", "Enabled");
-  }, [this](JsonObject var) { //chFun
-    print->printJson("mdlEnabled.chFun", var);
+  }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
-    uint8_t oldArray[20];
-    size_t arraySize = 0;
-    for (SysModule *module: modules) {
-      oldArray[arraySize] = module->isEnabled;
-      arraySize++;
+    USER_PRINTF("chFun %s r:%d v:%s", var["id"].as<const char *>(), rowNr, var["value"][rowNr].as<String>());
+    if (rowNr != uint8Max) {
+      modules[rowNr]->isEnabled = var["value"][rowNr];
+      modules[rowNr]->enabledChanged();
     }
-    mdl->setValueArray(var, arraySize, oldArray, [this](JsonObject var, size_t index) { //changeFun
-      USER_PRINTF("something changed %d\n", index);
-      modules[index]->isEnabled = var["value"][index];
-      modules[index]->enabledChanged();
-    });
+    else {
+      USER_PRINTF(" no rowNr!!");
+    }
+    print->printJson(" ", var);
 
   });
 }

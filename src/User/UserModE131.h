@@ -34,7 +34,7 @@ public:
 
     ui->initNumber(parentVar, "dmxUni", universe, 0, 7, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Universe");
-    }, [this](JsonObject var) { //chFun
+    }, [this](JsonObject var, uint8_t) { //chFun
       universe = var["value"];
       ui->valChangedForInstancesTemp = true;
     });
@@ -42,7 +42,7 @@ public:
     ui->initNumber(parentVar, "dmxChannel", 1, 0, 511, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Channel");
       web->addResponse(var["id"], "comment", "First channel");
-    }, [](JsonObject var) { //chFun
+    }, [](JsonObject var, uint8_t) { //chFun
     
       ui->valChangedForInstancesTemp = true;
 

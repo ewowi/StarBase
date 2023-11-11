@@ -40,7 +40,6 @@ void SysModFiles::setup() {
     web->addResponse(var["id"], "comment", "List of files");
     JsonArray rows = web->addResponseA(var["id"], "table");
     dirToJson(rows);
-
   });
   ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
@@ -53,11 +52,22 @@ void SysModFiles::setup() {
   });
   ui->initButton(tableVar, "flDel", "⌫", false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Delete"); //table header title
-  }, [](JsonObject var) { //chFun
-    print->printJson("flDel chFun", var); //not called yet for buttons...
-    //instead:
-    // processJson k:flDel r:6 (⌫ == ⌫ ? 1)
-    // we want an array for value but :  {"id":"flDel","type":"button","ro":false,"o":23,"uiFun":25,"chFun":26,"value":"⌫"}
+  }, [this, tableVar](JsonObject var, uint8_t rowNr) { //chFun
+
+    USER_PRINTF("chFun %s r:%d v:%s", var["id"].as<const char *>(), rowNr, var["value"][rowNr].as<String>());
+    if (rowNr != uint8Max) {
+      // call uiFun of tbl to fill responseVariant with files
+      ui->uFunctions[tableVar["uiFun"]](tableVar);
+      JsonVariant responseVariant = web->getResponseDoc()->as<JsonVariant>();
+      JsonArray row = responseVariant["fileTbl"]["table"][rowNr];
+      const char * fileName = row[0]; //first column
+      print->printJson("\n", row);
+      removeFiles(fileName, false);
+    }
+    else {
+      USER_PRINTF(" no rowNr!!");
+    }
+    print->printJson(" ", var);
   });
 
   ui->initText(parentVar, "drsize", nullptr, 32, true, [](JsonObject var) { //uiFun
@@ -69,7 +79,7 @@ void SysModFiles::setup() {
 
   ui->initButton(parentVar, "deleteFiles", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "All but model.json");
-  }, [this](JsonObject var) {
+  }, [this](JsonObject var, uint8_t) { //chFun
     USER_PRINTF("delete files\n");
     removeFiles("model.json", true); //all but model.json
   });

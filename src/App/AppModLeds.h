@@ -52,7 +52,7 @@ public:
 
     currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "On/Off");
-    }, [](JsonObject var) { //chFun
+    }, [](JsonObject var, uint8_t) { //chFun
       ui->valChangedForInstancesTemp = true;
     });
     currentVar["stage"] = true;
@@ -60,7 +60,7 @@ public:
     //logarithmic slider (10)
     currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Brightness");
-    }, [](JsonObject var) { //chFun
+    }, [](JsonObject var, uint8_t) { //chFun
       uint8_t bri = var["value"];
 
       uint8_t result = linearToLogarithm(var, bri);
@@ -98,7 +98,7 @@ public:
       for (Effect *effect:effects.effects) {
         select.add(effect->name());
       }
-    }, [this](JsonObject var) { //chFun
+    }, [this](JsonObject var, uint8_t) { //chFun
       uint8_t fx = var["value"];
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
 
@@ -118,7 +118,7 @@ public:
       select.add("RainbowStripeColors");
       select.add("PartyColors");
       select.add("HeatColors");
-    }, [](JsonObject var) { //chFun
+    }, [](JsonObject var, uint8_t) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
       switch (var["value"].as<uint8_t>()) {
         case 0: palette = CloudColors_p; break;
@@ -148,7 +148,7 @@ public:
       select.add("Multiply"); //6
       select.add("Kaleidoscope"); //7
       select.add("Fun"); //8
-    }, [this](JsonObject var) { //chFun
+    }, [this](JsonObject var, uint8_t) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       ledsV.projectionNr = var["value"];
@@ -167,7 +167,7 @@ public:
       if (files->seqNrToName(fileName, var["value"])) {
         web->addResponse("pview", "file", fileName);
       }
-    }, [this](JsonObject var) { //chFun
+    }, [this](JsonObject var, uint8_t) { //chFun
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       ledsV.fixtureNr = var["value"];
@@ -201,7 +201,7 @@ public:
 
     ui->initNumber(parentVar, "fps", fps, 1, 999, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Frames per second");
-    }, [this](JsonObject var) { //chFun
+    }, [this](JsonObject var, uint8_t) { //chFun
       fps = var["value"];
       USER_PRINTF("fps changed %d\n", fps);
     });

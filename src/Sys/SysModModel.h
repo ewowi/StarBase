@@ -73,8 +73,6 @@ public:
   static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
   void findVars(const char * id, bool value, FindFun fun, JsonArray parent = JsonArray());
 
-  void setValueArray(JsonObject var, size_t arraySize, uint8_t *array, ChangeFun fun);
-
 private:
   bool doWriteModel = false;
   bool doShowObsolete = false;

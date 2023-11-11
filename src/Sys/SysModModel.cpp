@@ -43,31 +43,30 @@ void SysModModel::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
-  ui->initText(parentVar, "mSize", nullptr, 32, true, [](JsonObject var) {
+  ui->initText(parentVar, "mSize", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size");
   });
 
-  ui->initButton(parentVar, "saveModel", nullptr, false, [](JsonObject var) {
+  ui->initButton(parentVar, "saveModel", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Write to model.json (manual save only currently)");
-  }, [this](JsonObject var) {
+  }, [this](JsonObject var, uint8_t) { //chFun
     doWriteModel = true;
   });
 
-  ui->initCheckBox(parentVar, "showObsolete", false, false, [](JsonObject var) {
+  ui->initCheckBox(parentVar, "showObsolete", false, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Show in UI (refresh)");
-  }, [this](JsonObject var) {
+  }, [this](JsonObject var, uint8_t) { //chFun
     doShowObsolete = var["value"];
   });
 
-  ui->initButton(parentVar, "deleteObsolete", nullptr, false, [](JsonObject var) {
+  ui->initButton(parentVar, "deleteObsolete", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Delete obsolete variables");
     web->addResponse(var["id"], "comment", "WIP");
-  }, [](JsonObject var) {
   });
 
-  ui->initButton(parentVar, "deleteModel", nullptr, false, [](JsonObject var) {
+  ui->initButton(parentVar, "deleteModel", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Back to defaults");
-  }, [](JsonObject var) {
+  }, [](JsonObject var, uint8_t) { //chFun
     USER_PRINTF("delete model json\n");
     files->remove("/model.json");
   });
@@ -146,12 +145,12 @@ JsonObject SysModModel::setValueC(const char * id, const char * value, uint8_t r
       if (var["value"].isNull() || var["value"] != value) {
         // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
         if (var["ro"]) { // do not update var["value"]
-          ui->setChFunAndWs(var, value); //value: bypass var["value"]
+          ui->setChFunAndWs(var, rowNr, value); //value: bypass var["value"]
           //now only used for ro not lossy
           USER_PRINTF("setValueC: RO non lossy %s %s\n", id, value);
         } else {
           var["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-          ui->setChFunAndWs(var);
+          ui->setChFunAndWs(var, rowNr);
         }
       }
     } else {
@@ -171,7 +170,7 @@ JsonObject SysModModel::setValueI(const char * id, int value, uint8_t rowNr) {
       if (var["value"].isNull() || var["value"] != value) {
         // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
         var["value"] = value;
-        ui->setChFunAndWs(var);
+        ui->setChFunAndWs(var, rowNr);
       }
     }
     else {
@@ -187,7 +186,7 @@ JsonObject SysModModel::setValueI(const char * id, int value, uint8_t rowNr) {
         //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
         if (var["value"][rowNr] != value) {
           var["value"][rowNr] = value;
-          ui->setChFunAndWs(var);
+          ui->setChFunAndWs(var, rowNr);
         }
       }
       else 
@@ -208,7 +207,7 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
       if (var["value"].isNull() || var["value"] != value) {
         USER_PRINTF("setValueB changed %s (%d) %s->%s\n", id, rowNr, var["value"].as<String>().c_str(), value?"true":"false");
         var["value"] = value;
-        ui->setChFunAndWs(var);
+        ui->setChFunAndWs(var, rowNr);
       }
     }
     else {
@@ -224,7 +223,7 @@ JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
         //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
         if (var["value"][rowNr] != value) {
           var["value"][rowNr] = value;
-          ui->setChFunAndWs(var);
+          ui->setChFunAndWs(var, rowNr);
         }
       }
       else 
@@ -339,32 +338,3 @@ void SysModModel::findVars(const char * id, bool value, FindFun fun, JsonArray p
         findVars(id, value, fun, var["n"]);
   }
 }
-
-  void SysModModel::setValueArray(JsonObject var, size_t arraySize, uint8_t *array, ChangeFun fun) {
-      //if value not array, create array
-    if (!var["value"].is<JsonArray>()) //comment if forced to recreate enabled array
-      var.createNestedArray("value");
-
-    size_t rowNr = 0;
-    //if value array not same size as nr of modules
-    if (var["value"].size() != arraySize) {
-      for (int i=0; i< arraySize; i++) {
-        USER_PRINTF("  %s[%d].sva reset %d->%d\n", var["id"].as<const char *>(), i, array[i], var["value"][i].as<uint8_t>());
-        var["value"][i] = array[i];
-      }
-    } else { //read array and set value if different
-      for (int i=0; i< arraySize; i++) {
-      // for (uint8_t valueElement:var["value"].as<JsonArray>()) {
-        // int value = nodes[rowNr].app.getVar(var["id"]);
-        if (var["value"][i] != array[i]) {
-          USER_PRINTF("  %s[%d].sva update %d->%d\n", var["id"].as<const char *>(), i, array[i], var["value"][i].as<uint8_t>());
-          // nodes[rowNr]->app.setVar(var["id"], valueElement);
-          // modules[rowNr]->enabledChanged();
-          // var["value"][i] = array[i];
-          fun(var, i);
-        }
-        rowNr++;
-      }
-    }
-  
-  }

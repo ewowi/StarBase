@@ -29,9 +29,9 @@ void SysModNetwork::setup() {
   ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Password");
   });
-  ui->initButton(parentVar, "connect", nullptr, false, [](JsonObject var) {
+  ui->initButton(parentVar, "connect", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Force reconnect (you loose current connection)");
-  }, [this](JsonObject var) {
+  }, [this](JsonObject var, uint8_t) { //chFun
     forceReconnect = true;
   });
   ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var) { //uiFun

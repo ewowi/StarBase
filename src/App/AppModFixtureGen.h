@@ -524,7 +524,7 @@ public:
       select.add("3DCube"); //9
       select.add("3DGlobe WIP"); //10
       select.add("3DGeodesicDome WIP"); //11
-    }, [this](JsonObject var) { //chFun
+    }, [this](JsonObject var, uint8_t) { //chFun
       fixtureGenChFun(var);
     }); //fixtureGen
 
@@ -533,7 +533,7 @@ public:
     });
 
     ui->initButton(parentVar, "generate", nullptr, false, [](JsonObject var) { //uiFun
-    }, [this](JsonObject var) {
+    }, [this](JsonObject var, uint8_t) { //chFun
       generateChFun(var);
     });
 

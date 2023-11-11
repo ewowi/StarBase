@@ -68,7 +68,7 @@ public:
           instanceObject.add(option);
         }
       }
-    }, [this](JsonObject var) { //chFun
+    }, [this](JsonObject var, uint8_t) { //chFun
       size_t ddpInst = var["value"];
       if (ddpInst >=0 && ddpInst < instances->nodes.size()) {
         targetIp = instances->nodes[ddpInst].ip;

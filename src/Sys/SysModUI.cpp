@@ -341,7 +341,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
               changed = var["value"] != value;
 
             if (var["type"] == "button") //button always
-              setChFunAndWs(var, atoi(rowNr)); //setValue without assignment
+              setChFunAndWs(var, rowNr?atoi(rowNr):uint8Max); //setValue without assignment
             else if (changed) {
               // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 

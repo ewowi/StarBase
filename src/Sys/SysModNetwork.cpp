@@ -81,7 +81,7 @@ void SysModNetwork::handleConnection() {
       initAP();
     }
   } else if (!interfacesInited) { //newly connected
-    mdl->setValueP("nwstatus", "Connected %d", WiFi.localIP()[3]);
+    mdl->setValueP("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
 
     interfacesInited = true;
 

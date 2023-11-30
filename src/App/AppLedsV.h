@@ -12,7 +12,7 @@
 #include <vector>
 #include "ArduinoJson.h"
 
-#define NUM_LEDS_Preview 8192
+#define NUM_LEDS_Preview 4096
 
 enum Projections
 {

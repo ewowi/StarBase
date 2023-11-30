@@ -20,7 +20,8 @@ std::vector<UFun> SysModUI::uFunctions;
 std::vector<CFun> SysModUI::cFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
 int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
-bool SysModUI::varLoopsChanged = false;;
+bool SysModUI::varLoopsChanged = false;
+bool SysModUI::stageVarChanged = false;
 
 SysModUI::SysModUI() :SysModule("UI") {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -229,6 +230,9 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
       USER_PRINTF("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, cFunctions.size());
   }
 
+  if (var["stage"])
+    stageVarChanged = true;
+
   JsonDocument *responseDoc = web->getResponseDoc();
   responseDoc->clear(); //needed for deserializeJson?
   JsonVariant responseVariant = responseDoc->as<JsonVariant>();
@@ -265,11 +269,10 @@ const char * SysModUI::processJson(JsonVariant &json) {
 
       // commands
       if (pair.key() == "v") {
-        // do nothing as it is no real var bu  the verbose command of WLED
+        // do nothing as it is no real var but the verbose command of WLED
         USER_PRINTF("processJson v type %s\n", pair.value().as<String>());
       }
-      else if (pair.key() == "view") {
-        // do nothing as it is no real var bu  the verbose command of WLED
+      else if (pair.key() == "view") { //save the chosen view in System (see index.js)
         JsonObject var = mdl->findVar("System");
         USER_PRINTF("processJson view v:%s n: %d s:%s\n", pair.value().as<String>(), var.isNull(), var["id"].as<const char *>());
         var["view"] = (char *)value.as<const char *>(); //create a copy!

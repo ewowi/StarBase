@@ -544,8 +544,7 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
     if (json["v"]) { //WLED compatibility: verbose response
       serveJson (request);
     }
-    else
-    if (responseVariant.size()) { //responseVariant set by processFunc
+    else if (responseVariant.size()) { //responseVariant set by processFunc
       char resStr[200]; 
       serializeJson(responseVariant, resStr, 200);
       USER_PRINT_Async("processJsonUrl response %s\n", resStr);

@@ -52,8 +52,6 @@ public:
 
     currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "On/Off");
-    }, [](JsonObject var, uint8_t) { //chFun
-      ui->valChangedForInstancesTemp = true;
     });
     currentVar["stage"] = true;
 
@@ -68,7 +66,6 @@ public:
       FastLED.setBrightness(result);
 
       USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
-      ui->valChangedForInstancesTemp = true;
     });
     currentVar["log"] = true; //logarithmic
     currentVar["stage"] = true; //these values override model.json???
@@ -103,7 +100,6 @@ public:
       USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
 
       doMap = effects.setEffect("fx", fx);
-      ui->valChangedForInstancesTemp = true;
     });
     currentVar["stage"] = true;
 
@@ -131,7 +127,6 @@ public:
         case 7: palette = HeatColors_p; break;
         default: palette = PartyColors_p; break;
       }
-      ui->valChangedForInstancesTemp = true;
     });
     currentVar["stage"] = true;
 
@@ -153,7 +148,18 @@ public:
 
       ledsV.projectionNr = var["value"];
       doMap = true;
-      ui->valChangedForInstancesTemp = true;
+
+      JsonObject parentVar = var;
+      parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+
+      if (ledsV.projectionNr == 2) {
+        ui->initSlider(parentVar, "pointX", 128);
+        ui->initSlider(parentVar, "pointY", 128);
+        ui->initSlider(parentVar, "pointZ", 128);
+      }
+
+      web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
+
     });
     currentVar["stage"] = true;
 
@@ -219,7 +225,7 @@ public:
           // e131mod->patchChannel(3, "pro", Projections::count);
           // e131mod->patchChannel(4, "fixture", 5); //assuming 5!!!
 
-          ui->valChangedForInstancesTemp = true;
+          // ui->stageVarChanged = true;
           
       // }
       // else
@@ -227,6 +233,8 @@ public:
     #endif
 
     effects.setup();
+
+    FastLED.setMaxPowerInVoltsAndMilliamps(5,2000); // 5v, 2000mA
 
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }

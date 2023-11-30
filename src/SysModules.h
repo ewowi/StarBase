@@ -30,8 +30,8 @@ public:
 
 private:
   std::vector<SysModule *> modules;
-  unsigned long oneSecondMillis = 0;
-  unsigned long tenSecondMillis = millis() - 4500;
+  // unsigned long oneSecondMillis = 0;
+  // unsigned long tenSecondMillis = millis() - 4500;
 };
 
 static SysModules *mdls;

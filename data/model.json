@@ -121,7 +121,7 @@
           "max": 10
         },
         {
-          "id": "dmxChannel",
+          "id": "dch",
           "type": "number",
           "ro": false,
           "o": 87,
@@ -330,7 +330,7 @@
           ]
         },
         {
-          "id": "syncMaster",
+          "id": "sma",
           "type": "number",
           "ro": false,
           "o": 44,
@@ -776,7 +776,7 @@
       "o": 85,
       "n": [
         {
-          "id": "dmxUni",
+          "id": "dun",
           "type": "number",
           "ro": false,
           "o": 86,

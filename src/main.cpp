@@ -86,7 +86,6 @@ void setup() {
     mdls->add(lfg);
   #endif
   mdls->add(files);
-  mdls->add(instances);
   mdls->add(sys);
   mdls->add(pins);
   mdls->add(print);
@@ -112,6 +111,7 @@ void setup() {
     mdls->add(wledAudioMod);
   #endif
   mdls->add(mdns); //no ui
+  mdls->add(instances);
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

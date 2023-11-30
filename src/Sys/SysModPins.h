@@ -33,7 +33,7 @@ public:
   void allocatePin(uint8_t pinNr, const char * owner, const char * details);
   void deallocatePin(uint8_t pinNr, const char * owner);
 
-  void updateGPIO(JsonObject var);
+  static void updateGPIO(JsonObject var, size_t index);
 
 private:
   static bool pinsChanged; //update pins table if pins changed

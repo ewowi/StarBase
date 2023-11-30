@@ -22,6 +22,8 @@ public:
   const char * name;
   bool success;
   bool isEnabled;
+  unsigned long oneSecondMillis = millis() - random(1000); //random so not all 1s are fired at once
+  unsigned long tenSecondMillis = millis() - random(1000); //random within a second
 
   JsonObject parentVar;
 

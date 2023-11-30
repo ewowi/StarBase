@@ -68,21 +68,27 @@ void SysModules::setup() {
 }
 
 void SysModules::loop() {
-  bool oneSec = false;
+  // bool oneSec = false;
   bool tenSec = false;
-  if (millis() - oneSecondMillis >= 1000) {
-    oneSecondMillis = millis();
-    oneSec = true;
-  }
-  if (millis() - tenSecondMillis >= 10000) {
-    tenSecondMillis = millis();
-    tenSec = true;
-  }
+  // if (millis() - oneSecondMillis >= 1000) {
+  //   oneSecondMillis = millis();
+  //   oneSec = true;
+  // }
+  // if (millis() - tenSecondMillis >= 10000) {
+  //   tenSecondMillis = millis();
+  //   tenSec = true;
+  // }
   for (SysModule *module:modules) {
     if (module->isEnabled && module->success) {
       module->loop();
-      if (oneSec) module->loop1s();
-      if (tenSec) module->loop10s();
+      if (millis() - module->oneSecondMillis >= 1000) {
+        module->oneSecondMillis = millis();
+        module->loop1s();
+      }
+      if (millis() - module->tenSecondMillis >= 10000) {
+        module->tenSecondMillis = millis();
+        module->loop10s();
+      }
       // module->testManager();
       // module->performanceManager();
       // module->dataSizeManager();

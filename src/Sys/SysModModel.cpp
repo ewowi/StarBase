@@ -154,7 +154,24 @@ JsonObject SysModModel::setValueC(const char * id, const char * value, uint8_t r
         }
       }
     } else {
-      USER_PRINTF("setValueC Var %s (%s) table row nr not implemented yet %d\n", id, value, rowNr);
+      //if we deal with multiple rows, value should be an array, if not we create one
+
+      if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
+        USER_PRINTF("setValueC var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
+        // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
+        var.createNestedArray("value");
+      }
+
+      if (var["value"].is<JsonArray>()) {
+        //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
+        if (var["value"][rowNr] != value) {
+          var["value"][rowNr] = (char *)value; //create a copy
+          ui->setChFunAndWs(var, rowNr);
+        }
+      }
+      else 
+        USER_PRINTF("setValueI %s could not create value array\n", id);
+      // USER_PRINTF("setValueC Var %s (%s) table row nr not implemented yet %d\n", id, value, rowNr);
     }
   }
   else

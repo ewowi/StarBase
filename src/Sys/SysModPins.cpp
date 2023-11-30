@@ -21,6 +21,7 @@ SysModPins::SysModPins() :SysModule("Pins") {
 
   pinMode(2, OUTPUT);
   pinMode(4, OUTPUT);
+  pinMode(19, OUTPUT);
   pinMode(33, OUTPUT);
 
   //start with no pins allocated
@@ -82,6 +83,7 @@ void SysModPins::setup() {
 
   // ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);
   // ui->initCheckBox(parentVar, "pin4");
+  ui->initCheckBox(parentVar, "pin19", true, false, nullptr, updateGPIO);
   // ui->initCheckBox(parentVar, "pin33", true);
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -95,7 +97,7 @@ void SysModPins::loop1s() {
   }
 }
 
-void SysModPins::updateGPIO(JsonObject var) {
+void SysModPins::updateGPIO(JsonObject var, size_t index) {
   if (var["value"].is<bool>()) {
     bool pinValue = var["value"];
     JsonString id = var["id"];
@@ -104,6 +106,7 @@ void SysModPins::updateGPIO(JsonObject var) {
 
     if (id == "pin2") digitalWrite(2, pinValue?HIGH:LOW);
     if (id == "pin4") digitalWrite(4, pinValue?HIGH:LOW);
+    if (id == "pin19") digitalWrite(19, pinValue?HIGH:LOW);
     if (id == "pin33") digitalWrite(33, pinValue?HIGH:LOW);
   }
 }

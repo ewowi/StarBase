@@ -32,23 +32,19 @@ public:
 
     parentVar = ui->initModule(parentVar, name);
 
-    ui->initNumber(parentVar, "dmxUni", universe, 0, 7, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Universe");
+    ui->initNumber(parentVar, "dun", universe, 0, 7, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "DMX Universe");
     }, [this](JsonObject var, uint8_t) { //chFun
       universe = var["value"];
-      ui->valChangedForInstancesTemp = true;
     });
 
-    ui->initNumber(parentVar, "dmxChannel", 1, 0, 511, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Channel");
+    JsonObject currentVar = ui->initNumber(parentVar, "dch", 1, 1, 512, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "DMX Channel");
       web->addResponse(var["id"], "comment", "First channel");
     }, [](JsonObject var, uint8_t) { //chFun
-    
-      ui->valChangedForInstancesTemp = true;
-
       ui->processUiFun("e131Tbl"); //rebuild table
-
     });
+    currentVar["stage"] = true;
 
     JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Vars to watch");
@@ -56,7 +52,7 @@ public:
       JsonArray rows = web->addResponseA(var["id"], "table");
       for (auto varToWatch: varsToWatch) {
         JsonArray row = rows.createNestedArray();
-        row.add(varToWatch.channel + mdl->getValue("dmxChannel").as<uint8_t>());
+        row.add(varToWatch.channel + mdl->getValue("dch").as<uint8_t>());
         row.add((char *)varToWatch.id);
         row.add(varToWatch.max);
         row.add(varToWatch.savedValue);

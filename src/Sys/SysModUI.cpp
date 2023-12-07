@@ -277,6 +277,11 @@ const char * SysModUI::processJson(JsonVariant &json) {
         USER_PRINTF("processJson view v:%s n: %d s:%s\n", pair.value().as<String>(), var.isNull(), var["id"].as<const char *>());
         var["view"] = (char *)value.as<const char *>(); //create a copy!
       }
+      else if (pair.key() == "canvasData") {
+        JsonObject var = mdl->findVar("System");
+        USER_PRINTF("processJson canvasData %s\n", value.as<const char *>());
+        var["canvasData"] = (char *)value.as<const char *>(); //create a copy!
+      }
       else if (pair.key() == "uiFun") { //JsonString can do ==
         //find the select var and collect it's options...
         if (value.is<JsonArray>()) { //should be

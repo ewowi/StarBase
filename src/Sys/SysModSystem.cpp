@@ -38,8 +38,15 @@ void SysModSystem::setup() {
   });
   ui->initText(parentVar, "stack", nullptr, 16, true);
 
-  ui->initButton(parentVar, "restart", nullptr, false, nullptr, [](JsonObject var, uint8_t) {  //chFun
-    SysModWeb::ws->closeAll(1012);
+  ui->initButton(parentVar, "reboot", nullptr, false, nullptr, [](JsonObject var, uint8_t) {  //chFun
+    web->ws->closeAll(1012);
+
+    // mdls->reboot(); //not working yet
+    // long dly = millis();
+    // while (millis() - dly < 450) {
+    //   yield();        // enough time to send response to client
+    // }
+    // FASTLED.clear();
     ESP.restart();
   });
 

@@ -127,6 +127,11 @@ void SysModWeb::loop1s() {
   wsSendJsonCounter = 0;
 }
 
+void SysModWeb::reboot() {
+  USER_PRINTF("SysModWeb reboot\n"); //and this not causes crash ??? whats with name?
+  ws->closeAll(1012);
+}
+
 void SysModWeb::connectedChanged() {
   if (SysModules::isConnected) {
     ws->onEvent(wsEvent);

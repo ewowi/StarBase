@@ -258,6 +258,22 @@ public:
       newFrame = false;
     }
 
+    JsonObject var = mdl->findVar("System");
+    if (!var["canvasData"].isNull()) {
+      const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
+      USER_PRINTF("AppModLeds loop canvasData %s\n", canvasData);
+
+      char * token = strtok((char *)canvasData, ",");
+      if (token != NULL) ledsV.pointX = atoi(token) / 10;
+      token = strtok(NULL, ",");
+      if (token != NULL) ledsV.pointY = atoi(token) / 10;
+      token = strtok(NULL, ",");
+      if (token != NULL) ledsV.pointZ = atoi(token) / 10;
+
+      var.remove("canvasData");
+      doMap = true; //recalc projection
+    }
+
     //update projection
     if (millis() - lastMappingMillis >= 1000 && doMap) { //not more then once per second (for E131)
       lastMappingMillis = millis();

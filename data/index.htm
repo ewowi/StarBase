@@ -36,6 +36,8 @@
     <!-- <input type="button" value="User" id="vUser" onclick="showHideModules(this)"> -->
     <input type="button" value="System" id="vSys" onclick="showHideModules(this)">
     <input type="button" value="All" id="vAll" onclick="showHideModules(this)">
+    <span> | </span>
+    <input type="button" value="Save" id="bSave" onclick="saveModel(this)">
     <div id="instPH"></div>
   </div>
   <div class="container">
@@ -51,5 +53,10 @@
   <div id="connind">&#9790;</div>
   <div id="modalView" class="modal"></div>
   <p style="color:grey;"> (c) 2023 MoonModules Licensed under GPL v3</p>
+  <div id="canvasMenu" style="position:absolute;display:none"> <!--;background-color:#b60f62-->
+    <p><button id="canvasButton"></button></p>
+    <p><button id="canvasButton2">Add Effect</button></p>
+    <span id="canvasData" hidden="true"></span>
+  </div>
 </body>
 </html>

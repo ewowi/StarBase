@@ -6,12 +6,6 @@
 // @Copyright (c) 2023 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 
-var renderer = null;
-var scene = null;
-var camera = null;
-var controls = null;
-// var previousFunction;
-
 function userFun(userFunId, data) {
   if (userFunId == "pview" && jsonValues.pview) {
     let leds = new Uint8Array(data);
@@ -35,9 +29,9 @@ function userFun(userFunId, data) {
 
     // console.log("userFun", leds);
 
-    if (jsonValues.pview.depth == 1)
-      preview2D(pviewNode, leds);
-    else
+    // if (jsonValues.pview.depth == 1)
+    //   preview2D(pviewNode, leds);
+    // else
       preview3D(pviewNode, leds);
 
     return true;
@@ -87,6 +81,14 @@ function preview2D(node, leds) {
   }
 }
 
+let renderer = null;
+let scene = null;
+let camera = null;
+var controls = null;
+let raycaster = null;
+let intersect = null;
+let mousePointer = null;
+
 //https://stackoverflow.com/questions/8426822/rotate-camera-in-three-js-with-mouse
 function preview3D(node, leds) {
   //3D vars
@@ -94,25 +96,65 @@ function preview3D(node, leds) {
   // let mH = leds[1];
   // let mD = leds[2];
   import ('three').then((THREE) => {
+
+    function onMouseMove( event ) {
+
+      let canvasRect = node.getBoundingClientRect();
+    
+      if (!mousePointer) mousePointer = new THREE.Vector2();
+      mousePointer.x = ((event.clientX - canvasRect.left) / canvasRect.width) * 2 - 1;
+      mousePointer.y = -((event.clientY - canvasRect.top) / canvasRect.height) * 2 + 1;
+
+      let canvasMenu = gId("canvasMenu").getBoundingClientRect();
+
+      // console.log(event.clientX, event.clientY, canvasMenu);
+
+      //if mousePointer out of menu bounds then hide menu
+      if (event.clientX < canvasMenu.left || event.clientX > canvasMenu.right || event.clientY < canvasMenu.top || event.clientY > canvasMenu.bottom)
+        gId("canvasMenu").style.display = "none";
+    }
+    
+    function onMouseDown(event) {
+      event.preventDefault();
+      var rightclick;
+      if (!event) var event = window.event;
+      if (event.which) rightclick = (event.which == 3);
+      else if (event.button) rightclick = (event.button == 2);
+      if (!rightclick) return;
+      
+      // var intersects = raycaster.intersectObjects(scene.children);
+      console.log("onMouseDown", event, intersect);
+    
+      if (intersect) {
+        // intersect = intersects[0].object;
+        gId("canvasMenu").style.left = (event.clientX) + "px"; // - rect.left
+        gId("canvasMenu").style.top = (event.clientY ) + "px"; //- rect.top
+        gId("canvasMenu").style.display = "";
+        let sp = intersect.name.split(" - ");
+        gId("canvasData").innerText = jsonValues.pview.outputs[sp[0]].leds[sp[1]];// event.clientY;
+      }
+      // else{
+      //   intersect = undefined;
+      // }
+    }
+    
     import ('three/addons/controls/OrbitControls.js').then((OCModule) => {
 
       let factor = 10;//fixed value: from mm to cm
       let d = 5 / factor; //distanceLED;
 
+      //init three - done once
       if (!renderer || (jsonValues.pview && jsonValues.pview.new)) { //init 3D
 
         console.log("preview3D create new renderer");
 
-        // node.width  = 0;
-        // node.height = 0;
-        console.log("before", node);
         renderer = new THREE.WebGLRenderer({canvas: node, antialias: true, alpha: true });
-        console.log("after", node);
         // THREE.Object3D.DefaultUp = new THREE.Vector3(0,1,1);
         renderer.setClearAlpha(0)
         renderer.setClearColor( 0x000000, 0 );
         // renderer.setSize( 300, 150);
         // node.parentNode.appendChild( renderer.domElement );
+        // rect = renderer.domElement.getBoundingClientRect();
 
         camera = new THREE.PerspectiveCamera( 45, node.width/node.height, 1, 500);
         // const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 2000 );
@@ -128,8 +170,34 @@ function preview3D(node, leds) {
         controls.enablePan = false;
         controls.enableDamping = true;
 
+        raycaster = new THREE.Raycaster();
+
+        node.addEventListener( 'mousemove', onMouseMove );
+        node.addEventListener('mousedown', onMouseDown, false);
+        //prevent default behavior
+        // if (gId("canvasMenu").addEventListener) {
+        //   gId("canvasMenu").addEventListener('contextmenu', function (e) {
+        //     console.log("canvasMenu contextmenu", e);
+        //     e.preventDefault();
+        //   }, false);
+        // } else {
+        //   gId("canvasMenu").attachEvent('oncontextmenu', function () {
+        //     console.log("canvasMenu oncontextmenu", window);
+        //     window.event.returnValue = false;
+        //   });
+        // }
+
+        gId("canvasButton").innerText = "Set Mid Point";
+
+        //process canvas button click
+        gId("canvasButton").addEventListener("click", function(){
+          sendValue(gId("canvasData"));
+          gId("canvasMenu").style.display = "none";
+        }, false);
+        
       } //new
 
+      //init fixture - anytime a new fixture
       if (jsonValues.pview && jsonValues.pview.new) { //set the new coordinates
         var offset_x = -d*(jsonValues.pview.width-1)/2;
         var offset_y = -d*(jsonValues.pview.height-1)/2;
@@ -138,15 +206,22 @@ function preview3D(node, leds) {
         console.log("preview3D new jsonValues", jsonValues.pview);
 
         if (jsonValues.pview.outputs) {
-          // console.log("preview2D jsonValues", jsonValues.pview);
+          // console.log("preview3D jsonValues", jsonValues.pview);
+          let outputsIndex = 0;
           for (var output of jsonValues.pview.outputs) {
             if (output.leds) {
+              let ledsIndex = 0;
               for (var led of output.leds) {
-                const geometry = new THREE.SphereGeometry( 1/factor);
-                const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5});
+                if (led.length == 1) //1D: make 2D
+                  led.push(0);
+                if (led.length <= 2) //1D and 2D: maak 3D 
+                  led.push(0);
+                const geometry = new THREE.SphereGeometry( 0.2); //was 1/factor
+                const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.7});
                 // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
                 const sphere = new THREE.Mesh( geometry, material );
                 sphere.position.set(offset_x + d*led[0]/factor, offset_y + d*led[1]/factor, offset_z + d*led[2]/factor);
+                sphere.name = outputsIndex + " - " + ledsIndex++;
                 scene.add( sphere );
               }
             }
@@ -154,7 +229,8 @@ function preview3D(node, leds) {
               console.log("preview3D jsonValues no leds", jsonValues.pview);
               jsonValues.pview = null;
             }
-          }
+            outputsIndex++;
+          } //outputs
         }
         else {
           console.log("preview3D jsonValues no outputs", jsonValues.pview);
@@ -163,6 +239,7 @@ function preview3D(node, leds) {
         jsonValues.pview.new = false;
       }
 
+      //animate / render
       if (jsonValues.pview) {
         if (renderer.width != gId("pview").width || renderer.height != gId("pview").height)
           renderer.setSize( gId("pview").width, gId("pview").height);
@@ -170,7 +247,7 @@ function preview3D(node, leds) {
         let firstLed = 4;
         var i = 1;
         if (jsonValues.pview.outputs) {
-          // console.log("preview2D jsonValues", jsonValues.pview);
+          // console.log("preview3D jsonValues", jsonValues.pview);
           for (var output of jsonValues.pview.outputs) {
             if (output.leds) {
               for (var led of output.leds) {
@@ -196,6 +273,33 @@ function preview3D(node, leds) {
 
       controls.update(); // apply orbit controls
 
+      if (mousePointer) {
+        raycaster.setFromCamera( mousePointer, camera );
+  
+        const intersects = raycaster.intersectObjects( scene.children, true ); //recursive
+        
+        if ( intersects.length > 0 ) {
+          // console.log(raycaster, intersects, mousePointer, scene.children);
+  
+          if ( intersect != intersects[ 0 ].object ) {
+  
+            if ( intersect ) intersect.material.color.setHex( intersect.currentHex );
+  
+            intersect = intersects[ 0 ].object;
+            intersect.currentHex = intersect.material.color.getHex();
+            intersect.material.color.setHex( 0xff0000 ); //red
+  
+          }
+  
+        } else {
+  
+          if ( intersect ) intersect.material.color.setHex( intersect.currentHex );
+  
+          intersect = null;
+  
+        }
+      } //if mousePointer
+      
       renderer.render( scene, camera);
     }); //import OrbitControl
   }); //import Three

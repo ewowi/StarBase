@@ -24,6 +24,8 @@ public:
 
   void loop();
 
+  void reboot();
+
   void add(SysModule* module);
 
   void connectedChanged();

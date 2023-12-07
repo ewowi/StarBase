@@ -39,6 +39,8 @@ public:
   virtual void loop1s() {}
   virtual void loop10s() {}
 
+  virtual void reboot() {}
+
   virtual void connectedChanged() {onOffChanged();}
   virtual void enabledChanged() {onOffChanged();}
   virtual void onOffChanged() {}

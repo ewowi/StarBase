@@ -288,7 +288,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
             valueNode.type = json.type;
             valueNode.disabled = json.ro;
             if (json.value) valueNode.checked = json.value;
-            valueNode.addEventListener('change', (event) => {console.log(json.type + " change", event);sendChecked(event.target);});
+            valueNode.addEventListener('change', (event) => {console.log(json.type + " change", event);sendValue(event.target);});
           } else if (json.type == "button") {
             valueNode = cE("input");
             valueNode.type = json.type;
@@ -446,7 +446,7 @@ function processUpdate(json) {
           }
           for (var i = 0, row; row = tableNode.rows[i]; i++) {
             if (i != 0 && row.cells[0].innerText == tableRows[0][0]) {
-              console.log("  row", i, row);
+              // console.log("  row", i, row);
               for (var j = 0, col; col = row.cells[j]; j++) { //coll is a <td>
                 // console.log("  cell", i, j, col);
                 processVarNode(col.firstChild, col.firstChild.id, {value:tableRows[0][j]}); //<td>.firstChild is the cell e.g. <select>
@@ -476,7 +476,7 @@ function processVarNode(node, key, json) {
   
   if (json.hasOwnProperty("label")) {
     // if (key != "insTbl") // tbd: table should not update
-    console.log("processVarNode label", key, json.label);
+    //   console.log("processVarNode label", key, json.label);
     if (node.nodeName.toLocaleLowerCase() == "input" && node.type == "button") {
       node.value = initCap(json.label);
     }
@@ -505,7 +505,7 @@ function processVarNode(node, key, json) {
         parentNode = node.parentNode;
       
       // if (key != "insTbl") // tbd: table should not update
-      console.log("processVarNode comment", parentNode, key, json.comment);
+      //   console.log("processVarNode comment", key, json.comment);
 
       let commentNode = parentNode.querySelector('comment');
       // console.log("commentNode", commentNode);
@@ -523,7 +523,7 @@ function processVarNode(node, key, json) {
   } //comment
 
   if (json.hasOwnProperty("select")) { //replace the select options
-    console.log("processVarNode select", key, json.select, gId(key), node);
+    // console.log("processVarNode select", key, json.select);
 
     if (node.nodeName.toLocaleLowerCase() == "span") { //readonly. tbd: only the displayed value needs to be in the select
       var index = 0;
@@ -587,7 +587,7 @@ function processVarNode(node, key, json) {
     //find model info
     let variable = findVar(key); //key is the table where no are the columns
     // if (key != "insTbl") // tbd: table should not update
-      console.log("processVarNode table", key, variable, json.table);
+    //   console.log("processVarNode table", key, json.table);
 
     //add each row
     let rowNr = 0;
@@ -736,17 +736,29 @@ function requestJson(command) {
 }
 
 function sendValue(element) {
+  let varId;
+  if (element.id == "saveModel" || element.id == "bSave") {
+    varId = "saveModel";
+    gId("bSave").value = "Save";
+    gId("bSave").disabled = true;
+  }
+  else 
+  {
+    varId = element.id;
+    gId("bSave").value = "Save*";
+    gId("bSave").disabled = false;
+  }
+
   var command = {};
-  command[element.id] = Number(element.value)?Number(element.value):element.value; //type number is default but html converts numbers in <option> to string
+  if (element.type == "checkbox")
+    command[varId] = element.checked;
+  else if (element.nodeName.toLocaleLowerCase() == "span")
+    command[varId] = element.innerText;
+  else
+    command[varId] = Number(element.value)?Number(element.value):element.value; //type number is default but html converts numbers in <option> to string
   // console.log("sendValue", command);
 
-  requestJson(command);
-}
-function sendChecked(element) {
-  var command = {};
-  command[element.id] = element.checked;
-  // console.log("sendChecked", command);
-
+  
   requestJson(command);
 }
 
@@ -1058,4 +1070,10 @@ function showHideModules(node) {
   // console.log("setInput", command);
 
   requestJson(command);
+} //showHideModules
+
+function saveModel(node) {
+  console.log("saveModel", node);
+
+  sendValue(node);
 }

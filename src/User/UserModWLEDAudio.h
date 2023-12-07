@@ -12,10 +12,13 @@
 
 #include <WLED-sync.h> // https://github.com/netmindz/WLED-sync
 
+#define MAX_FREQUENCY   11025          // sample frequency / 2 (as per Nyquist criterion)
+
 class UserModWLEDAudio:public SysModule {
 
 public:
 
+  WLEDSync sync;
   uint8_t fftResults[NUM_GEQ_CHANNELS]= {0};
 
   UserModWLEDAudio() :SysModule("WLED Audio Sync Receiver") {
@@ -55,7 +58,6 @@ public:
   }
 
   private:
-    WLEDSync sync;
     boolean debug = false; 
 
 };

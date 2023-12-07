@@ -103,6 +103,12 @@ void SysModules::loop() {
 
 }
 
+void SysModules::reboot() {
+  for (SysModule *module:modules) {
+    module->reboot();
+  }
+}
+
 void SysModules::add(SysModule* module) {
   modules.push_back(module);
 }

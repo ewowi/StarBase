@@ -815,6 +815,84 @@ public:
   }
 };
 
+class FreqMatrix:public Effect {
+public:
+  const char * name() {
+    return "FreqMatrix 1D";
+  }
+
+  void setup() {
+    fadeToBlackBy( ledsP, ledsV.nrOfLedsP, 16);
+  }
+
+  void loop() {
+    sharedData.allocate(sizeof(uint8_t));
+    uint8_t *aux0 = sharedData.bind<uint8_t>();
+    if (!sharedData.allocated()) return;
+
+    uint8_t speed = mdl->getValue("Speed");
+    uint8_t fx = mdl->getValue("Sound effect");
+    uint8_t lowBin = mdl->getValue("Low bin");
+    uint8_t highBin = mdl->getValue("High bin");
+    uint8_t sensitivity10 = mdl->getValue("Sensivity");
+
+    uint8_t *fftResult = wledAudioMod->fftResults;
+
+    uint8_t secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
+    if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
+      *aux0 = secondHand;
+
+      // Pixel brightness (value) based on volume * sensitivity * intensity
+      // uint_fast8_t sensitivity10 = map(sensitivity, 0, 31, 10, 100); // reduced resolution slider // WLEDMM sensitivity * 10, to avoid losing precision
+      int pixVal = wledAudioMod->sync.volumeSmth * (float)fx * (float)sensitivity10 / 2560.0f; // WLEDMM 2560 due to sensitivity * 10
+      if (pixVal > 255) pixVal = 255;  // make a brightness from the last avg
+
+      CRGB color = CRGB::Black;
+
+      if (wledAudioMod->sync.FFT_MajorPeak > MAX_FREQUENCY) wledAudioMod->sync.FFT_MajorPeak = 1;
+      // MajorPeak holds the freq. value which is most abundant in the last sample.
+      // With our sampling rate of 10240Hz we have a usable freq range from roughtly 80Hz to 10240/2 Hz
+      // we will treat everything with less than 65Hz as 0
+
+      if ((wledAudioMod->sync.FFT_MajorPeak > 80.0f) && (wledAudioMod->sync.volumeSmth > 0.25f)) { // WLEDMM
+        // Pixel color (hue) based on major frequency
+        int upperLimit = 80 + 42 * highBin;
+        int lowerLimit = 80 + 3 * lowBin;
+        //uint8_t i =  lowerLimit!=upperLimit ? map(FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : FFT_MajorPeak;  // (original formula) may under/overflow - so we enforce uint8_t
+        int freqMapped =  lowerLimit!=upperLimit ? map(wledAudioMod->sync.FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : wledAudioMod->sync.FFT_MajorPeak;  // WLEDMM preserve overflows
+        uint8_t i = abs(freqMapped) & 0xFF;  // WLEDMM we embrace overflow ;-) by "modulo 256"
+
+        color = CHSV(i, 240, (uint8_t)pixVal); // implicit conversion to RGB supplied by FastLED
+      }
+
+      // shift the pixels one pixel up
+      ledsV.setPixelColor(0, color);
+      for (int i = ledsV.nrOfLedsV - 1; i > 0; i--) ledsV.setPixelColor(i, ledsV.getPixelColor(i-1));
+    }
+  }
+
+  bool controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "Speed", 255);
+    ui->initSlider(parentVar, "Sound effect", 128);
+    ui->initSlider(parentVar, "Low bin", 18);
+    ui->initSlider(parentVar, "High bin", 48);
+    ui->initSlider(parentVar, "Sensivity", 30, 10, 100);
+
+    // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
+
+    #ifdef USERMOD_E131
+
+      if (e131mod->isEnabled) {
+        e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
+        e131mod->patchChannel(4, "ripple", 255);
+      }
+
+    #endif
+
+    return true;
+  }
+};
+
 #endif // End Audio Effects
 
 class Effects {
@@ -843,6 +921,7 @@ public:
     #ifdef USERMOD_WLEDAUDIO
       effects.push_back(new GEQEffect);
       effects.push_back(new AudioRings);
+      effects.push_back(new FreqMatrix);
     #endif
   }
 

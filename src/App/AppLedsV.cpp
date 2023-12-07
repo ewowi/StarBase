@@ -52,9 +52,9 @@ void LedsV::fixtureProjectAndMap() {
       case p_Random:
         break;
       case p_DistanceFromPoint:
-        pointX = 0;
-        pointY = 0;
-        pointZ = 0;
+        // pointX = 0;
+        // pointY = 0;
+        // pointZ = 0;
         break;
       case p_DistanceFromCentre:
         pointX = widthP / 2;

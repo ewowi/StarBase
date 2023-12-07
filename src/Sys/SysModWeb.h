@@ -24,6 +24,8 @@ public:
   void loop();
   void loop1s();
 
+  void reboot();
+
   void connectedChanged();
 
   static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);

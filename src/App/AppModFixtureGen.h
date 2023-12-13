@@ -500,7 +500,7 @@ class AppModFixtureGen:public SysModule {
 
 public:
 
-  AppModFixtureGen() :SysModule("FixtureGen") {};
+  AppModFixtureGen() :SysModule("Fixture Generator") {};
 
   void setup() {
     SysModule::setup();

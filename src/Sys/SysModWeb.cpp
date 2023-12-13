@@ -369,10 +369,10 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
   }
 
   wsSendDataWsCounter++;
-  if (wsSendDataWsCounter > 1) {
+  while (wsSendDataWsCounter > 1) {
     USER_PRINT_Async("sendDataWs parallel %d %s\n", wsSendDataWsCounter, pcTaskGetTaskName(NULL));
-    wsSendDataWsCounter--;
-    return;
+    // wsSendDataWsCounter--;
+    // return;
   }
 
   wsSendJsonCounter++;
@@ -640,7 +640,7 @@ void SysModWeb::serveJson(AsyncWebServerRequest *request) {
     response = new AsyncJsonResponse(true,  model.memoryUsage()); //array tbd: here copy is mode, see WLED for using reference
     JsonArray root = response->getRoot();
 
-    // root = module does not work? so add each element individually
+    // root = model does not work? so add each element individually
     for (JsonObject module: model)
       root.add(module);
   }

@@ -105,22 +105,22 @@ function preview3D(node, leds) {
       mousePointer.x = ((event.clientX - canvasRect.left) / canvasRect.width) * 2 - 1;
       mousePointer.y = -((event.clientY - canvasRect.top) / canvasRect.height) * 2 + 1;
 
-      let canvasMenu = gId("canvasMenu").getBoundingClientRect();
+      let canvasMenuRect = gId("canvasMenu").getBoundingClientRect();
 
-      // console.log(event.clientX, event.clientY, canvasMenu);
+      // console.log(event.clientX, event.clientY, canvasMenuRect);
 
       //if mousePointer out of menu bounds then hide menu
-      if (event.clientX < canvasMenu.left || event.clientX > canvasMenu.right || event.clientY < canvasMenu.top || event.clientY > canvasMenu.bottom)
+      if (event.clientX < canvasMenuRect.left || event.clientX > canvasMenuRect.right || event.clientY < canvasMenuRect.top || event.clientY > canvasMenuRect.bottom)
         gId("canvasMenu").style.display = "none";
     }
     
     function onMouseDown(event) {
       event.preventDefault();
-      var rightclick;
-      if (!event) var event = window.event;
-      if (event.which) rightclick = (event.which == 3);
-      else if (event.button) rightclick = (event.button == 2);
-      if (!rightclick) return;
+      // var rightclick;
+      // if (!event) var event = window.event;
+      // if (event.which) rightclick = (event.which == 3);
+      // else if (event.button) rightclick = (event.button == 2);
+      // if (!rightclick) return;
       
       // var intersects = raycaster.intersectObjects(scene.children);
       console.log("onMouseDown", event, intersect);
@@ -128,8 +128,8 @@ function preview3D(node, leds) {
       if (intersect) {
         // intersect = intersects[0].object;
         gId("canvasMenu").style.left = (event.clientX) + "px"; // - rect.left
-        gId("canvasMenu").style.top = (event.clientY ) + "px"; //- rect.top
-        gId("canvasMenu").style.display = "";
+        gId("canvasMenu").style.top = (event.clientY) + "px"; //- rect.top
+        gId("canvasMenu").style.display = ""; //not none -> show
         let sp = intersect.name.split(" - ");
         gId("canvasData").innerText = jsonValues.pview.outputs[sp[0]].leds[sp[1]];// event.clientY;
       }

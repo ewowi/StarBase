@@ -23,13 +23,15 @@ public:
   // StaticJsonDocument<24576> model; //not static as that blows up the stack. Use extern??
   static DynamicJsonDocument *model; //needs to be static as loopTask and asyncTask is using it...
 
+  static JsonObject modelParentVar;
+
   SysModModel();
   void setup();
   void loop();
   void loop1s();
 
-  //scan all vars in the model and remove the s element 
-  void cleanUpModel(JsonArray vars);
+  //scan all vars in the model and remove vars where var["o"] is negative or positive, if ro then remove ro values
+  void cleanUpModel(JsonArray vars, bool oPos = true, bool ro = false);
 
   //sets the value of var with id
   static JsonObject setValueC(const char * id, const char * value, uint8_t rowNr = uint8Max);

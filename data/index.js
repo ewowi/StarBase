@@ -120,10 +120,9 @@ function linearToLogarithm(json, value) {
 function generateHTML(parentNode, json, rowNr = -1) {
   // console.log("generateHTML", parentNode, json);
   if (Array.isArray(json)) {
+    //sort according to o value
     json.sort(function(a,b) {
-      // Turn your strings into dates, and then subtract them
-      // to get a value that is either negative, positive, or zero.
-      return a.o - b.o; //o is order nr
+      return Math.abs(a.o) - Math.abs(b.o); //o is order nr (ignore negatives for the time being)
     });
     for (var node of json) //if isArray then variables of array
       generateHTML(parentNode, node, rowNr);
@@ -199,7 +198,7 @@ function generateHTML(parentNode, json, rowNr = -1) {
         //rowNr = -1 for th so uiFun will be called here and processed in processVarNode
         let thNode = cE("th");
         thNode.id = json.id;
-        // thNode.innerText = "wait for uiFun";// initCap(json.id); //label uiFun response can change it
+        thNode.innerText = initCap(json.id); //label uiFun response can change it "wait for uiFun";// 
         parentNode.firstChild.firstChild.appendChild(thNode); //<thead><tr>
       } else {
         
@@ -642,6 +641,10 @@ function processVarNode(node, key, json) {
       userFunId = key; //prepare for websocket data
     else if (node.type == "checkbox")
       node.checked = json.value;
+    else if (node.type == "button") {
+      // console.log("button", node, json);
+      if (json.value) node.value = json.value; //else the id / label is used as button label
+    }
     else if (Array.isArray(json.value)) { //table column
       let rowNr = 0;
       for (let x of json.value) {

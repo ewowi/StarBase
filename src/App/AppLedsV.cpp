@@ -56,10 +56,10 @@ void LedsV::fixtureProjectAndMap() {
         // pointY = 0;
         // pointZ = 0;
         break;
-      case p_DistanceFromCentre:
-        pointX = widthP / 2;
-        pointY = heightP / 2;
-        pointZ = depthP / 2;
+      case p_DistanceFromCenter:
+        // pointX = widthP / 2;
+        // pointY = heightP / 2;
+        // pointZ = depthP / 2;
         break;
     }
 
@@ -98,7 +98,7 @@ void LedsV::fixtureProjectAndMap() {
           case p_Random:
             break;
           case p_DistanceFromPoint:
-          case p_DistanceFromCentre:
+          case p_DistanceFromCenter:
             if (effectDimension == _1D) {
               if (fixtureDimension == _1D)
                 bucket = distance(x,0, 0,pointX,0,0);
@@ -176,7 +176,7 @@ void LedsV::fixtureProjectAndMap() {
         if (bucket != uint16Max) {
           //post processing: inverse mapping 
           switch(projectionNr) {
-          case p_DistanceFromCentre:
+          case p_DistanceFromCenter:
             switch (effectDimension) {
             case _2D: 
               switch (fixtureDimension) {

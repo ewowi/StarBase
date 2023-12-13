@@ -76,6 +76,35 @@ public:
   virtual void loop() {}
 
   virtual bool controls(JsonObject parentVar) {return false;}
+
+  void addPalette(JsonObject parentVar) {
+    JsonObject currentVar = ui->initSelect(parentVar, "pal", 4, false, [](JsonObject var) { //uiFun.
+      web->addResponse(var["id"], "label", "Palette");
+      JsonArray select = web->addResponseA(var["id"], "select");
+      select.add("CloudColors");
+      select.add("LavaColors");
+      select.add("OceanColors");
+      select.add("ForestColors");
+      select.add("RainbowColors");
+      select.add("RainbowStripeColors");
+      select.add("PartyColors");
+      select.add("HeatColors");
+    }, [](JsonObject var, uint8_t) { //chFun
+      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+      switch (var["value"].as<uint8_t>()) {
+        case 0: palette = CloudColors_p; break;
+        case 1: palette = LavaColors_p; break;
+        case 2: palette = OceanColors_p; break;
+        case 3: palette = ForestColors_p; break;
+        case 4: palette = RainbowColors_p; break;
+        case 5: palette = RainbowStripeColors_p; break;
+        case 6: palette = PartyColors_p; break;
+        case 7: palette = HeatColors_p; break;
+        default: palette = PartyColors_p; break;
+      }
+    });
+    currentVar["stage"] = true;
+  }
 };
 
 class SolidEffect: public Effect {
@@ -197,6 +226,7 @@ public:
     }
   }
   bool controls(JsonObject parentVar) {
+    addPalette(parentVar);
     return false;
   }
 };
@@ -312,6 +342,7 @@ public:
     blur2d(ledsP, ledsV.widthP, ledsV.heightP, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
   }
   bool controls(JsonObject parentVar) {
+    addPalette(parentVar);
     ui->initSlider(parentVar, "BPM", 60);
     ui->initSlider(parentVar, "intensity", 128);
     ui->initSlider(parentVar, "blur", 128);
@@ -476,6 +507,7 @@ public:
     }
   }
   bool controls(JsonObject parentVar) {
+    addPalette(parentVar);
     ui->initSlider(parentVar, "speed", 128, 1, 255); //start with speed 1
     ui->initSlider(parentVar, "Offset X", 128);
     ui->initSlider(parentVar, "Offset Y", 128);
@@ -528,6 +560,7 @@ public:
     }
   }
   bool controls(JsonObject parentVar) {
+    addPalette(parentVar);
     ui->initSlider(parentVar, "X frequency", 64);
     ui->initSlider(parentVar, "Fade rate", 128);
     ui->initSlider(parentVar, "Speed", 128);
@@ -612,6 +645,7 @@ public:
   }
 
   bool controls(JsonObject parentVar) {
+    addPalette(parentVar);
     ui->initSlider(parentVar, "gravity", 128);
     ui->initSlider(parentVar, "balls", 8, 1, 16);
     return true;
@@ -748,6 +782,7 @@ public:
   }
 
   bool controls(JsonObject parentVar) {
+    addPalette(parentVar);
     ui->initSlider(parentVar, "fadeOut", 255);
     ui->initSlider(parentVar, "ripple", 128);
     ui->initCheckBox(parentVar, "colorBars");
@@ -760,6 +795,7 @@ public:
       if (e131mod->isEnabled) {
         e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
         e131mod->patchChannel(4, "ripple", 255);
+        ui->processUiFun("e131Tbl");
       }
 
     #endif
@@ -810,6 +846,7 @@ public:
   }
 
   bool controls(JsonObject parentVar) {
+    addPalette(parentVar);
     ui->initCheckBox(parentVar, "inWards");
     return true;
   }
@@ -877,17 +914,6 @@ public:
     ui->initSlider(parentVar, "Low bin", 18);
     ui->initSlider(parentVar, "High bin", 48);
     ui->initSlider(parentVar, "Sensivity", 30, 10, 100);
-
-    // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
-
-    #ifdef USERMOD_E131
-
-      if (e131mod->isEnabled) {
-        e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
-        e131mod->patchChannel(4, "ripple", 255);
-      }
-
-    #endif
 
     return true;
   }
@@ -966,20 +992,23 @@ public:
     return effects.size();
   }
 
-  bool setEffect(const char * id, size_t index) {
+  bool setEffect(JsonObject parentVar) {
     bool doMap = false;
 
-    USER_PRINTF("setEffect %d %d %d \n", index, effects.size(), size());
-    if (index < size()) {
+    uint8_t fx = parentVar["value"];
+
+    USER_PRINTF("setEffect %d %d %d \n", fx, effects.size(), size());
+
+    if (fx < size()) {
 
       //tbd: make property of effects
-      if (strstr(effects[index]->name(), "2D")) {
+      if (strstr(effects[fx]->name(), "2D")) {
         if (ledsV.effectDimension != 2) {
           ledsV.effectDimension = 2;
           doMap = true;
         }
       }
-      else if (strstr(effects[index]->name(), "3D")) {
+      else if (strstr(effects[fx]->name(), "3D")) {
         if (ledsV.effectDimension != 3) {
           ledsV.effectDimension = 3;
           doMap = true;
@@ -994,11 +1023,11 @@ public:
 
       sharedData.clear(); //make sure all values are 0
 
-      JsonObject parentVar = mdl->findVar(id);
       parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
-      Effect* effect = effects[index];
+      Effect* effect = effects[fx];
       effect->controls(parentVar);
+
       effect->setup(); //if changed then run setup once (like call==0 in WLED)
 
       print->printJson("parentVar", parentVar);

@@ -144,11 +144,19 @@ void SysModUI::loop1s() {
 }
 
 JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, UFun uiFun, CFun chFun, LoopFun loopFun) {
-  JsonObject var = mdl->findVar(id);
+  JsonObject var = mdl->findVar(id); //sets the existing modelParentVar
+  const char * modelParentId = mdl->modelParentVar["id"];
+  const char * parentId = parent["id"];
+
+  bool differentParents = modelParentId != nullptr && parentId != nullptr && strcmp(modelParentId, parentId) != 0;
+  //!mdl->modelParentVar.isNull() && !parent.isNull() && mdl->modelParentVar["id"] != parent["id"];
+  if (differentParents) {
+    USER_PRINTF("initVar parents not equal %s: %s != %s\n", id, modelParentId, parentId);
+  }
 
   //create new var
-  if (var.isNull()) {
-    USER_PRINTF("initVar create new %s: %s\n", type, id);
+  if (differentParents || var.isNull()) {
+    USER_PRINTF("initVar create new %s: %s->%s\n", type, parentId, id);
     if (parent.isNull()) {
       JsonArray vars = mdl->model->as<JsonArray>();
       var = vars.createNestedObject();
@@ -160,7 +168,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     var["id"] = (char *)id; //create a copy!
   }
   else {
-    USER_PRINT_NOT("Object %s already defined\n", id);
+    USER_PRINTF("initVar Var %s->%s already defined\n", modelParentId, id);
   }
 
   if (!var.isNull()) {
@@ -168,7 +176,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       var["type"] = (char *)type; //create a copy!!
     if (var["ro"] != readOnly) 
       var["ro"] = readOnly;
-    //readOnly's will be deleted, if not already so
+
     var["o"] = -varCounter++; //make order negative to check if not obsolete, see cleanUpModel
 
     //if uiFun, add it to the list
@@ -349,7 +357,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
               changed = var["value"] != value;
 
             if (var["type"] == "button") //button always
-              setChFunAndWs(var, rowNr?atoi(rowNr):uint8Max); //setValue without assignment
+              setChFunAndWs(var, rowNr?atoi(rowNr):uint8Max, value); //bypass var["value"] 
             else if (changed) {
               // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 

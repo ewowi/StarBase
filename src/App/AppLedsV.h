@@ -19,7 +19,7 @@ enum Projections
   p_None,
   p_Random,
   p_DistanceFromPoint,
-  p_DistanceFromCentre,
+  p_DistanceFromCenter,
   p_Reverse,
   p_Mirror,
   p_Multiply,

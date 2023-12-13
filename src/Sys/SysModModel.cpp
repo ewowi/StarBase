@@ -17,6 +17,7 @@
 #include "SysJsonRDWS.h"
 
 DynamicJsonDocument * SysModModel::model = nullptr;
+JsonObject SysModModel::modelParentVar;
 
 SysModModel::SysModModel() :SysModule("Model") {
   model = new DynamicJsonDocument(24576);
@@ -53,7 +54,7 @@ void SysModModel::setup() {
     doWriteModel = true;
   });
 
-  ui->initCheckBox(parentVar, "showObsolete", false, false, [](JsonObject var) { //uiFun
+  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Show in UI (refresh)");
   }, [this](JsonObject var, uint8_t) { //chFun
     doShowObsolete = var["value"];
@@ -81,10 +82,13 @@ void SysModModel::setup() {
     cleanUpModelDone = true;
     cleanUpModel(model->as<JsonArray>());
   }
+
   if (doWriteModel) {
     USER_PRINTF("Writing model to /model.json... (serializeConfig)\n");
 
     // files->writeObjectToFile("/model.json", model);
+
+    cleanUpModel(model->as<JsonArray>(), false, true);//remove if var["o"] is negative (not cleanedUp) and remove ro values
 
     JsonRDWS jrdws("/model.json", "w"); //open fileName for deserialize
     jrdws.addExclusion("uiFun");
@@ -107,31 +111,42 @@ void SysModModel::loop1s() {
   setValueLossy("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
 }
 
-void SysModModel::cleanUpModel(JsonArray vars) {
+void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
   for (JsonArray::iterator varV=vars.begin(); varV!=vars.end(); ++varV) {
   // for (JsonVariant varV : vars) {
     if (varV->is<JsonObject>()) {
       JsonObject var = varV->as<JsonObject>();
 
-      //for each var:
-
-      if (var["o"].isNull() || var["o"] >= 0) { //not set negative in initVar
-        if (!doShowObsolete)
-        //   var["d"] = true;
-        // else
-          vars.remove(varV);
+      //no cleanup of o in case of ro value removal
+      if (!ro) {
+        if (oPos) {
+          if (var["o"].isNull() || var["o"].as<int>() >= 0) { //not set negative in initVar
+            if (!doShowObsolete) {
+              USER_PRINTF("remove var %s (o>=0)\n", var["id"].as<const char *>());          
+              vars.remove(varV); //remove the obsolete var (no o or )
+            }
+          }
+          else {
+            var["o"] = -var["o"].as<int>(); //make it possitive
+          }
+        } else { //!oPos
+          if (var["o"].isNull() || var["o"].as<int>() < 0) { 
+            USER_PRINTF("remove var %s (o<0)\n", var["id"].as<const char *>());          
+            vars.remove(varV); //remove the obsolete var (no o or o is negative - not cleanedUp)
+          }
+        }
       }
-      else {
-        var["o"] = -var["o"].as<int>(); //make it possitive
-      }
 
-      // //for previous not ro values
-      // if (var["ro"] && !var["value"].isNull())
-      //   var.remove("value");
+      //remove ro values (ro vars cannot be deleted as SM uses these vars)
+      if (ro && var["ro"].as<bool>()) {// && !var["value"].isNull())
+        USER_PRINTF("remove ro value %s\n", var["id"].as<const char *>());          
+        // vars.remove(varV); //remove ro vars
+        var.remove("value");
+      }
 
       //recursive call
       if (!var["n"].isNull() && var["n"].is<JsonArray>())
-        cleanUpModel(var["n"]);
+        cleanUpModel(var["n"], oPos, ro);
     } 
   }
 }
@@ -313,7 +328,7 @@ JsonVariant SysModModel::getValue(const char * id) {
   if (!var.isNull())
     return var["value"];
   else {
-    USER_PRINTF("Value of Var %s does not exist!!\n", id);
+    USER_PRINTF("getValue: Var %s does not exist!!\n", id);
     return JsonVariant();
   }
 }
@@ -323,35 +338,40 @@ JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
   // print ->print("findVar %s %s\n", id, parent.isNull()?"root":"n");
   if (parent.isNull()) {
     root = model->as<JsonArray>();
+    modelParentVar = JsonObject();
   }
-  else {
+  else
     root = parent;
-  }
-  JsonObject foundVar;
-  for(JsonObject var : root) {
-    if (foundVar.isNull()) {
+
+  for (JsonObject var : root) {
+    // if (foundVar.isNull()) {
       if (var["id"] == id)
-        foundVar = var;
-      else if (!var["n"].isNull())
-        foundVar = findVar(id, var["n"]);
-    }
+        return var;
+      else if (!var["n"].isNull()) {
+        JsonObject foundVar = findVar(id, var["n"]);
+        if (!foundVar.isNull()) {
+          if (modelParentVar.isNull()) modelParentVar = var;  //only recursive lowest assigns parentVar
+          // USER_PRINTF("findvar parent of %s is %s\n", id, modelParentVar["id"].as<const char *>());
+          return foundVar;
+        }
+      }
+    // }
   }
-  return foundVar;
+  return JsonObject();
 }
 
-void SysModModel::findVars(const char * id, bool value, FindFun fun, JsonArray parent) {
+void SysModModel::findVars(const char * property, bool value, FindFun fun, JsonArray parent) {
   JsonArray root;
   // print ->print("findVar %s %s\n", id, parent.isNull()?"root":"n");
-  if (parent.isNull()) {
+  if (parent.isNull())
     root = model->as<JsonArray>();
-  }
-  else {
+  else
     root = parent;
-  }
+
   for(JsonObject var : root) {
-      if (var[id] == value)
-        fun(var);
-      if (!var["n"].isNull())
-        findVars(id, value, fun, var["n"]);
+    if (var[property] == value)
+      fun(var);
+    if (!var["n"].isNull())
+      findVars(property, value, fun, var["n"]);
   }
 }

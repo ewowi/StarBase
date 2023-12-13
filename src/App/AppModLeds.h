@@ -88,6 +88,21 @@ public:
       buffer[3] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
+    JsonObject tableVar = ui->initTable(parentVar, "effTbl", nullptr, false, [this](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Effects");
+      web->addResponse(var["id"], "comment", "List of effects (WIP)");
+      JsonArray rows = web->addResponseA(var["id"], "table");
+      // for (SysModule *module:modules) {
+
+      //add value for each child
+      int counter = 0;
+      JsonArray row = rows.createNestedArray();
+      for (JsonArray childVar : var["n"].as<JsonArray>()) {
+        row.add(counter++);
+      }
+
+    });
+
     currentVar = ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
@@ -96,39 +111,10 @@ public:
         select.add(effect->name());
       }
     }, [this](JsonObject var, uint8_t) { //chFun
-      uint8_t fx = var["value"];
-      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), fx);
-
-      doMap = effects.setEffect("fx", fx);
+      doMap = effects.setEffect(var);
     });
     currentVar["stage"] = true;
 
-    currentVar = ui->initSelect(parentVar, "pal", 4, false, [](JsonObject var) { //uiFun.
-      web->addResponse(var["id"], "label", "Palette");
-      JsonArray select = web->addResponseA(var["id"], "select");
-      select.add("CloudColors");
-      select.add("LavaColors");
-      select.add("OceanColors");
-      select.add("ForestColors");
-      select.add("RainbowColors");
-      select.add("RainbowStripeColors");
-      select.add("PartyColors");
-      select.add("HeatColors");
-    }, [](JsonObject var, uint8_t) { //chFun
-      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
-      switch (var["value"].as<uint8_t>()) {
-        case 0: palette = CloudColors_p; break;
-        case 1: palette = LavaColors_p; break;
-        case 2: palette = OceanColors_p; break;
-        case 3: palette = ForestColors_p; break;
-        case 4: palette = RainbowColors_p; break;
-        case 5: palette = RainbowStripeColors_p; break;
-        case 6: palette = PartyColors_p; break;
-        case 7: palette = HeatColors_p; break;
-        default: palette = PartyColors_p; break;
-      }
-    });
-    currentVar["stage"] = true;
 
     currentVar = ui->initSelect(parentVar, "pro", 2, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Projection");
@@ -137,7 +123,7 @@ public:
       select.add("None"); // 0
       select.add("Random"); // 1
       select.add("Distance from point"); //2
-      select.add("Distance from centre"); //3
+      select.add("Distance from center"); //3
       select.add("Mirror"); //4
       select.add("Reverse"); //5
       select.add("Multiply"); //6
@@ -152,16 +138,17 @@ public:
       JsonObject parentVar = var;
       parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
-      if (ledsV.projectionNr == 2) {
-        ui->initSlider(parentVar, "pointX", 128);
-        ui->initSlider(parentVar, "pointY", 128);
-        ui->initSlider(parentVar, "pointZ", 128);
-      }
-
       web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
 
     });
     currentVar["stage"] = true;
+
+    ui->initNumber(parentVar, "pointX", 0, 0, 127);
+    ui->initNumber(parentVar, "pointY", 0, 0, 127);
+    ui->initNumber(parentVar, "pointZ", 0, 0, 127);
+    ui->initNumber(tableVar, "endX", 0, 0, 127);
+    ui->initNumber(tableVar, "endY", 0, 0, 127);
+    ui->initNumber(tableVar, "endZ", 0, 0, 127);
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
@@ -226,7 +213,7 @@ public:
           // e131mod->patchChannel(4, "fixture", 5); //assuming 5!!!
 
           // ui->stageVarChanged = true;
-          
+          ui->processUiFun("e131Tbl"); //rebuild the table
       // }
       // else
       //   USER_PRINTF("Leds e131 not enabled\n");
@@ -248,6 +235,9 @@ public:
 
       newFrame = true;
 
+      //for each programmed effect
+      //  run the next frame of the effect
+
       effects.loop(mdl->getValue("fx"));
 
       FastLED.show();  
@@ -264,11 +254,15 @@ public:
       USER_PRINTF("AppModLeds loop canvasData %s\n", canvasData);
 
       char * token = strtok((char *)canvasData, ",");
-      if (token != NULL) ledsV.pointX = atoi(token) / 10;
+      if (token != NULL) ledsV.pointX = atoi(token) / 10; else ledsV.pointX = 0; //should never happen
       token = strtok(NULL, ",");
-      if (token != NULL) ledsV.pointY = atoi(token) / 10;
+      if (token != NULL) ledsV.pointY = atoi(token) / 10; else ledsV.pointY = 0;
       token = strtok(NULL, ",");
-      if (token != NULL) ledsV.pointZ = atoi(token) / 10;
+      if (token != NULL) ledsV.pointZ = atoi(token) / 10; else ledsV.pointZ = 0;
+
+      mdl->setValueI("pointX", ledsV.pointX);
+      mdl->setValueI("pointY", ledsV.pointY);
+      mdl->setValueI("pointZ", ledsV.pointZ);
 
       var.remove("canvasData");
       doMap = true; //recalc projection

@@ -9,7 +9,6 @@
 */
 
 #include "SysModUI.h"
-#include "SysModPrint.h"
 #include "SysModWeb.h"
 #include "SysModModel.h"
 
@@ -232,6 +231,7 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
   if (!var["chFun"].isNull()) {//isNull needed here!
     size_t funNr = var["chFun"];
     if (funNr < cFunctions.size()) {
+      USER_PRINTF("chFun %s r:%d v:%s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>());
       cFunctions[funNr](var, rowNr);
     }
     else    
@@ -254,14 +254,16 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
       web->addResponseB(var["id"], "value", var["value"].as<bool>());
     else if (var["value"].is<const char *>())
       web->addResponse(var["id"], "value", var["value"].as<const char *>());
-    else if (var["value"].is<JsonArray>())
+    else if (var["value"].is<JsonArray>()) {
+      USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
       web->addResponseArray(var["id"], "value", var["value"].as<JsonArray>());
+    }
     else {
-      USER_PRINTF("unknown type for %s\n", var["value"].as<String>().c_str());
+      USER_PRINTF("setChFunAndWs %s unknown type for %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
       web->addResponse(var["id"], "value", var["value"]);
     }
-    // if (var["id"] == "pview" || var["id"] == "fx") {
-    //   print->printJson("setChFunAndWs response", responseDoc);
+    // if (var["id"] == "pointX") {
+    //   print->printJson("setChFunAndWs response", responseVariant);
     // }
   }
 
@@ -305,8 +307,12 @@ const char * SysModUI::processJson(JsonVariant &json) {
                   USER_PRINTF("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, uFunctions.size());
 
                 //if select var, send value back
-                if (var["type"] == "select")
-                  web->addResponseI(var["id"], "value", var["value"]); //temp assume int only
+                if (var["type"] == "select") {
+                  if (var["value"].is<JsonArray>()) //for tables
+                    web->addResponseArray(var["id"], "value", var["value"]);
+                  else
+                    web->addResponseI(var["id"], "value", var["value"]);
+                }
 
                 // print->printJson("PJ Command", responseDoc);
               }

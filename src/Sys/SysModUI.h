@@ -12,6 +12,7 @@
 #include <vector>
 #include "ArduinoJson.h"
 #include "SysModule.h"
+#include "SysModPrint.h"
 
 // https://stackoverflow.com/questions/59111610/how-do-you-declare-a-lambda-function-using-typedef-and-then-use-it-by-passing-to
 typedef std::function<void(JsonObject)> UFun;
@@ -125,7 +126,17 @@ public:
     if (max && max != uint16Max) var["max"] = max;
 
     //no call of fun for buttons otherwise all buttons will be fired which is highly undesirable
-    if (strcmp(type,"button")!=0 && chFun && (!isPointer || value)) chFun(var, uint8Max); //!isPointer because 0 is also a value then
+    if (strcmp(type,"button") != 0 && chFun && (!isPointer || value)) { //!isPointer because 0 is also a value then
+      USER_PRINTF("chFun init %s v:%s\n", var["id"].as<const char *>(), var["value"].as<String>());
+      if (var["value"].is<JsonArray>()) {
+        int rowNr = 0;
+        for (JsonVariant val:var["value"].as<JsonArray>()) {
+          chFun(var, rowNr++);
+        }
+      }
+      else
+        chFun(var, uint8Max);
+    }
     return var;
   }
 

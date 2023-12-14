@@ -90,7 +90,6 @@ public:
       select.add("PartyColors");
       select.add("HeatColors");
     }, [](JsonObject var, uint8_t) { //chFun
-      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
       switch (var["value"].as<uint8_t>()) {
         case 0: palette = CloudColors_p; break;
         case 1: palette = LavaColors_p; break;

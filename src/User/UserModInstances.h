@@ -16,7 +16,7 @@
   #include "UserModE131.h"
 #endif
 // #include "Sys/SysModSystem.h" //for sys->version
-#include <HTTPClient.h>
+#include <HTTPClient.h> //need to be replaced by udp messages as this is a memory sucker
 
 struct DMX {
   uint8_t universe:3; //3 bits / 8
@@ -238,10 +238,9 @@ public:
       strcat(columnVarID, var["id"]);
       JsonObject newVar; // = ui->cloneVar(var, columnVarID, [this, var](JsonObject newVar){});
 
-      //create a var of the same type
+      //create a var of the same type. InitVar is not calling chFun which is good in this situation!
       newVar = ui->initVar(tableVar, columnVarID, var["type"], false, nullptr, [this, var](JsonObject newVar, uint8_t rowNr) { //chFun
 
-        USER_PRINTF("chFun %s r:%d v:%s", newVar["id"].as<const char *>(), rowNr, newVar["value"][rowNr].as<String>());
         if (rowNr != uint8Max) {
           //if this node update directly, otherwise send over network
           if (nodes[rowNr].ip == WiFi.localIP()) {

@@ -54,7 +54,6 @@ void SysModules::setup() {
     web->addResponse(var["id"], "label", "Enabled");
   }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
-    USER_PRINTF("chFun %s r:%d v:%s", var["id"].as<const char *>(), rowNr, var["value"][rowNr].as<String>());
     if (rowNr != uint8Max) {
       modules[rowNr]->isEnabled = var["value"][rowNr];
       modules[rowNr]->enabledChanged();

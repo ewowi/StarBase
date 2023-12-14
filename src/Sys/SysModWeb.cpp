@@ -71,8 +71,6 @@ void SysModWeb::setup() {
   });
   ui->initCheckBox(tableVar, "clIsFull", false, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Is full");
-  }, [](JsonObject var, uint8_t) { //chFun
-    print->printJson("clIsFull.chFun", var);
   });
   ui->initSelect(tableVar, "clStatus", -1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");

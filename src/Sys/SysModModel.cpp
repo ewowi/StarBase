@@ -209,7 +209,7 @@ JsonObject SysModModel::setValueI(const char * id, int value, uint8_t rowNr) {
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValueI var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
+        USER_PRINTF("setValueI var %s value %s not array, creating\n", id, var["value"].as<String>().c_str());
         // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
         var.createNestedArray("value");
       }
@@ -217,6 +217,7 @@ JsonObject SysModModel::setValueI(const char * id, int value, uint8_t rowNr) {
       if (var["value"].is<JsonArray>()) {
         //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
         if (var["value"][rowNr] != value) {
+          USER_PRINTF("setValueI var %s[%d] value %s := %d\n", id, rowNr, var["value"].as<String>().c_str(), value);
           var["value"][rowNr] = value;
           ui->setChFunAndWs(var, rowNr);
         }

@@ -504,7 +504,7 @@ function processVarNode(node, key, json) {
         parentNode = node.parentNode;
       
       // if (key != "insTbl") // tbd: table should not update
-      //   console.log("processVarNode comment", key, json.comment);
+      //   console.log("processVarNode comment", node, key, json.comment);
 
       let commentNode = parentNode.querySelector('comment');
       // console.log("commentNode", commentNode);
@@ -518,6 +518,20 @@ function processVarNode(node, key, json) {
           parentNode.appendChild(commentNode);
       }
       commentNode.innerText = json.comment;
+    }
+    else { //th
+      console.log("processVarNode comment", node, key, json.comment);
+      let divNode = cE("div");
+      divNode.innerText = node.innerText;
+      node.innerText = "";
+      divNode.classList.add("tooltip");
+      let spanNode = cE("span");
+      spanNode.innerHTML = json.comment;
+      spanNode.classList.add("tooltiptext");
+      divNode.appendChild(spanNode);
+
+      node.appendChild(divNode);
+
     }
   } //comment
 
@@ -630,8 +644,8 @@ function processVarNode(node, key, json) {
 
   if (json.hasOwnProperty("value") && !overruleValue) { //overruleValue: select sets already the option
     //hasOwnProperty needed to catch also boolean json.value when it is false
-    // if (key=="fx")// || key=="mdlEnabled" || key=="clIsFull" || key=="pin2")
-      // console.log("processVarNode value", key, json, json.value, node);
+    // if (key=="pro" || key=="insfx")// || key=="mdlEnabled" || key=="clIsFull" || key=="pin2")
+    //   console.log("processVarNode value", key, json, json.value, node);
     if (node.nodeName.toLocaleLowerCase() == "span") //read only vars
       node.textContent = json.value;
     else if (node.nodeName.toLocaleLowerCase() == "a") { //url links
@@ -647,10 +661,14 @@ function processVarNode(node, key, json) {
     }
     else if (Array.isArray(json.value)) { //table column
       let rowNr = 0;
-      for (let x of json.value) {
-        // console.log(key, gId(key + "#" + rowNr), x);
-        if (gId(key + "#" + rowNr) && gId(key + "#" + rowNr).checked)
-          gId(key + "#" + rowNr).checked = x; //tbd support all types!!
+      for (let val of json.value) {
+        // console.log(key, gId(key + "#" + rowNr), val);
+        if (gId(key + "#" + rowNr)) {
+          if (gId(key + "#" + rowNr).type == "checkbox")
+            gId(key + "#" + rowNr).checked = val;
+          else
+            gId(key + "#" + rowNr).value = val;
+        }
         rowNr++;
       }
       // node.checked = json.value;

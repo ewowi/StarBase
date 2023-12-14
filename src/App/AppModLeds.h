@@ -88,17 +88,17 @@ public:
       buffer[3] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
-    JsonObject tableVar = ui->initTable(parentVar, "effTbl", nullptr, false, [this](JsonObject var) { //uiFun
+    JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effects");
       web->addResponse(var["id"], "comment", "List of effects (WIP)");
       JsonArray rows = web->addResponseA(var["id"], "table");
       // for (SysModule *module:modules) {
 
       //add value for each child
-      int counter = 0;
       JsonArray row = rows.createNestedArray();
-      for (JsonArray childVar : var["n"].as<JsonArray>()) {
-        row.add(counter++);
+      for (JsonObject childVar : var["n"].as<JsonArray>()) {
+        print->printJson("fxTbl childs", childVar);
+        row.add(childVar["value"]);
       }
 
     });
@@ -116,7 +116,7 @@ public:
     currentVar["stage"] = true;
 
 
-    currentVar = ui->initSelect(parentVar, "pro", 2, false, [](JsonObject var) { //uiFun.
+    currentVar = ui->initSelect(tableVar, "pro", 2, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Projection");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
       JsonArray select = web->addResponseA(var["id"], "select");
@@ -129,26 +129,22 @@ public:
       select.add("Multiply"); //6
       select.add("Kaleidoscope"); //7
       select.add("Fun"); //8
-    }, [this](JsonObject var, uint8_t) { //chFun
-      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
+    }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
-      ledsV.projectionNr = var["value"];
+      ledsV.projectionNr = var["value"][rowNr];
       doMap = true;
-
-      JsonObject parentVar = var;
-      parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
-
-      web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
 
     });
     currentVar["stage"] = true;
 
-    ui->initNumber(parentVar, "pointX", 0, 0, 127);
-    ui->initNumber(parentVar, "pointY", 0, 0, 127);
-    ui->initNumber(parentVar, "pointZ", 0, 0, 127);
-    ui->initNumber(tableVar, "endX", 0, 0, 127);
-    ui->initNumber(tableVar, "endY", 0, 0, 127);
-    ui->initNumber(tableVar, "endZ", 0, 0, 127);
+    ui->initNumber(tableVar, "pointX", 0, 0, 127, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
+    });
+    ui->initNumber(tableVar, "pointY", 0, 0, 127);
+    ui->initNumber(tableVar, "pointZ", 0, 0, 127);
+    // ui->initNumber(tableVar, "endX", 0, 0, 127);
+    // ui->initNumber(tableVar, "endY", 0, 0, 127);
+    // ui->initNumber(tableVar, "endZ", 0, 0, 127);
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
@@ -161,7 +157,6 @@ public:
         web->addResponse("pview", "file", fileName);
       }
     }, [this](JsonObject var, uint8_t) { //chFun
-      USER_PRINTF("%s Change %s to %d\n", "initSelect chFun", var["id"].as<const char *>(), var["value"].as<int>());
 
       ledsV.fixtureNr = var["value"];
       doMap = true;
@@ -196,7 +191,6 @@ public:
       web->addResponse(var["id"], "comment", "Frames per second");
     }, [this](JsonObject var, uint8_t) { //chFun
       fps = var["value"];
-      USER_PRINTF("fps changed %d\n", fps);
     });
 
     ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var) { //uiFun
@@ -260,9 +254,9 @@ public:
       token = strtok(NULL, ",");
       if (token != NULL) ledsV.pointZ = atoi(token) / 10; else ledsV.pointZ = 0;
 
-      mdl->setValueI("pointX", ledsV.pointX);
-      mdl->setValueI("pointY", ledsV.pointY);
-      mdl->setValueI("pointZ", ledsV.pointZ);
+      mdl->setValueI("pointX", ledsV.pointX, 0);
+      mdl->setValueI("pointY", ledsV.pointY, 0);
+      mdl->setValueI("pointZ", ledsV.pointZ, 0);
 
       var.remove("canvasData");
       doMap = true; //recalc projection

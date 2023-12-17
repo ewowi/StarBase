@@ -57,6 +57,7 @@ public:
   uint16_t heightV = 8; 
   uint16_t depthV = 1; 
 
+  uint8_t fx = -1;
   uint8_t projectionNr = -1;
   uint8_t fixtureNr = -1;
   uint8_t effectDimension = -1;

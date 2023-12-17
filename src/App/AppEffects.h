@@ -955,32 +955,32 @@ public:
     // for (Effect *effect:effects) {
     //     USER_PRINTF("Size of %s is %d\n", effect->name(), sizeof(*effect));
     // }
-    USER_PRINTF("Size of %s is %d\n", "RainbowEffect", sizeof(RainbowEffect));
-    USER_PRINTF("Size of %s is %d\n", "RainbowWithGlitterEffect", sizeof(RainbowWithGlitterEffect));
-    USER_PRINTF("Size of %s is %d\n", "SinelonEffect", sizeof(SinelonEffect));
-    USER_PRINTF("Size of %s is %d\n", "RunningEffect", sizeof(RunningEffect));
-    USER_PRINTF("Size of %s is %d\n", "ConfettiEffect", sizeof(ConfettiEffect));
-    USER_PRINTF("Size of %s is %d\n", "BPMEffect", sizeof(BPMEffect));
-    USER_PRINTF("Size of %s is %d\n", "JuggleEffect", sizeof(JuggleEffect));
-    USER_PRINTF("Size of %s is %d\n", "Ripples3DEffect", sizeof(Ripples3DEffect));
-    USER_PRINTF("Size of %s is %d\n", "SphereMove3DEffect", sizeof(SphereMove3DEffect));
-    USER_PRINTF("Size of %s is %d\n", "Frizzles2D", sizeof(Frizzles2D));
-    USER_PRINTF("Size of %s is %d\n", "Lines2D", sizeof(Lines2D));
-    USER_PRINTF("Size of %s is %d\n", "DistortionWaves2D", sizeof(DistortionWaves2D));
-    USER_PRINTF("Size of %s is %d\n", "Octopus2D", sizeof(Octopus2D));
-    USER_PRINTF("Size of %s is %d\n", "Lissajous2D", sizeof(Lissajous2D));
-    USER_PRINTF("Size of %s is %d\n", "BouncingBalls1D", sizeof(BouncingBalls1D));
-    USER_PRINTF("Size of %s is %d\n", "RingRandomFlow", sizeof(RingRandomFlow));
-    #ifdef USERMOD_WLEDAUDIO
-      USER_PRINTF("Size of %s is %d\n", "GEQEffect", sizeof(GEQEffect));
-      USER_PRINTF("Size of %s is %d\n", "AudioRings", sizeof(AudioRings));
-    #endif
+    // USER_PRINTF("Size of %s is %d\n", "RainbowEffect", sizeof(RainbowEffect));
+    // USER_PRINTF("Size of %s is %d\n", "RainbowWithGlitterEffect", sizeof(RainbowWithGlitterEffect));
+    // USER_PRINTF("Size of %s is %d\n", "SinelonEffect", sizeof(SinelonEffect));
+    // USER_PRINTF("Size of %s is %d\n", "RunningEffect", sizeof(RunningEffect));
+    // USER_PRINTF("Size of %s is %d\n", "ConfettiEffect", sizeof(ConfettiEffect));
+    // USER_PRINTF("Size of %s is %d\n", "BPMEffect", sizeof(BPMEffect));
+    // USER_PRINTF("Size of %s is %d\n", "JuggleEffect", sizeof(JuggleEffect));
+    // USER_PRINTF("Size of %s is %d\n", "Ripples3DEffect", sizeof(Ripples3DEffect));
+    // USER_PRINTF("Size of %s is %d\n", "SphereMove3DEffect", sizeof(SphereMove3DEffect));
+    // USER_PRINTF("Size of %s is %d\n", "Frizzles2D", sizeof(Frizzles2D));
+    // USER_PRINTF("Size of %s is %d\n", "Lines2D", sizeof(Lines2D));
+    // USER_PRINTF("Size of %s is %d\n", "DistortionWaves2D", sizeof(DistortionWaves2D));
+    // USER_PRINTF("Size of %s is %d\n", "Octopus2D", sizeof(Octopus2D));
+    // USER_PRINTF("Size of %s is %d\n", "Lissajous2D", sizeof(Lissajous2D));
+    // USER_PRINTF("Size of %s is %d\n", "BouncingBalls1D", sizeof(BouncingBalls1D));
+    // USER_PRINTF("Size of %s is %d\n", "RingRandomFlow", sizeof(RingRandomFlow));
+    // #ifdef USERMOD_WLEDAUDIO
+    //   USER_PRINTF("Size of %s is %d\n", "GEQEffect", sizeof(GEQEffect));
+    //   USER_PRINTF("Size of %s is %d\n", "AudioRings", sizeof(AudioRings));
+    // #endif
   }
 
-  void loop(size_t index) {
+  void loop(uint8_t fx) {
     now = millis(); //tbd timebase
 
-    effects[index%effects.size()]->loop();
+    effects[fx%effects.size()]->loop();
 
     call++;
 
@@ -991,23 +991,26 @@ public:
     return effects.size();
   }
 
-  bool setEffect(JsonObject parentVar) {
+  bool setEffect(JsonObject parentVar, uint8_t rowNr) {
     bool doMap = false;
 
-    uint8_t fx = parentVar["value"];
+    if (rowNr == uint8Max)
+      ledsV.fx = parentVar["value"];
+    else
+      ledsV.fx = parentVar["value"][rowNr];
 
-    USER_PRINTF("setEffect %d %d %d \n", fx, effects.size(), size());
+    USER_PRINTF("setEffect %d\n", ledsV.fx);
 
-    if (fx < size()) {
+    if (ledsV.fx < size()) {
 
       //tbd: make property of effects
-      if (strstr(effects[fx]->name(), "2D")) {
+      if (strstr(effects[ledsV.fx]->name(), "2D")) {
         if (ledsV.effectDimension != 2) {
           ledsV.effectDimension = 2;
           doMap = true;
         }
       }
-      else if (strstr(effects[fx]->name(), "3D")) {
+      else if (strstr(effects[ledsV.fx]->name(), "3D")) {
         if (ledsV.effectDimension != 3) {
           ledsV.effectDimension = 3;
           doMap = true;
@@ -1024,7 +1027,7 @@ public:
 
       parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
-      Effect* effect = effects[fx];
+      Effect* effect = effects[ledsV.fx];
       effect->controls(parentVar);
 
       effect->setup(); //if changed then run setup once (like call==0 in WLED)

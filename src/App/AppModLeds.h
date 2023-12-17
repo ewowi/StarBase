@@ -110,8 +110,8 @@ public:
       for (Effect *effect:effects.effects) {
         select.add(effect->name());
       }
-    }, [this](JsonObject var, uint8_t) { //chFun
-      doMap = effects.setEffect(var);
+    }, [this](JsonObject var, uint8_t rowNr) { //chFun
+      doMap = effects.setEffect(var, rowNr);
     });
     currentVar["stage"] = true;
 
@@ -232,7 +232,7 @@ public:
       //for each programmed effect
       //  run the next frame of the effect
 
-      effects.loop(mdl->getValue("fx"));
+      effects.loop(ledsV.fx);
 
       FastLED.show();  
 

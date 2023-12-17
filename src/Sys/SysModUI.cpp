@@ -166,9 +166,9 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     }
     var["id"] = (char *)id; //create a copy!
   }
-  else {
-    USER_PRINTF("initVar Var %s->%s already defined\n", modelParentId, id);
-  }
+  // else {
+  //   USER_PRINTF("initVar Var %s->%s already defined\n", modelParentId, id);
+  // }
 
   if (!var.isNull()) {
     if (var["type"] != type) 

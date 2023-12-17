@@ -372,8 +372,8 @@ public:
         }
 
         node->app.setVar("bri", wledSyncMessage.bri);
-        node->app.setVar("fx", wledSyncMessage.mainsegMode);
-        node->app.setVar("pal", wledSyncMessage.palette);
+        node->app.setVar("fx", wledSyncMessage.mainsegMode); //tbd: rowNr
+        node->app.setVar("pal", wledSyncMessage.palette); //tbd: rowNr
 
         // for (size_t x = 0; x < packetSize; x++) {
         //   char xx = (char)udpIn[x];

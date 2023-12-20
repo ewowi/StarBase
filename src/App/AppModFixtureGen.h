@@ -617,7 +617,15 @@ public:
       ui->initNumber(parentVar, "width", 24, 1, 16);
     }
 
-    web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
+    JsonDocument *responseDoc = web->getResponseDoc();
+    responseDoc->clear(); //needed for deserializeJson?
+    JsonObject responseObject = responseDoc->to<JsonObject>();
+
+    responseObject["details"] = parentVar;
+
+    print->printJson("parentVar", responseObject);
+    web->sendDataWs(responseObject); //always send, also when no children, to remove them from ui
+
   }
 
   void generateChFun(JsonObject var) {

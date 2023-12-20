@@ -1032,8 +1032,15 @@ public:
 
       effect->setup(); //if changed then run setup once (like call==0 in WLED)
 
-      print->printJson("parentVar", parentVar);
-      web->sendDataWs(parentVar); //always send, also when no children, to remove them from ui
+      JsonDocument *responseDoc = web->getResponseDoc();
+      responseDoc->clear(); //needed for deserializeJson?
+      JsonObject responseObject = responseDoc->to<JsonObject>();
+
+      responseObject["details"] = parentVar;
+
+      print->printJson("parentVar", responseObject);
+      web->sendDataWs(responseObject); //always send, also when no children, to remove them from ui
+
     } // fx < size
 
     return doMap;

@@ -511,7 +511,7 @@ public:
     ui->initSelect(parentVar, "fixtureGen", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Fixture");
       web->addResponse(var["id"], "comment", "Type of fixture");
-      JsonArray select = web->addResponseA(var["id"], "select");
+      JsonArray select = web->addResponseA(var["id"], "data");
       select.add("1DSpiral"); //0
       select.add("2DMatrix"); //1
       select.add("2DRing"); //2
@@ -591,13 +591,13 @@ public:
 
       ui->initSelect(parentVar, "firstLedX", 0, false, [](JsonObject var) { //uiFun
         // web->addResponse(var["id"], "label", "fixture generator");
-        JsonArray select = web->addResponseA(var["id"], "select");
+        JsonArray select = web->addResponseA(var["id"], "data");
         select.add("Left"); //0
         select.add("Right"); //1
       });
       ui->initSelect(parentVar, "firstLedY", 0, false, [](JsonObject var) { //uiFun
         // web->addResponse(var["id"], "label", "fixture generator");
-        JsonArray select = web->addResponseA(var["id"], "select");
+        JsonArray select = web->addResponseA(var["id"], "data");
         select.add("Top"); //0
         select.add("Bottom"); //1
       });

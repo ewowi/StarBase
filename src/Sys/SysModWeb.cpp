@@ -60,7 +60,7 @@ void SysModWeb::setup() {
   JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Clients");
     web->addResponse(var["id"], "comment", "List of clients");
-    JsonArray rows = web->addResponseA(var["id"], "table");
+    JsonArray rows = web->addResponseA(var["id"], "data");
     web->clientsToJson(rows);
   });
   ui->initNumber(tableVar, "clNr", 0, 0, 999, true, [](JsonObject var) { //uiFun
@@ -75,7 +75,7 @@ void SysModWeb::setup() {
   ui->initSelect(tableVar, "clStatus", -1, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
     //tbd: not working yet in ui
-    JsonArray select = web->addResponseA(var["id"], "select");
+    JsonArray select = web->addResponseA(var["id"], "data");
     select.add("Disconnected"); //0
     select.add("Connected"); //1
     select.add("Disconnecting"); //2

@@ -53,7 +53,7 @@ public:
     ui->initSelect(parentVar, "ddpInst", -1, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Instance");
       web->addResponse(var["id"], "comment", "Instance to send data");
-      JsonArray select = web->addResponseA(var["id"], "select");
+      JsonArray select = web->addResponseA(var["id"], "data");
       JsonArray instanceObject = select.createNestedArray();
       instanceObject.add(0);
       instanceObject.add("no sync");

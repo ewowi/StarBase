@@ -34,7 +34,7 @@ void SysModPrint::setup() {
     web->addResponse(var["id"], "label", "Output");
     web->addResponse(var["id"], "comment", "System log to Serial or Net print (WIP)");
 
-    JsonArray rows = web->addResponseA(var["id"], "select");
+    JsonArray rows = web->addResponseA(var["id"], "data");
     rows.add("No");
     rows.add("Serial");
     rows.add("UI");

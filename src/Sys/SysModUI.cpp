@@ -48,7 +48,7 @@ void SysModUI::setup() {
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Variable loops");
     web->addResponse(var["id"], "comment", "Loops initiated by a variable");
-    JsonArray rows = web->addResponseA(var["id"], "table");
+    JsonArray rows = web->addResponseA(var["id"], "data");
 
     for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
       JsonArray row = rows.createNestedArray();
@@ -286,11 +286,13 @@ const char * SysModUI::processJson(JsonVariant &json) {
         JsonObject var = mdl->findVar("System");
         USER_PRINTF("processJson view v:%s n: %d s:%s\n", pair.value().as<String>(), var.isNull(), var["id"].as<const char *>());
         var["view"] = (char *)value.as<const char *>(); //create a copy!
+        json.remove(key); //key processed we don't need the key in the response
       }
       else if (pair.key() == "canvasData") {
         JsonObject var = mdl->findVar("System");
         USER_PRINTF("processJson canvasData %s\n", value.as<const char *>());
         var["canvasData"] = (char *)value.as<const char *>(); //create a copy!
+        json.remove(key); //key processed we don't need the key in the response
       }
       else if (pair.key() == "uiFun") { //JsonString can do ==
         //find the select var and collect it's options...
@@ -322,6 +324,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
           }
         } else
           USER_PRINTF("processJson value not array? %s %s\n", key, value.as<String>().c_str());
+        json.remove(key); //key processed we don't need the key in the response
       } 
       else { //normal change
         if (!value.is<JsonObject>()) { //no vars (inserted by uiFun responses)

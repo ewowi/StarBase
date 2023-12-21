@@ -80,7 +80,7 @@ public:
   void addPalette(JsonObject parentVar) {
     JsonObject currentVar = ui->initSelect(parentVar, "pal", 4, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Palette");
-      JsonArray select = web->addResponseA(var["id"], "select");
+      JsonArray select = web->addResponseA(var["id"], "data");
       select.add("CloudColors");
       select.add("LavaColors");
       select.add("OceanColors");

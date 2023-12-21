@@ -91,7 +91,7 @@ public:
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effects");
       web->addResponse(var["id"], "comment", "List of effects (WIP)");
-      JsonArray rows = web->addResponseA(var["id"], "table");
+      JsonArray rows = web->addResponseA(var["id"], "data");
       // for (SysModule *module:modules) {
 
       //add value for each child
@@ -99,6 +99,11 @@ public:
       for (JsonObject childVar : var["n"].as<JsonArray>()) {
         print->printJson("fxTbl childs", childVar);
         row.add(childVar["value"]);
+        //recursive
+        // for (JsonObject childVar : childVar["n"].as<JsonArray>()) {
+        //   print->printJson("fxTbl child childs", childVar);
+        //   row.add(childVar["value"]);
+        // }
       }
 
     });
@@ -106,7 +111,7 @@ public:
     currentVar = ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
-      JsonArray select = web->addResponseA(var["id"], "select");
+      JsonArray select = web->addResponseA(var["id"], "data");
       for (Effect *effect:effects.effects) {
         select.add(effect->name());
       }
@@ -119,7 +124,7 @@ public:
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Projection");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
-      JsonArray select = web->addResponseA(var["id"], "select");
+      JsonArray select = web->addResponseA(var["id"], "data");
       select.add("None"); // 0
       select.add("Random"); // 1
       select.add("Distance from point"); //2
@@ -148,7 +153,7 @@ public:
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
-      JsonArray select = web->addResponseA(var["id"], "select");
+      JsonArray select = web->addResponseA(var["id"], "data");
       files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
 
       // ui needs to load the file also initially

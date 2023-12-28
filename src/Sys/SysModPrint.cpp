@@ -145,7 +145,7 @@ void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
 }
 
 void SysModPrint::printClient(const char * text, MongooseHttpWebSocketConnection * client) {
-  print("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
+  // TODO: print("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
   //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
 }
 

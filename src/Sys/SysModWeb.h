@@ -70,7 +70,7 @@ public:
   JsonDocument * getResponseDoc();
 
   //Currently only WLED style state and info
-  static void serveJson(AsyncWebServerRequest *request);
+  static void serveJson(MongooseHttpServerRequest *request);
   
   static unsigned long wsSendBytesCounter;
   static unsigned long wsSendJsonCounter;

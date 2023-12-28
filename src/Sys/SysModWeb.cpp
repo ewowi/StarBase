@@ -360,7 +360,7 @@ void SysModWeb::wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client,
 }
 
 
-void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
+void SysModWeb::sendDataWs(JsonVariant json, MongooseHttpWebSocketConnection * client) {
   if (!ws) {
     USER_PRINT_Async("sendDataWs no ws\n");
     return;

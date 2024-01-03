@@ -642,15 +642,15 @@ void SysModWeb::serveJson(AsyncWebServerRequest *request) {
     for (JsonObject module: model)
       root.add(module);
   }
-  // nodes crashes!
-  // else if (request->url().indexOf("nodes") > 0) {
+  // instances crashes!
+  // else if (request->url().indexOf("instances") > 0) {
   //   JsonArray model = mdl->model->as<JsonArray>();
   //   USER_PRINTF("serveJson model ...%d, %s %d %d %d %d\n", request->client()->remoteIP()[3], request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), mdl->model->capacity());
 
   //   response = new AsyncJsonResponse(true, 5000); //array
   //   JsonArray root = response->getRoot();
 
-  //   for (auto node=instances->nodes.begin(); node!=instances->nodes.end(); ++node) {
+  //   for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
   //     root.add(node->name);
   //   }
   // }

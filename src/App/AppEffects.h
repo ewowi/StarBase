@@ -80,6 +80,7 @@ public:
   void addPalette(JsonObject parentVar) {
     JsonObject currentVar = ui->initSelect(parentVar, "pal", 4, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Palette");
+      web->addResponse(var["id"], "comment", "Colors");
       JsonArray select = web->addResponseA(var["id"], "data");
       select.add("CloudColors");
       select.add("LavaColors");
@@ -996,8 +997,10 @@ public:
 
     if (rowNr == uint8Max)
       ledsV.fx = parentVar["value"];
-    else
+    else {
       ledsV.fx = parentVar["value"][rowNr];
+      parentVar["rowNr"] = rowNr; //store the rownNr of the updated value to send back to ui
+    }
 
     USER_PRINTF("setEffect %d\n", ledsV.fx);
 

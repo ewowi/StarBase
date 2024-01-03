@@ -57,7 +57,7 @@ public:
       JsonArray instanceObject = select.createNestedArray();
       instanceObject.add(0);
       instanceObject.add("no sync");
-      for (auto node=instances->nodes.begin(); node!=instances->nodes.end(); ++node) {
+      for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
         if (node->ip != WiFi.localIP()) {
           char option[32] = { 0 };
           strncpy(option, node->ip.toString().c_str(), sizeof(option)-1);
@@ -70,8 +70,8 @@ public:
       }
     }, [this](JsonObject var, uint8_t) { //chFun
       size_t ddpInst = var["value"];
-      if (ddpInst >=0 && ddpInst < instances->nodes.size()) {
-        targetIp = instances->nodes[ddpInst].ip;
+      if (ddpInst >=0 && ddpInst < instances->instances.size()) {
+        targetIp = instances->instances[ddpInst].ip;
         USER_PRINTF("Start DDP to %s\n", targetIp.toString().c_str());
       }
     }); //ddpInst

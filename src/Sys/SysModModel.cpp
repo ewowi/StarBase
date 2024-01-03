@@ -376,3 +376,18 @@ void SysModModel::findVars(const char * property, bool value, FindFun fun, JsonA
       findVars(property, value, fun, var["n"]);
   }
 }
+
+void SysModModel::varToValues(JsonObject var, JsonArray row) {
+
+    //add value for each child
+    // JsonArray row = rows.createNestedArray();
+    for (JsonObject childVar : var["n"].as<JsonArray>()) {
+      print->printJson("fxTbl childs", childVar);
+      row.add(childVar["value"]);
+
+      if (!childVar["n"].isNull()) {
+        varToValues(childVar, row.createNestedArray());
+      }
+    }
+
+}

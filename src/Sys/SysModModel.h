@@ -75,6 +75,9 @@ public:
   static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
   void findVars(const char * id, bool value, FindFun fun, JsonArray parent = JsonArray());
 
+  //recursively add values in  a variant
+  void varToValues(JsonObject var, JsonArray values);
+
 private:
   bool doWriteModel = false;
   bool doShowObsolete = false;

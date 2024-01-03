@@ -92,12 +92,15 @@ public:
       web->addResponse(var["id"], "label", "Effects");
       web->addResponse(var["id"], "comment", "List of effects (WIP)");
       JsonArray rows = web->addResponseA(var["id"], "data");
+
+      //genHTML for all the childs of fxtbl
       // for (SysModule *module:modules) {
+      // mdl->varToValues(var, row);
 
       //add value for each child
-      JsonArray row = rows.createNestedArray();
+      JsonArray row = rows.createNestedArray(); //one row of data
       for (JsonObject childVar : var["n"].as<JsonArray>()) {
-        print->printJson("fxTbl childs", childVar);
+        // print->printJson("fxTbl childs", childVar);
         row.add(childVar["value"]);
         //recursive
         // for (JsonObject childVar : childVar["n"].as<JsonArray>()) {
@@ -106,6 +109,7 @@ public:
         // }
       }
 
+      print->printJson("fxTbl values", rows);
     });
 
     currentVar = ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
@@ -143,7 +147,7 @@ public:
     currentVar["stage"] = true;
 
     ui->initNumber(tableVar, "pointX", 0, 0, 127, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
+      web->addResponse(var["id"], "comment", "Comment test");
     });
     ui->initNumber(tableVar, "pointY", 0, 0, 127);
     ui->initNumber(tableVar, "pointZ", 0, 0, 127);

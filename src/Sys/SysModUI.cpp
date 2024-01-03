@@ -309,12 +309,12 @@ const char * SysModUI::processJson(JsonVariant &json) {
                   USER_PRINTF("processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, uFunctions.size());
 
                 //if select var, send value back
-                if (var["type"] == "select") {
-                  if (var["value"].is<JsonArray>()) //for tables
-                    web->addResponseArray(var["id"], "value", var["value"]);
-                  else
-                    web->addResponseI(var["id"], "value", var["value"]);
-                }
+                // if (var["type"] == "select") {
+                //   if (var["value"].is<JsonArray>()) //for tables
+                //     web->addResponseArray(var["id"], "value", var["value"]);
+                //   else
+                //     web->addResponseI(var["id"], "value", var["value"]);
+                // }
 
                 // print->printJson("PJ Command", responseDoc);
               }

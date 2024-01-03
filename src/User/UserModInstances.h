@@ -76,7 +76,7 @@ struct AppData {
 
 //note: changing SysData and AppData sizes: all instances should have the same version so change with care
 
-struct NodeInfo {
+struct InstanceInfo {
   IPAddress ip;
   char name[32];
   uint32_t version;
@@ -94,12 +94,12 @@ struct UDPWLEDMessage {
   byte ip2;         //4
   byte ip3;         //5
   char name[32];    //6..37: server name
-  byte type;        //38: node type id //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
-  byte nodeId;      //39: node id  unit ID == last IP number
+  byte type;        //38: instance type id //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
+  byte insId;      //39: instance id  unit ID == last IP number
   uint32_t version; //40..43: version ID (here it takes 4 bytes (as it should)
 }; //total 44 bytes!
 
-//compatible with WLED nodes as it only interprets first 44 bytes
+//compatible with WLED instances as it only interprets first 44 bytes
 struct UDPStarModMessage {
   UDPWLEDMessage header; // 44 bytes fixed!
   SysData sys;
@@ -139,7 +139,7 @@ class UserModInstances:public SysModule {
 
 public:
 
-  std::vector<NodeInfo> nodes;
+  std::vector<InstanceInfo> instances;
 
   UserModInstances() :SysModule("Instances") {
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
@@ -147,24 +147,24 @@ public:
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
-  void addTblRow(JsonVariant rows, std::vector<NodeInfo>::iterator node) {
+  void addTblRow(JsonVariant rows, std::vector<InstanceInfo>::iterator instance) {
     JsonArray row = rows.createNestedArray();
-    row.add((char *)node->name);
+    row.add((char *)instance->name);
     char urlString[32] = "http://";
-    strncat(urlString, node->ip.toString().c_str(), sizeof(urlString)-1);
+    strncat(urlString, instance->ip.toString().c_str(), sizeof(urlString)-1);
     row.add((char *)urlString);  //create a copy!
-    row.add((char *)node->ip.toString().c_str());
-    // row.add(node->timeStamp / 1000);
+    row.add((char *)instance->ip.toString().c_str());
+    // row.add(instance->timeStamp / 1000);
 
-    row.add(node->sys.type?"StarMod":"WLED");
+    row.add(instance->sys.type?"StarMod":"WLED");
 
-    row.add(node->version);
-    row.add(node->sys.upTime);
+    row.add(instance->version);
+    row.add(instance->sys.upTime);
 
-    mdl->findVars("stage", true, [node, row](JsonObject var) { //findFun
-      //look for value in node
-      int value = node->app.getVar(var["id"]);
-      // USER_PRINTF("insTbl %s %s: %d\n", node->name, varID, value);
+    mdl->findVars("stage", true, [instance, row](JsonObject var) { //findFun
+      //look for value in instance
+      int value = instance->app.getVar(var["id"]);
+      // USER_PRINTF("insTbl %s %s: %d\n", instance->name, varID, value);
       row.add(value);
     });
   }
@@ -181,8 +181,8 @@ public:
       web->addResponse(varID, "label", "Instances");
       web->addResponse(varID, "comment", "List of instances");
       JsonArray rows = web->addResponseA(varID, "data");
-      for (auto node=this->nodes.begin(); node!=this->nodes.end(); ++node) {
-        addTblRow(rows, node);
+      for (auto instance=this->instances.begin(); instance!=this->instances.end(); ++instance) {
+        addTblRow(rows, instance);
       }
     });
     ui->initText(tableVar, "insName", nullptr, 32, true, [](JsonObject var) { //uiFun
@@ -217,13 +217,13 @@ public:
       JsonArray instanceObject = select.createNestedArray();
       instanceObject.add(0);
       instanceObject.add("no sync");
-      for (auto node=nodes.begin(); node!=nodes.end(); ++node) {
+      for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
         char option[32] = { 0 };
-        strncpy(option, node->ip.toString().c_str(), sizeof(option)-1);
+        strncpy(option, instance->ip.toString().c_str(), sizeof(option)-1);
         strncat(option, " ", sizeof(option)-1);
-        strncat(option, node->name, sizeof(option)-1);
+        strncat(option, instance->name, sizeof(option)-1);
         instanceObject = select.createNestedArray();
-        instanceObject.add(node->ip[3]);
+        instanceObject.add(instance->ip[3]);
         instanceObject.add(option);
       }
     }); //syncMaster
@@ -242,14 +242,14 @@ public:
       newVar = ui->initVar(tableVar, columnVarID, var["type"], false, nullptr, [this, var](JsonObject newVar, uint8_t rowNr) { //chFun
 
         if (rowNr != uint8Max) {
-          //if this node update directly, otherwise send over network
-          if (nodes[rowNr].ip == WiFi.localIP()) {
+          //if this instance update directly, otherwise send over network
+          if (instances[rowNr].ip == WiFi.localIP()) {
             mdl->setValueI(var["id"], newVar["value"][rowNr].as<uint8_t>());
           } else {
             // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
             HTTPClient http;
             char serverPath[32];
-            print->fFormat(serverPath, sizeof(serverPath)-1, "http://%s/json", nodes[rowNr].ip.toString().c_str());
+            print->fFormat(serverPath, sizeof(serverPath)-1, "http://%s/json", instances[rowNr].ip.toString().c_str());
             http.begin(serverPath);
             http.addHeader("Content-Type", "application/json");
             char postMessage[32];
@@ -283,6 +283,7 @@ public:
       if (newVar) {
         if (!var["min"].isNull()) newVar["min"] = var["min"];
         if (!var["max"].isNull()) newVar["max"] = var["max"];
+        if (!var["log"].isNull()) newVar["log"] = var["log"];
         newVar["uiFun"] = var["uiFun"]; //copy the uiFun
       }
 
@@ -308,11 +309,11 @@ public:
   void onOffChanged() {
     if (SysModules::isConnected && isEnabled) {
       udpConnected = notifierUdp.begin(notifierUDPPort); //sync
-      udp2Connected = instanceUDP.begin(instanceUDPPort); //nodes
+      udp2Connected = instanceUDP.begin(instanceUDPPort); //instances
     } else {
       udpConnected = false;
       udp2Connected = false;
-      nodes.clear();
+      instances.clear();
       ui->processUiFun("insTbl");
       //udp off ??
     }
@@ -341,10 +342,10 @@ public:
 
     int packetSize;
 
+    //handle sync from WLED
     if (udpConnected) {
       int packetSize = notifierUdp.parsePacket();
 
-      //handle sync from WLED
       if (packetSize > 0) {
         IPAddress remoteIp = notifierUdp.remoteIP();
 
@@ -360,20 +361,20 @@ public:
 
         USER_PRINTF("   %d %d p:%d\n", wledSyncMessage.bri, wledSyncMessage.mainsegMode, packetSize);
 
-        std::vector<NodeInfo>::iterator node = findNode(remoteIp); //if not exist, created
+        std::vector<InstanceInfo>::iterator instance = findNode(remoteIp); //if not exist, created
 
-        node->sys.upTime = (wledSyncMessage.timebase[0] * 256*256*256 + 256*256*wledSyncMessage.timebase[1] + 256*wledSyncMessage.timebase[2] + wledSyncMessage.timebase[3]) / 1000;
-        node->sys.syncMaster = wledSyncMessage.syncGroups; //tbd: change
+        instance->sys.upTime = (wledSyncMessage.timebase[0] * 256*256*256 + 256*256*wledSyncMessage.timebase[1] + 256*wledSyncMessage.timebase[2] + wledSyncMessage.timebase[3]) / 1000;
+        instance->sys.syncMaster = wledSyncMessage.syncGroups; //tbd: change
         
         uint8_t syncMaster = mdl->getValue("sma");
         if (syncMaster == remoteIp[3]) {
-          if (node->app.getVar("bri") != wledSyncMessage.bri) mdl->setValueI("bri", wledSyncMessage.bri);
+          if (instance->app.getVar("bri") != wledSyncMessage.bri) mdl->setValueI("bri", wledSyncMessage.bri);
           //only set brightness
         }
 
-        node->app.setVar("bri", wledSyncMessage.bri);
-        node->app.setVar("fx", wledSyncMessage.mainsegMode); //tbd: rowNr
-        node->app.setVar("pal", wledSyncMessage.palette); //tbd: rowNr
+        instance->app.setVar("bri", wledSyncMessage.bri);
+        instance->app.setVar("fx", wledSyncMessage.mainsegMode); //tbd: rowNr
+        instance->app.setVar("pal", wledSyncMessage.palette); //tbd: rowNr
 
         // for (size_t x = 0; x < packetSize; x++) {
         //   char xx = (char)udpIn[x];
@@ -388,13 +389,13 @@ public:
       }
     }
  
-    //handle nodes update
+    //handle instances update
     if (udp2Connected) {
       packetSize = instanceUDP.parsePacket();
 
       if (packetSize > 0) {
         IPAddress remoteIp = instanceUDP.remoteIP();
-        // USER_PRINTF("handleNotifications nodes ...%d %d check %d or %d\n", remoteIp[3], packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
+        // USER_PRINTF("handleNotifications instances ...%d %d check %d or %d\n", remoteIp[3], packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
 
         if (packetSize == sizeof(UDPWLEDMessage)) { //WLED instance
           UDPStarModMessage starModMessage;
@@ -426,17 +427,17 @@ public:
       }
     }
 
-    //remove inactive nodes
-    for (std::vector<NodeInfo>::iterator node=nodes.begin(); node!=nodes.end(); ) {
-      if (millis() - node->timeStamp > 32000) { //assuming a ping each 30 seconds
-        node = nodes.erase(node);
-        USER_PRINTF("insTbl remove inactive nodes %d\n", node->ip[3]);
+    //remove inactive instances
+    for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ) {
+      if (millis() - instance->timeStamp > 32000) { //assuming a ping each 30 seconds
+        instance = instances.erase(instance);
+        USER_PRINTF("insTbl remove inactive instances %d\n", instance->ip[3]);
         ui->processUiFun("insTbl");
         ui->processUiFun("ddpInst");
         ui->processUiFun("artInst");
       }
       else
-        ++node;
+        ++instance;
     }
   }
 
@@ -458,7 +459,7 @@ public:
     const char * serverName = mdl->getValue("serverName");
     strncpy(starModMessage.header.name, serverName?serverName:"StarMod", sizeof(starModMessage.header.name)-1);
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
-    starModMessage.header.nodeId = ip[3]; //WLED: used in map of nodes as index!
+    starModMessage.header.insId = ip[3]; //WLED: used in map of instances as index!
     starModMessage.header.version = atoi(sys->version);
     starModMessage.sys.type = 1; //StarMod
     starModMessage.sys.upTime = millis()/1000;
@@ -482,7 +483,7 @@ public:
       starModMessage.app.setVar(var["id"], var["value"]);
     });
 
-    updateNode(starModMessage); //temp? to show own node in list as instance is not catching it's own udp message...
+    updateNode(starModMessage); //temp? to show own instance in list as instance is not catching it's own udp message...
 
     IPAddress broadcastIP(255, 255, 255, 255);
     if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
@@ -504,41 +505,41 @@ public:
     IPAddress ip = IPAddress(udpStarMessage.header.ip0, udpStarMessage.header.ip1, udpStarMessage.header.ip2, udpStarMessage.header.ip3);
 
     bool found = false;
-    for (auto node=nodes.begin(); node!=nodes.end(); ++node)
+    for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
     {
-      if (node->ip == ip)
+      if (instance->ip == ip)
         found = true;
     }
 
-    // USER_PRINTF("updateNode Instance: ...%d n:%s %d\n", ip[3], udpStarMessage.header.name, found);
+    // USER_PRINTF("updateNode Instance: ...%d n:%s found:%d\n", ip[3], udpStarMessage.header.name, found);
 
-    if (!found) { //new node
-      NodeInfo node;
-      node.ip = ip;
+    if (!found) { //new instance
+      InstanceInfo instance;
+      instance.ip = ip;
       if (udpStarMessage.sys.type == 0) {//WLED only
-        node.sys.type = 0; //WLED
+        instance.sys.type = 0; //WLED
         //updated in udp sync message:
-        node.sys.upTime = 0;
-        node.sys.dmx.universe = 0;
-        node.sys.dmx.start = 0;
-        node.sys.dmx.count = 0;
-        node.sys.syncMaster = 0;
+        instance.sys.upTime = 0;
+        instance.sys.dmx.universe = 0;
+        instance.sys.dmx.start = 0;
+        instance.sys.dmx.count = 0;
+        instance.sys.syncMaster = 0;
         //stage values default 0
-        node.app.initVars();
+        instance.app.initVars();
       }
 
-      nodes.push_back(node);
-      std::sort(nodes.begin(),nodes.end(), [](NodeInfo &a, NodeInfo &b){ return a.ip < b.ip; });//Sorting the vector strcmp(a.name,b.name);
+      instances.push_back(instance);
+      std::sort(instances.begin(),instances.end(), [](InstanceInfo &a, InstanceInfo &b){ return a.ip < b.ip; });//Sorting the vector strcmp(a.name,b.name);
     }
 
-    //iterate vector pointers so we can update the nodes
-    for (std::vector<NodeInfo>::iterator node=nodes.begin(); node!=nodes.end(); ++node) {
-      if (node->ip == ip) {
-        node->timeStamp = millis(); //update timestamp
-        strncpy(node->name, udpStarMessage.header.name, sizeof(node->name)-1);
-        node->version = udpStarMessage.header.version;
+    //iterate vector pointers so we can update the instances
+    for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
+      if (instance->ip == ip) {
+        instance->timeStamp = millis(); //update timestamp
+        strncpy(instance->name, udpStarMessage.header.name, sizeof(instance->name)-1);
+        instance->version = udpStarMessage.header.version;
         if (udpStarMessage.sys.type == 1) {//StarMod only
-          node->sys = udpStarMessage.sys;
+          instance->sys = udpStarMessage.sys;
 
           //check for syncing
           uint8_t syncMaster = mdl->getValue("sma");
@@ -546,13 +547,13 @@ public:
 
             //find matching var
             for (int i=0; i< nrOfAppVars; i++) {
-              //set node kv
+              //set instance kv
 
               VarData newVar = udpStarMessage.app.vars[i];
 
               if (strncmp(newVar.id, "", 3) != 0) {
 
-                int value = node->app.getVar(newVar.id);
+                int value = instance->app.getVar(newVar.id);
 
                 //if no value found or value has changed
                 if (value == -1 || value != newVar.value) {
@@ -560,16 +561,16 @@ public:
                   strncpy(varID, newVar.id, 3);
                   varID[3]='\0';
 
-                  USER_PRINTF("AppData3 %s %s %d\n", node->name, varID, newVar.value);
+                  USER_PRINTF("AppData3 %s %s %d\n", instance->name, varID, newVar.value);
                   mdl->setValueI(varID, newVar.value);
                 }
               }
             }
           } 
 
-          //set values to node
+          //set values to instance
           for (int i=0; i< nrOfAppVars; i++)
-            node->app.vars[i] = udpStarMessage.app.vars[i];
+            instance->app.vars[i] = udpStarMessage.app.vars[i];
         }
 
         //only update cell in instbl!
@@ -583,7 +584,7 @@ public:
           JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
           JsonArray rows = web->addResponseA("updrow", "insTbl");
-          addTblRow(rows, node);
+          addTblRow(rows, instance);
 
           web->sendDataWs(responseVariant); //send to all clients
 
@@ -602,26 +603,26 @@ public:
 
   }
 
-  std::vector<NodeInfo>::iterator findNode( IPAddress ip) {
+  std::vector<InstanceInfo>::iterator findNode( IPAddress ip) {
 
     bool found = false;
-    for (auto node=nodes.begin(); node!=nodes.end(); ++node)
+    for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
     {
-      if (node->ip == ip)
+      if (instance->ip == ip)
         found = true;
     }
 
-    if (!found) { //node always found
-      NodeInfo node;
-      node.ip = ip;
-      nodes.push_back(node);
+    if (!found) { //instance always found
+      InstanceInfo instance;
+      instance.ip = ip;
+      instances.push_back(instance);
     }
 
-    std::vector<NodeInfo>::iterator foundNode;
-    //iterate vector pointers so we can update the nodes
-    for (auto node=nodes.begin(); node!=nodes.end(); ++node) {
-      if (node->ip == ip) {
-        foundNode = node;
+    std::vector<InstanceInfo>::iterator foundNode;
+    //iterate vector pointers so we can update the instances
+    for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
+      if (instance->ip == ip) {
+        foundNode = instance;
       }
     }
 
@@ -630,12 +631,12 @@ public:
   }
 
   private:
-    //sync
+    //sync (only WLED)
     WiFiUDP notifierUdp;
     uint16_t notifierUDPPort = 21324;
     bool udpConnected = false;
 
-    //instances
+    //instances (WLED and StarMod)
     WiFiUDP instanceUDP;
     uint16_t instanceUDPPort = 65506;
     bool udp2Connected = false;

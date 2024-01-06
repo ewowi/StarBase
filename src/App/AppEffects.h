@@ -82,7 +82,7 @@ public:
     JsonObject currentVar = ui->initSelect(parentVar, "pal", 4, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Palette");
       web->addResponse(var["id"], "comment", "Colors");
-      JsonArray select = web->addResponseA(var["id"], "data");
+      JsonArray select = web->addResponseA(var["id"], "options");
       select.add("CloudColors");
       select.add("LavaColors");
       select.add("OceanColors");
@@ -1032,10 +1032,10 @@ public:
       if (rowNr != uint8Max) {
         for (JsonObject var: parentVar["n"].as<JsonArray>()) {
           if (var["value"].is<JsonArray>()) {
-            var["value"][rowNr] = -99;
+            var["value"][rowNr] = -99; //unused value for this row, so don't show
           } else {
             var["value"].to<JsonArray>();
-            var["value"][rowNr] = -99;
+            var["value"][rowNr] = -99; //unused value for this row, so don't show
           }
         }
       }

@@ -38,7 +38,7 @@ void SysModFiles::setup() {
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Files");
     web->addResponse(var["id"], "comment", "List of files");
-    JsonArray rows = web->addResponseA(var["id"], "data");
+    JsonArray rows = web->addResponseA(var["id"], "value");  //overwrite the value
     dirToJson(rows);
   });
   ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
@@ -59,7 +59,7 @@ void SysModFiles::setup() {
       ui->uFunctions[tableVar["uiFun"]](tableVar);
       //get the table values
       JsonVariant responseVariant = web->getResponseDoc()->as<JsonVariant>();
-      JsonArray row = responseVariant["fileTbl"]["data"][rowNr];
+      JsonArray row = responseVariant["fileTbl"]["value"][rowNr];
       const char * fileName = row[0]; //first column
       print->printJson("\n", row);
       removeFiles(fileName, false);

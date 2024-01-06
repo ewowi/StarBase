@@ -35,7 +35,7 @@ void SysModules::setup() {
   JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, false, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Modules");
     web->addResponse(var["id"], "comment", "List of modules");
-    JsonArray rows = web->addResponseA(var["id"], "data");
+    JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
     for (SysModule *module:modules) {
       JsonArray row = rows.createNestedArray();
       row.add(module->name);  //create a copy!

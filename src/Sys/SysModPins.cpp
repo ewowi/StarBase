@@ -42,7 +42,7 @@ void SysModPins::setup() {
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Pins");
     web->addResponse(var["id"], "comment", "List of pins");
-    JsonArray rows = web->addResponseA(var["id"], "data");
+    JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
     uint8_t pinNr = 0;
     for (PinObject pinObject:pinObjects) {
       if (strcmp(pinObject.owner, "") != 0) {

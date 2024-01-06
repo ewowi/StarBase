@@ -91,7 +91,7 @@ public:
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effects");
       web->addResponse(var["id"], "comment", "List of effects (WIP)");
-      JsonArray rows = web->addResponseA(var["id"], "data");
+      JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
 
       //genHTML for all the childs of fxtbl
       // for (SysModule *module:modules) {
@@ -115,7 +115,7 @@ public:
     currentVar = ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
-      JsonArray select = web->addResponseA(var["id"], "data");
+      JsonArray select = web->addResponseA(var["id"], "options");
       for (Effect *effect:effects.effects) {
         select.add(effect->name());
       }
@@ -127,7 +127,7 @@ public:
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Projection");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
-      JsonArray select = web->addResponseA(var["id"], "data");
+      JsonArray select = web->addResponseA(var["id"], "options");
       select.add("None"); // 0
       select.add("Random"); // 1
       select.add("Distance from point"); //2
@@ -156,7 +156,7 @@ public:
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
-      JsonArray select = web->addResponseA(var["id"], "data");
+      JsonArray select = web->addResponseA(var["id"], "options");
       files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
 
       // ui needs to load the file also initially

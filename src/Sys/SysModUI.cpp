@@ -48,7 +48,7 @@ void SysModUI::setup() {
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Variable loops");
     web->addResponse(var["id"], "comment", "Loops initiated by a variable");
-    JsonArray rows = web->addResponseA(var["id"], "data");
+    JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
 
     for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
       JsonArray row = rows.createNestedArray();

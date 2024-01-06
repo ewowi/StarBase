@@ -177,10 +177,10 @@ public:
     parentVar = ui->initModule(parentVar, name);
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, false, [this](JsonObject var) { //uiFun
-    const char * varID = var["id"];
+      const char * varID = var["id"];
       web->addResponse(varID, "label", "Instances");
       web->addResponse(varID, "comment", "List of instances");
-      JsonArray rows = web->addResponseA(varID, "data");
+      JsonArray rows = web->addResponseA(varID, "value"); //overwrite the value
       for (auto instance=this->instances.begin(); instance!=this->instances.end(); ++instance) {
         addTblRow(rows, instance);
       }
@@ -213,7 +213,7 @@ public:
     currentVar = ui->initSelect(parentVar, "sma", 0, false, [this](JsonObject var) { //uiFun tbd: make dropdown where value is ...ip number
       web->addResponse(var["id"], "label", "Sync Master");
       web->addResponse(var["id"], "comment", "Instance to sync from");
-      JsonArray select = web->addResponseA(var["id"], "data");
+      JsonArray select = web->addResponseA(var["id"], "options");
       JsonArray instanceObject = select.createNestedArray();
       instanceObject.add(0);
       instanceObject.add("no sync");

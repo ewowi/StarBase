@@ -53,18 +53,18 @@ void SysModSystem::setup() {
   ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Reset 0");
     web->addResponse(var["id"], "comment", "Reason Core 0");
-    sys->addResetReasonsSelect(web->addResponseA(var["id"], "data"));
+    sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
   });
   if (ESP.getChipCores() > 1)
     ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Reset 1");
       web->addResponse(var["id"], "comment", "Reason Core 1");
-      sys->addResetReasonsSelect(web->addResponseA(var["id"], "data"));
+      sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
     });
   ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Restart");
     web->addResponse(var["id"], "comment", "Reason restart");
-    sys->addRestartReasonsSelect(web->addResponseA(var["id"], "data"));
+    sys->addRestartReasonsSelect(web->addResponseA(var["id"], "options"));
   });
 
   //calculate version in format YYMMDDHH

@@ -49,7 +49,7 @@ public:
     JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Vars to watch");
       web->addResponse(var["id"], "comment", "List of instances");
-      JsonArray rows = web->addResponseA(var["id"], "data");
+      JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
       for (auto varToWatch: varsToWatch) {
         JsonArray row = rows.createNestedArray();
         row.add(varToWatch.channel + mdl->getValue("dch").as<uint8_t>());

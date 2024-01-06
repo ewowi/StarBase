@@ -244,7 +244,7 @@ public:
         if (rowNr != uint8Max) {
           //if this instance update directly, otherwise send over network
           if (instances[rowNr].ip == WiFi.localIP()) {
-            mdl->setValueI(var["id"], newVar["value"][rowNr].as<uint8_t>());
+            mdl->setValueI(var["id"], mdl->varToValue(newVar, rowNr).as<uint8_t>());
           } else {
             // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
             HTTPClient http;
@@ -253,7 +253,7 @@ public:
             http.begin(serverPath);
             http.addHeader("Content-Type", "application/json");
             char postMessage[32];
-            print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), newVar["value"][rowNr].as<uint8_t>());
+            print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), mdl->varToValue(newVar, rowNr).as<uint8_t>());
 
             USER_PRINTF("json post %s %s\n", serverPath, postMessage);
 
@@ -301,7 +301,7 @@ public:
       success = false;
     }
 
-    USER_PRINTF("UDPWLEDSyncMessage %d %d %d", sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage), sizeof(UDPWLEDSyncMessage));
+    USER_PRINTF("UDPWLEDSyncMessage %d %d %d\n", sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage), sizeof(UDPWLEDSyncMessage));
     
     USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }

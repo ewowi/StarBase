@@ -20,6 +20,7 @@ unsigned long call = 0; //not used at the moment (don't use in effect calculatio
 unsigned long now = millis();
 CRGBPalette16 palette = PartyColors_p;
 
+//StarMod implementation of segment.data
 class SharedData {
   private:
     byte *data;
@@ -90,8 +91,9 @@ public:
       select.add("RainbowStripeColors");
       select.add("PartyColors");
       select.add("HeatColors");
-    }, [](JsonObject var, uint8_t) { //chFun
-      switch (var["value"].as<uint8_t>()) {
+    }, [](JsonObject var, uint8_t rowNr) { //chFun
+
+      switch (mdl->varToValue(var, rowNr).as<uint8_t>()) {
         case 0: palette = CloudColors_p; break;
         case 1: palette = LavaColors_p; break;
         case 2: palette = OceanColors_p; break;
@@ -995,12 +997,10 @@ public:
   bool setEffect(JsonObject parentVar, uint8_t rowNr) {
     bool doMap = false;
 
-    if (rowNr == uint8Max)
-      ledsV.fx = parentVar["value"];
-    else {
-      ledsV.fx = parentVar["value"][rowNr];
+    ledsV.fx = mdl->varToValue(parentVar, rowNr);
+
+    if (rowNr != uint8Max)
       parentVar["rowNr"] = rowNr; //store the rownNr of the updated value to send back to ui
-    }
 
     USER_PRINTF("setEffect %d\n", ledsV.fx);
 
@@ -1028,7 +1028,19 @@ public:
 
       sharedData.clear(); //make sure all values are 0
 
-      parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+      // nullify values for this row
+      if (rowNr != uint8Max) {
+        for (JsonObject var: parentVar["n"].as<JsonArray>()) {
+          if (var["value"].is<JsonArray>()) {
+            var["value"][rowNr] = -99;
+          } else {
+            var["value"].to<JsonArray>();
+            var["value"][rowNr] = -99;
+          }
+        }
+      }
+      else 
+        parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
       Effect* effect = effects[ledsV.fx];
       effect->controls(parentVar);

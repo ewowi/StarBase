@@ -77,6 +77,7 @@ public:
 
   //recursively add values in  a variant
   void varToValues(JsonObject var, JsonArray values);
+  JsonVariant varToValue(JsonObject var, u_int8_t rowNr);
 
 private:
   bool doWriteModel = false;

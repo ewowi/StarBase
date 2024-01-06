@@ -391,3 +391,10 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
     }
 
 }
+
+JsonVariant SysModModel::varToValue(JsonObject var, u_int8_t rowNr) {
+  if (var["value"].is<JsonArray>())
+    return (rowNr == uint8Max)?var["value"][0]:var["value"][rowNr];
+  else
+    return var["value"];
+}

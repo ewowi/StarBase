@@ -124,7 +124,6 @@ public:
     });
     currentVar["stage"] = true;
 
-
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Projection");
       web->addResponse(var["id"], "comment", "How to project fx to fixture");
@@ -140,7 +139,7 @@ public:
       select.add("Fun"); //8
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
-      ledsV.projectionNr = var["value"][rowNr];
+      ledsV.projectionNr = mdl->varToValue(var, rowNr);
       doMap = true;
 
     });

@@ -44,7 +44,7 @@ void SysModFiles::setup() {
   ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  ui->initNumber(tableVar, "flSize", -1, 0, uint16Max, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "flSize", uint16Max, 0, uint16Max, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size (B)");
   });
   ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun

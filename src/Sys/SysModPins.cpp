@@ -64,7 +64,7 @@ void SysModPins::setup() {
     web->addResponse(var["id"], "label", "Details");
   });
 
-  ui->initCanvas(parentVar, "board", -1, true, [](JsonObject var) { //uiFun
+  ui->initCanvas(parentVar, "board", uint16Max, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Board layout");
     web->addResponse(var["id"], "comment", "WIP");
   }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun

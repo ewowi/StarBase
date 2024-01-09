@@ -1041,6 +1041,7 @@ public:
       }
       else 
         parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+        //tbd: we need to reuse the values set...
 
       Effect* effect = effects[ledsV.fx];
       effect->controls(parentVar);

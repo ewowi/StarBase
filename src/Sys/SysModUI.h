@@ -127,7 +127,7 @@ public:
 
     //no call of fun for buttons otherwise all buttons will be fired which is highly undesirable
     if (strcmp(type,"button") != 0 && chFun && (!isPointer || value)) { //!isPointer because 0 is also a value then
-      USER_PRINTF("chFun init %s v:%s\n", var["id"].as<const char *>(), var["value"].as<String>());
+      USER_PRINTF("initVarAndUpdate chFun init %s v:%s\n", var["id"].as<const char *>(), var["value"].as<String>());
       if (var["value"].is<JsonArray>()) {
         int rowNr = 0;
         for (JsonVariant val:var["value"].as<JsonArray>()) {

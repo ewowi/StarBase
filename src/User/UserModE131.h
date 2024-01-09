@@ -58,16 +58,16 @@ public:
         row.add(varToWatch.savedValue);
       }
     });
-    ui->initNumber(tableVar, "e131Channel", -1, 1, 512, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "e131Channel", uint16Max, 1, 512, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Channel");
     });
     ui->initText(tableVar, "e131Name", nullptr, 32, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Name");
     });
-    ui->initNumber(tableVar, "e131Max", -1, 0, uint16Max, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "e131Max", uint16Max, 0, uint16Max, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Max");
     });
-    ui->initNumber(tableVar, "e131Value", -1, 0, 255, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "e131Value", uint16Max, 0, 255, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Value");
     });
 

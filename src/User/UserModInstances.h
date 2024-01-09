@@ -198,13 +198,13 @@ public:
     ui->initText(tableVar, "insType", nullptr, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Type");
     });
-    ui->initNumber(tableVar, "insVersion", -1, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "insVersion", uint16Max, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Version");
     });
-    ui->initNumber(tableVar, "insUp", -1, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "insUp", uint16Max, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Uptime");
     });
-    // ui->initNumber(tableVar, "insTime", -1, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
+    // ui->initNumber(tableVar, "insTime", uint16Max, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
     //   web->addResponse(var["id"], "label", "Timestamp");
     // });
 

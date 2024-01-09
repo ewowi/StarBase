@@ -18,6 +18,7 @@ function userFun(userFunId, data) {
       let canvasNode = cE("canvas");
       canvasNode.width = pviewNode.width;
       canvasNode.height = pviewNode.height;
+      canvasNode.className = pviewNode.className;
       canvasNode.draggable = true;
       canvasNode.addEventListener('dragstart', (event) => {event.preventDefault(); event.stopPropagation();});
 

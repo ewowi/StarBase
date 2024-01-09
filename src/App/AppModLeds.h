@@ -70,7 +70,7 @@ public:
     currentVar["log"] = true; //logarithmic
     currentVar["stage"] = true; //these values override model.json???
 
-    ui->initCanvas(parentVar, "pview", -1, false, [](JsonObject var) { //uiFun
+    ui->initCanvas(parentVar, "pview", uint16Max, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Preview");
       web->addResponse(var["id"], "comment", "Shows the fixture");
       // web->addResponse(var["id"], "comment", "Click to enlarge");
@@ -109,7 +109,7 @@ public:
         // }
       }
 
-      print->printJson("fxTbl values", rows);
+      // print->printJson("fxTbl values", rows);
     });
 
     currentVar = ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
@@ -137,6 +137,13 @@ public:
       select.add("Multiply"); //6
       select.add("Kaleidoscope"); //7
       select.add("Fun"); //8
+
+      //set default value (array)
+      // if (!var["value"].isNull()) {
+        // JsonArray value = web->addResponseA(var["id"], "value");
+        // value.add(1);
+        // value.add(2);
+      // }
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
       ledsV.projectionNr = mdl->varToValue(var, rowNr);

@@ -61,7 +61,7 @@ void SysModules::setup() {
     else {
       USER_PRINTF(" no rowNr!!");
     }
-    print->printJson(" ", var);
+    // print->printJson(" ", var);
 
   });
 }

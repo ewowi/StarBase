@@ -1,12 +1,14 @@
 /*
    @title     StarMod
    @file      UserModDDP.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
+
 #define DDP_DEFAULT_PORT 4048
 #define DDP_HEADER_LEN 10
 #define DDP_SYNCPACKET_LEN 10
@@ -50,7 +52,7 @@ public:
 
     parentVar = ui->initModule(parentVar, name);
 
-    ui->initSelect(parentVar, "ddpInst", -1, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "ddpInst", uint16Max, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Instance");
       web->addResponse(var["id"], "comment", "Instance to send data");
       JsonArray select = web->addResponseA(var["id"], "options");

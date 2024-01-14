@@ -1,11 +1,12 @@
 /*
    @title     StarMod
    @file      UserModArtNet.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #define ARTNET_DEFAULT_PORT 6454
@@ -34,7 +35,7 @@ public:
 
     parentVar = ui->initModule(parentVar, name);
 
-    ui->initSelect(parentVar, "artInst", -1, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "artInst", uint16Max, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Instance");
       web->addResponse(var["id"], "comment", "Instance to send data");
       JsonArray select = web->addResponseA(var["id"], "options");

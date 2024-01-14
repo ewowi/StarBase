@@ -1,11 +1,12 @@
 /*
    @title     StarMod
    @file      SysModUI.cpp
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #include "SysModUI.h"
@@ -45,7 +46,7 @@ void SysModUI::setup() {
 
   parentVar = initModule(parentVar, name);
 
-  JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Variable loops");
     web->addResponse(var["id"], "comment", "Loops initiated by a variable");
     JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
@@ -63,7 +64,7 @@ void SysModUI::setup() {
   initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  initNumber(tableVar, "vlLoopps", 0, 0, 999, true, [](JsonObject var) { //uiFun
+  initNumber(tableVar, "vlLoopps", uint16Max, 0, 999, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Loops p s");
   });
 
@@ -292,6 +293,14 @@ const char * SysModUI::processJson(JsonVariant &json) {
         JsonObject var = mdl->findVar("System");
         USER_PRINTF("processJson canvasData %s\n", value.as<const char *>());
         var["canvasData"] = (char *)value.as<const char *>(); //create a copy!
+        json.remove(key); //key processed we don't need the key in the response
+      }
+      else if (pair.key() == "insRow") {
+        USER_PRINTF("processJson %s - %s\n", key, value.as<String>());
+        json.remove(key); //key processed we don't need the key in the response
+      }
+      else if (pair.key() == "delRow") {
+        USER_PRINTF("processJson %s - %s\n", key, value.as<String>());
         json.remove(key); //key processed we don't need the key in the response
       }
       else if (pair.key() == "uiFun") { //JsonString can do ==

@@ -1,12 +1,13 @@
 /*
    @title     StarMod
    @file      SysModModel.cpp
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
- */
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+*/
 
 #include "SysModModel.h"
 #include "SysModule.h"
@@ -324,10 +325,16 @@ void SysModModel::setValueLossy(const char * id, const char * format, ...) {
   //   USER_PRINTF("x");
 }
 
-JsonVariant SysModModel::getValue(const char * id) {
+JsonVariant SysModModel::getValue(const char * id, uint8_t rowNr) {
   JsonObject var = findVar(id);
-  if (!var.isNull())
-    return var["value"];
+  if (!var.isNull()) {
+    if (var["value"].is<JsonArray>()) {
+      JsonArray varVal = var["value"].as<JsonArray>();
+      return (rowNr == uint8Max)?var["value"][0]:var["value"][rowNr]; //return first value of no array
+    }
+    else
+      return var["value"];
+  }
   else {
     USER_PRINTF("getValue: Var %s does not exist!!\n", id);
     return JsonVariant();

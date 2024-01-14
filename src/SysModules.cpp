@@ -1,11 +1,12 @@
 /*
    @title     StarMod
    @file      SysModules.cpp
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #include "SysModules.h"
@@ -32,24 +33,24 @@ void SysModules::setup() {
   JsonObject parentVar;
   parentVar = ui->initModule(parentVar, "Modules");
 
-  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, false, [this](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Modules");
     web->addResponse(var["id"], "comment", "List of modules");
-    JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-    for (SysModule *module:modules) {
-      JsonArray row = rows.createNestedArray();
-      row.add(module->name);  //create a copy!
-      row.add(module->success);
-      row.add(module->isEnabled);
-    }
   });
-  ui->initText(tableVar, "mdlName", nullptr, 32, true, [](JsonObject var) { //uiFun
+
+  ui->initText(tableVar, "mdlName", nullptr, 32, true, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
+  }, nullptr, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+    var["value"][rowNr] = modules[rowNr]->name;
   });
-  ui->initCheckBox(tableVar, "mdlSucces", false, true, [](JsonObject var) { //uiFun
+
+  ui->initCheckBox(tableVar, "mdlSucces", uint16Max, true, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Success");
+  }, nullptr, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+    var["value"][rowNr] = modules[rowNr]->success;
   });
-  ui->initCheckBox(tableVar, "mdlEnabled", true, false, [](JsonObject var) { //uiFun not readonly! (tbd)
+
+  ui->initCheckBox(tableVar, "mdlEnabled", uint16Max, false, [this](JsonObject var) { //uiFun not readonly! (tbd)
     //initially set to true, but as enabled are table cells, will be updated to an array
     web->addResponse(var["id"], "label", "Enabled");
   }, [this](JsonObject var, uint8_t rowNr) { //chFun
@@ -63,6 +64,8 @@ void SysModules::setup() {
     }
     // print->printJson(" ", var);
 
+  }, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+    var["value"][rowNr] = modules[rowNr]->isEnabled;
   });
 }
 

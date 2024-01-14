@@ -1,12 +1,13 @@
 /*
    @title     StarMod
    @file      SysModNetwork.cpp
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
- */
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+*/
 
 #include "SysModNetwork.h"
 #include "SysModules.h"
@@ -25,10 +26,22 @@ void SysModNetwork::setup() {
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initModule(parentVar, name);
+  
+  // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var) { //uiFun ro false: create and delete row possible
+  //   web->addResponse(var["id"], "label", "Wifi");
+  //   web->addResponse(var["id"], "comment", "List of defined and available Wifi APs");
+  // });
+
   ui->initText(parentVar, "ssid", "", 32, false);
+  // , nullptr
+  // , nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
+  //   var["value"][0] = "";
+  // });
+
   ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Password");
   });
+
   ui->initButton(parentVar, "connect", nullptr, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Force reconnect (you loose current connection)");
   }, [this](JsonObject var, uint8_t) { //chFun

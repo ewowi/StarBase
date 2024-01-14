@@ -1,11 +1,12 @@
 /*
    @title     StarMod
    @file      UserModInstances.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewoudwijma/StarMod
    @Authors   https://github.com/ewoudwijma/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #pragma once
@@ -176,7 +177,7 @@ public:
 
     parentVar = ui->initModule(parentVar, name);
 
-    JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, false, [this](JsonObject var) { //uiFun
+    JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
       const char * varID = var["id"];
       web->addResponse(varID, "label", "Instances");
       web->addResponse(varID, "comment", "List of instances");
@@ -487,7 +488,7 @@ public:
 
     IPAddress broadcastIP(255, 255, 255, 255);
     if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
-      USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d\n", (uint8_t*)&starModMessage, sizeof(UDPStarModMessage), instanceUDPPort, ip[3]);
+      USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d from ...%d\n", (uint8_t*)&starModMessage, sizeof(UDPStarModMessage), instanceUDPPort, ip[3], WiFi.localIP()[3]);
       // for (size_t x = 0; x < sizeof(UDPWLEDMessage) + sizeof(SysData) + sizeof(AppData); x++) {
       //   char * xx = (char *)&starModMessage;
       //   Serial.printf("%d: %d - %c\n", x, xx[x], xx[x]);
@@ -583,12 +584,12 @@ public:
           responseDoc->clear(); //needed for deserializeJson?
           JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
-          JsonArray rows = web->addResponseA("updrow", "insTbl");
+          JsonArray rows = web->addResponseA("updRow", "insTbl");
           addTblRow(rows, instance);
 
           web->sendDataWs(responseVariant); //send to all clients
 
-          // print->printJson("updateNode updrow", responseVariant);
+          // print->printJson("updateNode updRow", responseVariant);
         }
 
       } //ip

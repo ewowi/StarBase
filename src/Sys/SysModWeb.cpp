@@ -1,11 +1,12 @@
 /*
    @title     StarMod
    @file      SysModWeb.cpp
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #include "SysModWeb.h"
@@ -57,22 +58,23 @@ void SysModWeb::setup() {
 
   parentVar = ui->initModule(parentVar, name);
 
-  JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Clients");
     web->addResponse(var["id"], "comment", "List of clients");
-    JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-    web->clientsToJson(rows);
+    // JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
+    // web->clientsToJson(rows);
   });
-  ui->initNumber(tableVar, "clNr", 0, 0, 999, true, [](JsonObject var) { //uiFun
+
+  ui->initNumber(tableVar, "clNr", uint16Max, 0, 999, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Nr");
   });
   ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "IP");
   });
-  ui->initCheckBox(tableVar, "clIsFull", false, true, [](JsonObject var) { //uiFun
+  ui->initCheckBox(tableVar, "clIsFull", uint16Max, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Is full");
   });
-  ui->initSelect(tableVar, "clStatus", -1, true, [](JsonObject var) { //uiFun
+  ui->initSelect(tableVar, "clStatus", uint16Max, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
     //tbd: not working yet in ui
     JsonArray select = web->addResponseA(var["id"], "options");
@@ -80,7 +82,7 @@ void SysModWeb::setup() {
     select.add("Connected"); //1
     select.add("Disconnecting"); //2
   });
-  ui->initNumber(tableVar, "clLength", 0, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "clLength", uint16Max, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Length");
   });
 
@@ -107,15 +109,25 @@ void SysModWeb::loop1s() {
   // if something changed in clTbl
   if (clientsChanged) {
     clientsChanged = false;
-    ui->processUiFun("clTbl"); //every second (temp)
+    // ui->processUiFun("clTbl"); //every second (temp)
+    USER_PRINTF("SysModWeb clientsChanged\n");
+    //clean variables
+    JsonObject var = mdl->findVar("clTbl");
+    for (JsonObject childVar: var["n"].as<JsonArray>()) {
+      childVar.remove("value");
+    }
   }
 
   uint8_t rowNr = 0;
   for (auto client:SysModWeb::ws->getClients()) {
     // print->printClient("up", client);
+    //will only update if changed
+    mdl->setValueI("clNr", client->id(), rowNr);
+    mdl->setValueC("clIp", client->remoteIP().toString().c_str(), rowNr); //create a copy!
     mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
     mdl->setValueI("clStatus", client->status(), rowNr);
     mdl->setValueI("clLength", client->queueLength(), rowNr);
+    
     rowNr++;
   }
 

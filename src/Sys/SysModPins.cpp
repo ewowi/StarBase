@@ -1,12 +1,13 @@
 /*
    @title     StarMod
    @file      SysModPins.cpp
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
- */
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+*/
 
 #include "SysModPins.h"
 #include "SysModPrint.h"
@@ -39,7 +40,7 @@ void SysModPins::setup() {
   parentVar = ui->initModule(parentVar, name);
 
   //show table of allocated pins
-  JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, false, [](JsonObject var) { //uiFun
+  JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Pins");
     web->addResponse(var["id"], "comment", "List of pins");
     JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
@@ -54,7 +55,7 @@ void SysModPins::setup() {
       pinNr++;
     }
   });
-  ui->initNumber(tableVar, "pinNr", 0, 0, NUM_PINS, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "pinNr", uint16Max, 0, NUM_PINS, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Pin");
   });
   ui->initText(tableVar, "pinOwner", nullptr, 32, true, [](JsonObject var) { //uiFun

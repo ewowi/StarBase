@@ -1,12 +1,13 @@
 /*
    @title     StarMod
    @file      SysModFiles.cpp
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
- */
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+*/
 
 #include "SysModFiles.h"
 #include "SysModUI.h"
@@ -50,7 +51,7 @@ void SysModFiles::setup() {
   ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Show");
   });
-  ui->initButton(tableVar, "flDel", "⌫", false, [](JsonObject var) { //uiFun
+  ui->initButton(tableVar, "flDel", "⌫", false, [](JsonObject var) { //uiFun ro is false so button can be pressed!
     web->addResponse(var["id"], "label", "Delete"); //table header title
   }, [this, tableVar](JsonObject var, uint8_t rowNr) { //chFun
 

@@ -1,11 +1,12 @@
 /*
    @title     StarMod
    @file      UserModE131.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #pragma once
@@ -46,7 +47,7 @@ public:
     });
     currentVar["stage"] = true;
 
-    JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, false, [this](JsonObject var) { //uiFun
+    JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
       web->addResponse(var["id"], "label", "Vars to watch");
       web->addResponse(var["id"], "comment", "List of instances");
       JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value

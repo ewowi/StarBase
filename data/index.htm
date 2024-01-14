@@ -1,10 +1,14 @@
-<!-- @title     StarMod
-@file      index.htm
-@date      20231016
-@repo      https://github.com/ewowi/StarMod
-@Authors   https://github.com/ewowi/StarMod/commits/main
-@Copyright (c) 2023 Github StarMod Commit Authors
-@license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
+<!-- 
+  @title     StarMod
+  @file      index.htm
+  @date      20240114
+  @repo      https://github.com/ewowi/StarMod
+  @Authors   https://github.com/ewowi/StarMod/commits/main
+  @Copyright (c) 2024 Github StarMod Commit Authors
+  @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+  @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+*/
+ -->
 
 <!DOCTYPE html>
 <html>
@@ -38,6 +42,19 @@
     <input type="button" value="All" id="vAll" onclick="showHideModules(this)">
     <span> | </span>
     <input type="button" value="Save" id="bSave" onclick="saveModel(this)">
+    <span> | </span>
+    Theme <select name="theme-select" id="theme-select" onchange="setTheme(this.value)">
+      <option value="starmod">StarMod</option>
+      <option value="wled">WLED</option>
+      <option value="alt1">Alternative1</option>
+      <option value="alt2">Alternative2</option>
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+      <option value="blue">Blue</option>
+      <option value="pink">Pink</option>
+      <option value="space">Space</option>
+      <option value="nyan">Nyan</option>
+    </select>
     <div id="instPH"></div>
   </div>
   <div id="mdlContainer" class="mdlContainer">
@@ -52,7 +69,7 @@
   </div>
   <div id="connind">&#9790;</div>
   <div id="modalView" class="modal"></div>
-  <p style="color:grey;"> (c) 2023 MoonModules Licensed under GPL v3</p>
+  <p style="color:grey;"> (c) 2024 MoonModules Licensed under GPL-v3</p>
   <div id="canvasMenu" style="position:absolute;display:none"> <!--;background-color:#b60f62-->
     <p><button id="canvasButton"></button></p>
     <p><button id="canvasButton2">Add Effect</button></p>

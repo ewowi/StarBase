@@ -1,12 +1,13 @@
 /*
    @title     StarMod
    @file      SysModModel.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
- */
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+*/
 
 #pragma once
 #include "SysModule.h"
@@ -63,7 +64,7 @@ public:
   //   return JsonObject();
   // };
 
-  JsonVariant getValue(const char * id);
+  JsonVariant getValue(const char * id, uint8_t rowNr = uint8Max);
 
   // //tbd
   // template <typename Type>

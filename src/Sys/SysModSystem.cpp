@@ -1,11 +1,12 @@
 /*
    @title     StarMod
    @file      SysModSystem.cpp
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #include "SysModSystem.h"
@@ -71,9 +72,9 @@ void SysModSystem::setup() {
   //https://forum.arduino.cc/t/can-you-format-__date__/200818/10
   int month, day, year, hour, minute, second;
   const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
-  sscanf(__DATE__, "%s %d %d", version, &day, &year); // Oct 20 2023
+  sscanf(__DATE__, "%s %d %d", version, &day, &year); // Mon dd yyyy
   month = (strstr(month_names, version)-month_names)/3+1;
-  sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //11:20:23
+  sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //hh:mm:ss
   print->fFormat(version, sizeof(version)-1, "%02d%02d%02d%02d", year-2000, month, day, hour);
 
   USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);

@@ -1,11 +1,12 @@
 /*
    @title     StarMod
    @file      AppEffects.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright (c) 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #ifdef USERMOD_WLEDAUDIO
@@ -1043,8 +1044,24 @@ public:
         parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
         //tbd: we need to reuse the values set...
 
+      // // nullify values for this row
+      // for (JsonObject var: parentVar["n"].as<JsonArray>()) {
+      //   if (rowNr != uint8Max) {
+      //     if (var["value"].is<JsonArray>()) {
+      //       var["value"][rowNr] = -99; //unused value for this row, so don't show
+      //     } else {
+      //       var["value"].to<JsonArray>();
+      //       var["value"][rowNr] = -99; //unused value for this row, so don't show
+      //     }
+      //   }
+      //   // else 
+      //     // var["value"] = -99;
+      // }
+      // // else 
+      // //   parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+
       Effect* effect = effects[ledsV.fx];
-      effect->controls(parentVar);
+      effect->controls(parentVar); //tbd: add rowNr...
 
       effect->setup(); //if changed then run setup once (like call==0 in WLED)
 

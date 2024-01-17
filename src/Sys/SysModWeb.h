@@ -12,12 +12,12 @@
 #pragma once
 #include "SysModule.h"
 
-#include <ESPAsyncWebServer.h>
+#include <MongooseHttpServer.h>
 
 class SysModWeb:public SysModule {
 
 public:
-  static AsyncWebSocket *ws;
+  // static AsyncWebSocket *ws;
 
   SysModWeb();
 
@@ -29,17 +29,16 @@ public:
 
   void connectedChanged();
 
-  static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
-  static void wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+  // static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+  // static void wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
 
   //send json to client or all clients
-  static void sendDataWs(JsonVariant json = JsonVariant(), AsyncWebSocketClient * client = nullptr);
+  static void sendDataWs(JsonVariant json = JsonVariant(), MongooseHttpWebSocketConnection * client = nullptr);
 
   //add an url to the webserver to listen to
   bool addURL(const char * uri, const char * contentType, const char * path = nullptr, const uint8_t * content = nullptr, size_t len = -1);
 
-  //not used at the moment
-  bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *));
+  bool processURL(const char * uri, void (*func)(MongooseHttpServerRequest *));
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
   bool addUpload(const char * uri);
@@ -72,7 +71,7 @@ public:
   JsonDocument * getResponseDoc();
 
   //Currently only WLED style state and info
-  static void serveJson(AsyncWebServerRequest *request);
+  static void serveJson(MongooseHttpServerRequest *request);
   
   static unsigned long wsSendBytesCounter;
   static unsigned long wsSendJsonCounter;
@@ -82,7 +81,7 @@ private:
 
   static bool clientsChanged;
 
-  static AsyncWebServer *server;
+  static MongooseHttpServer *server;
   static const char * (*processWSFunc)(JsonVariant &);
 
   static DynamicJsonDocument *responseDocLoopTask;

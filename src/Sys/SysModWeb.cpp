@@ -372,7 +372,7 @@ void SysModWeb::wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client,
 }
 
 
-void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
+void SysModWeb::sendDataWs(JsonVariant json, MongooseHttpWebSocketConnection * client) {
   if (!ws) {
     USER_PRINT_Async("sendDataWs no ws\n");
     return;
@@ -396,20 +396,21 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
       wsBuf->lock();
       serializeJson(json, (char *)wsBuf->get(), len);
       if (client) {
-        if (client->status() == WS_CONNECTED && !client->queueIsFull())
-          client->text(wsBuf);
-        else 
-          print->printClient("sendDataWs client full or not connected", client);
+        // if (client->status() == WS_CONNECTED && !client->queueIsFull())
+          client->send(wsBuf);
+        // else 
+        //   print->printClient("sendDataWs client full or not connected", client);
 
         // DEBUG_PRINTLN("to a single client.");
       } else {
-        for (auto client:ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull())
-            client->text(wsBuf);
-          else 
-            // printClient("sendDataWs client(s) full or not connected", client); //crash!!
-            USER_PRINT_Async("sendDataWs client full or not connected\n");
-        }
+        server->sendAll(wsBuf);
+        // for (auto client:ws->getClients()) {
+        //   if (client->status() == WS_CONNECTED && !client->queueIsFull())
+        //     client->text(wsBuf);
+        //   else 
+        //     // printClient("sendDataWs client(s) full or not connected", client); //crash!!
+        //     USER_PRINT_Async("sendDataWs client full or not connected\n");
+        // }
         // DEBUG_PRINTLN("to multiple clients.");
       }
       wsBuf->unlock();
@@ -638,7 +639,7 @@ JsonDocument * SysModWeb::getResponseDoc() {
   return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?web->responseDocLoopTask:web->responseDocAsyncTCP;
 }
 
-void SysModWeb::serveJson(AsyncWebServerRequest *request) {
+void SysModWeb::serveJson(MongooseHttpServerRequest *request) {
 
   AsyncJsonResponse * response;
 

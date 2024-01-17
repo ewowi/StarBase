@@ -12,7 +12,7 @@
 #pragma once
 #include "SysModule.h"
 
-#include <ESPAsyncWebServer.h>
+#include <MongooseHttpServer.h>
 
 #define USER_PRINTF(x...) print->print(x)
 #define USER_PRINT_FUNCTION(x...) //print->print(x)
@@ -40,7 +40,7 @@ public:
 
   void printJDocInfo(const char * text, DynamicJsonDocument source);
 
-  void printClient(const char * text, AsyncWebSocketClient * client);
+  void printClient(const char * text, MongooseHttpWebSocketConnection * client);
 
 private:
   bool setupsDone = false;

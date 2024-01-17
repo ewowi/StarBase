@@ -107,13 +107,14 @@ void SysModUI::loop() {
           varLoop->interval = buffer[3]*10; //from cs to ms
           // USER_PRINTF("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
-          for (auto client:SysModWeb::ws->getClients()) {
-            if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=1) //lossy
-              client->binary(wsBuf);
-            else {
-              // web->clientsChanged = true; tbd: changed also if full status changes
-              // print->printClient("loopFun skip frame", client);
-            }
+          server->sendAdd(wsBuf); // TODO: needs to send binary not text
+          // for (auto client:SysModWeb::ws->getClients()) {
+          //   if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=1) //lossy
+          //     client->binary(wsBuf);
+          //   else {
+          //     // web->clientsChanged = true; tbd: changed also if full status changes
+          //     // print->printClient("loopFun skip frame", client);
+          //   }
           }
           wsBuf->unlock();
           SysModWeb::ws->_cleanBuffers();

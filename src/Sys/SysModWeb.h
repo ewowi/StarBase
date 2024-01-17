@@ -76,7 +76,7 @@ public:
   
   static unsigned long wsSendBytesCounter;
   static unsigned long wsSendJsonCounter;
-  static unsigned long wsSendDataWsCounter;
+
 private:
   bool modelUpdated = false;
 

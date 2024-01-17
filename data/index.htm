@@ -35,15 +35,15 @@
 <body onload="onLoad()">
   <div class="module">
     <h1>StarMod by MoonModules 💫 <div id="instanceName"></div></h1>
-    <input type="button" value="App" id="vApp" onclick="showHideModules(this)">
-    <input type="button" value="Stage" id="vStage" onclick="showHideModules(this)">
-    <!-- <input type="button" value="User" id="vUser" onclick="showHideModules(this)"> -->
-    <input type="button" value="System" id="vSys" onclick="showHideModules(this)">
-    <input type="button" value="All" id="vAll" onclick="showHideModules(this)">
+    <input type="button" value="App" id="vApp" onclick="setView(this)">
+    <input type="button" value="Stage" id="vStage" onclick="setView(this)">
+    <!-- <input type="button" value="User" id="vUser" onclick="setView(this)"> -->
+    <input type="button" value="System" id="vSys" onclick="setView(this)">
+    <input type="button" value="All" id="vAll" onclick="setView(this)">
     <span> | </span>
     <input type="button" value="Save" id="bSave" onclick="saveModel(this)">
     <span> | </span>
-    Theme <select name="theme-select" id="theme-select" onchange="setTheme(this.value)">
+    Theme <select name="theme-select" id="theme-select" onchange="setTheme(this)">
       <option value="starmod">StarMod</option>
       <option value="wled">WLED</option>
       <option value="alt1">Alternative1</option>

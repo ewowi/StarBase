@@ -108,7 +108,7 @@ void SysModUI::loop() {
           // USER_PRINTF("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
 
           for (auto client:SysModWeb::ws->getClients()) {
-            if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=1) //lossy
+            if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=3) //lossy
               client->binary(wsBuf);
             else {
               // web->clientsChanged = true; tbd: changed also if full status changes
@@ -283,17 +283,11 @@ const char * SysModUI::processJson(JsonVariant &json) {
         // do nothing as it is no real var but the verbose command of WLED
         USER_PRINTF("processJson v type %s\n", pair.value().as<String>());
       }
-      else if (pair.key() == "view") { //save the chosen view in System (see index.js)
+      else if (pair.key() == "view" || pair.key() == "canvasData" || pair.key() == "theme") { //save the chosen view in System (see index.js)
         JsonObject var = mdl->findVar("System");
-        USER_PRINTF("processJson view v:%s n: %d s:%s\n", pair.value().as<String>(), var.isNull(), var["id"].as<const char *>());
-        var["view"] = (char *)value.as<const char *>(); //create a copy!
-        json.remove(key); //key processed we don't need the key in the response
-      }
-      else if (pair.key() == "canvasData") {
-        JsonObject var = mdl->findVar("System");
-        USER_PRINTF("processJson canvasData %s\n", value.as<const char *>());
-        var["canvasData"] = (char *)value.as<const char *>(); //create a copy!
-        json.remove(key); //key processed we don't need the key in the response
+        USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>(), var.isNull(), var["id"].as<const char *>());
+        var[(char *)key] = (char *)value.as<const char *>(); //create a copy!
+        // json.remove(key); //key should stay as all clients use this to perform the changeHTML action
       }
       else if (pair.key() == "insRow") {
         USER_PRINTF("processJson %s - %s\n", key, value.as<String>());

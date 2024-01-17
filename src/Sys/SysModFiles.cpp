@@ -78,13 +78,6 @@ void SysModFiles::setup() {
     web->addResponse(var["id"], "label", "Total FS size");
   });
 
-  ui->initButton(parentVar, "deleteFiles", nullptr, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "All but model.json");
-  }, [this](JsonObject var, uint8_t) { //chFun
-    USER_PRINTF("delete files\n");
-    removeFiles("model.json", true); //all but model.json
-  });
-
   // ui->initURL(parentVar, "urlTest", "file/3DCube202005.json", true);
 
   web->addUpload("/upload");

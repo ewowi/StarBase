@@ -66,13 +66,6 @@ void SysModModel::setup() {
     web->addResponse(var["id"], "comment", "WIP");
   });
 
-  ui->initButton(parentVar, "deleteModel", nullptr, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Back to defaults");
-  }, [](JsonObject var, uint8_t) { //chFun
-    USER_PRINTF("delete model json\n");
-    files->remove("/model.json");
-  });
-
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
@@ -316,7 +309,7 @@ void SysModModel::setValueLossy(const char * id, const char * format, ...) {
 
   bool isOk = true;
   for (auto client:SysModWeb::ws->getClients()) {
-      if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>1) //lossy
+      if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>3) //lossy
         isOk = false;
   }
   if (isOk)

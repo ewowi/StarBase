@@ -13,12 +13,10 @@ let ws = null;
 let mdlColumnNr = 0;
 let nrOfMdlColumns = 4;
 let userFunId = "";
-let htmlGenerated = false;
 let jsonValues = {};
 let uiFunCommands = [];
-let model = null; //model.json (as send by the server), used by FindVar
+let model = []; //model.json (as send by the server), used by FindVar
 let savedView = null;
-let theme;
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -28,6 +26,7 @@ function handleVisibilityChange() {
 }
 
 function onLoad() {
+  getView();
   getTheme();
 
   makeWS();
@@ -52,6 +51,7 @@ function makeWS() {
       clearTimeout(jsonTimeout);
       jsonTimeout = null;
       gId('connind').style.backgroundColor = "var(--c-l)";
+
       // console.log("onmessage", e.data);
       let json = null;
       try {
@@ -61,28 +61,45 @@ function makeWS() {
           console.error("makeWS json error", error, e.data); // error in the above string (in this case, yes)!
       }
       if (json) {
-        if (!htmlGenerated) { //generate array of variables
-          if (Array.isArray(json)) {
-            model = json; //this is the model
-            console.log("WS receive generateHTML", model);
-            generateHTML(model); //no parentNode
-            htmlGenerated = true;
+        //receive model per module to stay under websocket size limit of 8192
+        if (json.type && json.type == "module") { //generate array of variables
+          let found = false;
+          for (let module of model) {
+            if (module.id == json.id)
+              found = true;
+          }
+          if (!found) {
+            let module = json;
+            model.push((module)); //this is the model
+            console.log("WS receive generateHTML", module);
+            generateHTML(module); //no parentNode
 
+            if (module.id == "System") {
+              console.log("system changes", module);
+              if (module.view)
+                savedView = module.view;
+              if (module.theme)
+                changeHTMLTheme(module.theme);
+            }
+
+            //rerun after each module added
             if (savedView)
-              showHideModules(gId(savedView));
+              changeHTMLView(savedView);
             else
-              showHideModules(gId("vApp")); //default
-      
+              changeHTMLView("vApp"); //default
+
             //send request for uiFun
             flushUIFunCommands();
           }
           else
-            console.log("Error: no valid model", json);
+            console.log("html of module already generated", json);
         }
         else { //update
           if (!Array.isArray(json)) //only the model is an array
             // console.log("WS receive update", json);
             receiveData(json);
+          else
+            console.log("program error array not expected", json);
         }
       }
     }
@@ -178,19 +195,10 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
 
     let isPartOfTableRow = (rowNr != -1);
 
-    //if System, set the current view
-    if (variable && variable.id) {
-      if (variable.id == "System") {
-        //get the current view
-        console.log("view", variable);
-        if (variable.view) 
-          savedView = variable.view;
-      }
-    }
-    else {
-      console.log("genHTML no variable and id", variable, parentNode); //tbd: caused by more data then columns in table...
-      return;
-    }
+    // if (!variable || !variable.id) {
+    //   console.log("genHTML no variable and id", variable, parentNode); //tbd: caused by more data then columns in table...
+    //   return;
+    // }
 
     let divNode = null; //divNode will be appended to the parentNode after if then else and returned
     let varNode = null; //the node containing the variable
@@ -218,6 +226,15 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
       let h2Node = cE("h2");
       h2Node.innerText = initCap(variable.id);
       varNode.appendChild(h2Node);
+
+      let helpNode = cE("input");
+      helpNode.type = "button";
+      helpNode.value = "?";
+      helpNode.addEventListener('click', (event) => {
+        location.href="https://ewowi.github.io/StarDocs/";// + variable.id;
+        // location.href="https://starmod.org/" + variable.id;
+      });
+      varNode.appendChild(helpNode);
 
       setupModule(varNode); //enable drag and drop of modules
     }
@@ -439,10 +456,15 @@ function receiveData(json) {
       if (key == "uiFun") {
         console.log("receiveData no action", key, value); //should not happen anymore
       }
-      else if (key == "view") { //should not happen anymore
-        console.log("receiveData no action", key, value);
+      else if (key == "view") {
+        console.log("receiveData", key, value);
+        changeHTMLView(value);
       }
-      else if (key == "canvasData") { //should not happen anymore
+      else if (key == "theme") {
+        console.log("receiveData", key, value);
+        changeHTMLTheme(value);
+      }
+      else if (key == "canvasData") {
         console.log("receiveData no action", key, value);
       }
       else if (key == "details") {
@@ -552,9 +574,9 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
   if (commandJson.hasOwnProperty("comment")) {
     
     if (nodeType != "th") {
-      //only add comment if there is a label
-      let labelNode = node.parentNode.querySelector('label');
-      if (labelNode) {
+
+      //if not a tablecell
+      if (node.parentNode.parentNode.nodeName.toLocaleLowerCase() != "td") {
         let commentNode = node.parentNode.querySelector('comment');
         // console.log("commentNode", commentNode);
         if (!commentNode) { //create if not exist
@@ -1085,11 +1107,12 @@ function setInstanceTableColumns() {
   // let insTrNode = gId("insName").parentNode;
 
   let tbl = gId("insTbl");
+  if (!tbl) return;
   let mdlContainer = gId("mdlContainer");
   // let isStageView = tbl.parentNode.parentNode.parentNode.className != "mdlColumn";
   let isStageView = !mdlContainer.contains(tbl);
-  let thead = tbl.getElementsByTagName('thead')[0];
-  let tbody = tbl.getElementsByTagName('tbody')[0];
+  let thead = tbl.querySelector("thead");
+  let tbody = tbl.querySelector("tbody");
 
   function showHideColumn(colNr, doHide) {
     // console.log("showHideColumn", thead.parentNode.parentNode, colNr, doHide);
@@ -1113,9 +1136,10 @@ function setInstanceTableColumns() {
   gId("sma").parentNode.hidden = isStageView; //hide sync master label field and comment
 }
 
-function showHideModules(node) {
+function changeHTMLView(value) {
 
   function toggleInstances(isStageView) {
+    if (!gId("Instances")) return;
     let module = gId("Instances").parentNode;
     let container = gId("mdlContainer");
     // console.log("toggleInstances", module, container, isStageView);
@@ -1131,18 +1155,20 @@ function showHideModules(node) {
     setInstanceTableColumns();
   }
 
+  localStorage.setItem('view', value);
+
   let sysMods = ["Files", "Print", "System", "Network", "Model", "Pins", "Modules", "Web", "UI", "Instances"];
   let mdlContainerNode = gId("mdlContainer"); //class mdlContainer
-  // console.log("showHideModules", node, node.value, node.id, mdlContainerNode, mdlContainerNode.childNodes);
+  // console.log("changeHTMLView", node, node.value, node.id, mdlContainerNode, mdlContainerNode.childNodes);
 
-  gId("vApp").style.background = "none";
-  gId("vStage").style.background = "none";
-  // gId("vUser").style.background = "none";
-  gId("vSys").style.background = "none";
-  gId("vAll").style.background = "none";
-  node.style.backgroundColor = "#FFFFFF";
+  gId("vApp").classList.remove("selected");
+  gId("vStage").classList.remove("selected");
+  // gId("vUser").classList.remove("selected");
+  gId("vSys").classList.remove("selected");
+  gId("vAll").classList.remove("selected");
+  gId(value).classList.add("selected");
 
-  switch (node.id) {
+  switch (value) {
     case "vApp":
     case "vSys":
       toggleInstances(false); //put Instance back if needed
@@ -1158,7 +1184,7 @@ function showHideModules(node) {
               break;
             }
           }
-          module.hidden = (node.id=="vApp"?found:!found);
+          module.hidden = (value=="vApp"?found:!found);
         }
       }
 
@@ -1211,13 +1237,15 @@ function showHideModules(node) {
       break;
   }
 
-  //save the current view
-  var command = {};
-  command["view"] = node.id;
-  // console.log("setInput", command);
+} //changeHTMLView
 
-  requestJson(command);
-} //showHideModules
+//https://webdesign.tutsplus.com/color-schemes-with-css-variables-and-javascript--cms-36989t
+function changeHTMLTheme(value) {
+  localStorage.setItem('theme', value);
+  document.documentElement.className = value;
+  if (gId("theme-select").value != value)
+    gId("theme-select").value = value;
+}
 
 function saveModel(node) {
   console.log("saveModel", node);
@@ -1225,16 +1253,25 @@ function saveModel(node) {
   sendValue(node);
 }
 
-//https://webdesign.tutsplus.com/color-schemes-with-css-variables-and-javascript--cms-36989t
-function setTheme(themex) {
-  theme = themex;
-  console.log("setTheme", theme);
-  document.documentElement.className = theme;
-  localStorage.setItem('theme', theme);
+function setView(node) {
+  var command = {};
+  command["view"] = node.id;
+  requestJson(command);
+}
+
+function getView() {
+  let value = localStorage.getItem('view');
+  console.log("getView", value);
+  if (value && value != "null") changeHTMLView(value);
+}
+
+function setTheme(node) {
+  var command = {};
+  command["theme"] = node.value;
+  requestJson(command);
 }
 
 function getTheme() {
-  theme = localStorage.getItem('theme');
-  theme && setTheme(theme);
-  gId("theme-select").value = theme;
+  let value = localStorage.getItem('theme');
+  if (value && value != "null") changeHTMLTheme(value);
 }

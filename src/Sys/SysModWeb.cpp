@@ -37,7 +37,8 @@ bool SysModWeb::clientsChanged = false;
 
 unsigned long SysModWeb::wsSendBytesCounter = 0;
 unsigned long SysModWeb::wsSendJsonCounter = 0;
-unsigned long SysModWeb::wsSendDataWsCounter = 0;
+
+SemaphoreHandle_t wsMutex = xSemaphoreCreateMutex();
 
 SysModWeb::SysModWeb() :SysModule("Web") {
   ws = new AsyncWebSocket("/ws");
@@ -170,7 +171,12 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   // }
   if (type == WS_EVT_CONNECT) {
     print->printClient("WS client connected", client);
-    sendDataWs(*mdl->model, client); //send definition to client
+
+    //send model per module to stay under websocket size limit of 8192
+    JsonArray model = mdl->model->as<JsonArray>();
+    for (JsonObject moduleVar: model) {
+      sendDataWs(moduleVar, client); //send definition to client
+    }
     clientsChanged = true;
   } else if (type == WS_EVT_DISCONNECT) {
     print->printClient("WS Client disconnected", client);
@@ -378,18 +384,15 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
     return;
   }
 
-  wsSendDataWsCounter++;
-  while (wsSendDataWsCounter > 1) {
-    USER_PRINT_Async("sendDataWs parallel %d %s\n", wsSendDataWsCounter, pcTaskGetTaskName(NULL));
-    // wsSendDataWsCounter--;
-    // return;
-  }
+  xSemaphoreTake(wsMutex, portMAX_DELAY);
 
   wsSendJsonCounter++;
   ws->cleanupClients();
 
   if (ws->count()) {
     size_t len = measureJson(json);
+    if (len > 8192)
+      USER_PRINTF("program error: sendDataWs BufferLen too high !!!%d\n", len);
     AsyncWebSocketMessageBuffer *wsBuf = ws->makeBuffer(len);
 
     if (wsBuf) {
@@ -407,7 +410,7 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
           if (client->status() == WS_CONNECTED && !client->queueIsFull())
             client->text(wsBuf);
           else 
-            // printClient("sendDataWs client(s) full or not connected", client); //crash!!
+            // print->printClient("sendDataWs client(s) full or not connected", client); //crash!!
             USER_PRINT_Async("sendDataWs client full or not connected\n");
         }
         // DEBUG_PRINTLN("to multiple clients.");
@@ -422,7 +425,8 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
       ws->_cleanBuffers();
     }
   }
-  wsSendDataWsCounter--;
+
+  xSemaphoreGive(wsMutex);
 }
 
 //add an url to the webserver to listen to

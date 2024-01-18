@@ -41,7 +41,32 @@ void SysModFiles::setup() {
     web->addResponse(var["id"], "comment", "List of files");
     JsonArray rows = web->addResponseA(var["id"], "value");  //overwrite the value
     dirToJson(rows);
+  }, [this](JsonObject var, uint8_t rowNr) { //chFun
+    if (strcmp(var["value"], "delRow") == 0) {
+      USER_PRINTF("fileTbl chFun %s %d %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+      if (rowNr != uint8Max) {
+        // call uiFun of tbl to fill responseVariant with files
+        ui->uFunctions[var["uiFun"]](var);
+        //get the table values
+        JsonVariant responseVariant = web->getResponseDoc()->as<JsonVariant>();
+        JsonArray row = responseVariant["fileTbl"]["value"][rowNr];
+        if (!row.isNull()) {
+          const char * fileName = row[0]; //first column
+          print->printJson("delete file", row);
+          this->removeFiles(fileName, false);
+        }
+      }
+      else {
+        USER_PRINTF(" no rowNr!!\n");
+      }
+      print->printJson(" ", var);
+    }
+    else if (strcmp(var["value"], "insRow") == 0) {
+      USER_PRINTF("fileTbl chFun %s %d %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+      //add a row with all defaults
+    }
   });
+
   ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
@@ -50,25 +75,6 @@ void SysModFiles::setup() {
   });
   ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Show");
-  });
-  ui->initButton(tableVar, "flDel", "⌫", false, [](JsonObject var) { //uiFun ro is false so button can be pressed!
-    web->addResponse(var["id"], "label", "Delete"); //table header title
-  }, [this, tableVar](JsonObject var, uint8_t rowNr) { //chFun
-
-    if (rowNr != uint8Max) {
-      // call uiFun of tbl to fill responseVariant with files
-      ui->uFunctions[tableVar["uiFun"]](tableVar);
-      //get the table values
-      JsonVariant responseVariant = web->getResponseDoc()->as<JsonVariant>();
-      JsonArray row = responseVariant["fileTbl"]["value"][rowNr];
-      const char * fileName = row[0]; //first column
-      print->printJson("\n", row);
-      removeFiles(fileName, false);
-    }
-    else {
-      USER_PRINTF(" no rowNr!!");
-    }
-    print->printJson(" ", var);
   });
 
   ui->initText(parentVar, "drsize", nullptr, 32, true, [](JsonObject var) { //uiFun

@@ -74,6 +74,14 @@ void SysModUI::setup() {
 void SysModUI::loop() {
   // SysModule::loop();
 
+  // bool isOk = true;
+  // for (auto client:SysModWeb::ws->getClients()) {
+  //     if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>1 || web->isError) //lossy
+  //       isOk = false;
+  // }
+
+  // if (false)
+
   for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
     if (millis() - varLoop->lastMillis >= varLoop->interval) {
       varLoop->lastMillis = millis();
@@ -82,30 +90,27 @@ void SysModUI::loop() {
       if (SysModWeb::ws->count()) {
         SysModWeb::wsSendBytesCounter++;
 
-        //send var to notify client data coming is for var (client then knows it is canvas and expects data for it)
-        setChFunAndWs(varLoop->var, uint8Max, "new");
-
         //send leds info in binary data format
         //tbd: this can crash on 64*64 matrices...
         // USER_PRINTF(" %d\n", varLoop->bufSize);
         if (SysModWeb::ws->count() == 0) USER_PRINTF("%s ws count 0\n", __PRETTY_FUNCTION__);
         if (!SysModWeb::ws->enabled()) USER_PRINTF("%s ws not enabled\n", __PRETTY_FUNCTION__);
-        AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 4);
+        AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 5);
         if (wsBuf) {//out of memory
           wsBuf->lock();
           uint8_t* buffer = wsBuf->get();
 
           //to loop over old size
-          buffer[0] = varLoop->bufSize / 256;
-          buffer[1] = varLoop->bufSize % 256;
+          buffer[1] = varLoop->bufSize / 256;
+          buffer[2] = varLoop->bufSize % 256;
           //buffer[2] can be removed
-          // USER_PRINTF("interval1 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1]);
+          // USER_PRINTF("interval1 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[1], buffer[2]);
 
           varLoop->loopFun(varLoop->var, buffer); //call the function and fill the buffer
 
-          varLoop->bufSize = buffer[0] * 256 + buffer[1];
-          varLoop->interval = buffer[3]*10; //from cs to ms
-          // USER_PRINTF("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[0], buffer[1], buffer[2], buffer[3]);
+          varLoop->bufSize = buffer[1] * 256 + buffer[2];
+          varLoop->interval = buffer[4]*10; //from cs to ms
+          // USER_PRINTF("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[1], buffer[2], buffer[3], buffer[4]);
 
           for (auto client:SysModWeb::ws->getClients()) {
             if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=3) //lossy
@@ -263,9 +268,6 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
       USER_PRINTF("setChFunAndWs %s unknown type for %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
       web->addResponse(var["id"], "value", var["value"]);
     }
-    // if (var["id"] == "pointX") {
-    //   print->printJson("setChFunAndWs response", responseVariant);
-    // }
   }
 
   web->sendDataWs(responseVariant);
@@ -289,12 +291,14 @@ const char * SysModUI::processJson(JsonVariant &json) {
         var[(char *)key] = (char *)value.as<const char *>(); //create a copy!
         // json.remove(key); //key should stay as all clients use this to perform the changeHTML action
       }
-      else if (pair.key() == "insRow") {
-        USER_PRINTF("processJson %s - %s\n", key, value.as<String>());
-        json.remove(key); //key processed we don't need the key in the response
-      }
-      else if (pair.key() == "delRow") {
-        USER_PRINTF("processJson %s - %s\n", key, value.as<String>());
+      else if (pair.key() == "addRow" || pair.key() == "delRow") {
+        USER_PRINTF("processJson %s - %s\n", key, value.as<String>().c_str());
+        if (value.is<JsonObject>()) {
+          JsonObject command = value.as<JsonObject>();
+          JsonObject var = mdl->findVar(command["id"]);
+          var["value"] = pair.key(); //store the action as variable workaround?
+          ui->setChFunAndWs(var, command["rowNr"].as<int>());
+        }
         json.remove(key); //key processed we don't need the key in the response
       }
       else if (pair.key() == "uiFun") { //JsonString can do ==

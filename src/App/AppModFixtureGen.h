@@ -331,7 +331,7 @@ public:
     closePin();
   }
 
-  void plane3DFindNextPoint(Coordinate *point, Coordinate first, Coordinate last, uint8_t axis, bool clockWise) {
+  void plane3DFindNextPoint(Coord3D *point, Coord3D first, Coord3D last, uint8_t axis, bool clockWise) {
     if (axis == 0) {
       if (point->x != last.x) {
         point->x += point->x<=last.x?1:-1;
@@ -366,10 +366,10 @@ public:
     // USER_PRINTF("plane3DFindNextPoint %d %d %d %d \n", axis, point->x, point->y, point->z);
   }
 
-  void plane3D (Coordinate first, Coordinate last, bool clockWise) {
+  void plane3D (Coord3D first, Coord3D last, bool clockWise) {
     openPin();
     bool cont = true;
-    Coordinate point = first;
+    Coord3D point = first;
 
     write3D(point.x*10, point.y*10, point.z*10);
 

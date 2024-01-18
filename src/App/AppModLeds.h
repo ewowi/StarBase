@@ -77,16 +77,17 @@ public:
       // web->addResponse(var["id"], "comment", "Click to enlarge");
     }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
       // send leds preview to clients
-      for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
+      for (size_t i = 0; i < buffer[1] * 256 + buffer[2]; i++)
       {
-        buffer[i*3+4] = ledsP[i].red;
-        buffer[i*3+4+1] = ledsP[i].green;
-        buffer[i*3+4+2] = ledsP[i].blue;
+        buffer[i*3+5] = ledsP[i].red;
+        buffer[i*3+5+1] = ledsP[i].green;
+        buffer[i*3+5+2] = ledsP[i].blue;
       }
       //new values
-      buffer[0] = ledsV.nrOfLedsP/256;
-      buffer[1] = ledsV.nrOfLedsP%256;
-      buffer[3] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
+      buffer[0] = 1; //userFun id
+      buffer[1] = ledsV.nrOfLedsP/256;
+      buffer[2] = ledsV.nrOfLedsP%256;
+      buffer[4] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
     });
 
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
@@ -161,6 +162,13 @@ public:
     // ui->initNumber(tableVar, "endX", 0, 0, 127);
     // ui->initNumber(tableVar, "endY", 0, 0, 127);
     // ui->initNumber(tableVar, "endZ", 0, 0, 127);
+
+    // ui->initCoord3D(tableVar, "fxStart", 0, 0, 127, false, [](JsonObject var) { //uiFun
+    //   web->addResponse(var["id"], "label", "Start");
+    // });
+    // ui->initCoord3D(tableVar, "fxEnd", 0, 0, 127, false, [](JsonObject var) { //uiFun
+    //   web->addResponse(var["id"], "label", "End");
+    // });
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");

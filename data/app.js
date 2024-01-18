@@ -7,9 +7,9 @@
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 // @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 
-function userFun(userFunId, data) {
-  if (userFunId == "pview" && jsonValues.pview) {
-    let leds = new Uint8Array(data);
+function userFun(data) {
+  let buffer = new Uint8Array(data);
+  if (buffer[0]==1 && jsonValues.pview) {
     let pviewNode = gId("pview");
 
     //replace the canvas: in case we switch from 2D to 3D as they cannot be reused between them
@@ -29,27 +29,26 @@ function userFun(userFunId, data) {
       pviewNode.addEventListener('dblclick', (event) => {toggleModal(event.target);});
     }
 
-    // console.log("userFun", leds);
+    // console.log("userFun", buffer);
 
     // if (jsonValues.pview.depth == 1)
-    //   preview2D(pviewNode, leds);
+    //   preview2D(pviewNode, buffer);
     // else
-      preview3D(pviewNode, leds);
+      preview3D(pviewNode, buffer);
 
     return true;
   }
-  else if (userFunId == "board") {
-    let leds = new Uint8Array(data);
+  else if (buffer[0]==0) {
     let pviewNode = gId("board");
-    // console.log(leds, pviewNode);
-    previewBoard(pviewNode, leds);
+    // console.log(buffer, pviewNode);
+    previewBoard(pviewNode, buffer);
   }
   return false;
 }
 
-function preview2D(node, leds) {
+function preview2D(node, buffer) {
   let ctx = node.getContext('2d');
-  let i = 4;
+  let i = 5;
   let factor = 10;//fixed value: from mm to cm
   ctx.clearRect(0, 0, node.width, node.height);
   if (jsonValues.pview) {
@@ -58,10 +57,10 @@ function preview2D(node, leds) {
     if (jsonValues.pview.outputs) {
       // console.log("preview2D jsonValues", jsonValues.pview);
       for (var output of jsonValues.pview.outputs) {
-        if (output.leds) {
-          for (var led of output.leds) {
-            if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
-              ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
+        if (output.buffer) {
+          for (var led of output.buffer) {
+            if (buffer[i] + buffer[i+1] + buffer[i+2] > 20) { //do not show nearly blacks
+              ctx.fillStyle = `rgb(${buffer[i]},${buffer[i+1]},${buffer[i+2]})`;
               ctx.beginPath();
               ctx.arc(led[0]*pPL/factor + lOf, led[1]*pPL/factor, pPL*0.4, 0, 2 * Math.PI);
               ctx.fill();
@@ -92,11 +91,11 @@ let intersect = null;
 let mousePointer = null;
 
 //https://stackoverflow.com/questions/8426822/rotate-camera-in-three-js-with-mouse
-function preview3D(node, leds) {
+function preview3D(node, buffer) {
   //3D vars
-  // let mW = leds[0];
-  // let mH = leds[1];
-  // let mD = leds[2];
+  // let mW = buffer[0];
+  // let mH = buffer[1];
+  // let mD = buffer[2];
   import ('three').then((THREE) => {
 
     function onMouseMove( event ) {
@@ -246,7 +245,7 @@ function preview3D(node, leds) {
         if (renderer.width != gId("pview").width || renderer.height != gId("pview").height)
           renderer.setSize( gId("pview").width, gId("pview").height);
         //light up the cube
-        let firstLed = 4;
+        let firstLed = 5;
         var i = 1;
         if (jsonValues.pview.outputs) {
           // console.log("preview3D jsonValues", jsonValues.pview);
@@ -254,9 +253,9 @@ function preview3D(node, leds) {
             if (output.leds) {
               for (var led of output.leds) {
                 if (i < scene.children.length) {
-                  scene.children[i].visible = leds[i*3 + firstLed] + leds[i*3 + firstLed + 1] + leds[i*3 + firstLed+2] > 10; //do not show blacks
+                  scene.children[i].visible = buffer[i*3 + firstLed] + buffer[i*3 + firstLed + 1] + buffer[i*3 + firstLed+2] > 10; //do not show blacks
                   if (scene.children[i].visible)
-                    scene.children[i].material.color = new THREE.Color(`${leds[i*3 + firstLed]/255}`, `${leds[i*3 + firstLed + 1]/255}`, `${leds[i*3 + firstLed + 2]/255}`);
+                    scene.children[i].material.color = new THREE.Color(`${buffer[i*3 + firstLed]/255}`, `${buffer[i*3 + firstLed + 1]/255}`, `${buffer[i*3 + firstLed + 2]/255}`);
                 }
                 i++;
               }
@@ -307,18 +306,18 @@ function preview3D(node, leds) {
   }); //import Three
 } //preview3D
 
-function previewBoard(node, leds) {
+function previewBoard(node, buffer) {
   let ctx = node.getContext('2d');
   //assuming 20 pins
   let mW = 10; // matrix width
   let mH = 2; // matrix height
   let pPL = Math.min(node.width / mW, node.height / mH); // pixels per LED (width of circle)
   let lOf = Math.floor((node.width - pPL*mW)/2); //left offeset (to center matrix)
-  let i = 4;
+  let i = 5;
   ctx.clearRect(0, 0, node.width, node.height);
   for (let y=0.5;y<mH;y++) for (let x=0.5; x<mW; x++) {
-    if (leds[i] + leds[i+1] + leds[i+2] > 20) { //do not show nearly blacks
-      ctx.fillStyle = `rgb(${leds[i]},${leds[i+1]},${leds[i+2]})`;
+    if (buffer[i] + buffer[i+1] + buffer[i+2] > 20) { //do not show nearly blacks
+      ctx.fillStyle = `rgb(${buffer[i]},${buffer[i+1]},${buffer[i+2]})`;
       ctx.beginPath();
       ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
       ctx.fill();

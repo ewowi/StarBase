@@ -70,16 +70,17 @@ void SysModPins::setup() {
     web->addResponse(var["id"], "comment", "WIP");
   }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
     // send leds preview to clients
-    for (size_t i = 0; i < buffer[0] * 256 + buffer[1]; i++)
+    for (size_t i = 0; i < buffer[1] * 256 + buffer[2]; i++)
     {
-      buffer[i*3+4] = random(256);// (digitalRead(i)+1) * 50;
-      buffer[i*3+4+1] = random(256);;
-      buffer[i*3+4+2] = random(256);;
+      buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
+      buffer[i*3+5+1] = random(256);;
+      buffer[i*3+5+2] = random(256);;
     }
     //new values
-    buffer[0] = 0; //0 * 256
-    buffer[1] = 20; //20 pins
-    buffer[3] = 10*10; //every 10 sec 
+    buffer[0] = 0; //userFun id
+    buffer[1] = 0; //0 * 256
+    buffer[2] = 20; //20 pins
+    buffer[4] = 10*10; //every 10 sec 
   });
 
   // ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);

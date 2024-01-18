@@ -17,6 +17,19 @@
 typedef std::function<void(JsonObject)> FindFun;
 typedef std::function<void(JsonObject, size_t)> ChangeFun;
 
+struct Coord3D {
+  uint16_t x;
+  uint16_t y;
+  uint16_t z;
+  bool operator!=(Coord3D rhs) {
+    // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, par.x, par.y, par.z);
+    return x != rhs.x || y != rhs.y || z != rhs.z;
+  }
+  bool operator==(Coord3D rhs) {
+    return x == rhs.x && y == rhs.y && z == rhs.z;
+  }
+};
+
 class SysModModel:public SysModule {
 
 public:

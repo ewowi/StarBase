@@ -53,14 +53,14 @@ void LedsV::fixtureProjectAndMap() {
       case p_Random:
         break;
       case p_DistanceFromPoint:
-        // pointX = 0;
-        // pointY = 0;
-        // pointZ = 0;
+        // startPos.x = 0;
+        // startPos.y = 0;
+        // startPos.z = 0;
         break;
       case p_DistanceFromCenter:
-        // pointX = widthP / 2;
-        // pointY = heightP / 2;
-        // pointZ = depthP / 2;
+        // startPos.x = widthP / 2;
+        // startPos.y = heightP / 2;
+        // startPos.z = depthP / 2;
         break;
     }
 
@@ -102,13 +102,13 @@ void LedsV::fixtureProjectAndMap() {
           case p_DistanceFromCenter:
             if (effectDimension == _1D) {
               if (fixtureDimension == _1D)
-                bucket = distance(x,0, 0,pointX,0,0);
+                bucket = distance(x,0, 0,startPos.x,0,0);
               else if (fixtureDimension == _2D) { 
-                bucket = distance(x,y,0,pointX,pointY,0);
-                // USER_PRINTF("bucket %d-%d %d-%d %d\n", x,y, pointX, pointY, bucket);
+                bucket = distance(x,y,0,startPos.x,startPos.y,0);
+                // USER_PRINTF("bucket %d-%d %d-%d %d\n", x,y, startPos.x, startPos.y, bucket);
               }
               else if (fixtureDimension == _3D)
-                bucket = distance(x,y,z,pointX, pointY, pointZ);
+                bucket = distance(x,y,z,startPos.x, startPos.y, startPos.z);
             }
             else if (effectDimension == _2D) {
               depthV = 1; //no 3D

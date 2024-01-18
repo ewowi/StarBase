@@ -123,11 +123,11 @@ void SysModWeb::loop1s() {
   for (auto client:SysModWeb::ws->getClients()) {
     // print->printClient("up", client);
     //will only update if changed
-    mdl->setValueI("clNr", client->id(), rowNr);
-    mdl->setValueC("clIp", client->remoteIP().toString().c_str(), rowNr); //create a copy!
-    mdl->setValueB("clIsFull", client->queueIsFull(), rowNr);
-    mdl->setValueI("clStatus", client->status(), rowNr);
-    mdl->setValueI("clLength", client->queueLength(), rowNr);
+    mdl->setValue<int>("clNr", client->id(), rowNr);
+    mdl->setValue<JsonString>("clIp", JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr);
+    mdl->setValue<bool>("clIsFull", client->queueIsFull(), rowNr);
+    mdl->setValue<int>("clStatus", client->status(), rowNr);
+    mdl->setValue<int>("clLength", client->queueLength(), rowNr);
     
     rowNr++;
   }
@@ -293,7 +293,6 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
     // print->printClient("WS error", client); //crashes
     // USER_PRINT_Async("WS error\n");
     USER_PRINT_Async("ws[%s][%u] error(): \n", server->url(), client->id());//, *((uint16_t*)arg));//, (char*)data);
-
   } else if (type == WS_EVT_PONG){
     //pong message was received (in response to a ping request maybe)
     // print->printClient("WS pong", client); //crashes!
@@ -397,7 +396,7 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
 
     if (wsBuf) {
       wsBuf->lock();
-      serializeJson(json, (char *)wsBuf->get(), len);
+      serializeJson(json, wsBuf->get(), len);
       if (client) {
         if (client->status() == WS_CONNECTED && !client->queueIsFull())
           client->text(wsBuf);
@@ -433,11 +432,11 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
 bool SysModWeb::addURL(const char * uri, const char * contentType, const char * path, const uint8_t * content, size_t len) {
   server->on(uri, HTTP_GET, [uri, contentType, path, content, len](AsyncWebServerRequest *request) {
     if (path) {
-      USER_PRINT_Async("Webserver: addUrl %s %s file: %s", uri, contentType, path);
+      USER_PRINT_Async("Webserver: addUrl server->on %s %s file: %s", uri, contentType, path);
       request->send(LittleFS, path, contentType);
     }
     else {
-      USER_PRINT_Async("Webserver: addUrl %s %s csdata %d-%d (%s)", uri, contentType, content, len, request->url().c_str());
+      USER_PRINT_Async("Webserver: server->on addUrl %s %s csdata %d-%d (%s)", uri, contentType, content, len, request->url().c_str());
 
       // if (handleIfNoneMatchCacheHeader(request)) return;
 
@@ -580,7 +579,7 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
 void SysModWeb::addResponse(const char * id, const char * key, const char * value) {
   JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
   if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  responseVariant[id][key] = (char *)value; //create a copy!!
+  responseVariant[id][key] = JsonString(value, JsonString::Copied);
 }
 
 void SysModWeb::addResponseArray(const char * id, const char * key, JsonArray value) {
@@ -623,12 +622,12 @@ JsonArray SysModWeb::addResponseA(const char * id, const char * key) {
 void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {
   for (auto client:ws->getClients()) {
     if (nameOnly) {
-      array.add((char *)client->remoteIP().toString().c_str()); //create a copy!
+      array.add(JsonString(client->remoteIP().toString().c_str(), JsonString::Copied));
     } else {
       // USER_PRINTF("Client %d %d ...%d\n", client->id(), client->queueIsFull(), client->remoteIP()[3]);
       JsonArray row = array.createNestedArray();
       row.add(client->id());
-      row.add((char *)client->remoteIP().toString().c_str()); //create a copy!
+      array.add(JsonString(client->remoteIP().toString().c_str(), JsonString::Copied));
       row.add(client->queueIsFull());
       row.add(client->status());
       row.add(client->queueLength());
@@ -698,8 +697,8 @@ void SysModWeb::serveJson(AsyncWebServerRequest *request) {
     escapedMac = WiFi.macAddress();
     escapedMac.replace(":", "");
     escapedMac.toLowerCase();
-    root["info"]["mac"] = (char *)escapedMac.c_str(); //copy mdns->escapedMac gives LoadProhibited crash, tbd: find out why
-    root["info"]["ip"] = (char *)WiFi.localIP().toString().c_str();
+    root["info"]["mac"] = JsonString(escapedMac.c_str(), JsonString::Copied); //copy mdns->escapedMac gives LoadProhibited crash, tbd: find out why
+    root["info"]["ip"] = JsonString(WiFi.localIP().toString().c_str(), JsonString::Copied);
     // print->printJson("serveJson", root);
   }
 

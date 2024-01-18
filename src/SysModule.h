@@ -12,6 +12,7 @@
 #pragma once
 #include <Arduino.h>
 
+// #define ARDUINOJSON_ENABLE_ARDUINO_STRING 0
 #include "ArduinoJson.h"
 
 #define uint8Max 255U

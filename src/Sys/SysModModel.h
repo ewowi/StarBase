@@ -11,6 +11,8 @@
 
 #pragma once
 #include "SysModule.h"
+#include "SysModPrint.h"
+#include "SysModUI.h"
 
 #include "ArduinoJson.h"
 
@@ -30,6 +32,27 @@ struct Coord3D {
   }
 };
 
+//https://arduinojson.org/news/2021/05/04/version-6-18-0/
+namespace ArduinoJson {
+  template <>
+  struct Converter<Coord3D> {
+    static bool toJson(const Coord3D& src, JsonVariant dst) {
+      dst["x"] = src.x;
+      dst["y"] = src.y;
+      dst["z"] = src.z;
+      return true;
+    }
+
+    static Coord3D fromJson(JsonVariantConst src) {
+      return Coord3D{src["x"], src["y"], src["z"]};
+    }
+
+    static bool checkJson(JsonVariantConst src) {
+      return src["x"].is<int>() && src["y"].is<int>() && src["z"].is<int>();
+    }
+  };
+}
+
 class SysModModel:public SysModule {
 
 public:
@@ -48,34 +71,61 @@ public:
   void cleanUpModel(JsonArray vars, bool oPos = true, bool ro = false);
 
   //sets the value of var with id
-  static JsonObject setValueC(const char * id, const char * value, uint8_t rowNr = uint8Max);
+  template <typename Type>
+  JsonObject setValue(const char * id, Type value, uint8_t rowNr = uint8Max) {
+    JsonObject var = findVar(id);
+    if (!var.isNull()) {
+      // print->printJson("setValueB", var);
+      if (rowNr == uint8Max) { //normal situation
+        bool same;
+        // if (std::is_same<Type, const char *>::value)
+        //   same = var["value"] != value;
+        // else
+          same = var["value"].as<Type>() != value;
+        if (var["value"].isNull() || same) {
+          USER_PRINTF("setValue changed %s (%d) %s->..\n", id, rowNr, var["value"].as<String>().c_str());//, value?"true":"false");
+          var["value"] = value;
+          ui->setChFunAndWs(var, rowNr);
+        }
+      }
+      else {
+        //if we deal with multiple rows, value should be an array, if not we create one
 
-  //setValue int
-  static JsonObject setValueI(const char * id, int value, uint8_t rowNr = uint8Max);
+        if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
+          USER_PRINTF("setValue var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
+          // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
+          var.createNestedArray("value");
+        }
 
-  //setValue bool
-  static JsonObject setValueB(const char * id, bool value, uint8_t rowNr = uint8Max);
+        if (var["value"].is<JsonArray>()) {
+          //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
+          bool same;
+          // if (std::is_same<Type, const char *>::value)
+          //   same = var["value"][rowNr] != value;
+          // else
+            same = var["value"][rowNr].as<Type>() != value;
+          if (same) {
+            var["value"][rowNr] = value;
+            ui->setChFunAndWs(var, rowNr);
+          }
+        }
+        else 
+          USER_PRINTF("setValue %s could not create value array\n", id);
+      }
+    }
+    else
+      USER_PRINTF("setValue Var %s not found\n", id);
+    return var;
+  }
 
   //Set value with argument list
-  static JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun
+  JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun
 
   //Set value with argument list and print
   JsonObject setValueP(const char * id, const char * format, ...);
 
   //Send value directly to ws (tbd: no model function but web?)
   void setValueLossy(const char * id, const char * format, ...);
-
-  //tbd
-  // template <typename Type>
-  // static JsonObject setValue(const char * id, Type value) {
-  //   if (std::is_same<Type, const char *>::value)
-  //     return setValueC(id, (const char *)value);
-  //   if (std::is_same<Type, int>::value)
-  //     return setValueI(id, value);
-  //   if (std::is_same<Type, bool>::value)
-  //     return setValueB(id, value);
-  //   return JsonObject();
-  // };
 
   JsonVariant getValue(const char * id, uint8_t rowNr = uint8Max);
 

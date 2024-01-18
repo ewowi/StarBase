@@ -54,7 +54,7 @@ public:
       for (auto varToWatch: varsToWatch) {
         JsonArray row = rows.createNestedArray();
         row.add(varToWatch.channel + mdl->getValue("dch").as<uint8_t>());
-        row.add((char *)varToWatch.id);
+        row.add(JsonString(varToWatch.id, JsonString::Copied));
         row.add(varToWatch.max);
         row.add(varToWatch.savedValue);
       }
@@ -136,7 +136,7 @@ public:
 
               if (varToWatch->id != nullptr && varToWatch->max != 0) {
                 USER_PRINTF(" varsToWatch: %s\n", varToWatch->id);
-                mdl->setValueI(varToWatch->id, varToWatch->savedValue%(varToWatch->max+1)); // TODO: ugly to have magic string 
+                mdl->setValue<int>(varToWatch->id, varToWatch->savedValue%(varToWatch->max+1)); // TODO: ugly to have magic string 
               }
               else
                 USER_PRINTF("\n");

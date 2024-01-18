@@ -131,7 +131,7 @@ function preview3D(node, buffer) {
         gId("canvasMenu").style.left = (event.clientX) + "px"; // - rect.left
         gId("canvasMenu").style.top = (event.clientY) + "px"; //- rect.top
         gId("canvasMenu").style.display = ""; //not none -> show
-        let sp = intersect.name.split(" - ");
+        let sp = intersect.name.split(" - "); //output and led index is encoded in the name
         gId("canvasData").innerText = jsonValues.pview.outputs[sp[0]].leds[sp[1]];// event.clientY;
       }
       // else{
@@ -188,11 +188,21 @@ function preview3D(node, buffer) {
         //   });
         // }
 
-        gId("canvasButton").innerText = "Set Mid Point";
+        gId("canvasButton1").innerText = "Set Start position";
+        gId("canvasButton2").innerText = "Set End position";
 
         //process canvas button click
-        gId("canvasButton").addEventListener("click", function(){
-          sendValue(gId("canvasData"));
+        gId("canvasButton1").addEventListener("click", function(){
+          var command = {};
+          command["canvasData"] = "start:" + gId("canvasData").innerText;
+          requestJson(command);
+
+          gId("canvasMenu").style.display = "none";
+        }, false);
+        gId("canvasButton2").addEventListener("click", function(){
+          var command = {};
+          command["canvasData"] = "end:" + gId("canvasData").innerText;
+          requestJson(command);
           gId("canvasMenu").style.display = "none";
         }, false);
         

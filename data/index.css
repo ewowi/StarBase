@@ -12,25 +12,25 @@
 :root,
 	:root.starmod {
 		--bg-color: linear-gradient(to bottom, #ffbe33 0%, #b60f62 100%);
+		--text-color: #030303;
 		--th-color: #b60f6281;
 		--h-color: #b60f62;
 		--border-color: #666;
-		--text-color: #030303;
 		--select-color: #FFFFFF; /*used for view buttons*/
 	}
     :root.wled {
 		--bg-color: #121212;
+		--text-color: #fff;
 		--th-color: rgb(255, 160, 0);
 		--h-color: rgb(255, 160, 0);
 		--border-color: rgb(255, 160, 0);
-		--text-color: #fff;
 		--select-color: rgb(255, 160, 0);
 	}
 	:root.light {
 		--bg-color: #fff;
+		--text-color: #123;
 		--h-color: #000000;
 		--th-color: #6d686a81;
-		--text-color: #123;
 		--select-color: #6d686a81;
     }
     :root.dark {
@@ -38,8 +38,11 @@
 		--text-color: #696d7d;
     }
     :root.blue {
-    --bg-color: #05396B;
-    --text-color: #E7F1FE;
+		--bg-color: #05396B;
+		--text-color: #E7F1FE;
+		--th-color: #b60f6281;
+		--h-color: #b60f62;
+		--select-color: #b60f6281;
     }
     :root.pink {
     --bg-color: #ffcad4;

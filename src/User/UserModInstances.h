@@ -150,11 +150,11 @@ public:
 
   void addTblRow(JsonVariant rows, std::vector<InstanceInfo>::iterator instance) {
     JsonArray row = rows.createNestedArray();
-    row.add((char *)instance->name);
+    row.add(JsonString(instance->name, JsonString::Copied));
     char urlString[32] = "http://";
     strncat(urlString, instance->ip.toString().c_str(), sizeof(urlString)-1);
-    row.add((char *)urlString);  //create a copy!
-    row.add((char *)instance->ip.toString().c_str());
+    row.add(JsonString(urlString, JsonString::Copied));
+    row.add(JsonString(instance->ip.toString().c_str(), JsonString::Copied));
     // row.add(instance->timeStamp / 1000);
 
     row.add(instance->sys.type?"StarMod":"WLED");
@@ -245,7 +245,7 @@ public:
         if (rowNr != uint8Max) {
           //if this instance update directly, otherwise send over network
           if (instances[rowNr].ip == WiFi.localIP()) {
-            mdl->setValueI(var["id"], mdl->varToValue(newVar, rowNr).as<uint8_t>());
+            mdl->setValue<int>(var["id"], mdl->varToValue(newVar, rowNr).as<uint8_t>());
           } else {
             // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
             HTTPClient http;
@@ -369,7 +369,7 @@ public:
         
         uint8_t syncMaster = mdl->getValue("sma");
         if (syncMaster == remoteIp[3]) {
-          if (instance->app.getVar("bri") != wledSyncMessage.bri) mdl->setValueI("bri", wledSyncMessage.bri);
+          if (instance->app.getVar("bri") != wledSyncMessage.bri) mdl->setValue<int>("bri", wledSyncMessage.bri);
           //only set brightness
         }
 
@@ -505,16 +505,16 @@ public:
   void updateNode( UDPStarModMessage udpStarMessage) {
     IPAddress ip = IPAddress(udpStarMessage.header.ip0, udpStarMessage.header.ip1, udpStarMessage.header.ip2, udpStarMessage.header.ip3);
 
-    bool found = false;
+    bool instanceFound = false;
     for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
     {
       if (instance->ip == ip)
-        found = true;
+        instanceFound = true;
     }
 
-    // USER_PRINTF("updateNode Instance: ...%d n:%s found:%d\n", ip[3], udpStarMessage.header.name, found);
+    // USER_PRINTF("updateNode Instance: ...%d n:%s found:%d\n", ip[3], udpStarMessage.header.name, instanceFound);
 
-    if (!found) { //new instance
+    if (!instanceFound) { //new instance
       InstanceInfo instance;
       instance.ip = ip;
       if (udpStarMessage.sys.type == 0) {//WLED only
@@ -563,7 +563,7 @@ public:
                   varID[3]='\0';
 
                   USER_PRINTF("AppData3 %s %s %d\n", instance->name, varID, newVar.value);
-                  mdl->setValueI(varID, newVar.value);
+                  mdl->setValue<int>(varID, newVar.value);
                 }
               }
             }
@@ -579,7 +579,7 @@ public:
         //send the json
         //ui to parse the json
 
-        if (found) {
+        if (instanceFound) {
           JsonDocument *responseDoc = web->getResponseDoc();
           responseDoc->clear(); //needed for deserializeJson?
           JsonVariant responseVariant = responseDoc->as<JsonVariant>();
@@ -594,7 +594,7 @@ public:
 
       } //ip
     }
-    if (!found) {
+    if (!instanceFound) {
       ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
       ui->processUiFun("artInst"); //show the new instance in the dropdown  
 
@@ -606,14 +606,14 @@ public:
 
   std::vector<InstanceInfo>::iterator findNode( IPAddress ip) {
 
-    bool found = false;
+    bool instanceFound = false;
     for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
     {
       if (instance->ip == ip)
-        found = true;
+        instanceFound = true;
     }
 
-    if (!found) { //instance always found
+    if (!instanceFound) { //instance always found
       InstanceInfo instance;
       instance.ip = ip;
       instances.push_back(instance);

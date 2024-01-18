@@ -12,6 +12,7 @@
 #include "FastLED.h"
 #include <vector>
 #include "ArduinoJson.h"
+#include "../Sys/SysModModel.h" //for Coord3D
 
 #define NUM_LEDS_Preview 4096
 
@@ -60,7 +61,7 @@ public:
   //track pins and leds
   uint8_t currPin;
   uint16_t prevLeds;
-  uint16_t pointX, pointY, pointZ; //for distance from 
+  Coord3D startPos, endPos; //for distance from 
 
   float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16_t y2, uint16_t z2) {
     return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));

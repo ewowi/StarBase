@@ -154,21 +154,12 @@ public:
     });
     currentVar["stage"] = true;
 
-    ui->initNumber(tableVar, "pointX", 0, 0, 127, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "comment", "Comment test");
+    ui->initCoord3D(tableVar, "fxStart", 0, 0, 127, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Start");
     });
-    ui->initNumber(tableVar, "pointY", 0, 0, 127);
-    ui->initNumber(tableVar, "pointZ", 0, 0, 127);
-    // ui->initNumber(tableVar, "endX", 0, 0, 127);
-    // ui->initNumber(tableVar, "endY", 0, 0, 127);
-    // ui->initNumber(tableVar, "endZ", 0, 0, 127);
-
-    // ui->initCoord3D(tableVar, "fxStart", 0, 0, 127, false, [](JsonObject var) { //uiFun
-    //   web->addResponse(var["id"], "label", "Start");
-    // });
-    // ui->initCoord3D(tableVar, "fxEnd", 0, 0, 127, false, [](JsonObject var) { //uiFun
-    //   web->addResponse(var["id"], "label", "End");
-    // });
+    ui->initCoord3D(tableVar, "fxEnd", 0, 0, 127, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "End");
+    });
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
@@ -271,16 +262,19 @@ public:
       const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
       USER_PRINTF("AppModLeds loop canvasData %s\n", canvasData);
 
-      char * token = strtok((char *)canvasData, ",");
-      if (token != NULL) ledsV.pointX = atoi(token) / 10; else ledsV.pointX = 0; //should never happen
-      token = strtok(NULL, ",");
-      if (token != NULL) ledsV.pointY = atoi(token) / 10; else ledsV.pointY = 0;
-      token = strtok(NULL, ",");
-      if (token != NULL) ledsV.pointZ = atoi(token) / 10; else ledsV.pointZ = 0;
+      char * token = strtok((char *)canvasData, ":");
+      bool isStart = strcmp(token, "start") == 0;
 
-      mdl->setValueI("pointX", ledsV.pointX, 0);
-      mdl->setValueI("pointY", ledsV.pointY, 0);
-      mdl->setValueI("pointZ", ledsV.pointZ, 0);
+      Coord3D *startOrEndPos = isStart? &ledsV.startPos: &ledsV.endPos;
+
+      token = strtok(NULL, ",");
+      if (token != NULL) startOrEndPos->x = atoi(token) / 10; else startOrEndPos->x = 0; //should never happen
+      token = strtok(NULL, ",");
+      if (token != NULL) startOrEndPos->y = atoi(token) / 10; else startOrEndPos->y = 0;
+      token = strtok(NULL, ",");
+      if (token != NULL) startOrEndPos->z = atoi(token) / 10; else startOrEndPos->z = 0;
+
+      mdl->setValue<Coord3D>(isStart?"fxStart":"fxEnd", *startOrEndPos, 0);
 
       var.remove("canvasData");
       doMap = true; //recalc projection

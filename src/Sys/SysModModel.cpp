@@ -12,8 +12,6 @@
 #include "SysModModel.h"
 #include "SysModule.h"
 #include "SysModWeb.h"
-#include "SysModPrint.h"
-#include "SysModUI.h"
 #include "SysModFiles.h"
 #include "SysJsonRDWS.h"
 
@@ -145,123 +143,6 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
   }
 }
 
-//tbd: use template T
-//setValue char
-JsonObject SysModModel::setValueC(const char * id, const char * value, uint8_t rowNr) {
-  JsonObject var = findVar(id);
-  if (!var.isNull()) {
-    if (rowNr == uint8Max) { //normal situation
-      if (var["value"].isNull() || var["value"] != value) {
-        // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
-        if (var["ro"]) { // do not update var["value"]
-          ui->setChFunAndWs(var, rowNr, value); //value: bypass var["value"]
-          //now only used for ro not lossy
-          USER_PRINTF("setValueC: RO non lossy %s %s\n", id, value);
-        } else {
-          var["value"] = (char *)value; //(char *) forces a copy (https://arduinojson.org/v6/api/jsonvariant/subscript/) (otherwise crash!!)
-          ui->setChFunAndWs(var, rowNr);
-        }
-      }
-    } else {
-      //if we deal with multiple rows, value should be an array, if not we create one
-
-      if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValueC var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
-        // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
-        var.createNestedArray("value");
-      }
-
-      if (var["value"].is<JsonArray>()) {
-        //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
-        if (var["value"][rowNr] != value) {
-          var["value"][rowNr] = (char *)value; //create a copy
-          ui->setChFunAndWs(var, rowNr);
-        }
-      }
-      else 
-        USER_PRINTF("setValueI %s could not create value array\n", id);
-      // USER_PRINTF("setValueC Var %s (%s) table row nr not implemented yet %d\n", id, value, rowNr);
-    }
-  }
-  else
-    USER_PRINTF("setValueC Var %s not found\n", id);
-  return var;
-}
-
-//setValue int
-JsonObject SysModModel::setValueI(const char * id, int value, uint8_t rowNr) {
-  JsonObject var = findVar(id);
-  if (!var.isNull()) {
-    if (rowNr == uint8Max) { //normal situation
-      if (var["value"].isNull() || var["value"] != value) {
-        // USER_PRINTF("setValue changed %s %s->%s\n", id, var["value"].as<String>().c_str(), value);
-        var["value"] = value;
-        ui->setChFunAndWs(var, rowNr);
-      }
-    }
-    else {
-      //if we deal with multiple rows, value should be an array, if not we create one
-
-      if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValueI var %s value %s not array, creating\n", id, var["value"].as<String>().c_str());
-        // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
-        var.createNestedArray("value");
-      }
-
-      if (var["value"].is<JsonArray>()) {
-        //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
-        if (var["value"][rowNr] != value) {
-          USER_PRINTF("setValueI var %s[%d] value %s := %d\n", id, rowNr, var["value"].as<String>().c_str(), value);
-          var["value"][rowNr] = value;
-          ui->setChFunAndWs(var, rowNr);
-        }
-      }
-      else 
-        USER_PRINTF("setValueI %s could not create value array\n", id);
-    }
-  }
-  else
-    USER_PRINTF("setValueI Var %s not found\n", id);
-
-  return var;
-}
-
-JsonObject SysModModel::setValueB(const char * id, bool value, uint8_t rowNr) {
-  JsonObject var = findVar(id);
-  if (!var.isNull()) {
-    // print->printJson("setValueB", var);
-    if (rowNr == uint8Max) { //normal situation
-      if (var["value"].isNull() || var["value"] != value) {
-        USER_PRINTF("setValueB changed %s (%d) %s->%s\n", id, rowNr, var["value"].as<String>().c_str(), value?"true":"false");
-        var["value"] = value;
-        ui->setChFunAndWs(var, rowNr);
-      }
-    }
-    else {
-      //if we deal with multiple rows, value should be an array, if not we create one
-
-      if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValueB var %s (%d) value %s not array, creating\n", id, rowNr, var["value"].as<String>().c_str());
-        // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
-        var.createNestedArray("value");
-      }
-
-      if (var["value"].is<JsonArray>()) {
-        //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
-        if (var["value"][rowNr] != value) {
-          var["value"][rowNr] = value;
-          ui->setChFunAndWs(var, rowNr);
-        }
-      }
-      else 
-        USER_PRINTF("setValueB %s could not create value array\n", id);
-    }
-  }
-  else
-    USER_PRINTF("setValueB Var %s not found\n", id);
-  return var;
-}
-
 //Set value with argument list
 JsonObject SysModModel::setValueV(const char * id, const char * format, ...) {
   va_list args;
@@ -273,7 +154,7 @@ JsonObject SysModModel::setValueV(const char * id, const char * format, ...) {
 
   va_end(args);
 
-  return setValueC(id, value);
+  return setValue<JsonString>(id, JsonString(value, JsonString::Copied));
 }
 
 JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
@@ -287,7 +168,7 @@ JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
 
   va_end(args);
 
-  return setValueC(id, value);
+  return setValue<JsonString>(id, JsonString(value, JsonString::Copied));
 }
 
 void SysModModel::setValueLossy(const char * id, const char * format, ...) {

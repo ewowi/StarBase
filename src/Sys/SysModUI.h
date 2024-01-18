@@ -81,6 +81,10 @@ public:
     return initVarAndUpdate<int>(parent, id, "number", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
+  JsonObject initCoord3D(JsonObject parent, const char * id, int value = uint16Max, int min = 0, int max = uint16Max, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "coord3D", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  }
+
   //init a range slider, range between 0 and 255!
   JsonObject initSlider(JsonObject parent, const char * id, int value = uint16Max, int min = 0, int max = 255, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "range", value, min, max, readOnly, uiFun, chFun, loopFun);

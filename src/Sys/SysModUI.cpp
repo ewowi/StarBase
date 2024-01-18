@@ -74,14 +74,6 @@ void SysModUI::setup() {
 void SysModUI::loop() {
   // SysModule::loop();
 
-  // bool isOk = true;
-  // for (auto client:SysModWeb::ws->getClients()) {
-  //     if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>1 || web->isError) //lossy
-  //       isOk = false;
-  // }
-
-  // if (false)
-
   for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
     if (millis() - varLoop->lastMillis >= varLoop->interval) {
       varLoop->lastMillis = millis();
@@ -170,7 +162,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       var = parent["n"].createNestedObject();
       // serializeJson(model, Serial);Serial.println();
     }
-    var["id"] = (char *)id; //create a copy!
+    var["id"] = JsonString(id, JsonString::Copied);
   }
   // else {
   //   USER_PRINTF("initVar Var %s->%s already defined\n", modelParentId, id);
@@ -178,7 +170,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
   if (!var.isNull()) {
     if (var["type"] != type) 
-      var["type"] = (char *)type; //create a copy!!
+      var["type"] = JsonString(type, JsonString::Copied);
     if (var["ro"] != readOnly) 
       var["ro"] = readOnly;
 
@@ -288,7 +280,7 @@ const char * SysModUI::processJson(JsonVariant &json) {
       else if (pair.key() == "view" || pair.key() == "canvasData" || pair.key() == "theme") { //save the chosen view in System (see index.js)
         JsonObject var = mdl->findVar("System");
         USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>(), var.isNull(), var["id"].as<const char *>());
-        var[(char *)key] = (char *)value.as<const char *>(); //create a copy!
+        var[JsonString(key, JsonString::Copied)] = JsonString(value, JsonString::Copied);
         // json.remove(key); //key should stay as all clients use this to perform the changeHTML action
       }
       else if (pair.key() == "addRow" || pair.key() == "delRow") {
@@ -379,11 +371,11 @@ const char * SysModUI::processJson(JsonVariant &json) {
 
               //set new value
               if (value.is<const char *>())
-                mdl->setValueC(key, value.as<const char *>(), rowNr?atoi(rowNr):-1);
+                mdl->setValue<JsonString>(key, JsonString(value, JsonString::Copied), rowNr?atoi(rowNr):-1);
               else if (value.is<bool>())
-                mdl->setValueB(key, value.as<bool>(), rowNr?atoi(rowNr):-1);
+                mdl->setValue<bool>(key, value.as<bool>(), rowNr?atoi(rowNr):-1);
               else if (value.is<int>())
-                mdl->setValueI(key, value.as<int>(), rowNr?atoi(rowNr):-1);
+                mdl->setValue<int>(key, value.as<int>(), rowNr?atoi(rowNr):-1);
               else {
                 USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
               }

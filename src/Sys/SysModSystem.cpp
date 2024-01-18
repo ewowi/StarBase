@@ -116,7 +116,7 @@ void SysModSystem::loop1s() {
   loopCounter = 0;
 }
 void SysModSystem::loop10s() {
-  mdl->setValueC("version", version); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
+  mdl->setValue<JsonString>("version", version); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
   mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
   mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
   USER_PRINTF("❤️"); //heartbeat

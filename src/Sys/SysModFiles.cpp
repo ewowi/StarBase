@@ -136,16 +136,15 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
 
     if (filter == nullptr || strstr(file.name(), filter) != nullptr) {
       if (nameOnly) {
-        array.add((char *)file.name());
+        array.add(JsonString(file.name(), JsonString::Copied));
       }
       else {
         JsonArray row = array.createNestedArray();
-        row.add((char *)file.name());  //create a copy!
+        row.add(JsonString(file.name(), JsonString::Copied));
         row.add(file.size());
         char urlString[32] = "file/";
         strncat(urlString, file.name(), sizeof(urlString)-1);
-        row.add((char *)urlString);  //create a copy!
-        row.add("⌫");  //delete placeholder
+        row.add(JsonString(urlString, JsonString::Copied));
       }
       // USER_PRINTF("FILE: %s %d\n", file.name(), file.size());
     }

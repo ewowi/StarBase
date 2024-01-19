@@ -34,9 +34,19 @@ void SysModSystem::setup() {
     web->addResponse(var["id"], "comment", "Uptime of board");
   });
   ui->initText(parentVar, "loops", nullptr, 16, true);
+
+  ui->initText(parentVar, "chip", nullptr, 16, true);
+
   ui->initText(parentVar, "heap", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Free / Total (largest free)");
   });
+
+  if (psramFound()) {
+    ui->initText(parentVar, "psram", nullptr, 16, true, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "comment", "Free / Total (min free)");
+    });
+  }
+
   ui->initText(parentVar, "stack", nullptr, 16, true);
 
   ui->initButton(parentVar, "reboot", nullptr, false, nullptr, [](JsonObject var, uint8_t) {  //chFun
@@ -117,8 +127,14 @@ void SysModSystem::loop1s() {
 }
 void SysModSystem::loop10s() {
   mdl->setValue<JsonString>("version", version); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
+
+  mdl->setValueLossy("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
+
   mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
   mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
+  if (psramFound()) {
+    mdl->setValueLossy("psram", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
+  }
   USER_PRINTF("❤️"); //heartbeat
 }
 

@@ -15,11 +15,11 @@
 #include "SysModFiles.h"
 #include "SysJsonRDWS.h"
 
-DynamicJsonDocument * SysModModel::model = nullptr;
+BasicJsonDocument<RAM_Allocator> * SysModModel::model = nullptr;
 JsonObject SysModModel::modelParentVar;
 
 SysModModel::SysModModel() :SysModule("Model") {
-  model = new DynamicJsonDocument(24576);
+  model = new BasicJsonDocument<RAM_Allocator>(24576);
 
   JsonArray root = model->to<JsonArray>(); //create
 

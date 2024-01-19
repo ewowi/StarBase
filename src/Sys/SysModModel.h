@@ -53,12 +53,33 @@ namespace ArduinoJson {
   };
 }
 
+// https://arduinojson.org/v6/api/basicjsondocument/
+struct RAM_Allocator {
+  void* allocate(size_t size) {
+    if (psramFound()) return ps_malloc(size); // use PSRAM if it exists
+    else              return malloc(size);    // fallback
+    // return heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
+  }
+  void deallocate(void* pointer) {
+    free(pointer);
+    // heap_caps_free(pointer);
+  }
+  void* reallocate(void* ptr, size_t new_size) {
+    if (psramFound()) return ps_realloc(ptr, new_size); // use PSRAM if it exists
+    else              return realloc(ptr, new_size);    // fallback
+    // return heap_caps_realloc(ptr, new_size, MALLOC_CAP_SPIRAM);
+  }
+};
+
+
+
 class SysModModel:public SysModule {
 
 public:
 
   // StaticJsonDocument<24576> model; //not static as that blows up the stack. Use extern??
-  static DynamicJsonDocument *model; //needs to be static as loopTask and asyncTask is using it...
+  // static BasicJsonDocument<DefaultAllocator> *model; //needs to be static as loopTask and asyncTask is using it...
+  static BasicJsonDocument<RAM_Allocator> *model; //needs to be static as loopTask and asyncTask is using it...
 
   static JsonObject modelParentVar;
 

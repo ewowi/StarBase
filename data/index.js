@@ -25,7 +25,6 @@ function handleVisibilityChange() {
 }
 
 function onLoad() {
-  getView();
   getTheme();
 
   makeWS();
@@ -61,7 +60,7 @@ function makeWS() {
       }
       if (json) {
         //receive model per module to stay under websocket size limit of 8192
-        if (json.type && json.type == "module") { //generate array of variables
+        if (json.type && ["appmod","usermod", "sysmod"].includes(json.type)) { //generate array of variables
           let found = false;
           for (let module of model) {
             if (module.id == json.id)
@@ -138,40 +137,6 @@ function linearToLogarithm(json, value) {
   return Math.round(result);
 }
 
-function genTableRowHTML(json, parentNode = null, rowNr = -1) {
-  let variable = json;
-  let tbodyNode = parentNode.querySelector("tbody");
-  // console.log("genTableRowHTML", parentNode.id, rowNr, tbodyNode.querySelectorAll("tr").length);
-
-  //create a new row on the table
-  let trNode = cE("tr");
-  tbodyNode.appendChild(trNode);
-  //genHTML for var(n)
-  for (let columnVar of variable.n) {
-    let tdNode = cE("td");
-    trNode.appendChild(tdNode);
-    generateHTML(columnVar, tdNode, rowNr); //will also do the values
-  }
-  if (!variable.ro) {
-    let tdNode = cE("td");
-    let buttonNode = cE("input");
-    buttonNode.id = variable.id + "#" + rowNr + "_del";
-    buttonNode.type = "button";
-    buttonNode.value = "-";
-    buttonNode.addEventListener('click', (event) => {
-      console.log("Table -", event.target);
-
-      var command = {};
-      command["delRow"] = {"id": variable.id, "rowNr":rowNr};
-      requestJson(command);
-
-    });
-    tdNode.appendChild(buttonNode);
-    trNode.appendChild(tdNode);
-  }
-  flushUIFunCommands();
-}
-
 function generateHTML(json, parentNode = null, rowNr = -1) {
 
   // console.log("generateHTML", json, parentNode);
@@ -218,10 +183,10 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
 
     //table cells and buttons don't get a label
     if (parentNodeType != "td") {
-      if (variable.type != "button") divNode.appendChild(labelNode); //add label (tbd:must be done by childs n table cell)
+      if (variable.type != "button" && !["appmod","usermod", "sysmod"].includes(variable.type)) divNode.appendChild(labelNode); //add label (tbd:must be done by childs n table cell)
     }
 
-    if (variable.type == "module") {
+    if (["appmod","usermod", "sysmod"].includes(variable.type)) { //if module
       ndivNeeded = false;
 
       varNode = cE("div");
@@ -300,8 +265,6 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
       divNode.appendChild(cE("br"));
 
       varNode = cE("canvas");
-      varNode.width = "400";
-      varNode.height = "400";
       varNode.addEventListener('dblclick', (event) => {toggleModal(event.target);});
     }
     else if (variable.type == "textarea") {
@@ -406,7 +369,7 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
     // if (buttonCancelNode) divNode.appendChild(buttonCancelNode);
     
     //disable drag of parent module
-    if (variable.type != "module") {
+    if (["appmod","usermod", "sysmod"].includes(variable.type)) {
       varNode.draggable = true;
       varNode.addEventListener('dragstart', (event) => {event.preventDefault(); event.stopPropagation();});
     }
@@ -447,14 +410,38 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
   } //not an array but variable
 }
 
-function flushUIFunCommands() {
-  if (uiFunCommands.length > 0) { //if something to flush
-    var command = {};
-    command["uiFun"] = uiFunCommands; //ask to run uiFun for vars (to add the options)
-    // console.log("flushUIFunCommands", command);
-    requestJson(command);
-    uiFunCommands = [];
+function genTableRowHTML(json, parentNode = null, rowNr = -1) {
+  let variable = json;
+  let tbodyNode = parentNode.querySelector("tbody");
+  // console.log("genTableRowHTML", parentNode.id, rowNr, tbodyNode.querySelectorAll("tr").length);
+
+  //create a new row on the table
+  let trNode = cE("tr");
+  tbodyNode.appendChild(trNode);
+  //genHTML for var(n)
+  for (let columnVar of variable.n) {
+    let tdNode = cE("td");
+    trNode.appendChild(tdNode);
+    generateHTML(columnVar, tdNode, rowNr); //will also do the values
   }
+  if (!variable.ro) {
+    let tdNode = cE("td");
+    let buttonNode = cE("input");
+    buttonNode.id = variable.id + "#" + rowNr + "_del";
+    buttonNode.type = "button";
+    buttonNode.value = "-";
+    buttonNode.addEventListener('click', (event) => {
+      console.log("Table -", event.target);
+
+      var command = {};
+      command["delRow"] = {"id": variable.id, "rowNr":rowNr};
+      requestJson(command);
+
+    });
+    tdNode.appendChild(buttonNode);
+    trNode.appendChild(tdNode);
+  }
+  flushUIFunCommands();
 }
 
 //process json from server, json is assumed to be an object
@@ -873,6 +860,16 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
   }
 } //changeHTML
 
+function flushUIFunCommands() {
+  if (uiFunCommands.length > 0) { //if something to flush
+    var command = {};
+    command["uiFun"] = uiFunCommands; //ask to run uiFun for vars (to add the options)
+    // console.log("flushUIFunCommands", command);
+    requestJson(command);
+    uiFunCommands = [];
+  }
+}
+
 function findVar(id, parent = model) {
   // console.log("findVar", id, parent, model);
 
@@ -958,7 +955,7 @@ function sendValue(element) {
 let isModal = false;
 let modalPlaceHolder;
 
-function toggleModal(element) {
+function toggleModal(element) { //canvas or textarea
   // console.log("toggleModal", element);
   isModal = !isModal;
 
@@ -976,14 +973,13 @@ function toggleModal(element) {
     // gId('modalView').appendChild(btn);
 
     gId('modalView').appendChild(element);
-    element.width = window.innerWidth;;
+    element.width = window.innerWidth;
     element.height = window.innerHeight;
     // console.log("toggleModal +", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
 	}
   else {    
     element.width = modalPlaceHolder.getBoundingClientRect().width;
     element.height = modalPlaceHolder.getBoundingClientRect().height;
-    // if (renderer) renderer.setSize( element.width, element.height);
 
     // console.log("toggleModal -", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
     
@@ -1009,7 +1005,7 @@ var dragSrcEl;
 // https://stackoverflow.com/questions/75698658/how-can-i-drag-and-drop-like-browser-tabs-in-javascript
 function initMdlColumns() {
 
-  let columns = document.querySelectorAll('.mdlContainer .mdlColumn');
+  let columns = gId("mdlContainer").childNodes;
   columns.forEach(function(column) {
     column.addEventListener('dragover', handleDragOver);
     column.addEventListener('dragenter', handleDragEnter);
@@ -1022,11 +1018,13 @@ function initMdlColumns() {
 }
 
 function setupModules() {
-  let modules = document.querySelectorAll('.mdlContainer .module');
-  modules.forEach(function(box) {
-    setupModule(box);
+  let columns = gId("mdlContainer").childNodes;
+  columns.forEach(function(column) {
+    let modules = column.childNodes;
+    modules.forEach(function(module) {
+      setupModule(module);
+    });
   });
-
 }
 
 // var lastPage;
@@ -1059,16 +1057,14 @@ function handleDragStart(e) {
 function removeDragStyle(item) {
   item.style.opacity = '1';
 
-  let modules = document.querySelectorAll('.mdlContainer .module');
-  modules.forEach(function (item) {
-    item.classList.remove('over');
+  let columns = gId("mdlContainer").childNodes;
+  columns.forEach(function(column) {
+    let modules = column.childNodes;
+    modules.forEach(function(module) {
+      module.classList.remove('over');
+    });
+    column.classList.remove('over');
   });
-
-  let columns = document.querySelectorAll('.mdlContainer .mdlColumn');
-  columns.forEach(function (item) {
-    item.classList.remove('over');
-  });
-
 }
 
 function handleDragEnd(e) {
@@ -1141,14 +1137,10 @@ function fetchAndExecute(url, name, parms, callback, callError = null)
 }
 
 function setInstanceTableColumns() {
-  // let insCols = ["insName", "insLink", "insIp","insType"];
-  // let insTrNode = gId("insName").parentNode;
 
   let tbl = gId("insTbl");
   if (!tbl) return;
-  let mdlContainer = gId("mdlContainer");
-  // let isStageView = tbl.parentNode.parentNode.parentNode.className != "mdlColumn";
-  let isStageView = !mdlContainer.contains(tbl);
+  let isStageView = gId("vStage").classList.contains("selected");
   let thead = tbl.querySelector("thead");
   let tbody = tbl.querySelector("tbody");
 
@@ -1176,104 +1168,55 @@ function setInstanceTableColumns() {
 
 function changeHTMLView(value) {
 
-  function toggleInstances(isStageView) {
-    if (!gId("Instances")) return;
-    let module = gId("Instances").parentNode;
-    let container = gId("mdlContainer");
-    // console.log("toggleInstances", module, container, isStageView);
-    if ((isStageView && container.contains(module)) || (!isStageView && !container.contains(module))) {
-
-      modalPlaceHolder = cE("div");
-      modalPlaceHolder.id = isStageView?"instPH2":"instPH";
-      module.parentNode.replaceChild(modalPlaceHolder, module); //replace by modalPlaceHolder
-      let element = gId(isStageView?"instPH":"instPH2");
-      element.parentNode.replaceChild(module, element); //replace by module
-      // gId("instPH").remove();
-    }
-    setInstanceTableColumns();
-  }
-
-  localStorage.setItem('view', value);
-
-  let sysMods = ["Files", "Print", "System", "Network", "Model", "Pins", "Modules", "Web", "UI", "Instances"];
-  let mdlContainerNode = gId("mdlContainer"); //class mdlContainer
   // console.log("changeHTMLView", node, node.value, node.id, mdlContainerNode, mdlContainerNode.childNodes);
-
+  
   gId("vApp").classList.remove("selected");
   gId("vStage").classList.remove("selected");
-  // gId("vUser").classList.remove("selected");
+  gId("vUser").classList.remove("selected");
   gId("vSys").classList.remove("selected");
   gId("vAll").classList.remove("selected");
   gId(value).classList.add("selected");
 
-  switch (value) {
-    case "vApp":
-    case "vSys":
-      toggleInstances(false); //put Instance back if needed
+  let mdlContainerNode = gId("mdlContainer"); //class mdlContainer
 
-      //hide all system modules, show the rest
-      for (let mdlColumn of mdlContainerNode.childNodes) {
-        for (let module of mdlColumn.childNodes) {
-          module.hidden = sysMods.includes(module.id);
-          let found = false;
-          for (let sysMod of sysMods) {
-            if (module.contains(gId(sysMod))) {
+  let columnCounter = 0;
+  for (let mdlColumnNode of mdlContainerNode.childNodes) {
+    let mdlFound = false;
+    for (let divNode of mdlColumnNode.childNodes) {
+      let found = false;
+      if (value == "vAll")
+        found = true;
+      else {
+        for (let moduleNode of divNode.childNodes) {
+          if (moduleNode.className) {
+            if (value=="vApp" && moduleNode.className == "appmod")
               found = true;
-              break;
-            }
+              if (value=="vSys" && moduleNode.className == "sysmod")
+              found = true;
+            if (value=="vUser" && moduleNode.className == "usermod")
+              found = true;
+            if (value=="vStage" && moduleNode.id == "Instances")
+              found = true;
           }
-          module.hidden = (value=="vApp"?found:!found);
+          // console.log(mdlColumnNode, moduleNode, moduleNode.className);
         }
       }
+      divNode.hidden = !found;
+      if (found) mdlFound = true;
+    }
 
-      break;
-    case "vStage":
-      
-      //hide all modules but show instances
-      for (let mdlColumn of mdlContainerNode.childNodes) {  //all mdlColumn Nodes
-        for (let module of mdlColumn.childNodes) {
-          module.hidden = !module.contains(gId("Instances"));
-        }
-      }
-
-      toggleInstances(true);
-
-      // for (let child of insTrNode.childNodes) {
-      //   child.hidden = false;
-      // }
-      // for (let i=4 ; insTrNode.childNodes.length; i++)
-      //   show_hide_column("insTbl", i, true)
-
-      break;
-    case "vSysxx":
-      //set all modules but sys hidden
-      for (let mdlColumn of mdlContainerNode.childNodes) {
-        for (let module of mdlColumn.childNodes) {
-          module.hidden = !sysMods.includes(module.id);
-        }
-      }
-
-      toggleInstances(false);
-      
-      // for (let child of insTrNode.childNodes) {
-      //   child.hidden = !insCols.includes(child.id + "_d");
-      // }
-      // for (let i=4 ; insTrNode.childNodes.length; i++)
-      //   show_hide_column("insTbl", i, false)
-
-      break;
-    case "vAll":
-      toggleInstances(false); //put Instance back if needed
-      setInstanceTableColumns();
-
-      //set all modules visible
-      for (let mdlColumn of mdlContainerNode.childNodes) {
-        for (let module of mdlColumn.childNodes) {
-          module.hidden = false;
-        }
-      }
-      break;
+    mdlColumnNode.hidden = !mdlFound;
+    if (mdlFound) {
+      columnCounter++;
+    }
   }
+
+  if (value=="vApp")
+    mdlContainerNode.className = "mdlContainer2";
+  else
+    mdlContainerNode.className = "mdlContainer" + columnCounter; //1..4
+
+  setInstanceTableColumns();
 
 } //changeHTMLView
 
@@ -1295,12 +1238,6 @@ function setView(node) {
   var command = {};
   command["view"] = node.id;
   requestJson(command);
-}
-
-function getView() {
-  let value = localStorage.getItem('view');
-  console.log("getView", value);
-  if (value && value != "null") changeHTMLView(value);
 }
 
 function setTheme(node) {

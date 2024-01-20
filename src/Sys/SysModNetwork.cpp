@@ -25,7 +25,7 @@ void SysModNetwork::setup() {
   SysModule::setup();
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentVar = ui->initModule(parentVar, name);
+  parentVar = ui->initSysMod(parentVar, name);
   
   // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var) { //uiFun ro false: create and delete row possible
   //   web->addResponse(var["id"], "label", "Wifi");

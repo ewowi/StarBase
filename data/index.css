@@ -201,12 +201,20 @@ div {
 }
 
 /* drag and drop style */
-.mdlContainer {
+.mdlContainer2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+.mdlContainer3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+.mdlContainer4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
 }
-  
-.module {
+
+.module, .appmod, .sysmod, .usermod {
   border: 3px solid var(--border-color);
   /* background-color: #ddd; */
   /* background: linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%); */
@@ -217,9 +225,9 @@ div {
   cursor: move;
 }
 
-/* .module:hover {
+.module.over, .appmod.over, .sysmod.over, .usermod.over {
   background-color: #00BFFF;
-} */
+}
 
 .mdlColumn {
   border: 3px solid var(--border-color);
@@ -229,7 +237,7 @@ div {
   /* cursor: move; */
 }
 
-.module.over, .mdlColumn.over {
+.module.over, .appmod.over, .sysmod.over, .usermod.over, .mdlColumn.over {
   border: 3px dotted var(--border-color);
 }
 

@@ -61,8 +61,14 @@ public:
   void loop();
   void loop1s();
 
-  JsonObject initModule(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "module", value, 0, 0, readOnly, uiFun, chFun, loopFun);
+  JsonObject initAppMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "appmod", value, 0, 0, readOnly, uiFun, chFun, loopFun);
+  }
+  JsonObject initSysMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "sysmod", value, 0, 0, readOnly, uiFun, chFun, loopFun);
+  }
+  JsonObject initUserMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "usermod", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
   JsonObject initTable(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {

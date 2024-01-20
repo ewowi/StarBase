@@ -44,7 +44,7 @@ void SysModUI::setup() {
 
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentVar = initModule(parentVar, name);
+  parentVar = initSysMod(parentVar, name);
 
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Variable loops");

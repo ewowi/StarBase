@@ -57,7 +57,7 @@ void SysModWeb::setup() {
   SysModule::setup();
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentVar = ui->initModule(parentVar, name);
+  parentVar = ui->initSysMod(parentVar, name);
 
   JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Clients");
@@ -172,11 +172,26 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   if (type == WS_EVT_CONNECT) {
     print->printClient("WS client connected", client);
 
-    //send model per module to stay under websocket size limit of 8192
     JsonArray model = mdl->model->as<JsonArray>();
+
+    //inspired by https://github.com/bblanchon/ArduinoJson/issues/1280
+    //store arrayindex and sort order in vector
+    std::vector<ArrayIndexSortValue> aisvs;
+    size_t index = 0;
     for (JsonObject moduleVar: model) {
-      sendDataWs(moduleVar, client); //send definition to client
+      ArrayIndexSortValue aisv;
+      aisv.index = index++;
+      aisv.value = moduleVar["o"].as<uint32_t>();
+      aisvs.push_back(aisv);
     }
+    //sort the vector by the order
+    std::sort(aisvs.begin(), aisvs.end(), [](const ArrayIndexSortValue &a, const ArrayIndexSortValue &b) {return a.value < b.value;});
+
+    //send model per module to stay under websocket size limit of 8192
+    for (const ArrayIndexSortValue &aisv : aisvs) {
+      sendDataWs(model[aisv.index], client); //send definition to client
+    }
+
     clientsChanged = true;
   } else if (type == WS_EVT_DISCONNECT) {
     print->printClient("WS Client disconnected", client);

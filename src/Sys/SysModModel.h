@@ -32,6 +32,12 @@ struct Coord3D {
   }
 };
 
+//used to sort keys of jsonobjects
+struct ArrayIndexSortValue {
+  size_t index;
+  uint32_t value;
+};
+
 //https://arduinojson.org/news/2021/05/04/version-6-18-0/
 namespace ArduinoJson {
   template <>

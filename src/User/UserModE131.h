@@ -31,7 +31,7 @@ public:
     SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    parentVar = ui->initModule(parentVar, name);
+    parentVar = ui->initUserMod(parentVar, name);
 
     ui->initNumber(parentVar, "dun", universe, 0, 7, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "DMX Universe");

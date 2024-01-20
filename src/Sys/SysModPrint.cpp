@@ -29,7 +29,7 @@ void SysModPrint::setup() {
 
   // print("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentVar = ui->initModule(parentVar, name);
+  parentVar = ui->initSysMod(parentVar, name);
 
   ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var) { //uiFun default 1 (Serial)
     web->addResponse(var["id"], "label", "Output");

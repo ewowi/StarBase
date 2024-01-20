@@ -41,7 +41,7 @@ void SysModModel::setup() {
 
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentVar = ui->initModule(parentVar, name);
+  parentVar = ui->initSysMod(parentVar, name);
 
   ui->initText(parentVar, "mSize", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size");

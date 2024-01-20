@@ -37,7 +37,7 @@ void SysModPins::setup() {
   SysModule::setup();
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentVar = ui->initModule(parentVar, name);
+  parentVar = ui->initSysMod(parentVar, name);
 
   //show table of allocated pins
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete

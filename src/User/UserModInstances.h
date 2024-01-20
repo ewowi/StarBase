@@ -175,7 +175,7 @@ public:
     SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    parentVar = ui->initModule(parentVar, name);
+    parentVar = ui->initSysMod(parentVar, name);
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
       const char * varID = var["id"];
@@ -447,20 +447,20 @@ public:
     if(!SysModules::isConnected) return;
     if (!udp2Connected) return;
 
-    IPAddress ip = WiFi.localIP();
-    if (!ip || ip == IPAddress(255,255,255,255)) ip = IPAddress(4,3,2,1);
+    IPAddress localIP = WiFi.localIP();
+    if (!localIP || localIP == IPAddress(255,255,255,255)) localIP = IPAddress(4,3,2,1);
 
     UDPStarModMessage starModMessage;
     starModMessage.header.token = 255; //WLED only accepts 255
     starModMessage.header.id = 1; //WLED only accepts 1
-    starModMessage.header.ip0 = ip[0];
-    starModMessage.header.ip1 = ip[1];
-    starModMessage.header.ip2 = ip[2];
-    starModMessage.header.ip3 = ip[3];
+    starModMessage.header.ip0 = localIP[0];
+    starModMessage.header.ip1 = localIP[1];
+    starModMessage.header.ip2 = localIP[2];
+    starModMessage.header.ip3 = localIP[3];
     const char * serverName = mdl->getValue("serverName");
     strncpy(starModMessage.header.name, serverName?serverName:"StarMod", sizeof(starModMessage.header.name)-1);
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
-    starModMessage.header.insId = ip[3]; //WLED: used in map of instances as index!
+    starModMessage.header.insId = localIP[3]; //WLED: used in map of instances as index!
     starModMessage.header.version = atoi(sys->version);
     starModMessage.sys.type = 1; //StarMod
     starModMessage.sys.upTime = millis()/1000;
@@ -488,7 +488,7 @@ public:
 
     IPAddress broadcastIP(255, 255, 255, 255);
     if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
-      USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d from ...%d\n", starModMessage.header.name, sizeof(UDPStarModMessage), instanceUDPPort, ip[3], WiFi.localIP()[3]);
+      USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d\n", starModMessage.header.name, sizeof(UDPStarModMessage), instanceUDPPort, localIP[3]);
       // for (size_t x = 0; x < sizeof(UDPWLEDMessage) + sizeof(SysData) + sizeof(AppData); x++) {
       //   char * xx = (char *)&starModMessage;
       //   Serial.printf("%d: %d - %c\n", x, xx[x], xx[x]);
@@ -503,20 +503,20 @@ public:
   }
 
   void updateNode( UDPStarModMessage udpStarMessage) {
-    IPAddress ip = IPAddress(udpStarMessage.header.ip0, udpStarMessage.header.ip1, udpStarMessage.header.ip2, udpStarMessage.header.ip3);
+    IPAddress messageIP = IPAddress(udpStarMessage.header.ip0, udpStarMessage.header.ip1, udpStarMessage.header.ip2, udpStarMessage.header.ip3);
 
     bool instanceFound = false;
     for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
     {
-      if (instance->ip == ip)
+      if (instance->ip == messageIP)
         instanceFound = true;
     }
 
-    // USER_PRINTF("updateNode Instance: ...%d n:%s found:%d\n", ip[3], udpStarMessage.header.name, instanceFound);
+    // USER_PRINTF("updateNode Instance: ...%d n:%s found:%d\n", messageIP[3], udpStarMessage.header.name, instanceFound);
 
     if (!instanceFound) { //new instance
       InstanceInfo instance;
-      instance.ip = ip;
+      instance.ip = messageIP;
       if (udpStarMessage.sys.type == 0) {//WLED only
         instance.sys.type = 0; //WLED
         //updated in udp sync message:
@@ -535,7 +535,7 @@ public:
 
     //iterate vector pointers so we can update the instances
     for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
-      if (instance->ip == ip) {
+      if (instance->ip == messageIP) {
         instance->timeStamp = millis(); //update timestamp
         strncpy(instance->name, udpStarMessage.header.name, sizeof(instance->name)-1);
         instance->version = udpStarMessage.header.version;
@@ -544,7 +544,7 @@ public:
 
           //check for syncing
           uint8_t syncMaster = mdl->getValue("sma");
-          if (syncMaster == ip[3]) {
+          if (syncMaster == messageIP[3]) {
 
             //find matching var
             for (int i=0; i< nrOfAppVars; i++) {
@@ -598,31 +598,31 @@ public:
       ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
       ui->processUiFun("artInst"); //show the new instance in the dropdown  
 
-      USER_PRINTF("insTbl updateNode %d\n", ip[3]);
+      USER_PRINTF("insTbl updateNode %d\n", messageIP[3]);
       ui->processUiFun("insTbl");
     }
 
   }
 
-  std::vector<InstanceInfo>::iterator findNode( IPAddress ip) {
+  std::vector<InstanceInfo>::iterator findNode( IPAddress nodeIP) {
 
     bool instanceFound = false;
     for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
     {
-      if (instance->ip == ip)
+      if (instance->ip == nodeIP)
         instanceFound = true;
     }
 
     if (!instanceFound) { //instance always found
       InstanceInfo instance;
-      instance.ip = ip;
+      instance.ip = nodeIP;
       instances.push_back(instance);
     }
 
     std::vector<InstanceInfo>::iterator foundNode;
     //iterate vector pointers so we can update the instances
     for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
-      if (instance->ip == ip) {
+      if (instance->ip == nodeIP) {
         foundNode = instance;
       }
     }

@@ -34,7 +34,7 @@ SysModFiles::SysModFiles() :SysModule("Files") {
 //setup filesystem
 void SysModFiles::setup() {
   SysModule::setup();
-  parentVar = ui->initModule(parentVar, name);
+  parentVar = ui->initSysMod(parentVar, name);
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Files");

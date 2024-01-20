@@ -31,7 +31,7 @@ void SysModules::setup() {
 
   //do its own setup: will be shown as last module
   JsonObject parentVar;
-  parentVar = ui->initModule(parentVar, "Modules");
+  parentVar = ui->initSysMod(parentVar, "Modules");
 
   JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Modules");

@@ -48,7 +48,7 @@ public:
     SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    parentVar = ui->initModule(parentVar, name);
+    parentVar = ui->initAppMod(parentVar, name);
     JsonObject currentVar;
 
     currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var) { //uiFun
@@ -70,25 +70,6 @@ public:
     });
     currentVar["log"] = true; //logarithmic
     currentVar["stage"] = true; //these values override model.json???
-
-    ui->initCanvas(parentVar, "pview", uint16Max, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Preview");
-      web->addResponse(var["id"], "comment", "Shows the fixture");
-      // web->addResponse(var["id"], "comment", "Click to enlarge");
-    }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
-      // send leds preview to clients
-      for (size_t i = 0; i < buffer[1] * 256 + buffer[2]; i++)
-      {
-        buffer[i*3+5] = ledsP[i].red;
-        buffer[i*3+5+1] = ledsP[i].green;
-        buffer[i*3+5+2] = ledsP[i].blue;
-      }
-      //new values
-      buffer[0] = 1; //userFun id
-      buffer[1] = ledsV.nrOfLedsP/256;
-      buffer[2] = ledsV.nrOfLedsP%256;
-      buffer[4] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
-    });
 
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effects");

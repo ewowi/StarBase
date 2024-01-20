@@ -27,6 +27,7 @@
 #include "User/UserModMDNS.h"
 #ifdef APPMOD_LEDS
   #include "App/AppModLeds.h"
+  #include "App/AppModPreview.h"
   #include "App/AppModFixtureGen.h"
   #ifdef USERMOD_ARTNET
     #include "User/UserModArtNet.h"
@@ -61,6 +62,7 @@ void setup() {
   mdns = new UserModMDNS();
   #ifdef APPMOD_LEDS
     lds = new AppModLeds();
+    pvw = new AppModPreview();
     lfg = new AppModFixtureGen();
     #ifdef USERMOD_ARTNET
       artnetmod = new UserModArtNet();
@@ -84,6 +86,7 @@ void setup() {
   //Default: add below, not in between
   #ifdef APPMOD_LEDS
     mdls->add(lds);
+    mdls->add(pvw);
     mdls->add(lfg);
   #endif
   mdls->add(files);

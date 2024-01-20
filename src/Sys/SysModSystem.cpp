@@ -24,7 +24,7 @@ void SysModSystem::setup() {
   SysModule::setup();
   USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-  parentVar = ui->initModule(parentVar, name);
+  parentVar = ui->initSysMod(parentVar, name);
 
   ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");

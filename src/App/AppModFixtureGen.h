@@ -507,7 +507,7 @@ public:
     SysModule::setup();
     USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
-    parentVar = ui->initModule(parentVar, name);
+    parentVar = ui->initUserMod(parentVar, name);
 
     ui->initSelect(parentVar, "fixtureGen", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Fixture");

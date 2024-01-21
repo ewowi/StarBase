@@ -19,7 +19,25 @@ SysModPrint::SysModPrint() :SysModule("Print") {
   // print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   Serial.begin(115200);
-  delay(5000); //if (!Serial) doesn't seem to work, check with SoftHack007
+  delay(500);
+  // un-comment the next lines for redirecting kernel error messages to Serial
+  // #if ARDUINO_USB_CDC_ON_BOOT
+  // Serial0.setDebugOutput(false);
+  // #endif
+  // Serial.setDebugOutput(true);
+
+  // softhack007: USB CDC needs a bit more time to initialize
+#if ARDUINO_USB_CDC_ON_BOOT || ARDUINO_USB_MODE
+  unsigned waitCounter = 0;
+  do {
+    delay(1000);
+    waitCounter ++;
+  } while ((!Serial) && (waitCounter < 8));  // wait until Serial is ready / connected
+  delay(3000); // this extra delay avoids repeating disconnects on -s2 "Disconnected (ClearCommError failed"
+  Serial.println("   **** COMMODORE BASIC V2 ****   ");
+#endif
+  Serial.println("Ready.\n");
+  if (Serial) Serial.flush(); // drain output buffer
 
   // print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 };

@@ -11,12 +11,16 @@
 
 #pragma once
 #include <Arduino.h>
+#include <HardwareSerial.h>  // ensure we have the correct "Serial" on new MCUs (depends on ARDUINO_USB_MODE and ARDUINO_USB_CDC_ON_BOOT)
+#include <WiFi.h>
+#include "esp_wifi.h"
+#include <LittleFS.h>        // make sure that ArduinoJson knows we have LittleFS
 
 // #define ARDUINOJSON_ENABLE_ARDUINO_STRING 0
 #include "ArduinoJson.h"
 
-#define uint8Max 255U
-#define uint16Max 65535U
+#define uint8Max UINT8_MAX
+#define uint16Max UINT16_MAX
 
 class SysModule {
 

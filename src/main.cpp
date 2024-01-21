@@ -48,6 +48,9 @@
 
 //setup all modules
 void setup() {
+  // pinMode(LED_BUILTIN, OUTPUT);
+  // digitalWrite(LED_BUILTIN, HIGH);
+
   mdls = new SysModules();
   
   print = new SysModPrint();
@@ -81,7 +84,7 @@ void setup() {
     wledAudioMod = new UserModWLEDAudio();
   #endif
 
-  //prefered default order in the UI. 
+  //preferred default order in the UI. 
   //Reorder with care! If changed make sure mdlEnabled.chFun executes var.createNestedArray("value"); and saveModel! 
   //Default: add below, not in between
   #ifdef APPMOD_LEDS
@@ -119,9 +122,15 @@ void setup() {
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();
+
+  // digitalWrite(LED_BUILTIN, LOW);
 }
 
 //loop all modules
 void loop() {
   mdls->loop();
+
+  // static bool onoff = false;
+  // onoff = !onoff;
+  // digitalWrite(LED_BUILTIN, onoff? HIGH:LOW);
 }

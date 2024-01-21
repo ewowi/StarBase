@@ -18,13 +18,19 @@
 SysModPrint::SysModPrint() :SysModule("Print") {
   // print("%s %s\n", __PRETTY_FUNCTION__, name);
 
+#if ARDUINO_USB_CDC_ON_BOOT || !defined(CONFIG_IDF_TARGET_ESP32S2)
   Serial.begin(115200);
+#else
+  Serial.begin(115200, SERIAL_8N1, RX, TX);   // workaround for Lolin S2 mini - this board uses non-standard pins for RX and TX
+#endif
   delay(500);
   // un-comment the next lines for redirecting kernel error messages to Serial
-  // #if ARDUINO_USB_CDC_ON_BOOT
-  // Serial0.setDebugOutput(false);
-  // #endif
-  // Serial.setDebugOutput(true);
+  #if CORE_DEBUG_LEVEL
+  #if ARDUINO_USB_CDC_ON_BOOT
+  Serial0.setDebugOutput(false);
+  #endif
+  Serial.setDebugOutput(true);
+  #endif
 
   // softhack007: USB CDC needs a bit more time to initialize
 #if ARDUINO_USB_CDC_ON_BOOT || ARDUINO_USB_MODE

@@ -113,19 +113,19 @@ static String resetCode2Info(int reason) {
   switch(reason) {
 
     case 1 : //  1 =  Vbat power on reset
-      return F("power-on"); break;
+      return "power-on"; break;
     case 2 : // 2 = this code is not defined on ESP32
-      return F("exception"); break;
+      return "exception"; break;
     case 3 : // 3 = Software reset digital core
-       return F("SW reset"); break;
+       return "SW reset"; break;
     case 12: //12 = Software reset CPU
-       return F("SW restart"); break;
+       return "SW restart"; break;
     case 5 : // 5 = Deep Sleep wakeup reset digital core
-       return F("wakeup"); break;
+       return "wakeup"; break;
     case 14:  //14 = for APP CPU, reset by PRO CPU
-      return F("restart"); break;
+      return "restart"; break;
     case 15: //15 = Reset when the vdd voltage is not stable (brownout)
-      return F("brown-out"); break;
+      return "brown-out"; break;
 
     // watchdog resets
     case 4 : // 4 = Legacy watch dog reset digital core
@@ -137,29 +137,29 @@ static String resetCode2Info(int reason) {
     case 13: //13 = RTC Watch dog Reset CPU
     case 16: //16 = RTC Watch dog reset digital core and rtc module
     case 17: //17 = Time Group1 reset CPU
-      return F("watchdog"); break;
+      return "watchdog"; break;
     case 18: //18 = super watchdog reset digital core and rtc module
-      return F("super watchdog"); break;
+      return "super watchdog"; break;
 
     // misc
     case 10: // 10 = Instrusion tested to reset CPU
-      return F("intrusion"); break;
+      return "intrusion"; break;
     case 19: //19 = glitch reset digital core and rtc module
-      return F("glitch"); break;
+      return "glitch"; break;
     case 20: //20 = efuse reset digital core
-      return F("EFUSE reset"); break;
+      return "EFUSE reset"; break;
     case 21: //21 = usb uart reset digital core
-      return F("USB UART reset"); break;
+      return "USB UART reset"; break;
     case 22: //22 = usb jtag reset digital core
-     return F("JTAG reset"); break;
+     return "JTAG reset"; break;
     case 23: //23 = power glitch reset digital core and rtc module
-      return F("power glitch"); break;
+      return "power glitch"; break;
 
     // unknown reason code
     case 0:
-      return F(""); break;
+      return "none"; break;
     default: 
-      return F("unknown"); break;
+      return "unknown"; break;
   }
 }
 
@@ -170,77 +170,77 @@ static esp_reset_reason_t getRestartReason() {
 
 static String restartCode2InfoLong(esp_reset_reason_t reason) {
     switch (reason) {
-      case ESP_RST_UNKNOWN:  return(F("Reset reason can not be determined")); break;
-      case ESP_RST_POWERON:  return(F("Restart due to power-on event")); break;
-      case ESP_RST_EXT:      return(F("Reset by external pin (not applicable for ESP32)")); break;
-      case ESP_RST_SW:       return(F("Software restart via esp_restart()")); break;
-      case ESP_RST_PANIC:    return(F("Software reset due to panic or unhandled exception (SW error)")); break;
-      case ESP_RST_INT_WDT:  return(F("Reset (software or hardware) due to interrupt watchdog")); break;
-      case ESP_RST_TASK_WDT: return(F("Reset due to task watchdog")); break;
-      case ESP_RST_WDT:      return(F("Reset due to other watchdogs")); break;
-      case ESP_RST_DEEPSLEEP:return(F("Restart after exiting deep sleep mode")); break;
-      case ESP_RST_BROWNOUT: return(F("Brownout Reset (software or hardware)")); break;
-      case ESP_RST_SDIO:     return(F("Reset over SDIO")); break;
+      case ESP_RST_UNKNOWN:  return("Reset reason can not be determined"); break;
+      case ESP_RST_POWERON:  return("Restart due to power-on event"); break;
+      case ESP_RST_EXT:      return("Reset by external pin (not applicable for ESP32)"); break;
+      case ESP_RST_SW:       return("Software restart via esp_restart()"); break;
+      case ESP_RST_PANIC:    return("Software reset due to panic or unhandled exception (SW error)"); break;
+      case ESP_RST_INT_WDT:  return("Reset (software or hardware) due to interrupt watchdog"); break;
+      case ESP_RST_TASK_WDT: return("Reset due to task watchdog"); break;
+      case ESP_RST_WDT:      return("Reset due to other watchdogs"); break;
+      case ESP_RST_DEEPSLEEP:return("Restart after exiting deep sleep mode"); break;
+      case ESP_RST_BROWNOUT: return("Brownout Reset (software or hardware)"); break;
+      case ESP_RST_SDIO:     return("Reset over SDIO"); break;
     }
-  return(F("unknown"));
+  return("unknown");
 }
 
 static String restartCode2Info(esp_reset_reason_t reason) {
     switch (reason) {
-      case ESP_RST_UNKNOWN:  return(F("unknown reason")); break;
-      case ESP_RST_POWERON:  return(F("power-on event")); break;
-      case ESP_RST_EXT:      return(F("external pin reset")); break;
-      case ESP_RST_SW:       return(F("SW restart by esp_restart()")); break;
-      case ESP_RST_PANIC:    return(F("SW error (panic or exception)")); break;
-      case ESP_RST_INT_WDT:  return(F("interrupt watchdog")); break;
-      case ESP_RST_TASK_WDT: return(F("task watchdog")); break;
-      case ESP_RST_WDT:      return(F("other watchdog")); break;
-      case ESP_RST_DEEPSLEEP:return(F("exit from deep sleep")); break;
-      case ESP_RST_BROWNOUT: return(F("Brownout Reset")); break;
-      case ESP_RST_SDIO:     return(F("Reset over SDIO")); break;
+      case ESP_RST_UNKNOWN:  return("unknown reason"); break;
+      case ESP_RST_POWERON:  return("power-on event"); break;
+      case ESP_RST_EXT:      return("external pin reset"); break;
+      case ESP_RST_SW:       return("SW restart by esp_restart()"); break;
+      case ESP_RST_PANIC:    return("SW error (panic or exception)"); break;
+      case ESP_RST_INT_WDT:  return("interrupt watchdog"); break;
+      case ESP_RST_TASK_WDT: return("task watchdog"); break;
+      case ESP_RST_WDT:      return("other watchdog"); break;
+      case ESP_RST_DEEPSLEEP:return("exit from deep sleep"); break;
+      case ESP_RST_BROWNOUT: return("Brownout Reset"); break;
+      case ESP_RST_SDIO:     return("Reset over SDIO"); break;
     }
-  return(F("unknown"));
+  return("unknown");
 }
 
 
 // from WLEDMM - will integrate this later
 #if 0
-  DEBUG_PRINT(F("esp32 "));
+  DEBUG_PRINT("esp32 ");
   DEBUG_PRINTLN(ESP.getSdkVersion());
   #if defined(ESP_ARDUINO_VERSION)
-    DEBUG_PRINTF("arduino-esp32 v%d.%d.%d\n", int(ESP_ARDUINO_VERSION_MAJOR), int(ESP_ARDUINO_VERSION_MINOR), int(ESP_ARDUINO_VERSION_PATCH));  // availeable since v2.0.0
+    DEBUG_PRINT"arduino-esp32 v%d.%d.%d\n", int(ESP_ARDUINO_VERSION_MAJOR), int(ESP_ARDUINO_VERSION_MINOR), int(ESP_ARDUINO_VERSION_PATCH));  // availeable since v2.0.0
   #else
-    DEBUG_PRINTLN(F("arduino-esp32 v1.0.x\n"));  // we can't say in more detail.
+    DEBUG_PRINTLN("arduino-esp32 v1.0.x\n");  // we can't say in more detail.
   #endif
 
-  USER_PRINT(F("CPU:   ")); USER_PRINT(ESP.getChipModel());
-  USER_PRINT(F(" rev.")); USER_PRINT(ESP.getChipRevision());
-  USER_PRINT(F(", ")); USER_PRINT(ESP.getChipCores()); USER_PRINT(F(" core(s)"));
-  USER_PRINT(F(", ")); USER_PRINT(ESP.getCpuFreqMHz()); USER_PRINTLN(F("MHz."));
+  USER_PRINT("CPU:   "); USER_PRINT(ESP.getChipModel());
+  USER_PRINT(" rev."); USER_PRINT(ESP.getChipRevision());
+  USER_PRINT(", "); USER_PRINT(ESP.getChipCores()); USER_PRINT(" core(s)");
+  USER_PRINT(", "); USER_PRINT(ESP.getCpuFreqMHz()); USER_PRINTLN("MHz.");
 
-  USER_PRINT(F("CPU    "));
+  USER_PRINT("CPU    ");
   esp_reset_reason_t resetReason = getRestartReason();
   USER_PRINT(restartCode2InfoLong(resetReason));
-  USER_PRINT(F(" (code "));
+  USER_PRINT(" (code ");
   USER_PRINT((int)resetReason);
-  USER_PRINT(F("). "));
+  USER_PRINT(". ");
   int core0code = getCoreResetReason(0);
   int core1code = getCoreResetReason(1);
-  USER_PRINTF("Core#0 %s (%d)", resetCode2Info(core0code).c_str(), core0code);
-  if (core1code > 0) {USER_PRINTF("; Core#1 %s (%d)", resetCode2Info(core1code).c_str(), core1code);}
-  USER_PRINTLN(F("."));
+  USER_PRINT"Core#0 %s (%d)", resetCode2Info(core0code).c_str(), core0code);
+  if (core1code > 0) {USER_PRINT"; Core#1 %s (%d)", resetCode2Info(core1code).c_str(), core1code);}
+  USER_PRINTLN(".");
 
-  USER_PRINT(F("FLASH: ")); USER_PRINT((ESP.getFlashChipSize()/1024)/1024);
-  USER_PRINT(F("MB, Mode ")); USER_PRINT(ESP.getFlashChipMode());
+  USER_PRINT("FLASH: "); USER_PRINT((ESP.getFlashChipSize()/1024)/1024);
+  USER_PRINT("MB, Mode "); USER_PRINT(ESP.getFlashChipMode());
   switch (ESP.getFlashChipMode()) {
     // missing: Octal modes
-    case FM_QIO:  DEBUG_PRINT(F(" (QIO)")); break;
-    case FM_QOUT: DEBUG_PRINT(F(" (QOUT)"));break;
-    case FM_DIO:  DEBUG_PRINT(F(" (DIO)")); break;
-    case FM_DOUT: DEBUG_PRINT(F(" (DOUT)"));break;
+    case FM_QIO:  DEBUG_PRINT(" (QIO)"); break;
+    case FM_QOUT: DEBUG_PRINT(" (QOUT)");break;
+    case FM_DIO:  DEBUG_PRINT(" (DIO)"); break;
+    case FM_DOUT: DEBUG_PRINT(" (DOUT)");break;
     default: break;
   }
-  USER_PRINT(F(", speed ")); USER_PRINT(ESP.getFlashChipSpeed()/1000000);USER_PRINTLN(F("MHz."));  
+  USER_PRINT(", speed "); USER_PRINT(ESP.getFlashChipSpeed()/1000000);USER_PRINTLN("MHz.");  
 #endif
 
 

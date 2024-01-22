@@ -65,9 +65,19 @@ String sysTools_getRestartReason() {
   longText = longText + ".";
   return longText;
 }
-	
 
+// helper for SysModSystem::addRestartReasonsSelect. Returns "(#) ReasonText"
+String sysTools_restart2String(int reasoncode) {
+  esp_reset_reason_t restartCode = esp_reset_reason_t(reasoncode); // its a trick, not a sony ;-)
+  String longText = String("(") + String(reasoncode) + String( ") ") + restartCode2Info(restartCode);
+  return longText;
+}
 
+// helper for SysModSystem::addResetReasonsSelect. Returns "CoreResetReasonText (#)"
+String sysTools_reset2String(int resetCode) {
+  String longText = resetCode2Info(resetCode) + String(" (") + String(resetCode) + String(")");
+  return longText;
+}
 
 
 // stack debug tools - find loopTask task, and queries it's free stack size
@@ -191,7 +201,7 @@ static String restartCode2Info(esp_reset_reason_t reason) {
       case ESP_RST_POWERON:  return("power-on event"); break;
       case ESP_RST_EXT:      return("external pin reset"); break;
       case ESP_RST_SW:       return("SW restart by esp_restart()"); break;
-      case ESP_RST_PANIC:    return("SW error (panic or exception)"); break;
+      case ESP_RST_PANIC:    return("SW error - panic or exception"); break;
       case ESP_RST_INT_WDT:  return("interrupt watchdog"); break;
       case ESP_RST_TASK_WDT: return("task watchdog"); break;
       case ESP_RST_WDT:      return("other watchdog"); break;

@@ -55,7 +55,7 @@ void SysModPins::setup() {
       pinNr++;
     }
   });
-  ui->initNumber(tableVar, "pinNr", uint16Max, 0, NUM_PINS, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Pin");
   });
   ui->initText(tableVar, "pinOwner", nullptr, 32, true, [](JsonObject var) { //uiFun
@@ -65,7 +65,7 @@ void SysModPins::setup() {
     web->addResponse(var["id"], "label", "Details");
   });
 
-  ui->initCanvas(parentVar, "board", uint16Max, true, [](JsonObject var) { //uiFun
+  ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Board layout");
     web->addResponse(var["id"], "comment", "WIP");
   }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun

@@ -123,6 +123,7 @@ canvas {
 	width: 100%;
 	height: 100%;
 	border-radius: 12px;
+	border: 1px solid black;
 	background: transparent;
 	cursor: default;
 }
@@ -180,7 +181,9 @@ div {
   font-family: Arial, Helvetica, sans-serif;
   border-collapse: collapse;
   width: 100%;
-  border-radius: .5em; /*does not seem to work */
+  border-radius: 10px; /*does not seem to work */
+  border-style: hidden; /* hide standard table (collapsed) border */
+  box-shadow: 0 0 0 1px #666; /* this draws the table border  */ 
 }
 
 .table td, .table th {

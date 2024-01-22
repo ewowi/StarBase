@@ -24,7 +24,7 @@ public:
 
     parentVar = ui->initAppMod(parentVar, name);
 
-    ui->initCanvas(parentVar, "pview", uint16Max, false, [](JsonObject var) { //uiFun
+    ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Preview");
       web->addResponse(var["id"], "comment", "Shows the fixture");
       // web->addResponse(var["id"], "comment", "Click to enlarge");

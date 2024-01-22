@@ -1000,7 +1000,7 @@ public:
 
     ledsV.fx = mdl->varToValue(parentVar, rowNr);
 
-    if (rowNr != uint8Max)
+    if (rowNr != UINT8_MAX)
       parentVar["rowNr"] = rowNr; //store the rownNr of the updated value to send back to ui
 
     USER_PRINTF("setEffect %d\n", ledsV.fx);
@@ -1030,7 +1030,7 @@ public:
       sharedData.clear(); //make sure all values are 0
 
       // nullify values for this row
-      if (rowNr != uint8Max) {
+      if (rowNr != UINT8_MAX) {
         for (JsonObject var: parentVar["n"].as<JsonArray>()) {
           if (var["value"].is<JsonArray>()) {
             var["value"][rowNr] = -99; //unused value for this row, so don't show
@@ -1046,7 +1046,7 @@ public:
 
       // // nullify values for this row
       // for (JsonObject var: parentVar["n"].as<JsonArray>()) {
-      //   if (rowNr != uint8Max) {
+      //   if (rowNr != UINT8_MAX) {
       //     if (var["value"].is<JsonArray>()) {
       //       var["value"][rowNr] = -99; //unused value for this row, so don't show
       //     } else {

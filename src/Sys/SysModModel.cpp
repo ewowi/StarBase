@@ -204,7 +204,7 @@ JsonVariant SysModModel::getValue(const char * id, uint8_t rowNr) {
   if (!var.isNull()) {
     if (var["value"].is<JsonArray>()) {
       JsonArray varVal = var["value"].as<JsonArray>();
-      return (rowNr == uint8Max)?var["value"][0]:var["value"][rowNr]; //return first value of no array
+      return (rowNr == UINT8_MAX)?var["value"][0]:var["value"][rowNr]; //return first value of no array
     }
     else
       return var["value"];
@@ -275,7 +275,7 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
 
 JsonVariant SysModModel::varToValue(JsonObject var, u_int8_t rowNr) {
   if (var["value"].is<JsonArray>())
-    return (rowNr == uint8Max)?var["value"][0]:var["value"][rowNr];
+    return (rowNr == UINT8_MAX)?var["value"][0]:var["value"][rowNr];
   else
     return var["value"];
 }

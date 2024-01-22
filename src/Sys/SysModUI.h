@@ -83,25 +83,25 @@ public:
     return initVarAndUpdate<const char *>(parent, id, "password", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initNumber(JsonObject parent, const char * id, int value = uint16Max, int min = 0, int max = uint16Max, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+  JsonObject initNumber(JsonObject parent, const char * id, int value = UINT16_MAX, int min = 0, int max = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "number", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
-  JsonObject initCoord3D(JsonObject parent, const char * id, int value = uint16Max, int min = 0, int max = uint16Max, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+  JsonObject initCoord3D(JsonObject parent, const char * id, int value = UINT16_MAX, int min = 0, int max = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "coord3D", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   //init a range slider, range between 0 and 255!
-  JsonObject initSlider(JsonObject parent, const char * id, int value = uint16Max, int min = 0, int max = 255, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
+  JsonObject initSlider(JsonObject parent, const char * id, int value = UINT16_MAX, int min = 0, int max = 255, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "range", value, min, max, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initCanvas(JsonObject parent, const char * id, int value = uint16Max, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
+  JsonObject initCanvas(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "canvas", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  //supports 3 state value: if uint16Max it is indeterminated
-  JsonObject initCheckBox(JsonObject parent, const char * id, int value = uint16Max, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+  //supports 3 state value: if UINT16_MAX it is indeterminated
+  JsonObject initCheckBox(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "checkbox", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
@@ -109,7 +109,7 @@ public:
     return initVarAndUpdate<const char *>(parent, id, "button", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
-  JsonObject initSelect(JsonObject parent, const char * id, int value = uint16Max, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
+  JsonObject initSelect(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "select", value, 0, 0, readOnly, uiFun, chFun, loopFun);
   }
 
@@ -132,10 +132,10 @@ public:
         bool isChar = std::is_same<Type, const char *>::value;
         if (isChar)
           var["value"] = (char *)value; //if char make a copy !!
-        else {//if (value != uint16Max)
+        else {//if (value != UINT16_MAX)
           var["value"] = value; //if value is a pointer, it needs to have a value
           //workaround
-          if (var["value"].as<int>() == uint16Max)
+          if (var["value"].as<int>() == UINT16_MAX)
             var.remove("value");
         }
       }
@@ -167,7 +167,7 @@ public:
     }
 
     if (min) var["min"] = min;
-    if (max && max != uint16Max) var["max"] = max;
+    if (max && max != UINT16_MAX) var["max"] = max;
 
     //no call of fun for buttons otherwise all buttons will be fired which is highly undesirable
     if (strcmp(type,"button") != 0 && chFun && (!isPointer || value)) { //!isPointer because 0 is also a value then
@@ -179,7 +179,7 @@ public:
         }
       }
       else
-        chFun(var, uint8Max);
+        chFun(var, UINT8_MAX);
     }
     return var;
   }
@@ -187,7 +187,7 @@ public:
   JsonObject initVar(JsonObject parent, const char * id, const char * type, bool readOnly = true, UFun uiFun = nullptr, CFun chFun = nullptr, LoopFun loopFun = nullptr);
 
   //run the change function and send response to all? websocket clients
-  static void setChFunAndWs(JsonObject var, uint8_t rowNr = uint8Max, const char * value = nullptr);
+  static void setChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX, const char * value = nullptr);
 
   //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
   static const char * processJson(JsonVariant &json); //static for setupJsonHandlers

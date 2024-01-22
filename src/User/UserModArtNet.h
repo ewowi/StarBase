@@ -35,7 +35,7 @@ public:
 
     parentVar = ui->initUserMod(parentVar, name);
 
-    ui->initSelect(parentVar, "artInst", uint16Max, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "artInst", UINT16_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Instance");
       web->addResponse(var["id"], "comment", "Instance to send data");
       JsonArray select = web->addResponseA(var["id"], "options");

@@ -64,7 +64,7 @@ void SysModUI::setup() {
   initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  initNumber(tableVar, "vlLoopps", uint16Max, 0, 999, true, [](JsonObject var) { //uiFun
+  initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Loops p s");
   });
 
@@ -265,10 +265,15 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
   web->sendDataWs(responseVariant);
 }
 
-const char * SysModUI::processJson(JsonVariant &json) {
+const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
   if (json.is<JsonObject>()) //should be
   {
+     //uiFun adds object elements to json which would be processed in the for loop. So we freeze the original pairs in a vector and loop on this
+    std::vector<JsonPair> pairs;
     for (JsonPair pair : json.as<JsonObject>()) { //iterate json elements
+      pairs.push_back(pair);
+    }
+    for (JsonPair pair : pairs) { //iterate json elements
       const char * key = pair.key().c_str();
       JsonVariant value = pair.value();
 
@@ -325,65 +330,68 @@ const char * SysModUI::processJson(JsonVariant &json) {
           USER_PRINTF("processJson value not array? %s %s\n", key, value.as<String>().c_str());
         json.remove(key); //key processed we don't need the key in the response
       } 
-      else { //normal change
-        if (!value.is<JsonObject>()) { //no vars (inserted by uiFun responses)
+      else if (!value["value"].isNull()) { // {"varid": {"value":value}}
 
-          //check if we deal with multiple rows (from table type)
-          char * rowNr = strtok((char *)key, "#");
-          if (rowNr != NULL ) {
-            key = rowNr;
-            rowNr = strtok(NULL, " ");
-          }
-
-          JsonObject var = mdl->findVar(key);
-
-          USER_PRINTF("processJson k:%s r:%s (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value.as<String>().c_str(), var["value"] == value);
-
-          if (!var.isNull())
-          {
-            bool changed = false;
-            //if we deal with multiple rows, value should be an array and check the corresponding array item
-            //if value not array we change it anyway
-            if (rowNr) {
-              //var value should be array
-              if (var["value"].is<JsonArray>()) {
-                if (value.is<bool>()) {
-                  bool varValue = var["value"][atoi(rowNr)];
-                  bool newValue = value;
-                  changed = (varValue && !newValue) || (!varValue && newValue);
-                }
-                else
-                  changed = var["value"][atoi(rowNr)] != value;
-              }
-              else {
-                print->printJson("we want an array for value but var:", var);
-                print->printJson("   value:", value);
-                changed = true; //we should change anyway
-              }
-            }
-            else //normal situation
-              changed = var["value"] != value;
-
-            if (var["type"] == "button") //button always
-              setChFunAndWs(var, rowNr?atoi(rowNr):uint8Max, value); //bypass var["value"] 
-            else if (changed) {
-              // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
-
-              //set new value
-              if (value.is<const char *>())
-                mdl->setValue<JsonString>(key, JsonString(value, JsonString::Copied), rowNr?atoi(rowNr):-1);
-              else if (value.is<bool>())
-                mdl->setValue<bool>(key, value.as<bool>(), rowNr?atoi(rowNr):-1);
-              else if (value.is<int>())
-                mdl->setValue<int>(key, value.as<int>(), rowNr?atoi(rowNr):-1);
-              else {
-                USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
-              }
-            }
-          }
-          else
-            USER_PRINTF("Object %s not found\n", key);
+        //check if we deal with multiple rows (from table type)
+        char * rowNr = strtok((char *)key, "#");
+        if (rowNr != NULL ) {
+          key = rowNr;
+          rowNr = strtok(NULL, " ");
         }
+
+        JsonObject var = mdl->findVar(key);
+
+        USER_PRINTF("processJson k:%s r:%s (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value.as<String>().c_str(), var["value"] == value["value"]);
+
+        if (!var.isNull())
+        {
+          bool changed = false;
+          //if we deal with multiple rows, value should be an array and check the corresponding array item
+          //if value not array we change it anyway
+          if (rowNr) {
+            //var value should be array
+            if (var["value"].is<JsonArray>()) {
+              if (value["value"].is<bool>()) {
+                bool varValue = var["value"][atoi(rowNr)];
+                bool newValue = value["value"];
+                changed = (varValue && !newValue) || (!varValue && newValue);
+              }
+              else
+                changed = var["value"][atoi(rowNr)] != value["value"];
+            }
+            else {
+              print->printJson("we want an array for value but var:", var);
+              print->printJson("   value:", value["value"]);
+              changed = true; //we should change anyway
+            }
+          }
+          else //no array situation
+            changed = var["value"] != value["value"];
+
+          if (var["type"] == "button") //button always
+            setChFunAndWs(var, rowNr?atoi(rowNr):UINT8_MAX, value["value"]); //bypass var["value"] 
+          else if (changed) {
+            // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
+
+            //set new value
+            if (value["value"].is<const char *>())
+              mdl->setValue<JsonString>(key, JsonString(value["value"], JsonString::Copied), rowNr?atoi(rowNr):-1);
+            else if (value["value"].is<bool>())
+              mdl->setValue<bool>(key, value["value"].as<bool>(), rowNr?atoi(rowNr):-1);
+            else if (value["value"].is<int>())
+              mdl->setValue<int>(key, value["value"].as<int>(), rowNr?atoi(rowNr):-1);
+            else if (value["value"].is<JsonObject>())
+              mdl->setValue<JsonObject>(key, value["value"].as<JsonObject>(), rowNr?atoi(rowNr):-1);
+            else {
+              USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
+            }
+          }
+        }
+        else
+          USER_PRINTF("Object %s not found\n", key);
+      } 
+      else {
+        USER_PRINTF("processJson command not recognized k:%s v:%s\n", key, value.as<String>().c_str());
       }
     } //for json pairs
   }

@@ -44,18 +44,18 @@ void SysModules::setup() {
     var["value"][rowNr] = modules[rowNr]->name;
   });
 
-  ui->initCheckBox(tableVar, "mdlSucces", uint16Max, true, [this](JsonObject var) { //uiFun
+  ui->initCheckBox(tableVar, "mdlSucces", UINT16_MAX, true, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Success");
   }, nullptr, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
     var["value"][rowNr] = modules[rowNr]->success;
   });
 
-  ui->initCheckBox(tableVar, "mdlEnabled", uint16Max, false, [this](JsonObject var) { //uiFun not readonly! (tbd)
+  ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, false, [this](JsonObject var) { //uiFun not readonly! (tbd)
     //initially set to true, but as enabled are table cells, will be updated to an array
     web->addResponse(var["id"], "label", "Enabled");
   }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
-    if (rowNr != uint8Max) {
+    if (rowNr != UINT8_MAX) {
       modules[rowNr]->isEnabled = var["value"][rowNr];
       modules[rowNr]->enabledChanged();
     }

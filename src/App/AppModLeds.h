@@ -145,9 +145,15 @@ public:
 
     ui->initCoord3D(tableVar, "fxStart", 0, 0, 127, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Start");
+    }, [this](JsonObject var, uint8_t rowNr) { //chFun
+      ledsV.startPos = mdl->varToValue(var, rowNr).as<Coord3D>();
+      doMap = true;
     });
     ui->initCoord3D(tableVar, "fxEnd", 0, 0, 127, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "End");
+    }, [this](JsonObject var, uint8_t rowNr) { //chFun
+      ledsV.endPos = mdl->varToValue(var, rowNr).as<Coord3D>();
+      doMap = true;
     });
 
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
@@ -178,13 +184,13 @@ public:
       }
     }); //fixture
 
-    ui->initText(parentVar, "dimensions", nullptr, 32, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "dimensions", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
       print->fFormat(details, sizeof(details)-1, "P:%dx%dx%d V:%dx%dx%d", ledsV.widthP, ledsV.heightP, ledsV.depthP, ledsV.widthV, ledsV.heightV, ledsV.depthV);
       web->addResponse(var["id"], "value", details);
     });
 
-    ui->initText(parentVar, "nrOfLeds", nullptr, 32, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "nrOfLeds", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
       print->fFormat(details, sizeof(details)-1, "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
       web->addResponse(var["id"], "value", details);

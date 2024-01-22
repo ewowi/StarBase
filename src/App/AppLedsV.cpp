@@ -86,106 +86,80 @@ void LedsV::fixtureProjectAndMap() {
       if (uint16CollectList.size()>=1 && fixtureDimension>=1 && fixtureDimension<=3) {
 
         uint16_t x = uint16CollectList[0] / 10;
-        uint16_t y = (fixtureDimension>=2)?uint16CollectList[1] / 10 : 1;
-        uint16_t z = (fixtureDimension>=3)?uint16CollectList[2] / 10 : 1;
+        uint16_t y = (fixtureDimension>=2)?uint16CollectList[1] / 10 : 0;
+        uint16_t z = (fixtureDimension>=3)?uint16CollectList[2] / 10 : 0;
 
-        // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, fixtureDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2]);
+        // USER_PRINTF("led %d,%d,%d start %d,%d,%d end %d,%d,%d\n",x,y,z, startPos.x, startPos.y, startPos.z, endPos.x, endPos.y, endPos.z);
 
-        //processing: buckets
-        uint16_t bucket = uint16Max;
-        switch(projectionNr) {
-          case p_None:
-            break;
-          case p_Random:
-            break;
-          case p_DistanceFromPoint:
-          case p_DistanceFromCenter:
-            if (effectDimension == _1D) {
-              if (fixtureDimension == _1D)
-                bucket = distance(x,0, 0,startPos.x,0,0);
-              else if (fixtureDimension == _2D) { 
-                bucket = distance(x,y,0,startPos.x,startPos.y,0);
-                // USER_PRINTF("bucket %d-%d %d-%d %d\n", x,y, startPos.x, startPos.y, bucket);
-              }
-              else if (fixtureDimension == _3D)
-                bucket = distance(x,y,z,startPos.x, startPos.y, startPos.z);
-            }
-            else if (effectDimension == _2D) {
-              depthV = 1; //no 3D
-              if (fixtureDimension == _1D)
-                bucket = x;
-              else if (fixtureDimension == _2D) {
-                widthV = widthP;
-                heightV = heightP;
-                depthV = 1;
+        if (x >= startPos.x && x <=endPos.x && y >= startPos.y && y <=endPos.y && z >= startPos.z && z <=endPos.z ) {
 
-                //scaling (check rounding errors)
-                //1024 crash in makebuffer...
-                float scale = 1;
-                if (widthV * heightV > 256)
-                  scale = (sqrt((float)256.0 / (widthV * heightV))); //avoid very high virtual resolutions
-                widthV *= scale;
-                heightV *= scale;
-                x = (x+1) * scale - 1;
-                y = (y+1) * scale - 1;
+          // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, fixtureDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], widthP, heightP, depthP);
 
-                bucket = XY(x, y);
-                // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
-              }
-              else if (fixtureDimension == _3D) {
-                widthV = widthP + heightP;
-                heightV = depthP;
-                depthV = 1;
-                bucket = XY(x + y + 1, z);
-                // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, widthV);
-              }
-            }
-            //tbd: effect is 3D
-            break;
-          case p_Reverse:
-            break;
-          case p_Mirror:
-            break;
-          case p_Multiply:
-            break;
-          case p_Fun: //first attempt for distance from Circle 2D
-            if (effectDimension == _2D) {
-              depthV = 1; //no 3D
-              if (fixtureDimension == _2D) {
-
-                float xNew = sin(x * TWO_PI / (float)(widthV-1)) * widthV;
-                float yNew = cos(x * TWO_PI / (float)(widthV-1)) * heightV;
-
-                xNew = round(((heightV-1.0-y)/(heightV-1.0) * xNew + widthV) / 2.0);
-                yNew = round(((heightV-1.0-y)/(heightV-1.0) * yNew + heightV) / 2.0);
-
-                USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
-                x = xNew;
-                y = yNew;
-
-                widthV = widthP;
-                heightV = heightP;
-                depthV = 1;
-
-                bucket = XY(x, y);
-                // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
-              }
-            }
-            break;
-        }
-
-        if (bucket != uint16Max) {
-          //post processing: inverse mapping 
+          //calculate the bucket to add to current physical led to
+          uint16_t bucket = UINT16_MAX;
           switch(projectionNr) {
-          case p_DistanceFromCenter:
-            switch (effectDimension) {
-            case _2D: 
-              switch (fixtureDimension) {
-              case _2D: 
-                float minDistance = 10;
-                // USER_PRINTF("checking bucket %d\n", bucket);
-                for (uint16_t y=0; y<heightV && minDistance > 0.5; y++)
-                for (uint16_t x=0; x<widthV && minDistance > 0.5; x++) {
+            case p_None:
+              break;
+            case p_Random:
+              break;
+            case p_DistanceFromPoint:
+            case p_DistanceFromCenter:
+              if (effectDimension == _1D) {
+                if (fixtureDimension == _1D)
+                  bucket = distance(x,0, 0,startPos.x,0,0);
+                else if (fixtureDimension == _2D) { 
+                  bucket = distance(x,y,0,startPos.x,startPos.y,0);
+                  // USER_PRINTF("bucket %d-%d %d-%d %d\n", x,y, startPos.x, startPos.y, bucket);
+                }
+                else if (fixtureDimension == _3D)
+                  bucket = distance(x,y,z,startPos.x, startPos.y, startPos.z);
+              }
+              else if (effectDimension == _2D) {
+                depthV = 1; //no 3D
+                if (fixtureDimension == _1D)
+                  bucket = x;
+                else if (fixtureDimension == _2D) {
+                  widthV = abs(endPos.x - startPos.x + 1);
+                  heightV = abs(endPos.y - startPos.y + 1);
+                  depthV = 1;
+
+                  x-= startPos.x;
+                  y-= startPos.y;
+                  z-= startPos.z;
+
+                  //scaling (check rounding errors)
+                  //1024 crash in makebuffer...
+                  float scale = 1;
+                  if (widthV * heightV > 256)
+                    scale = (sqrt((float)256.0 / (widthV * heightV))); //avoid very high virtual resolutions
+                  widthV *= scale;
+                  heightV *= scale;
+                  x = (x+1) * scale - 1;
+                  y = (y+1) * scale - 1;
+
+                  bucket = XY(x, y);
+                  // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
+                }
+                else if (fixtureDimension == _3D) {
+                  widthV = widthP + heightP;
+                  heightV = depthP;
+                  depthV = 1;
+                  bucket = XY(x + y + 1, z);
+                  // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, widthV);
+                }
+              }
+              //tbd: effect is 3D
+              break;
+            case p_Reverse:
+              break;
+            case p_Mirror:
+              break;
+            case p_Multiply:
+              break;
+            case p_Fun: //first attempt for distance from Circle 2D
+              if (effectDimension == _2D) {
+                depthV = 1; //no 3D
+                if (fixtureDimension == _2D) {
 
                   float xNew = sin(x * TWO_PI / (float)(widthV-1)) * widthV;
                   float yNew = cos(x * TWO_PI / (float)(widthV-1)) * heightV;
@@ -193,51 +167,87 @@ void LedsV::fixtureProjectAndMap() {
                   xNew = round(((heightV-1.0-y)/(heightV-1.0) * xNew + widthV) / 2.0);
                   yNew = round(((heightV-1.0-y)/(heightV-1.0) * yNew + heightV) / 2.0);
 
-                  // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
+                  USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
+                  x = xNew;
+                  y = yNew;
 
-                  float distance = abs(bucket - xNew - yNew * widthV);
+                  widthV = widthP;
+                  heightV = heightP;
+                  depthV = 1;
 
-                  //this should work (better) but needs more testing
-                  // if (distance < minDistance) {
-                  //   minDistance = distance;
-                  //   bucket = x+y*widthV;
-                  // }
-
-                  if (bucket == (uint8_t)xNew + (uint8_t)yNew * widthV) {
-                    // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", bucket, x+y*widthV, x,y, widthV, xNew, yNew, widthV, distance);
-                    bucket = XY(x, y);
-                    minDistance = 0; // stop looking further
-                  }
+                  bucket = XY(x, y);
+                  // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
                 }
-                if (minDistance > 0.5) bucket = -1;
+              }
+              break;
+          }
+
+          if (bucket != UINT16_MAX) {
+            //post processing: inverse mapping
+            switch(projectionNr) {
+            case p_DistanceFromCenter:
+              switch (effectDimension) {
+              case _2D: 
+                switch (fixtureDimension) {
+                case _2D: 
+                  float minDistance = 10;
+                  // USER_PRINTF("checking bucket %d\n", bucket);
+                  for (uint16_t y=0; y<heightV && minDistance > 0.5; y++)
+                  for (uint16_t x=0; x<widthV && minDistance > 0.5; x++) {
+
+                    float xNew = sin(x * TWO_PI / (float)(widthV-1)) * widthV;
+                    float yNew = cos(x * TWO_PI / (float)(widthV-1)) * heightV;
+
+                    xNew = round(((heightV-1.0-y)/(heightV-1.0) * xNew + widthV) / 2.0);
+                    yNew = round(((heightV-1.0-y)/(heightV-1.0) * yNew + heightV) / 2.0);
+
+                    // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
+
+                    float distance = abs(bucket - xNew - yNew * widthV);
+
+                    //this should work (better) but needs more testing
+                    // if (distance < minDistance) {
+                    //   minDistance = distance;
+                    //   bucket = x+y*widthV;
+                    // }
+
+                    if (bucket == (uint8_t)xNew + (uint8_t)yNew * widthV) {
+                      // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", bucket, x+y*widthV, x,y, widthV, xNew, yNew, widthV, distance);
+                      bucket = XY(x, y);
+                      minDistance = 0; // stop looking further
+                    }
+                  }
+                  if (minDistance > 0.5) bucket = -1;
+                  break;
+                }
                 break;
               }
               break;
             }
-            break;
-          }
 
-          if (bucket != uint16Max) {
-            //add physical tables if not present
-            if (bucket >= NUM_LEDS_Preview) {
-              USER_PRINTF("mapping add physMap %d>=%d (%d) too big %d\n", bucket, NUM_LEDS_Preview, mappingTable.size(), uint16Max);
-            }
-            else {
-              if (bucket >= mappingTable.size()) {
-                for (int i = mappingTable.size(); i<=bucket;i++) {
-                  // USER_PRINTF("mapping add physMap %d %d\n", bucket, mappingTable.size());
-                  std::vector<uint16_t> physMap;
-                  mappingTable.push_back(physMap);
-                }
+            if (bucket != UINT16_MAX) { //can be nulled by inverse mapping 
+              //add physical tables if not present
+              if (bucket >= NUM_LEDS_Preview) {
+                USER_PRINTF("mapping add physMap %d>=%d (%d) too big %d\n", bucket, NUM_LEDS_Preview, mappingTable.size(), UINT16_MAX);
               }
-              mappingTable[bucket].push_back(mappingTableLedCounter);
+              else {
+                //create new physMaps if needed
+                if (bucket >= mappingTable.size()) {
+                  for (int i = mappingTable.size(); i<=bucket;i++) {
+                    // USER_PRINTF("mapping add physMap %d %d\n", bucket, mappingTable.size());
+                    std::vector<uint16_t> physMap;
+                    mappingTable.push_back(physMap);
+                  }
+                }
+                mappingTable[bucket].push_back(mappingTableLedCounter); //add the current led in the right physMap
+              }
             }
           }
-        }
 
-        // USER_PRINTF("mapping %d V:%d P:%d\n", dist, mappingTable.size(), mappingTableLedCounter);
+          // USER_PRINTF("mapping %d V:%d P:%d\n", dist, mappingTable.size(), mappingTableLedCounter);
 
-        // delay(1); //feed the watchdog
+          // delay(1); //feed the watchdog
+        } //if x,y,z between start and endpos
         mappingTableLedCounter++; //also increase if no buffer created
       } //if 1D-3D
       else { // end of leds array
@@ -272,7 +282,7 @@ void LedsV::fixtureProjectAndMap() {
       }
     }); //create the right type, otherwise crash
 
-    if (jrdws.deserialize(false)) {
+    if (jrdws.deserialize(false)) { //this will call above function parameter for each led
 
       if (projectionNr <= p_Random) {
         //defaults

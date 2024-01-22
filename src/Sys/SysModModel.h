@@ -99,11 +99,11 @@ public:
 
   //sets the value of var with id
   template <typename Type>
-  JsonObject setValue(const char * id, Type value, uint8_t rowNr = uint8Max) {
+  JsonObject setValue(const char * id, Type value, uint8_t rowNr = UINT8_MAX) {
     JsonObject var = findVar(id);
     if (!var.isNull()) {
       // print->printJson("setValueB", var);
-      if (rowNr == uint8Max) { //normal situation
+      if (rowNr == UINT8_MAX) { //normal situation
         bool same;
         // if (std::is_same<Type, const char *>::value)
         //   same = var["value"] != value;
@@ -154,7 +154,7 @@ public:
   //Send value directly to ws (tbd: no model function but web?)
   void setValueLossy(const char * id, const char * format, ...);
 
-  JsonVariant getValue(const char * id, uint8_t rowNr = uint8Max);
+  JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX);
 
   // //tbd
   // template <typename Type>

@@ -320,12 +320,17 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
         xNode.min = variable.min?variable.min:0; //if not specified then unsigned value (min=0)
         if (variable.max) xNode.max = variable.max;
         xNode.placeholder = "x";
+        xNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
+        varNode.appendChild(xNode);
+
         let yNode = xNode.cloneNode();
         yNode.placeholder = "y";
+        yNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
+        varNode.appendChild(yNode);
+
         let zNode = xNode.cloneNode();
         zNode.placeholder = "z";
-        varNode.appendChild(xNode);
-        varNode.appendChild(yNode);
+        zNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
         varNode.appendChild(zNode);
     } else {
       //input types: text, search, tel, url, email, and password.
@@ -777,7 +782,7 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
       if (commandJson.value) node.value = commandJson.value; //else the id / label is used as button label
     }
     else if (node.className == "coord3D") {
-      console.log("chHTML value coord3D", node, commandJson.value, rowNr);
+      // console.log("chHTML value coord3D", node, commandJson.value, rowNr);
 
       if (commandJson.value && Object.keys(commandJson.value)) { //tbd: support arrays (now only objects)
         let index = 0;
@@ -925,29 +930,37 @@ function requestJson(command) {
   });
 }
 
-function sendValue(element) {
+function sendValue(varNode) {
   let varId;
-  if (element.id == "saveModel" || element.id == "bSave") {
+  if (varNode.id == "saveModel" || varNode.id == "bSave") {
     varId = "saveModel";
     gId("bSave").value = "Save";
     gId("bSave").disabled = true;
   }
   else 
   {
-    varId = element.id;
+    varId = varNode.id;
     gId("bSave").value = "Save*";
     gId("bSave").disabled = false;
   }
 
   var command = {};
-  if (element.type == "checkbox")
-    command[varId] = element.checked;
-  else if (element.nodeName.toLocaleLowerCase() == "span")
-    command[varId] = element.innerText;
-  else
-    command[varId] = Number(element.value)?Number(element.value):element.value; //type number is default but html converts numbers in <option> to string
-  // console.log("sendValue", command);
-
+  command[varId] = {};
+  if (varNode.className == "checkbox")
+    command[varId].value = varNode.checked;
+  else if (varNode.nodeName.toLocaleLowerCase() == "span")
+    command[varId].value = varNode.innerText;
+  else if (varNode.className == "coord3D") {
+    let coord = {};
+    coord.x = varNode.childNodes[0].value;
+    coord.y = varNode.childNodes[1].value;
+    coord.z = varNode.childNodes[2].value;
+    console.log("coord", coord);
+    command[varId].value = coord;
+  }
+  else //number etc
+    command[varId].value = Number(varNode.value)?Number(varNode.value):varNode.value; //type number is default but html converts numbers in <option> to string
+  console.log("sendValue", command);
   
   requestJson(command);
 }
@@ -955,35 +968,35 @@ function sendValue(element) {
 let isModal = false;
 let modalPlaceHolder;
 
-function toggleModal(element) { //canvas or textarea
-  // console.log("toggleModal", element);
+function toggleModal(varNode) { //canvas or textarea
+  // console.log("toggleModal", varNode);
   isModal = !isModal;
 
 	if (isModal) {
 
-    modalPlaceHolder = cE(element.nodeName.toLocaleLowerCase()); //create canvas or textarea
-    modalPlaceHolder.width = element.width;
-    modalPlaceHolder.height = element.height;
+    modalPlaceHolder = cE(varNode.nodeName.toLocaleLowerCase()); //create canvas or textarea
+    modalPlaceHolder.width = varNode.width;
+    modalPlaceHolder.height = varNode.height;
 
-    element.parentNode.replaceChild(modalPlaceHolder, element); //replace by modalPlaceHolder
+    varNode.parentNode.replaceChild(modalPlaceHolder, varNode); //replace by modalPlaceHolder
 
     // let btn = cE("button");
     // btn.innerText = "close";
-    // btn.addEventListener('click', (event) => {toggleModal(element);});
+    // btn.addEventListener('click', (event) => {toggleModal(varNode);});
     // gId('modalView').appendChild(btn);
 
-    gId('modalView').appendChild(element);
-    element.width = window.innerWidth;
-    element.height = window.innerHeight;
-    // console.log("toggleModal +", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
+    gId('modalView').appendChild(varNode);
+    varNode.width = window.innerWidth;
+    varNode.height = window.innerHeight;
+    // console.log("toggleModal +", varNode, modalPlaceHolder, varNode.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
 	}
   else {    
-    element.width = modalPlaceHolder.getBoundingClientRect().width;
-    element.height = modalPlaceHolder.getBoundingClientRect().height;
+    varNode.width = modalPlaceHolder.getBoundingClientRect().width;
+    varNode.height = modalPlaceHolder.getBoundingClientRect().height;
 
-    // console.log("toggleModal -", element, modalPlaceHolder, element.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
+    // console.log("toggleModal -", varNode, modalPlaceHolder, varNode.getBoundingClientRect(), modalPlaceHolder.getBoundingClientRect().width, modalPlaceHolder.getBoundingClientRect().height, modalPlaceHolder.width, modalPlaceHolder.height);
     
-    modalPlaceHolder.parentNode.replaceChild(element, modalPlaceHolder); // //replace by element. modalPlaceHolder loses rect
+    modalPlaceHolder.parentNode.replaceChild(varNode, modalPlaceHolder); // //replace by varNode. modalPlaceHolder loses rect
   }
 
 	gId('modalView').style.transform = (isModal) ? "translateY(0px)":"translateY(100%)";

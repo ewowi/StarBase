@@ -199,13 +199,13 @@ public:
     ui->initText(tableVar, "insType", nullptr, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Type");
     });
-    ui->initNumber(tableVar, "insVersion", uint16Max, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "insVersion", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Version");
     });
-    ui->initNumber(tableVar, "insUp", uint16Max, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "insUp", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Uptime");
     });
-    // ui->initNumber(tableVar, "insTime", uint16Max, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
+    // ui->initNumber(tableVar, "insTime", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
     //   web->addResponse(var["id"], "label", "Timestamp");
     // });
 
@@ -242,7 +242,7 @@ public:
       //create a var of the same type. InitVar is not calling chFun which is good in this situation!
       newVar = ui->initVar(tableVar, columnVarID, var["type"], false, nullptr, [this, var](JsonObject newVar, uint8_t rowNr) { //chFun
 
-        if (rowNr != uint8Max) {
+        if (rowNr != UINT8_MAX) {
           //if this instance update directly, otherwise send over network
           if (instances[rowNr].ip == WiFi.localIP()) {
             mdl->setValue<int>(var["id"], mdl->varToValue(newVar, rowNr).as<uint8_t>());
@@ -595,10 +595,11 @@ public:
       } //ip
     }
     if (!instanceFound) {
+      USER_PRINTF("insTbl updateNode %d\n", messageIP[3]);
+      
       ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
       ui->processUiFun("artInst"); //show the new instance in the dropdown  
 
-      USER_PRINTF("insTbl updateNode %d\n", messageIP[3]);
       ui->processUiFun("insTbl");
     }
 

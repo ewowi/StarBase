@@ -88,8 +88,8 @@ void setup() {
   //Reorder with care! If changed make sure mdlEnabled.chFun executes var.createNestedArray("value"); and saveModel! 
   //Default: add below, not in between
   #ifdef APPMOD_LEDS
-    mdls->add(lds);
     mdls->add(pvw);
+    mdls->add(lds);
     mdls->add(lfg);
   #endif
   mdls->add(files);

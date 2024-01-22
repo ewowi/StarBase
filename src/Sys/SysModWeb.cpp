@@ -66,16 +66,16 @@ void SysModWeb::setup() {
     // web->clientsToJson(rows);
   });
 
-  ui->initNumber(tableVar, "clNr", uint16Max, 0, 999, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Nr");
   });
   ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "IP");
   });
-  ui->initCheckBox(tableVar, "clIsFull", uint16Max, true, [](JsonObject var) { //uiFun
+  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Is full");
   });
-  ui->initSelect(tableVar, "clStatus", uint16Max, true, [](JsonObject var) { //uiFun
+  ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
     //tbd: not working yet in ui
     JsonArray select = web->addResponseA(var["id"], "options");
@@ -83,7 +83,7 @@ void SysModWeb::setup() {
     select.add("Connected"); //1
     select.add("Disconnecting"); //2
   });
-  ui->initNumber(tableVar, "clLength", uint16Max, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Length");
   });
 
@@ -256,7 +256,8 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
         USER_PRINT_Async("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
       }
 
-      USER_PRINT_Async("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+      // USER_PRINT_Async("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+      USER_PRINTF("💀");
 
       if(info->opcode == WS_TEXT){
         for(size_t i=0; i < len; i++) {
@@ -272,10 +273,12 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
       // }
       USER_PRINT_Async("%s\n",msg.c_str());
 
-      if((info->index + len) == info->len){
-        USER_PRINT_Async("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+      if ((info->index + len) == info->len) {
+        // USER_PRINT_Async("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+        USER_PRINTF("👻");
         if(info->final){
-          USER_PRINT_Async("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          // USER_PRINT_Async("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          USER_PRINTF("☠️");
           if(info->message_opcode == WS_TEXT)
             client->text("I got your text message");
           else

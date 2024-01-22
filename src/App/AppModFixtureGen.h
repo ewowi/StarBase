@@ -726,11 +726,12 @@ public:
       
       genFix.openHeader("3DSideCube%d%d", length, sides);
 
+      //use (uint16_t)(length+1) to surpress warning warning: narrowing conversion of '(((int)length) + 1)' from 'int' to 'uint16_t' {aka 'short unsigned int'} inside { } [-Wnarrowing]
       genFix.plane3D({1, 1, 0},   {length, length, 0}, true); // front (z=0, first x then y)
-      genFix.plane3D({length, length+1, length}, {1, length+1, 1}, false); // bottom (y=length+1, first x, then z)
-      genFix.plane3D({length+1, 1, 1}, {length+1, length, length}, false); // right (x=length + 1, first z, then y)
+      genFix.plane3D({length, (uint16_t)(length+1), length}, {1, (uint16_t)(length+1), 1}, false); // bottom (y=length+1, first x, then z)
+      genFix.plane3D({(uint16_t)(length+1), 1, 1}, {(uint16_t)(length+1), length, length}, false); // right (x=length + 1, first z, then y)
       genFix.plane3D({0, length, length}, {0, 1, 1}, true); // left (x=0, first y, then z)
-      genFix.plane3D({length, 1, length+1}, {1, length, length+1}, true); // back (z = length+1, first x, then y)
+      genFix.plane3D({length, 1, (uint16_t)(length+1)}, {1, length, (uint16_t)(length+1)}, true); // back (z = length+1, first x, then y)
       genFix.plane3D({1, 0, length}, {length, 0, 1}, true); // top (y=0, first x, then z)
 
       // genFix.sideCube3D (0, 0, 0, length, sides);  

@@ -44,7 +44,7 @@ void SysModFiles::setup() {
   }, [this](JsonObject var, uint8_t rowNr) { //chFun
     if (strcmp(var["value"], "delRow") == 0) {
       USER_PRINTF("fileTbl chFun %s %d %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
-      if (rowNr != uint8Max) {
+      if (rowNr != UINT8_MAX) {
         // call uiFun of tbl to fill responseVariant with files
         ui->uFunctions[var["uiFun"]](var);
         //get the table values
@@ -70,7 +70,7 @@ void SysModFiles::setup() {
   ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
-  ui->initNumber(tableVar, "flSize", uint16Max, 0, uint16Max, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size (B)");
   });
   ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun

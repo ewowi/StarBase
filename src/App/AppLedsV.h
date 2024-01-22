@@ -69,7 +69,7 @@ public:
   //track pins and leds
   uint8_t currPin;
   uint16_t prevLeds;
-  Coord3D startPos, endPos; //for distance from 
+  Coord3D startPos = {0,0,0}, endPos = {8,8,1}; //default
 
   float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16_t y2, uint16_t z2) {
     return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));

@@ -79,7 +79,7 @@ function preview2D(canvasNode, buffer) {
       console.log("preview2D jsonValues no outputs", jsonValues.pview);
       jsonValues.pview = null;
     }
-    jsonValues.pview.new = false;
+    jsonValues.pview.new = null;
   }
 }
 
@@ -94,9 +94,6 @@ let mousePointer = null;
 //https://stackoverflow.com/questions/8426822/rotate-camera-in-three-js-with-mouse
 function preview3D(canvasNode, buffer) {
   //3D vars
-  // let mW = buffer[0];
-  // let mH = buffer[1];
-  // let mD = buffer[2];
   import ('three').then((THREE) => {
 
     function onMouseMove( event ) {
@@ -244,7 +241,7 @@ function preview3D(canvasNode, buffer) {
           console.log("preview3D jsonValues no outputs", jsonValues.pview);
           jsonValues.pview = null;
         }
-        jsonValues.pview.new = false;
+        jsonValues.pview.new = null;
       }
 
       //animate / render

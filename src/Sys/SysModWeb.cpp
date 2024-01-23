@@ -38,7 +38,7 @@ bool SysModWeb::clientsChanged = false;
 unsigned long SysModWeb::wsSendBytesCounter = 0;
 unsigned long SysModWeb::wsSendJsonCounter = 0;
 
-SemaphoreHandle_t wsMutex = xSemaphoreCreateMutex();
+SemaphoreHandle_t SysModWeb::wsMutex = xSemaphoreCreateMutex();
 
 SysModWeb::SysModWeb() :SysModule("Web") {
   ws = new AsyncWebSocket("/ws");
@@ -123,11 +123,11 @@ void SysModWeb::loop1s() {
   for (auto client:SysModWeb::ws->getClients()) {
     // print->printClient("up", client);
     //will only update if changed
-    mdl->setValue<int>("clNr", client->id(), rowNr);
-    mdl->setValue<JsonString>("clIp", JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr);
-    mdl->setValue<bool>("clIsFull", client->queueIsFull(), rowNr);
-    mdl->setValue<int>("clStatus", client->status(), rowNr);
-    mdl->setValue<int>("clLength", client->queueLength(), rowNr);
+    mdl->setValue("clNr", client->id(), rowNr);
+    mdl->setValue("clIp", JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr);
+    mdl->setValue("clIsFull", client->queueIsFull(), rowNr);
+    mdl->setValue("clStatus", client->status(), rowNr);
+    mdl->setValue("clLength", client->queueLength(), rowNr);
     
     rowNr++;
   }
@@ -251,9 +251,10 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
     } else {
       //message is comprised of multiple frames or the frame is split into multiple packets
       if(info->index == 0){
-        if(info->num == 0)
-          USER_PRINT_Async("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
-        USER_PRINT_Async("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+        // if(info->num == 0)
+        //   USER_PRINT_Async("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+        // USER_PRINT_Async("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+        USER_PRINTF("💀");
       }
 
       // USER_PRINT_Async("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
@@ -394,7 +395,6 @@ void SysModWeb::wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client,
   }
 }
 
-
 void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
   if (!ws) {
     USER_PRINT_Async("sendDataWs no ws\n");
@@ -410,7 +410,7 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
     size_t len = measureJson(json);
     if (len > 8192)
       USER_PRINTF("program error: sendDataWs BufferLen too high !!!%d\n", len);
-    AsyncWebSocketMessageBuffer *wsBuf = ws->makeBuffer(len);
+    AsyncWebSocketMessageBuffer * wsBuf = ws->makeBuffer(len);
 
     if (wsBuf) {
       wsBuf->lock();

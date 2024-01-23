@@ -28,19 +28,46 @@ public:
       web->addResponse(var["id"], "label", "Preview");
       web->addResponse(var["id"], "comment", "Shows the fixture");
       // web->addResponse(var["id"], "comment", "Click to enlarge");
-    }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
-      // send leds preview to clients
-      for (size_t i = 0; i < buffer[1] * 256 + buffer[2]; i++)
-      {
-        buffer[i*3+5] = ledsP[i].red;
-        buffer[i*3+5+1] = ledsP[i].green;
-        buffer[i*3+5+2] = ledsP[i].blue;
+    }, nullptr, [](JsonObject var, uint8_t rowNr) { //loopFun
+
+
+      xSemaphoreTake(web->wsMutex, portMAX_DELAY);
+      SysModWeb::ws->cleanupClients();
+
+      uint8_t* buffer;
+      AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(ledsV.nrOfLedsP * 3 + 5);
+      if (wsBuf) {//out of memory
+        wsBuf->lock();
+        buffer = wsBuf->get();
+
+        // send leds preview to clients
+        for (size_t i = 0; i < ledsV.nrOfLedsP; i++)
+        {
+          buffer[i*3+5] = ledsV.ledsPhysical[i].red;
+          buffer[i*3+5+1] = ledsV.ledsPhysical[i].green;
+          buffer[i*3+5+2] = ledsV.ledsPhysical[i].blue;
+        }
+        //new values
+        buffer[0] = 1; //userFun id
+        // buffer[1] = ledsV.nrOfLedsP/256;
+        // buffer[2] = ledsV.nrOfLedsP%256;
+        // buffer[4] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
+
+        var["interval"] =  max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
+
+        for (auto client:SysModWeb::ws->getClients()) {
+          // if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=3) //lossy
+            client->binary(wsBuf);
+          // else {
+            // web->clientsChanged = true; tbd: changed also if full status changes
+            // print->printClient("loopFun skip frame", client);
+          // }
+        }
+
+        wsBuf->unlock();
+        SysModWeb::ws->_cleanBuffers();
       }
-      //new values
-      buffer[0] = 1; //userFun id
-      buffer[1] = ledsV.nrOfLedsP/256;
-      buffer[2] = ledsV.nrOfLedsP%256;
-      buffer[4] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
+      xSemaphoreGive(web->wsMutex);
     });
   }
 

@@ -103,21 +103,55 @@ public:
 
   CRGB getPixelColor(int indexV);
 
-  // LedsV& operator+=(const CRGB color) {
-  //   setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
-  //   return *this;
-  // }
-  // LedsV& operator|=(const CRGB color) {
-  //   // setPixelColor(indexVLocal, color);
-  //   setPixelColor(indexVLocal, getPixelColor(indexVLocal) | color);
-  //   return *this;
-  // }
+  LedsV& operator+=(const CRGB color) {
+    setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
+    return *this;
+  }
+  LedsV& operator|=(const CRGB color) {
+    // setPixelColor(indexVLocal, color);
+    setPixelColor(indexVLocal, getPixelColor(indexVLocal) | color);
+    return *this;
+  }
 
   // LedsV& operator+(const CRGB color) {
   //   setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
   //   return *this;
   // }
 
+  void fadeToBlackBy(uint8_t fadeBy = 255) {
+    //fade2black for old start to endpos
+    Coord3D index;
+    for (index.x = startPos.x; index.x <= endPos.x; index.x++)
+      for (index.y = startPos.y; index.y <= endPos.y; index.y++)
+        for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
+          ledsPhysical[index.x + index.y * widthP + index.z * widthP * heightP].nscale8(255-fadeBy);
+        }
+  }
+  void fill_solid(const struct CRGB& color) {
+    //fade2black for old start to endpos
+    Coord3D index;
+    for (index.x = startPos.x; index.x <= endPos.x; index.x++)
+      for (index.y = startPos.y; index.y <= endPos.y; index.y++)
+        for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
+          ledsPhysical[index.x + index.y * widthP + index.z * widthP * heightP] = color;
+        }
+  }
+
+  void fill_rainbow(uint8_t initialhue,
+                  uint8_t deltahue )
+{
+    CHSV hsv;
+    hsv.hue = initialhue;
+    hsv.val = 255;
+    hsv.sat = 240;
+    Coord3D index;
+    for (index.x = startPos.x; index.x <= endPos.x; index.x++)
+      for (index.y = startPos.y; index.y <= endPos.y; index.y++)
+        for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
+          ledsPhysical[index.x + index.y * widthP + index.z * widthP * heightP] = hsv;
+          hsv.hue += deltahue;
+        }
+  }
 private:
   std::vector<std::vector<uint16_t>> mappingTable;
   uint16_t mappingTableLedCounter;
@@ -126,4 +160,4 @@ private:
 //Global vars!
 //after header split they all needs to be static otherwise multiple definition link error
 static LedsV ledsV = LedsV(); //virtual leds
-static CRGB *ledsP = ledsV.ledsPhysical; //physical leds, used by FastLed in particular
+// static CRGB *ledsP = ledsV.ledsPhysical; //physical leds, used by FastLed in particular

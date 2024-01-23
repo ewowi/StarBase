@@ -136,7 +136,7 @@ public:
 
               if (varToWatch->id != nullptr && varToWatch->max != 0) {
                 USER_PRINTF(" varsToWatch: %s\n", varToWatch->id);
-                mdl->setValue<int>(varToWatch->id, varToWatch->savedValue%(varToWatch->max+1)); // TODO: ugly to have magic string 
+                mdl->setValue(varToWatch->id, varToWatch->savedValue%(varToWatch->max+1)); // TODO: ugly to have magic string 
               }
               else
                 USER_PRINTF("\n");

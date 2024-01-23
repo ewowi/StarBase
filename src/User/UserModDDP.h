@@ -142,7 +142,7 @@ public:
       /*9*/ddpUdp.write(0xFF & (packetSize     ));
 
       for (size_t i = 0; i < ledsV.nrOfLedsP; i++) {
-        CRGB pixel = ledsP[i];
+        CRGB pixel = ledsV.ledsPhysical[i];
         ddpUdp.write(scale8(pixel.r, bri)); // R
         ddpUdp.write(scale8(pixel.g, bri)); // G
         ddpUdp.write(scale8(pixel.b, bri)); // B

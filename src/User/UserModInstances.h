@@ -245,7 +245,7 @@ public:
         if (rowNr != UINT8_MAX) {
           //if this instance update directly, otherwise send over network
           if (instances[rowNr].ip == WiFi.localIP()) {
-            mdl->setValue<int>(var["id"], mdl->varToValue(newVar, rowNr).as<uint8_t>());
+            mdl->setValue(var["id"], mdl->varToValue(newVar, rowNr).as<uint8_t>());
           } else {
             // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
             HTTPClient http;
@@ -369,7 +369,7 @@ public:
         
         uint8_t syncMaster = mdl->getValue("sma");
         if (syncMaster == remoteIp[3]) {
-          if (instance->app.getVar("bri") != wledSyncMessage.bri) mdl->setValue<int>("bri", wledSyncMessage.bri);
+          if (instance->app.getVar("bri") != wledSyncMessage.bri) mdl->setValue("bri", wledSyncMessage.bri);
           //only set brightness
         }
 
@@ -563,7 +563,7 @@ public:
                   varID[3]='\0';
 
                   USER_PRINTF("AppData3 %s %s %d\n", instance->name, varID, newVar.value);
-                  mdl->setValue<int>(varID, newVar.value);
+                  mdl->setValue(varID, newVar.value);
                 }
               }
             }

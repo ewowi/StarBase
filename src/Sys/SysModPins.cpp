@@ -68,19 +68,47 @@ void SysModPins::setup() {
   ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Board layout");
     web->addResponse(var["id"], "comment", "WIP");
-  }, nullptr, [](JsonObject var, uint8_t* buffer) { //loopFun
-    // send leds preview to clients
-    for (size_t i = 0; i < buffer[1] * 256 + buffer[2]; i++)
-    {
-      buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
-      buffer[i*3+5+1] = random(256);;
-      buffer[i*3+5+2] = random(256);;
+  }, nullptr, [](JsonObject var, uint8_t rowNr) { //loopFun
+
+    xSemaphoreTake(web->wsMutex, portMAX_DELAY);
+
+    SysModWeb::ws->cleanupClients();
+
+    uint8_t* buffer;
+    AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(20 * 3 + 5);
+    if (wsBuf) {//out of memory
+      wsBuf->lock();
+      buffer = wsBuf->get();
+
+      // send leds preview to clients
+      for (size_t i = 0; i < 20; i++)
+      {
+        buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
+        buffer[i*3+5+1] = random(256);
+        buffer[i*3+5+2] = random(256);
+      }
+      //new values
+      buffer[0] = 0; //userFun id
+      // buffer[1] = 0; //0 * 256
+      // buffer[2] = 20; //20 pins
+      // buffer[4] = 10*10; //every 10 sec 
+
+      var["interval"] = 10*10*10; //every 10 sec from cs to ms
+
+      for (auto client:SysModWeb::ws->getClients()) {
+        // if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=3) //lossy
+          client->binary(wsBuf);
+        // else {
+          // web->clientsChanged = true; tbd: changed also if full status changes
+          // print->printClient("loopFun skip frame", client);
+        // }
+      }
+
+      wsBuf->unlock();
+      SysModWeb::ws->_cleanBuffers();
     }
-    //new values
-    buffer[0] = 0; //userFun id
-    buffer[1] = 0; //0 * 256
-    buffer[2] = 20; //20 pins
-    buffer[4] = 10*10; //every 10 sec 
+    xSemaphoreGive(web->wsMutex);
+
   });
 
   // ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);

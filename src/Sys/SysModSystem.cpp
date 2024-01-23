@@ -127,7 +127,7 @@ void SysModSystem::loop1s() {
   loopCounter = 0;
 }
 void SysModSystem::loop10s() {
-  mdl->setValue<JsonString>("version", version); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
+  mdl->setValue("version", JsonString(version)); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
 
   mdl->setValueLossy("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
 

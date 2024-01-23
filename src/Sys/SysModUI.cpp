@@ -20,7 +20,6 @@ std::vector<UFun> SysModUI::uFunctions;
 std::vector<CFun> SysModUI::cFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
 int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
-bool SysModUI::varLoopsChanged = false;
 bool SysModUI::stageVarChanged = false;
 
 SysModUI::SysModUI() :SysModule("UI") {
@@ -55,10 +54,6 @@ void SysModUI::setup() {
       JsonArray row = rows.createNestedArray();
       row.add(varLoop->var["id"]);
       row.add(varLoop->counter);
-
-      varLoopsChanged = varLoop->counter != varLoop->prevCounter;
-      varLoop->prevCounter = varLoop->counter;
-      varLoop->counter = 0;
     }
   });
   initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var) { //uiFun
@@ -75,72 +70,27 @@ void SysModUI::loop() {
   // SysModule::loop();
 
   for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
-    if (millis() - varLoop->lastMillis >= varLoop->interval) {
+    if (millis() - varLoop->lastMillis >= varLoop->var["interval"].as<int>()) {
       varLoop->lastMillis = millis();
 
-      SysModWeb::ws->cleanupClients();
-      if (SysModWeb::ws->count()) {
-        SysModWeb::wsSendBytesCounter++;
-
-        //send leds info in binary data format
-        //tbd: this can crash on 64*64 matrices...
-        // USER_PRINTF(" %d\n", varLoop->bufSize);
-        if (SysModWeb::ws->count() == 0) USER_PRINTF("%s ws count 0\n", __PRETTY_FUNCTION__);
-        if (!SysModWeb::ws->enabled()) USER_PRINTF("%s ws not enabled\n", __PRETTY_FUNCTION__);
-        AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(varLoop->bufSize * 3 + 5);
-        if (wsBuf) {//out of memory
-          wsBuf->lock();
-          uint8_t* buffer = wsBuf->get();
-
-          //to loop over old size
-          buffer[1] = varLoop->bufSize / 256;
-          buffer[2] = varLoop->bufSize % 256;
-          //buffer[2] can be removed
-          // USER_PRINTF("interval1 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[1], buffer[2]);
-
-          varLoop->loopFun(varLoop->var, buffer); //call the function and fill the buffer
-
-          varLoop->bufSize = buffer[1] * 256 + buffer[2];
-          varLoop->interval = buffer[4]*10; //from cs to ms
-          // USER_PRINTF("interval2 %u %d %d %d %d %d %d\n", millis(), varLoop->interval, varLoop->bufSize, buffer[1], buffer[2], buffer[3], buffer[4]);
-
-          for (auto client:SysModWeb::ws->getClients()) {
-            if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=3) //lossy
-              client->binary(wsBuf);
-            else {
-              // web->clientsChanged = true; tbd: changed also if full status changes
-              // print->printClient("loopFun skip frame", client);
-            }
-          }
-          wsBuf->unlock();
-          SysModWeb::ws->_cleanBuffers();
-        }
-        else {
-          USER_PRINTF("loopFun WS buffer allocation failed\n");
-          SysModWeb::ws->closeAll(1013); //code 1013 = temporary overload, try again later
-          SysModWeb::ws->cleanupClients(0); //disconnect all clients to release memory
-          SysModWeb::ws->_cleanBuffers();
-        }
-      }
+      varLoop->loopFun(varLoop->var, 1); //rowNr..
 
       varLoop->counter++;
       // USER_PRINTF("%s %u %u %d %d\n", varLoop->var["id"].as<const char *>(), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
     }
   }
-
 }
 
 void SysModUI::loop1s() {
   //if something changed in vloops
-  if (varLoopsChanged) {
-    varLoopsChanged = false;
-
-    processUiFun("vlTbl");
+  uint8_t rowNr = 0;
+  for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
+    mdl->setValue("vlLoopps", varLoop->counter, rowNr++);
+    varLoop->counter = 0;
   }
-
 }
 
-JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, UFun uiFun, CFun chFun, LoopFun loopFun) {
+JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, UFun uiFun, CFun chFun, CFun loopFun) {
   JsonObject var = mdl->findVar(id); //sets the existing modelParentVar
   const char * modelParentId = mdl->modelParentVar["id"];
   const char * parentId = parent["id"];
@@ -212,7 +162,6 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
       loopFunctions.push_back(loop);
       var["loopFun"] = loopFunctions.size()-1;
-      varLoopsChanged = true;
       // USER_PRINTF("iObject loopFun %s %u %u %d %d\n", var["id"].as<const char *>());
     }
   }
@@ -229,7 +178,7 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
   if (!var["chFun"].isNull()) {//isNull needed here!
     size_t funNr = var["chFun"];
     if (funNr < cFunctions.size()) {
-      USER_PRINTF("chFun %s r:%d v:%s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>());
+      USER_PRINTF("chFun %s r:%d v:%s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
       cFunctions[funNr](var, rowNr);
     }
     else    
@@ -375,13 +324,13 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
 
             //set new value
             if (value["value"].is<const char *>())
-              mdl->setValue<JsonString>(key, JsonString(value["value"], JsonString::Copied), rowNr?atoi(rowNr):-1);
+              mdl->setValue(key, JsonString(value["value"], JsonString::Copied), rowNr?atoi(rowNr):-1);
             else if (value["value"].is<bool>())
-              mdl->setValue<bool>(key, value["value"].as<bool>(), rowNr?atoi(rowNr):-1);
+              mdl->setValue(key, value["value"].as<bool>(), rowNr?atoi(rowNr):-1);
             else if (value["value"].is<int>())
-              mdl->setValue<int>(key, value["value"].as<int>(), rowNr?atoi(rowNr):-1);
+              mdl->setValue(key, value["value"].as<int>(), rowNr?atoi(rowNr):-1);
             else if (value["value"].is<JsonObject>())
-              mdl->setValue<JsonObject>(key, value["value"].as<JsonObject>(), rowNr?atoi(rowNr):-1);
+              mdl->setValue(key, value["value"].as<JsonObject>(), rowNr?atoi(rowNr):-1);
             else {
               USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
             }
@@ -407,7 +356,7 @@ void SysModUI::processUiFun(const char * id) {
 
   JsonArray array = responseVariant.createNestedArray("uiFun");
   array.add(id);
-  processJson(responseVariant); //this calls uiFun command, which might change varLoopsChanged
+  processJson(responseVariant); //this calls uiFun command
   //this also updates uiFun stuff - not needed!
 
   web->sendDataWs(*responseDoc);

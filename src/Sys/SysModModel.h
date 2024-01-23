@@ -24,11 +24,18 @@ struct Coord3D {
   uint16_t y;
   uint16_t z;
   bool operator!=(Coord3D rhs) {
-    // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, par.x, par.y, par.z);
+    // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
     return x != rhs.x || y != rhs.y || z != rhs.z;
   }
   bool operator==(Coord3D rhs) {
     return x == rhs.x && y == rhs.y && z == rhs.z;
+  }
+  Coord3D operator=(Coord3D rhs) {
+    USER_PRINTF("Coord3D assign %d %d %d\n", rhs.x, rhs.y, rhs.z);
+    this->x = rhs.x;
+    this->y = rhs.y;
+    this->z = rhs.z;
+    return *this;
   }
 };
 
@@ -104,12 +111,12 @@ public:
     if (!var.isNull()) {
       // print->printJson("setValueB", var);
       if (rowNr == UINT8_MAX) { //normal situation
-        bool same;
+        bool notSame;
         // if (std::is_same<Type, const char *>::value)
         //   same = var["value"] != value;
         // else
-          same = var["value"].as<Type>() != value;
-        if (var["value"].isNull() || same) {
+          notSame = var["value"].as<Type>() != value;
+        if (var["value"].isNull() || notSame) {
           USER_PRINTF("setValue changed %s (%d) %s->..\n", id, rowNr, var["value"].as<String>().c_str());//, value?"true":"false");
           var["value"] = value;
           ui->setChFunAndWs(var, rowNr);
@@ -126,12 +133,12 @@ public:
 
         if (var["value"].is<JsonArray>()) {
           //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
-          bool same;
+          bool notSame;
           // if (std::is_same<Type, const char *>::value)
           //   same = var["value"][rowNr] != value;
           // else
-            same = var["value"][rowNr].as<Type>() != value;
-          if (same) {
+            notSame = var["value"][rowNr].as<Type>() != value;
+          if (notSame) {
             var["value"][rowNr] = value;
             ui->setChFunAndWs(var, rowNr);
           }

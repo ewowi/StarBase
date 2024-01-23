@@ -18,6 +18,7 @@ class SysModWeb:public SysModule {
 
 public:
   static AsyncWebSocket *ws;
+  static SemaphoreHandle_t wsMutex;
 
   SysModWeb();
 

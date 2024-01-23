@@ -190,7 +190,7 @@ void SysModModel::setValueLossy(const char * id, const char * format, ...) {
 
   bool isOk = true;
   for (auto client:SysModWeb::ws->getClients()) {
-      if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>3) //lossy
+      if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>WS_MAX_QUEUED_MESSAGES/2) //lossy
         isOk = false;
   }
   if (isOk)

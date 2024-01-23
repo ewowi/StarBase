@@ -30,8 +30,10 @@ public:
       // web->addResponse(var["id"], "comment", "Click to enlarge");
     }, nullptr, [](JsonObject var, uint8_t rowNr) { //loopFun
 
-
       xSemaphoreTake(web->wsMutex, portMAX_DELAY);
+
+      web->wsSendBytesCounter++;
+
       SysModWeb::ws->cleanupClients();
 
       uint8_t* buffer;
@@ -56,7 +58,7 @@ public:
         var["interval"] =  max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
 
         for (auto client:SysModWeb::ws->getClients()) {
-          // if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=3) //lossy
+          if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength() <= WS_MAX_QUEUED_MESSAGES / 2) //lossy
             client->binary(wsBuf);
           // else {
             // web->clientsChanged = true; tbd: changed also if full status changes

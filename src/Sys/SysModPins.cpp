@@ -72,6 +72,8 @@ void SysModPins::setup() {
 
     xSemaphoreTake(web->wsMutex, portMAX_DELAY);
 
+    web->wsSendBytesCounter++;
+
     SysModWeb::ws->cleanupClients();
 
     uint8_t* buffer;
@@ -96,7 +98,7 @@ void SysModPins::setup() {
       var["interval"] = 10*10*10; //every 10 sec from cs to ms
 
       for (auto client:SysModWeb::ws->getClients()) {
-        // if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength()<=3) //lossy
+        if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength() <= WS_MAX_QUEUED_MESSAGES / 2) //lossy
           client->binary(wsBuf);
         // else {
           // web->clientsChanged = true; tbd: changed also if full status changes

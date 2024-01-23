@@ -200,7 +200,7 @@ public:
       char details[32] = "";
       print->fFormat(details, sizeof(details)-1, "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
       web->addResponse(var["id"], "value", details);
-      web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Preview);
+      web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Max);
     });
 
     ui->initNumber(parentVar, "fps", fps, 1, 999, false, [](JsonObject var) { //uiFun

@@ -342,7 +342,7 @@ public:
       CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
       ledsV[XY(x,y)] = color;
     }
-    blur2d(ledsV.ledsPhysical, ledsV.widthP, ledsV.heightP, mdl->getValue("blur")); //this is tricky as FastLed is not aware of our virtual 
+    ledsV.blur2d(ledsV.widthV, ledsV.heightV, mdl->getValue("blur"));
   }
   bool controls(JsonObject parentVar) {
     addPalette(parentVar);

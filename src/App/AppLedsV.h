@@ -22,7 +22,7 @@
 #include "ArduinoJson.h"
 #include "../Sys/SysModModel.h" //for Coord3D
 
-#define NUM_LEDS_Preview 4096
+#define NUM_LEDS_Max 4096
 
 enum Projections
 {
@@ -42,7 +42,7 @@ class LedsV {
 
 public:
   // CRGB *leds = nullptr;
-  CRGB ledsPhysical[NUM_LEDS_Preview];
+  CRGB ledsPhysical[NUM_LEDS_Max];
     // if (!leds)
   //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
   // else
@@ -103,6 +103,8 @@ public:
 
   CRGB getPixelColor(int indexV);
 
+  void addPixelColor(int indexV, CRGB color);
+
   LedsV& operator+=(const CRGB color) {
     setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
     return *this;
@@ -152,6 +154,60 @@ public:
           hsv.hue += deltahue;
         }
   }
+
+  void blur2d(uint8_t width, uint8_t height, fract8 blur_amount)
+  {
+      blurRows(width, height, blur_amount);
+      blurColumns(width, height, blur_amount);
+  }
+
+  void blurRows(uint8_t width, uint8_t height, fract8 blur_amount)
+  {
+  /*    for( uint8_t row = 0; row < height; row++) {
+          CRGB* rowbase = leds + (row * width);
+          blur1d( rowbase, width, blur_amount);
+      }
+  */
+      // blur rows same as columns, for irregular matrix
+      uint8_t keep = 255 - blur_amount;
+      uint8_t seep = blur_amount >> 1;
+      for( uint8_t row = 0; row < height; row++) {
+          CRGB carryover = CRGB::Black;
+          for( uint8_t i = 0; i < width; i++) {
+              CRGB cur = getPixelColor(XY(i,row));
+              CRGB part = cur;
+              part.nscale8( seep);
+              cur.nscale8( keep);
+              cur += carryover;
+              if( i) addPixelColor(XY(i-1,row), part);
+              setPixelColor(XY(i,row), cur);
+              carryover = part;
+          }
+      }
+  }
+
+  // blurColumns: perform a blur1d on each column of a rectangular matrix
+  void blurColumns(uint8_t width, uint8_t height, fract8 blur_amount)
+  {
+      // blur columns
+      uint8_t keep = 255 - blur_amount;
+      uint8_t seep = blur_amount >> 1;
+      for( uint8_t col = 0; col < width; ++col) {
+          CRGB carryover = CRGB::Black;
+          for( uint8_t i = 0; i < height; ++i) {
+              CRGB cur = getPixelColor(XY(col,i));
+              CRGB part = cur;
+              part.nscale8( seep);
+              cur.nscale8( keep);
+              cur += carryover;
+              if( i) addPixelColor(XY(col,i-1), part);
+              setPixelColor(XY(col,i), cur);
+              carryover = part;
+          }
+      }
+  }
+
+
 private:
   std::vector<std::vector<uint16_t>> mappingTable;
   uint16_t mappingTableLedCounter;

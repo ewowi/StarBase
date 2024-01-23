@@ -569,10 +569,10 @@ public:
     uint8_t value = var["value"];
     
     if (value == f_1DSpiral) {
-      ui->initNumber(parentVar, "ledCount", 64, 1, NUM_LEDS_Preview);
+      ui->initNumber(parentVar, "ledCount", 64, 1, NUM_LEDS_Max);
     }
     else if (value == f_2DRing) {
-      ui->initNumber(parentVar, "ledCount", 24, 1, NUM_LEDS_Preview);
+      ui->initNumber(parentVar, "ledCount", 24, 1, NUM_LEDS_Max);
     }
     else if (value == f_2DRings241) {
       ui->initCheckBox(parentVar, "in2out", true);

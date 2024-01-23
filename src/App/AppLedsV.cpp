@@ -227,8 +227,8 @@ void LedsV::fixtureProjectAndMap() {
 
             if (bucket != UINT16_MAX) { //can be nulled by inverse mapping 
               //add physical tables if not present
-              if (bucket >= NUM_LEDS_Preview) {
-                USER_PRINTF("mapping add physMap %d>=%d (%d) too big %d\n", bucket, NUM_LEDS_Preview, mappingTable.size(), UINT16_MAX);
+              if (bucket >= NUM_LEDS_Max) {
+                USER_PRINTF("mapping add physMap %d>=%d (%d) too big %d\n", bucket, NUM_LEDS_Max, mappingTable.size(), UINT16_MAX);
               }
               else {
                 //create new physMaps if needed
@@ -343,7 +343,7 @@ void LedsV::setPixelColor(int indexV, CRGB color) {
   if (mappingTable.size()) {
     if (indexV >= mappingTable.size()) return;
     for (uint16_t indexP:mappingTable[indexV]) {
-      if (indexP < NUM_LEDS_Preview)
+      if (indexP < NUM_LEDS_Max)
         ledsPhysical[indexP] = color;
     }
   }
@@ -354,13 +354,18 @@ void LedsV::setPixelColor(int indexV, CRGB color) {
 CRGB LedsV::getPixelColor(int indexV) {
   if (mappingTable.size()) {
     if (indexV >= mappingTable.size()) return CRGB::Black;
-    if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Preview) return CRGB::Black;
+    if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Max) return CRGB::Black;
 
     return ledsPhysical[mappingTable[indexV][0]]; //any would do as they are all the same
   }
   else //no projection
     return ledsPhysical[indexV];
 }
+
+void LedsV::addPixelColor(int indexV, CRGB color) {
+  setPixelColor(indexV, getPixelColor(indexV) + color);
+}
+
 
 // LedsV& operator+=(const CRGB color) {
 //   setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);

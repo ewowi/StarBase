@@ -41,13 +41,21 @@ void SysModules::setup() {
   ui->initText(tableVar, "mdlName", nullptr, 32, true, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   }, nullptr, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-    var["value"][rowNr] = modules[rowNr]->name;
+    if (rowNr != UINT8_MAX && rowNr < modules.size()) {
+      mdl->setValue(var, modules[rowNr]->name, rowNr);
+    }
+
   });
 
   ui->initCheckBox(tableVar, "mdlSucces", UINT16_MAX, true, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Success");
   }, nullptr, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-    var["value"][rowNr] = modules[rowNr]->success;
+    if (rowNr != UINT8_MAX && rowNr < modules.size()) {
+      mdl->setValue(var, modules[rowNr]->success, rowNr);
+    }
+    else {
+      USER_PRINTF(" no rowNr or > modules.size!!", rowNr);
+    }
   });
 
   ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, false, [this](JsonObject var) { //uiFun not readonly! (tbd)
@@ -55,17 +63,22 @@ void SysModules::setup() {
     web->addResponse(var["id"], "label", "Enabled");
   }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
-    if (rowNr != UINT8_MAX) {
-      modules[rowNr]->isEnabled = var["value"][rowNr];
+    if (rowNr != UINT8_MAX && rowNr < modules.size()) {
+      modules[rowNr]->isEnabled = mdl->getValue(var, rowNr);
       modules[rowNr]->enabledChanged();
     }
     else {
-      USER_PRINTF(" no rowNr!!");
+      USER_PRINTF(" no rowNr or > modules.size!!", rowNr);
     }
     // print->printJson(" ", var);
 
   }, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-    var["value"][rowNr] = modules[rowNr]->isEnabled;
+    if (rowNr != UINT8_MAX && rowNr < modules.size()) {
+      mdl->setValue(var, modules[rowNr]->isEnabled, rowNr);
+    }
+    else {
+      USER_PRINTF(" no rowNr or > modules.size!!", rowNr);
+    }
   });
 }
 

@@ -190,29 +190,13 @@ void SysModModel::setValueLossy(const char * id, const char * format, ...) {
 
   bool isOk = true;
   for (auto client:SysModWeb::ws->getClients()) {
-      if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>WS_MAX_QUEUED_MESSAGES/2) //lossy
+      if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) //lossy
         isOk = false;
   }
   if (isOk)
     web->sendDataWs(responseVariant);
   // else
   //   USER_PRINTF("x");
-}
-
-JsonVariant SysModModel::getValue(const char * id, uint8_t rowNr) {
-  JsonObject var = findVar(id);
-  if (!var.isNull()) {
-    if (var["value"].is<JsonArray>()) {
-      JsonArray varVal = var["value"].as<JsonArray>();
-      return (rowNr == UINT8_MAX)?var["value"][0]:var["value"][rowNr]; //return first value of no array
-    }
-    else
-      return var["value"];
-  }
-  else {
-    USER_PRINTF("getValue: Var %s does not exist!!\n", id);
-    return JsonVariant();
-  }
 }
 
 JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
@@ -271,11 +255,4 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
       }
     }
 
-}
-
-JsonVariant SysModModel::varToValue(JsonObject var, u_int8_t rowNr) {
-  if (var["value"].is<JsonArray>())
-    return (rowNr == UINT8_MAX)?var["value"][0]:var["value"][rowNr];
-  else
-    return var["value"];
 }

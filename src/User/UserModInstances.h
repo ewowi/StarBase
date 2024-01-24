@@ -245,7 +245,7 @@ public:
         if (rowNr != UINT8_MAX) {
           //if this instance update directly, otherwise send over network
           if (instances[rowNr].ip == WiFi.localIP()) {
-            mdl->setValue(var["id"], mdl->varToValue(newVar, rowNr).as<uint8_t>());
+            mdl->setValue(var, mdl->getValue(newVar, rowNr).as<uint8_t>());
           } else {
             // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
             HTTPClient http;
@@ -254,7 +254,7 @@ public:
             http.begin(serverPath);
             http.addHeader("Content-Type", "application/json");
             char postMessage[32];
-            print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), mdl->varToValue(newVar, rowNr).as<uint8_t>());
+            print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), mdl->getValue(newVar, rowNr).as<uint8_t>());
 
             USER_PRINTF("json post %s %s\n", serverPath, postMessage);
 

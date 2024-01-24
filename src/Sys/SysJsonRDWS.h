@@ -222,10 +222,10 @@ private:
       // USER_PRINTF("check %s %s %s\n", vd->id, varId, value);
       if (strcmp(vd->id, varId)==0) {
         // USER_PRINTF("JsonRDWS found %s:%s %d %s\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size());
-        if (strcmp(vd->type, "uint8") ==0) *uint8List[vd->index] = atoi(value);
-        if (strcmp(vd->type, "uint16") ==0) *uint16List[vd->index] = atoi(value);
-        if (strcmp(vd->type, "char") ==0) strncpy(charList[vd->index], value, 31); //assuming size 32-1 here
-        if (strcmp(vd->type, "fun") ==0) funList[vd->index](uint16CollectList);
+        if (strcmp(vd->type, "uint8") ==0 && value) *uint8List[vd->index] = atoi(value);
+        if (strcmp(vd->type, "uint16") ==0 && value) *uint16List[vd->index] = atoi(value);
+        if (strcmp(vd->type, "char") ==0 && value) strncpy(charList[vd->index], value, 31); //assuming size 32-1 here
+        if (strcmp(vd->type, "fun") ==0) funList[vd->index](uint16CollectList); //call for every found item (no value check)
         foundCounter++;
       }
     }
@@ -275,7 +275,7 @@ private:
       f.printf("%s", variant.as<bool>()?"true":"false");      
     }
     else
-      USER_PRINTF("%s not supported", variant.as<String>());
+      USER_PRINTF("%s not supported", variant.as<String>().c_str());
   }
 
 };

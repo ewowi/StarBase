@@ -403,7 +403,6 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
 
   xSemaphoreTake(wsMutex, portMAX_DELAY);
 
-  wsSendJsonCounter++;
   ws->cleanupClients();
 
   if (ws->count()) {
@@ -424,8 +423,10 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
         // DEBUG_PRINTLN("to a single client.");
       } else {
         for (auto client:ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull())
+          if (client->status() == WS_CONNECTED && !client->queueIsFull()) {
             client->text(wsBuf);
+            wsSendJsonCounter++;
+          }
           else 
             // print->printClient("sendDataWs client(s) full or not connected", client); //crash!!
             USER_PRINT_Async("sendDataWs client full or not connected\n");

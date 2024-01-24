@@ -84,10 +84,6 @@ public:
       web->addResponse(var["id"], "comment", "List of effects (WIP)");
       JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
 
-      //genHTML for all the childs of fxtbl
-      // for (SysModule *module:modules) {
-      // mdl->varToValues(var, row);
-
       //add value for each child
       JsonArray row = rows.createNestedArray(); //one row of data
       for (JsonObject childVar : var["n"].as<JsonArray>()) {
@@ -137,7 +133,7 @@ public:
       // }
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
-      ledsV.projectionNr = mdl->varToValue(var, rowNr);
+      ledsV.projectionNr = mdl->getValue(var, rowNr);
       doMap = true;
 
     });
@@ -149,7 +145,7 @@ public:
 
       ledsV.fadeToBlackBy();
 
-      ledsV.startPos = mdl->varToValue(var, rowNr).as<Coord3D>();
+      ledsV.startPos = mdl->getValue(var, rowNr).as<Coord3D>();
       doMap = true;
     });
     ui->initCoord3D(tableVar, "fxEnd", 0, 0, 127, false, [](JsonObject var) { //uiFun
@@ -158,7 +154,7 @@ public:
 
       ledsV.fadeToBlackBy();
 
-      ledsV.endPos = mdl->varToValue(var, rowNr).as<Coord3D>();
+      ledsV.endPos = mdl->getValue(var, rowNr).as<Coord3D>();
       doMap = true;
     });
 

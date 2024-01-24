@@ -93,8 +93,7 @@ public:
       select.add("PartyColors");
       select.add("HeatColors");
     }, [](JsonObject var, uint8_t rowNr) { //chFun
-
-      switch (mdl->varToValue(var, rowNr).as<uint8_t>()) {
+      switch (mdl->getValue(var, rowNr).as<uint8_t>()) {
         case 0: palette = CloudColors_p; break;
         case 1: palette = LavaColors_p; break;
         case 2: palette = OceanColors_p; break;
@@ -998,7 +997,7 @@ public:
   bool setEffect(JsonObject parentVar, uint8_t rowNr) {
     bool doMap = false;
 
-    ledsV.fx = mdl->varToValue(parentVar, rowNr);
+    ledsV.fx = mdl->getValue(parentVar, rowNr);
 
     if (rowNr != UINT8_MAX)
       parentVar["rowNr"] = rowNr; //store the rownNr of the updated value to send back to ui
@@ -1032,12 +1031,7 @@ public:
       // nullify values for this row
       if (rowNr != UINT8_MAX) {
         for (JsonObject var: parentVar["n"].as<JsonArray>()) {
-          if (var["value"].is<JsonArray>()) {
-            var["value"][rowNr] = -99; //unused value for this row, so don't show
-          } else {
-            var["value"].to<JsonArray>();
-            var["value"][rowNr] = -99; //unused value for this row, so don't show
-          }
+          mdl->setValue(var, -99, rowNr); //unused value for this row, so don't show
         }
       }
       else 

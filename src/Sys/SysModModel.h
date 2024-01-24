@@ -109,12 +109,12 @@ public:
   JsonObject setValue(const char * id, Type value, uint8_t rowNr = UINT8_MAX) {
     JsonObject var = findVar(id);
     if (!var.isNull()) {
-      setValue(var, value, rowNr);
+      return setValue(var, value, rowNr);
     }
     else {
       USER_PRINTF("setValue Var %s not found\n", id);
+      return JsonObject();
     }
-    return var;
   }
 
   template <typename Type>
@@ -174,10 +174,10 @@ public:
   JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {
     JsonObject var = findVar(id);
     if (!var.isNull()) {
-      getValue(var, rowNr);
+      return getValue(var, rowNr);
     }
     else {
-      // USER_PRINTF("getValue: Var %s does not exist!!\n", id);
+      USER_PRINTF("getValue: Var %s does not exist!!\n", id);
       return JsonVariant();
     }
   }
@@ -188,6 +188,7 @@ public:
         return valueArray[rowNr];
       else {
         USER_PRINTF("perror getValue no array or rownr wrong %s %d\n", var["value"].as<String>().c_str(), rowNr);
+        return JsonVariant();
       }
     }
     else

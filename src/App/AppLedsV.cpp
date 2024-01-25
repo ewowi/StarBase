@@ -320,7 +320,7 @@ void LedsV::fixtureProjectAndMap() {
     USER_PRINTF("fixtureProjectAndMap: Filename for fixture %d not found\n", fixtureNr);
 }
 
-// ledsV[indexV] stores indexV locally
+// indexVLocal stored to be used by other operators
 LedsV& LedsV::operator[](uint16_t indexV) {
   indexVLocal = indexV;
   return *this;
@@ -332,7 +332,7 @@ LedsV& LedsV::operator[](uint16_t indexV) {
 //   return x;
 // }
 
-// ledsV = uses locally stored indexV and color to call setPixelColor
+// uses indexVLocal and color to call setPixelColor
 LedsV& LedsV::operator=(const CRGB color) {
   setPixelColor(indexVLocal, color);
   return *this;
@@ -365,20 +365,3 @@ CRGB LedsV::getPixelColor(int indexV) {
 void LedsV::addPixelColor(int indexV, CRGB color) {
   setPixelColor(indexV, getPixelColor(indexV) + color);
 }
-
-
-// LedsV& operator+=(const CRGB color) {
-//   setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
-//   return *this;
-// }
-// LedsV& operator|=(const CRGB color) {
-//   // setPixelColor(indexVLocal, color);
-//   setPixelColor(indexVLocal, getPixelColor(indexVLocal) | color);
-//   return *this;
-// }
-
-// LedsV& operator+(const CRGB color) {
-//   setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
-//   return *this;
-// }
-

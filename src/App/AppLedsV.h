@@ -41,6 +41,8 @@ enum Projections
 class LedsV {
 
 public:
+
+  //tbd: move ledsPhysical and nrOfLedsP out of ledsV
   // CRGB *leds = nullptr;
   CRGB ledsPhysical[NUM_LEDS_Max];
     // if (!leds)
@@ -52,6 +54,8 @@ public:
   // leds = (CRGB*)reallocarray
 
   uint16_t nrOfLedsP = 64; //amount of physical leds
+
+  
   uint16_t nrOfLedsV = 64;  //amount of virtual leds (calculated by projection)
 
   uint16_t widthP = 8; 
@@ -86,7 +90,6 @@ public:
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=
 
-  // ledsV[indexV] stores indexV locally
   LedsV& operator[](uint16_t indexV);
 
   // CRGB& operator[](uint16_t indexV) {
@@ -95,7 +98,6 @@ public:
   //   return x;
   // }
 
-  // ledsV = uses locally stored indexV and color to call setPixelColor
   LedsV& operator=(const CRGB color);
 
   // maps the virtual led to the physical led(s) and assign a color to it
@@ -212,8 +214,3 @@ private:
   std::vector<std::vector<uint16_t>> mappingTable;
   uint16_t mappingTableLedCounter;
 };
-
-//Global vars!
-//after header split they all needs to be static otherwise multiple definition link error
-static LedsV ledsV = LedsV(); //virtual leds
-// static CRGB *ledsP = ledsV.ledsPhysical; //physical leds, used by FastLed in particular

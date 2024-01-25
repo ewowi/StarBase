@@ -50,6 +50,8 @@ public:
   bool doMap = false;
   Effects effects;
 
+  LedsV ledsV = LedsV(); //virtual leds
+
   AppModLeds() :SysModule("Leds") {};
 
   void setup() {
@@ -107,7 +109,7 @@ public:
         select.add(effect->name());
       }
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      doMap = effects.setEffect(var, rowNr);
+      doMap = effects.setEffect(ledsV, var, rowNr);
     });
     currentVar["stage"] = true;
 
@@ -186,11 +188,11 @@ public:
       }
     }); //fixture
 
-    ui->initText(tableVar, "dimensions", nullptr, 32, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "dimensions", nullptr, 32, true, [this](JsonObject var) { //uiFun
       web->addResponseV(var["id"], "value", "P:%dx%dx%d V:%dx%dx%d", ledsV.widthP, ledsV.heightP, ledsV.depthP, ledsV.widthV, ledsV.heightV, ledsV.depthV);
     });
 
-    ui->initText(tableVar, "nrOfLeds", nullptr, 32, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "nrOfLeds", nullptr, 32, true, [this](JsonObject var) { //uiFun
       web->addResponseV(var["id"], "value", "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
       web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Max);
     });
@@ -240,7 +242,7 @@ public:
       //for each programmed effect
       //  run the next frame of the effect
 
-      effects.loop(ledsV.fx);
+      effects.loop(ledsV);
 
       FastLED.show();  
 

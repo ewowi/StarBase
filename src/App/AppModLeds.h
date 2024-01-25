@@ -160,6 +160,24 @@ public:
       doMap = true;
     });
 
+    ui->initCoord3D(tableVar, "fxSize", 0, 0, 127, true, [this](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Size");
+      web->addResponse(var["id"], "value", leds.size);
+    });
+    // , nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
+    //   // char detail[32];
+    //   // print->fFormat(detail, 31, "%dx%dx%d", leds.size.x, leds.size.y, leds.size.z);
+    //   // mdl->setValue(var, JsonString(detail, JsonString::Copied), rowNr);
+    //   mdl->setValue(var, leds.size, rowNr);
+    // });
+
+    ui->initNumber(tableVar, "fxCount", UINT16_MAX, 0, UINT8_MAX, true, [this](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Count");
+      // web->addResponse(var["id"], "value", leds.nrOfLeds);
+    }, nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
+      mdl->setValue(var, leds.nrOfLeds, rowNr);
+    });
+
     ui->initSelect(parentVar, "fixture", 0, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -188,13 +206,15 @@ public:
       }
     }); //fixture
 
-    ui->initText(tableVar, "dimensions", nullptr, 32, true, [this](JsonObject var) { //uiFun
-      web->addResponseV(var["id"], "value", "P:%dx%dx%d V:%dx%dx%d", leds.widthP, leds.heightP, leds.depthP, leds.widthV, leds.heightV, leds.depthV);
+    ui->initCoord3D(parentVar, "fixSize", 0, 0, 127, true, [this](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Size");
+      web->addResponse(var["id"], "value", leds.sizeP);
     });
 
-    ui->initText(tableVar, "nrOfLeds", nullptr, 32, true, [this](JsonObject var) { //uiFun
-      web->addResponseV(var["id"], "value", "P:%d V:%d", leds.nrOfLedsP, leds.nrOfLeds);
+    ui->initNumber(parentVar, "fixCount", UINT16_MAX, 0, UINT8_MAX, true, [this](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Count");
       web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Max);
+      web->addResponse(var["id"], "value", leds.nrOfLedsP);
     });
 
     ui->initNumber(parentVar, "fps", fps, 1, 999, false, [](JsonObject var) { //uiFun
@@ -203,8 +223,8 @@ public:
       fps = var["value"];
     });
 
-    ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "comment", "Depends on how much leds fastled has configured");
+    ui->initText(parentVar, "realFps", nullptr, 10, true, [this](JsonObject var) { //uiFun
+      web->addResponseV(var["id"], "comment", "f(%d leds)", leds.nrOfLedsP);
     });
 
     #ifdef USERMOD_E131

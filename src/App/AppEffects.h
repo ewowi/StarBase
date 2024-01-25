@@ -262,16 +262,13 @@ public:
     leds.fill_solid(CRGB::Black);
     // fill(CRGB::Black);
 
-    uint16_t mW = leds.widthV;
-    uint16_t mH = leds.heightV;
-    uint16_t mD = leds.depthV;
+    Coord3D pos = {0,0,0};
+    for (pos.z=0; pos.z<leds.size.z; pos.z++) {
+        for (pos.x=0; pos.x<leds.size.x; pos.x++) {
+            float d = leds.distance(3.5, 3.5, 0, pos.x, pos.z, 0)/9.899495*leds.size.y;
+            pos.y = floor(leds.size.y/2.0+sinf(d/ripple_interval + now/100/((256.0-128.0)/20.0))*leds.size.y/2.0); //between 0 and 8
 
-    for (int z=0; z<mD; z++) {
-        for (int x=0; x<mW; x++) {
-            float d = leds.distance(3.5, 3.5, 0, x, z, 0)/9.899495*mH;
-            uint16_t height = floor(mH/2.0+sinf(d/ripple_interval + now/100/((256.0-128.0)/20.0))*mH/2.0); //between 0 and 8
-
-            leds[leds.XYZ(x, height, z)] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+            leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
         }
     }
   }
@@ -295,35 +292,28 @@ public:
 
     uint32_t interval = now/100/((256.0-128.0)/20.0);
 
-    uint16_t mW = leds.widthV;
-    uint16_t mH = leds.heightV;
-    uint16_t mD = leds.depthV;
-
-    origin_x = 3.5+sinf(interval)*2.5;
-    origin_y = 3.5+cosf(interval)*2.5;
-    origin_z = 3.5+cosf(interval)*2.0;
+    Coord3D origin;
+    origin.x = 3.5+sinf(interval)*2.5;
+    origin.y = 3.5+cosf(interval)*2.5;
+    origin.z = 3.5+cosf(interval)*2.0;
 
     diameter = 2.0+sinf(interval/3.0);
 
     // CRGBPalette256 pal;
-    for (int x=0; x<mW; x++) {
-        for (int y=0; y<mH; y++) {
-            for (int z=0; z<mD; z++) {
-                d = leds.distance(x, y, z, origin_x, origin_y, origin_z);
+    Coord3D pos;
+    for (pos.x=0; pos.x<leds.size.x; pos.x++) {
+        for (pos.y=0; pos.y<leds.size.y; pos.y++) {
+            for (pos.z=0; pos.z<leds.size.z; pos.z++) {
+                d = leds.distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
 
                 if (d>diameter && d<diameter+1) {
-                  leds[leds.XYZ(x, leds.heightV, z)] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+                  leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
                 }
             }
         }
     }
   }
 }; // SphereMove3DEffect
-
-//XY used by blur2d
-// uint16_t XY( uint8_t x, uint8_t y) {
-//   return leds.XY(x,y);
-// }
 
 //Frizzles2D inspired by WLED, Stepko, Andrew Tuline, https://editor.soulmatelights.com/gallery/640-color-frizzles
 class Frizzles2D: public Effect {
@@ -336,12 +326,13 @@ public:
     leds.fadeToBlackBy(16);
 
     for (size_t i = 8; i > 0; i--) {
-      uint8_t x = beatsin8(mdl->getValue("BPM").as<int>()/8 + i, 0, leds.widthV - 1);
-      uint8_t y = beatsin8(mdl->getValue("intensity").as<int>()/8 - i, 0, leds.heightV - 1);
+      Coord3D pos = {0,0,0};
+      pos.x = beatsin8(mdl->getValue("BPM").as<int>()/8 + i, 0, leds.size.x - 1);
+      pos.y = beatsin8(mdl->getValue("intensity").as<int>()/8 - i, 0, leds.size.y - 1);
       CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
-      leds[leds.XY(x,y)] = color;
+      leds[pos] = color;
     }
-    leds.blur2d(leds.widthV, leds.heightV, mdl->getValue("blur"));
+    leds.blur2d(mdl->getValue("blur"));
   }
   bool controls(JsonObject parentVar) {
     addPalette(parentVar);
@@ -361,16 +352,17 @@ public:
   void loop(Leds &leds) {
     leds.fadeToBlackBy(100);
 
+    Coord3D pos = {0,0,0};
     if (mdl->getValue("Vertical").as<bool>()) {
-      size_t x = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, leds.widthV-1 ); //instead of call%width
+      pos.x = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, leds.size.x-1 ); //instead of call%width
 
-      for (size_t y = 0; y <  leds.heightV; y++) {
-        leds[leds.XY(x,y)] = CHSV( gHue, 255, 192);
+      for (pos.y = 0; pos.y <  leds.size.y; pos.y++) {
+        leds[pos] = CHSV( gHue, 255, 192);
       }
     } else {
-      size_t y = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, leds.heightV-1 ); //instead of call%height
-      for (size_t x = 0; x <  leds.widthV; x++) {
-        leds[leds.XY(x,y)] = CHSV( gHue, 255, 192);
+      pos.y = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, leds.size.y-1 ); //instead of call%height
+      for (pos.x = 0; pos.x <  leds.size.x; pos.x++) {
+        leds[pos] = CHSV( gHue, 255, 192);
       }
     }
   }
@@ -394,8 +386,6 @@ public:
   }
 
   void loop(Leds &leds) {
-    const uint16_t cols = leds.widthV;
-    const uint16_t rows = leds.heightV;
 
     uint8_t speed = mdl->getValue("speed").as<int>()/32;
     uint8_t scale = mdl->getValue("scale").as<int>()/32;
@@ -406,24 +396,25 @@ public:
     uint16_t a2 = a/2;
     uint16_t a3 = a/3;
 
-    uint16_t cx =  beatsin8(10-speed,0,cols-1)*scale;
-    uint16_t cy =  beatsin8(12-speed,0,rows-1)*scale;
-    uint16_t cx1 = beatsin8(13-speed,0,cols-1)*scale;
-    uint16_t cy1 = beatsin8(15-speed,0,rows-1)*scale;
-    uint16_t cx2 = beatsin8(17-speed,0,cols-1)*scale;
-    uint16_t cy2 = beatsin8(14-speed,0,rows-1)*scale;
+    uint16_t cx =  beatsin8(10-speed,0,leds.size.x-1)*scale;
+    uint16_t cy =  beatsin8(12-speed,0,leds.size.y-1)*scale;
+    uint16_t cx1 = beatsin8(13-speed,0,leds.size.x-1)*scale;
+    uint16_t cy1 = beatsin8(15-speed,0,leds.size.y-1)*scale;
+    uint16_t cx2 = beatsin8(17-speed,0,leds.size.x-1)*scale;
+    uint16_t cy2 = beatsin8(14-speed,0,leds.size.y-1)*scale;
     
     uint16_t xoffs = 0;
-    for (int x = 0; x < cols; x++) {
+    Coord3D pos = {0,0,0};
+    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
       xoffs += scale;
       uint16_t yoffs = 0;
 
-      for (int y = 0; y < rows; y++) {
+      for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
         yoffs += scale;
 
-        byte rdistort = cos8((cos8(((x<<3)+a )&255)+cos8(((y<<3)-a2)&255)+a3   )&255)>>1; 
-        byte gdistort = cos8((cos8(((x<<3)-a2)&255)+cos8(((y<<3)+a3)&255)+a+32 )&255)>>1; 
-        byte bdistort = cos8((cos8(((x<<3)+a3)&255)+cos8(((y<<3)-a) &255)+a2+64)&255)>>1; 
+        byte rdistort = cos8((cos8(((pos.x<<3)+a )&255)+cos8(((pos.y<<3)-a2)&255)+a3   )&255)>>1; 
+        byte gdistort = cos8((cos8(((pos.x<<3)-a2)&255)+cos8(((pos.y<<3)+a3)&255)+a+32 )&255)>>1; 
+        byte bdistort = cos8((cos8(((pos.x<<3)+a3)&255)+cos8(((pos.y<<3)-a) &255)+a2+64)&255)>>1; 
 
         byte valueR = rdistort+ w*  (a- ( ((xoffs - cx)  * (xoffs - cx)  + (yoffs - cy)  * (yoffs - cy))>>7  ));
         byte valueG = gdistort+ w*  (a2-( ((xoffs - cx1) * (xoffs - cx1) + (yoffs - cy1) * (yoffs - cy1))>>7 ));
@@ -433,7 +424,7 @@ public:
         valueG = gamma8(cos8(valueG));
         valueB = gamma8(cos8(valueB));
 
-        leds[leds.XY(x,y)] = CRGB(valueR, valueG, valueB);
+        leds[pos] = CRGB(valueR, valueG, valueB);
       }
     }
   }
@@ -459,17 +450,15 @@ public:
 
   void loop(Leds &leds) {
 
-    const uint16_t cols = leds.widthV;
-    const uint16_t rows = leds.heightV;
-    const uint8_t mapp = 180 / max(cols,rows);
+    const uint8_t mapp = 180 / max(leds.size.x,leds.size.y);
 
     uint8_t speed = mdl->getValue("speed");
     uint8_t offsetX = mdl->getValue("Offset X");
     uint8_t offsetY = mdl->getValue("Offset Y");
     uint8_t legs = mdl->getValue("Legs");
 
-    sharedData.allocate(sizeof(map_t) * cols * rows + 2 * sizeof(uint8_t) + 2 * sizeof(uint16_t) + sizeof(uint32_t));
-    map_t *rMap = sharedData.bind<map_t>(cols * rows); //array
+    sharedData.allocate(sizeof(map_t) * leds.size.x * leds.size.y + 2 * sizeof(uint8_t) + 2 * sizeof(uint16_t) + sizeof(uint32_t));
+    map_t *rMap = sharedData.bind<map_t>(leds.size.x * leds.size.y); //array
     uint8_t *offsX = sharedData.bind<uint8_t>();
     uint8_t *offsY = sharedData.bind<uint8_t>();
     uint16_t *aux0 = sharedData.bind<uint16_t>();
@@ -477,34 +466,36 @@ public:
     uint32_t *step = sharedData.bind<uint32_t>();
     if (!sharedData.allocated()) return;
 
+    Coord3D pos = {0,0,0};
+
     // re-init if SEGMENT dimensions or offset changed
-    if (*aux0 != cols || *aux1 != rows || offsetX != *offsX || offsetY != *offsY) {
+    if (*aux0 != leds.size.x || *aux1 != leds.size.y || offsetX != *offsX || offsetY != *offsY) {
       // *step = 0;
-      *aux0 = cols;
-      *aux1 = rows;
+      *aux0 = leds.size.x;
+      *aux1 = leds.size.y;
       *offsX = offsetX;
       *offsY = offsetY;
-      const uint8_t C_X = cols / 2 + (offsetX - 128)*cols/255;
-      const uint8_t C_Y = rows / 2 + (offsetY - 128)*rows/255;
-      for (int x = 0; x < cols; x++) {
-        for (int y = 0; y < rows; y++) {
-          rMap[leds.XY(x, y)].angle = 40.7436f * atan2f(y - C_Y, x - C_X); // avoid 128*atan2()/PI
-          rMap[leds.XY(x, y)].radius = hypotf(x - C_X, y - C_Y) * mapp; //thanks Sutaburosu
+      const uint8_t C_X = leds.size.x / 2 + (offsetX - 128)*leds.size.x/255;
+      const uint8_t C_Y = leds.size.y / 2 + (offsetY - 128)*leds.size.y/255;
+      for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
+        for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
+          rMap[leds.XY(pos.x, pos.y)].angle = 40.7436f * atan2f(pos.y - C_Y, pos.x - C_X); // avoid 128*atan2()/PI
+          rMap[leds.XY(pos.x, pos.y)].radius = hypotf(pos.x - C_X, pos.y - C_Y) * mapp; //thanks Sutaburosu
         }
       }
     }
 
     *step = now * speed / 32 / 10;//mdl->getValue("realFps").as<int>();  // WLEDMM 40fps
 
-    for (int x = 0; x < cols; x++) {
-      for (int y = 0; y < rows; y++) {
-        byte angle = rMap[leds.XY(x,y)].angle;
-        byte radius = rMap[leds.XY(x,y)].radius;
+    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
+      for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
+        byte angle = rMap[leds.XY(pos.x,pos.y)].angle;
+        byte radius = rMap[leds.XY(pos.x,pos.y)].radius;
         //CRGB c = CHSV(SEGENV.step / 2 - radius, 255, sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step) + radius - SEGENV.step * 2 + angle * (SEGMENT.custom3/3+1)));
         uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + *step/2) + radius - *step + angle * legs);
         intensity = map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
         CRGB color = ColorFromPalette(palette, *step / 2 - radius, intensity);
-        leds[leds.XY(x,y)] = color;
+        leds[pos] = color;
       }
     }
   }
@@ -527,9 +518,6 @@ public:
 
   void loop(Leds &leds) {
 
-    const uint16_t cols = leds.widthV;
-    const uint16_t rows = leds.heightV;
-
     uint8_t freqX = mdl->getValue("X frequency");
     uint8_t fadeRate = mdl->getValue("Fade rate");
     uint8_t speed = mdl->getValue("Speed");
@@ -539,26 +527,27 @@ public:
 
     uint_fast16_t phase = now * speed / 256;  // allow user to control rotation speed, speed between 0 and 255!
 
+    Coord3D locn = {0,0,0};
     if (smooth) { // WLEDMM: this is the original "float" code featuring anti-aliasing
-        int maxLoops = max(192, 4*(cols+rows));
+        int maxLoops = max(192, 4*(leds.size.x+leds.size.y));
         maxLoops = ((maxLoops / 128) +1) * 128; // make sure whe have half or full turns => multiples of 128
         for (int i=0; i < maxLoops; i ++) {
-          float xlocn = float(sin8(phase/2 + (i* freqX)/64)) / 255.0f;  // WLEDMM align speed with original effect
-          float ylocn = float(cos8(phase/2 + i*2)) / 255.0f;
+          locn.x = float(sin8(phase/2 + (i* freqX)/64)) / 255.0f;  // WLEDMM align speed with original effect
+          locn.y = float(cos8(phase/2 + i*2)) / 255.0f;
           //SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing
-          unsigned palIndex = (256*ylocn) + phase/2 + (i* freqX)/64;
+          unsigned palIndex = (256*locn.y) + phase/2 + (i* freqX)/64;
           // SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(palIndex, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing - color follows rotation
-          leds[leds.XY(xlocn, ylocn)] = ColorFromPalette(palette, palIndex);
+          leds[locn] = ColorFromPalette(palette, palIndex);
         }
     } else
     for (int i=0; i < 256; i ++) {
       //WLEDMM: stick to the original calculations of xlocn and ylocn
-      uint_fast8_t xlocn = sin8(phase/2 + (i*freqX)/64);
-      uint_fast8_t ylocn = cos8(phase/2 + i*2);
-      xlocn = (cols < 2) ? 1 : (map(2*xlocn, 0,511, 0,2*(cols-1)) +1) /2;    // softhack007: "*2 +1" for proper rounding
-      ylocn = (rows < 2) ? 1 : (map(2*ylocn, 0,511, 0,2*(rows-1)) +1) /2;    // "rows > 2" is needed to avoid div/0 in map()
+      locn.x = sin8(phase/2 + (i*freqX)/64);
+      locn.y = cos8(phase/2 + i*2);
+      locn.x = (leds.size.x < 2) ? 1 : (map(2*locn.x, 0,511, 0,2*(leds.size.x-1)) +1) /2;    // softhack007: "*2 +1" for proper rounding
+      locn.y = (leds.size.y < 2) ? 1 : (map(2*locn.y, 0,511, 0,2*(leds.size.y-1)) +1) /2;    // "leds.size.y > 2" is needed to avoid div/0 in map()
       // SEGMENT.setPixelColorXY((uint8_t)xlocn, (uint8_t)ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0));
-      leds[leds.XY(xlocn, ylocn)] = ColorFromPalette(palette, now/100+i);
+      leds[locn] = ColorFromPalette(palette, now/100+i);
     }
   }
   bool controls(JsonObject parentVar) {
@@ -699,14 +688,12 @@ public:
   }
 
   void loop(Leds &leds) {
-    sharedData.allocate(sizeof(uint16_t) * leds.widthV + sizeof(uint32_t));
-    uint16_t *previousBarHeight = sharedData.bind<uint16_t>(leds.widthV); //array
+    sharedData.allocate(sizeof(uint16_t) * leds.size.x + sizeof(uint32_t));
+    uint16_t *previousBarHeight = sharedData.bind<uint16_t>(leds.size.x); //array
     uint32_t *step = sharedData.bind<uint32_t>();
     if (!sharedData.allocated()) return;
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
-    const uint16_t cols = leds.widthV;
-    const uint16_t rows = leds.heightV; 
 
     uint8_t *fftResult = wledAudioMod->fftResults;
     #ifdef SR_DEBUG
@@ -732,10 +719,11 @@ public:
     uint16_t lastBandHeight = 0;  // WLEDMM: for smoothing out bars
 
     //WLEDMM: evenly ditribut bands
-    float bandwidth = (float)cols / NUM_BANDS;
+    float bandwidth = (float)leds.size.x / NUM_BANDS;
     float remaining = bandwidth;
     uint8_t band = 0;
-    for (int x=0; x < cols; x++) {
+    Coord3D pos = {0,0,0};
+    for (pos.x=0; pos.x < leds.size.x; pos.x++) {
       //WLEDMM if not enough remaining
       if (remaining < 1) {band++; remaining+= bandwidth;} //increase remaining but keep the current remaining
       remaining--; //consume remaining
@@ -747,7 +735,7 @@ public:
       uint16_t bandHeight = fftResult[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
 
       // WLEDMM begin - smooth out bars
-      if ((x > 0) && (x < (cols-1)) && (smoothBars)) {
+      if ((pos.x > 0) && (pos.x < (leds.size.x-1)) && (smoothBars)) {
         // get height of next (right side) bar
         uint8_t nextband = (remaining < 1)? band +1: band;
         nextband = constrain(nextband, 0, 15);  // just to be sure
@@ -756,29 +744,30 @@ public:
         // smooth Band height
         bandHeight = (7*bandHeight + 3*lastBandHeight + 3*nextBandHeight) / 12;   // yeees, its 12 not 13 (10% amplification)
         bandHeight = constrain(bandHeight, 0, 255);   // remove potential over/underflows
-        colorIndex = map(x, 0, cols-1, 0, 255); //WLEDMM
+        colorIndex = map(pos.x, 0, leds.size.x-1, 0, 255); //WLEDMM
       }
       lastBandHeight = bandHeight; // remember BandHeight (left side) for next iteration
-      uint16_t barHeight = map(bandHeight, 0, 255, 0, rows); // Now we map bandHeight to barHeight. do not subtract -1 from rows here
+      uint16_t barHeight = map(bandHeight, 0, 255, 0, leds.size.y); // Now we map bandHeight to barHeight. do not subtract -1 from leds.size.y here
       // WLEDMM end
 
-      if (barHeight > rows) barHeight = rows;                      // WLEDMM map() can "overshoot" due to rounding errors
-      if (barHeight > previousBarHeight[x]) previousBarHeight[x] = barHeight; //drive the peak up
+      if (barHeight > leds.size.y) barHeight = leds.size.y;                      // WLEDMM map() can "overshoot" due to rounding errors
+      if (barHeight > previousBarHeight[pos.x]) previousBarHeight[pos.x] = barHeight; //drive the peak up
 
       CRGB ledColor = CRGB::Black;
-      for (int y=0; y < barHeight; y++) {
+
+      for (pos.y=0; pos.y < barHeight; pos.y++) {
         if (colorBars) //color_vertical / color bars toggle
-          colorIndex = map(y, 0, rows-1, 0, 255);
+          colorIndex = map(pos.y, 0, leds.size.y-1, 0, 255);
 
         ledColor = ColorFromPalette(palette, (uint8_t)colorIndex);
 
-        leds.setPixelColor(leds.XY(x, rows - 1 - y), ledColor);
+        leds.setPixelColor(leds.XY(pos.x, leds.size.y - 1 - pos.y), ledColor);
       }
 
-      if ((ripple > 0) && (previousBarHeight[x] > 0) && (previousBarHeight[x] < rows))  // WLEDMM avoid "overshooting" into other segments
-        leds.setPixelColor(leds.XY(x, rows - previousBarHeight[x]), CHSV( gHue, 255, 192)); // take gHue color for the time being
+      if ((ripple > 0) && (previousBarHeight[pos.x] > 0) && (previousBarHeight[pos.x] < leds.size.y))  // WLEDMM avoid "overshooting" into other segments
+        leds.setPixelColor(leds.XY(pos.x, leds.size.y - previousBarHeight[pos.x]), CHSV( gHue, 255, 192)); // take gHue color for the time being
 
-      if (rippleTime && previousBarHeight[x]>0) previousBarHeight[x]--;    //delay/ripple effect
+      if (rippleTime && previousBarHeight[pos.x]>0) previousBarHeight[pos.x]--;    //delay/ripple effect
 
     }
   }

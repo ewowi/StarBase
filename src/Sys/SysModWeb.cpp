@@ -349,14 +349,14 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
 
       for (auto loopClient:ws->getClients()) {
         if (!client || client == loopClient) {
-          if (loopClient->status() == WS_CONNECTED && !loopClient->queueIsFull() && loopClient->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) {
+          if (loopClient->status() == WS_CONNECTED && !loopClient->queueIsFull() && (!isBinary || loopClient->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2)) { //binary is lossy
             isBinary?loopClient->binary(wsBuf): loopClient->text(wsBuf);
             sendDataWsCounter++;
           }
           else {
-            USER_PRINT_Async("sendDataWs client full or not connected\n", client);
-            ws->cleanupClients(); //only if above threshold
-            ws->_cleanBuffers();
+            print->printClient("sendDataWs client full or not connected\n", loopClient);
+            // ws->cleanupClients(); //only if above threshold
+            // ws->_cleanBuffers();
           }
         }
       }
@@ -365,9 +365,9 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
     }
     else {
       USER_PRINT_Async("sendDataWs WS buffer allocation failed\n");
-      ws->closeAll(1013); //code 1013 = temporary overload, try again later
-      ws->cleanupClients(0); //disconnect ALL clients to release memory
       ws->_cleanBuffers();
+      ws->cleanupClients(0); //disconnect ALL clients to release memory
+      ws->closeAll(1013); //code 1013 = temporary overload, try again later
     }
   }
 

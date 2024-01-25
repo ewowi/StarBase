@@ -54,20 +54,16 @@ public:
   // leds = (CRGB*)reallocarray
 
   uint16_t nrOfLedsP = 64; //amount of physical leds
+  uint8_t fixtureNr = -1;
+  Coord3D sizeP = {8,8,1};
 
   
   uint16_t nrOfLeds = 64;  //amount of virtual leds (calculated by projection)
 
-  uint16_t widthP = 8; 
-  uint16_t heightP = 8; 
-  uint16_t depthP = 1; 
-  uint16_t widthV = 8; 
-  uint16_t heightV = 8; 
-  uint16_t depthV = 1; 
-
+  Coord3D size = {8,8,1};
+  
   uint8_t fx = -1;
   uint8_t projectionNr = -1;
-  uint8_t fixtureNr = -1;
   uint8_t effectDimension = -1;
 
   //track pins and leds
@@ -80,17 +76,26 @@ public:
   }
 
   uint16_t XY( uint8_t x, uint8_t y) {
-    return x + y * widthV;
+    return x + y * size.x;
   }
   uint16_t XYZ( uint8_t x, uint8_t y, uint8_t z) {
-    return x + y * widthV + z * widthV * heightV;
+    return x + y * size.x + z * size.x * size.y;
   }
 
   void fixtureProjectAndMap();
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=
 
-  Leds& operator[](uint16_t indexV);
+  // indexVLocal stored to be used by other operators
+  Leds& operator[](uint16_t indexV) {
+    indexVLocal = indexV;
+    return *this;
+  }
+
+  Leds& operator[](Coord3D pos) {
+    indexVLocal = XYZ(pos.x, pos.y, pos.z);
+    return *this;
+  }
 
   // CRGB& operator[](uint16_t indexV) {
   //   // indexVLocal = indexV;
@@ -98,14 +103,11 @@ public:
   //   return x;
   // }
 
-  Leds& operator=(const CRGB color);
-
-  // maps the virtual led to the physical led(s) and assign a color to it
-  void setPixelColor(int indexV, CRGB color);
-
-  CRGB getPixelColor(int indexV);
-
-  void addPixelColor(int indexV, CRGB color);
+  // uses indexVLocal and color to call setPixelColor
+  Leds& operator=(const CRGB color) {
+    setPixelColor(indexVLocal, color);
+    return *this;
+  }
 
   Leds& operator+=(const CRGB color) {
     setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
@@ -122,13 +124,42 @@ public:
   //   return *this;
   // }
 
+
+  // maps the virtual led to the physical led(s) and assign a color to it
+  void setPixelColor(int indexV, CRGB color) {
+    if (mappingTable.size()) {
+      if (indexV >= mappingTable.size()) return;
+      for (uint16_t indexP:mappingTable[indexV]) {
+        if (indexP < NUM_LEDS_Max)
+          ledsPhysical[indexP] = color;
+      }
+    }
+    else //no projection
+      ledsPhysical[projectionNr==p_Random?random(nrOfLedsP):indexV] = color;
+  }
+
+  CRGB getPixelColor(int indexV) {
+    if (mappingTable.size()) {
+      if (indexV >= mappingTable.size()) return CRGB::Black;
+      if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Max) return CRGB::Black;
+
+      return ledsPhysical[mappingTable[indexV][0]]; //any would do as they are all the same
+    }
+    else //no projection
+      return ledsPhysical[indexV];
+  }
+
+  void addPixelColor(int indexV, CRGB color) {
+    setPixelColor(indexV, getPixelColor(indexV) + color);
+  }
+
   void fadeToBlackBy(uint8_t fadeBy = 255) {
     //fade2black for old start to endpos
     Coord3D index;
     for (index.x = startPos.x; index.x <= endPos.x; index.x++)
       for (index.y = startPos.y; index.y <= endPos.y; index.y++)
         for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          ledsPhysical[index.x + index.y * widthP + index.z * widthP * heightP].nscale8(255-fadeBy);
+          ledsPhysical[index.x + index.y * sizeP.x + index.z * sizeP.x * sizeP.y].nscale8(255-fadeBy);
         }
   }
   void fill_solid(const struct CRGB& color) {
@@ -137,13 +168,11 @@ public:
     for (index.x = startPos.x; index.x <= endPos.x; index.x++)
       for (index.y = startPos.y; index.y <= endPos.y; index.y++)
         for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          ledsPhysical[index.x + index.y * widthP + index.z * widthP * heightP] = color;
+          ledsPhysical[index.x + index.y * sizeP.x + index.z * sizeP.x * sizeP.y] = color;
         }
   }
 
-  void fill_rainbow(uint8_t initialhue,
-                  uint8_t deltahue )
-{
+  void fill_rainbow(uint8_t initialhue, uint8_t deltahue) {
     CHSV hsv;
     hsv.hue = initialhue;
     hsv.val = 255;
@@ -152,15 +181,15 @@ public:
     for (index.x = startPos.x; index.x <= endPos.x; index.x++)
       for (index.y = startPos.y; index.y <= endPos.y; index.y++)
         for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          ledsPhysical[index.x + index.y * widthP + index.z * widthP * heightP] = hsv;
+          ledsPhysical[index.x + index.y * sizeP.x + index.z * sizeP.x * sizeP.y] = hsv;
           hsv.hue += deltahue;
         }
   }
 
-  void blur2d(uint8_t width, uint8_t height, fract8 blur_amount)
+  void blur2d(fract8 blur_amount)
   {
-      blurRows(width, height, blur_amount);
-      blurColumns(width, height, blur_amount);
+      blurRows(size.x, size.y, blur_amount);
+      blurColumns(size.x, size.y, blur_amount);
   }
 
   void blurRows(uint8_t width, uint8_t height, fract8 blur_amount)
@@ -208,7 +237,6 @@ public:
           }
       }
   }
-
 
 private:
   std::vector<std::vector<uint16_t>> mappingTable;

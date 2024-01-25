@@ -24,6 +24,18 @@ struct Coord3D {
   uint16_t x;
   uint16_t y;
   uint16_t z;
+
+  // Coord3D() {
+  //   x = 0;
+  //   y = 0;
+  //   z = 0;
+  // }
+  // Coord3D(uint16_t x, uint16_t y, uint16_t z) {
+  //   this->x = x;
+  //   this->y = y;
+  //   this->z = y;
+  // }
+
   bool operator!=(Coord3D rhs) {
     // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
     return x != rhs.x || y != rhs.y || z != rhs.z;
@@ -135,7 +147,7 @@ public:
         web->sendDataWs(responseVariant);
       }
       else if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
-        USER_PRINTF("setValue changed %s (%d) %s->", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str()); //old value
+        USER_PRINTF("setValue changed %s[%d] %s->", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str()); //old value
         var["value"] = value;
         USER_PRINTF("%s\n", var["value"].as<String>().c_str()); //newvalue
         ui->setChFunAndWs(var, rowNr);
@@ -145,7 +157,7 @@ public:
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValue var %s (%d) value %s not array, creating\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+        USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
         // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
         var.createNestedArray("value");
       }
@@ -172,13 +184,34 @@ public:
   }
 
   //Set value with argument list
-  JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun
+  // JsonObject setValueV(const char * id, uint8_t rowNr = UINT8_MAX, const char * format, ...) {
+  //   setValueV(id, UINT8_MAX, format);
+  // }
 
-  //Set value with argument list and print
-  JsonObject setValueP(const char * id, const char * format, ...);
+  JsonObject setValueV(const char * id, const char * format, ...) {
+    va_list args;
+    va_start(args, format);
 
-  //Send value directly to ws (tbd: no model function but web?)
-  void setValueLossy(const char * id, const char * format, ...);
+    char value[128];
+    vsnprintf(value, sizeof(value)-1, format, args);
+
+    va_end(args);
+
+    return setValue(id, JsonString(value, JsonString::Copied));
+  }
+
+  JsonObject setValueP(const char * id, const char * format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    char value[128];
+    vsnprintf(value, sizeof(value)-1, format, args);
+    USER_PRINTF("%s\n", value);
+
+    va_end(args);
+
+    return setValue(id, JsonString(value, JsonString::Copied));
+  }
 
   JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {
     JsonObject var = findVar(id);

@@ -142,60 +142,6 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
   }
 }
 
-//Set value with argument list
-JsonObject SysModModel::setValueV(const char * id, const char * format, ...) {
-  va_list args;
-  va_start(args, format);
-
-  char value[128];
-  vsnprintf(value, sizeof(value)-1, format, args);
-
-  va_end(args);
-
-  return setValue(id, JsonString(value, JsonString::Copied));
-}
-
-JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
-  va_list args;
-  va_start(args, format);
-
-  char value[128];
-  vsnprintf(value, sizeof(value)-1, format, args);
-  USER_PRINTF("%s\n", value);
-
-  va_end(args);
-
-  return setValue(id, JsonString(value, JsonString::Copied));
-}
-
-void SysModModel::setValueLossy(const char * id, const char * format, ...) {
-
-  va_list args;
-  va_start(args, format);
-
-  // size_t len = vprintf(format, args);
-  char value[128];
-  vsnprintf(value, sizeof(value)-1, format, args);
-
-  va_end(args);
-
-  JsonDocument *responseDoc = web->getResponseDoc();
-  responseDoc->clear(); //needed for deserializeJson?
-  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
-
-  web->addResponse(id, "value", JsonString(value, JsonString::Copied));
-
-  bool isOk = true;
-  for (auto client:web->ws->getClients()) {
-      if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) //lossy
-        isOk = false;
-  }
-  if (isOk)
-    web->sendDataWs(responseVariant);
-  // else
-  //   USER_PRINTF("x");
-}
-
 JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
   JsonArray root;
   // print ->print("findVar %s %s\n", id, parent.isNull()?"root":"n");

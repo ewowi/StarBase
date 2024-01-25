@@ -314,6 +314,10 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
       rangeValueNode = cE("span");
       rangeValueNode.id = rvNode; //rangeValue
     } else if (variable.type == "coord3D") {
+      if (variable.ro) { //e.g. for reset/restart reason: do not show a select but only show the selected option
+        varNode = cE("span");
+      }
+      else {
         varNode = cE("div");
         let xNode = cE("input");
         xNode.type = "number";
@@ -332,6 +336,7 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
         zNode.placeholder = "z";
         zNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
         varNode.appendChild(zNode);
+      }
     } else {
       //input types: text, search, tel, url, email, and password.
 
@@ -762,6 +767,18 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
           }
         } else
           node.textContent = commandJson.value;
+      }
+      else if (node.className == "coord3D") {
+        if (commandJson.value && Object.keys(commandJson.value)) { //tbd: support arrays (now only objects)
+          let sep = "";
+          node.textContent = "";
+          for (let key of Object.keys(commandJson.value)) {
+            node.textContent += sep + commandJson.value[key];
+            sep = ",";
+          }
+        }
+        else 
+          console.log("   value coord3D value not object[x,y,z]", commandJson.value);
       }
       else { //text and numbers read only
         // console.log("changeHTML value span not select", variable, node, commandJson, rowNr);

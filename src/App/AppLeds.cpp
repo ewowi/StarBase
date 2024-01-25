@@ -58,16 +58,16 @@ void Leds::fixtureProjectAndMap() {
         // startPos.z = 0;
         break;
       case p_DistanceFromCenter:
-        // startPos.x = widthP / 2;
-        // startPos.y = heightP / 2;
-        // startPos.z = depthP / 2;
+        // startPos.x = sizeP.x / 2;
+        // startPos.y = sizeP.y / 2;
+        // startPos.z = sizeP.z / 2;
         break;
     }
 
     //what to deserialize
-    jrdws.lookFor("width", &widthP);
-    jrdws.lookFor("height", &heightP);
-    jrdws.lookFor("depth", &depthP);
+    jrdws.lookFor("width", &sizeP.x);
+    jrdws.lookFor("height", &sizeP.y);
+    jrdws.lookFor("depth", &sizeP.z);
     jrdws.lookFor("nrOfLeds", &nrOfLedsP);
     jrdws.lookFor("pin", &currPin);
 
@@ -79,9 +79,9 @@ void Leds::fixtureProjectAndMap() {
       // USER_PRINTF("\n");
 
       uint8_t fixtureDimension = 0;
-      if (widthP>1) fixtureDimension++;
-      if (heightP>1) fixtureDimension++;
-      if (depthP>1) fixtureDimension++;
+      if (sizeP.x>1) fixtureDimension++;
+      if (sizeP.y>1) fixtureDimension++;
+      if (sizeP.z>1) fixtureDimension++;
 
       if (uint16CollectList.size()>=1 && fixtureDimension>=1 && fixtureDimension<=3) {
 
@@ -93,7 +93,7 @@ void Leds::fixtureProjectAndMap() {
 
         if (x >= startPos.x && x <=endPos.x && y >= startPos.y && y <=endPos.y && z >= startPos.z && z <=endPos.z ) {
 
-          // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, fixtureDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], widthP, heightP, depthP);
+          // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, fixtureDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], sizeP.x, sizeP.y, sizeP.z);
 
           //calculate the bucket to add to current physical led to
           uint16_t bucket = UINT16_MAX;
@@ -115,13 +115,13 @@ void Leds::fixtureProjectAndMap() {
                   bucket = distance(x,y,z,startPos.x, startPos.y, startPos.z);
               }
               else if (effectDimension == _2D) {
-                depthV = 1; //no 3D
+                size.z = 1; //no 3D
                 if (fixtureDimension == _1D)
                   bucket = x;
                 else if (fixtureDimension == _2D) {
-                  widthV = abs(endPos.x - startPos.x + 1);
-                  heightV = abs(endPos.y - startPos.y + 1);
-                  depthV = 1;
+                  size.x = abs(endPos.x - startPos.x + 1);
+                  size.y = abs(endPos.y - startPos.y + 1);
+                  size.z = 1;
 
                   x-= startPos.x;
                   y-= startPos.y;
@@ -130,22 +130,22 @@ void Leds::fixtureProjectAndMap() {
                   //scaling (check rounding errors)
                   //1024 crash in makebuffer...
                   float scale = 1;
-                  if (widthV * heightV > 256)
-                    scale = (sqrt((float)256.0 / (widthV * heightV))); //avoid very high virtual resolutions
-                  widthV *= scale;
-                  heightV *= scale;
+                  if (size.x * size.y > 256)
+                    scale = (sqrt((float)256.0 / (size.x * size.y))); //avoid very high virtual resolutions
+                  size.x *= scale;
+                  size.y *= scale;
                   x = (x+1) * scale - 1;
                   y = (y+1) * scale - 1;
 
                   bucket = XY(x, y);
-                  // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
+                  // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, size.x, size.y);
                 }
                 else if (fixtureDimension == _3D) {
-                  widthV = widthP + heightP;
-                  heightV = depthP;
-                  depthV = 1;
+                  size.x = sizeP.x + sizeP.y;
+                  size.y = sizeP.z;
+                  size.z = 1;
                   bucket = XY(x + y + 1, z);
-                  // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, widthV);
+                  // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, size.x);
                 }
               }
               //tbd: effect is 3D
@@ -158,25 +158,25 @@ void Leds::fixtureProjectAndMap() {
               break;
             case p_Fun: //first attempt for distance from Circle 2D
               if (effectDimension == _2D) {
-                depthV = 1; //no 3D
+                size.z = 1; //no 3D
                 if (fixtureDimension == _2D) {
 
-                  float xNew = sin(x * TWO_PI / (float)(widthV-1)) * widthV;
-                  float yNew = cos(x * TWO_PI / (float)(widthV-1)) * heightV;
+                  float xNew = sin(x * TWO_PI / (float)(size.x-1)) * size.x;
+                  float yNew = cos(x * TWO_PI / (float)(size.x-1)) * size.y;
 
-                  xNew = round(((heightV-1.0-y)/(heightV-1.0) * xNew + widthV) / 2.0);
-                  yNew = round(((heightV-1.0-y)/(heightV-1.0) * yNew + heightV) / 2.0);
+                  xNew = round(((size.y-1.0-y)/(size.y-1.0) * xNew + size.x) / 2.0);
+                  yNew = round(((size.y-1.0-y)/(size.y-1.0) * yNew + size.y) / 2.0);
 
-                  USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
+                  USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(sizeP.x-1)), cos(x * TWO_PI / (float)(sizeP.x-1)), xNew, yNew);
                   x = xNew;
                   y = yNew;
 
-                  widthV = widthP;
-                  heightV = heightP;
-                  depthV = 1;
+                  size.x = sizeP.x;
+                  size.y = sizeP.y;
+                  size.z = 1;
 
                   bucket = XY(x, y);
-                  // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, widthV, heightV);
+                  // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, size.x, size.y);
                 }
               }
               break;
@@ -192,27 +192,27 @@ void Leds::fixtureProjectAndMap() {
                 case _2D: 
                   float minDistance = 10;
                   // USER_PRINTF("checking bucket %d\n", bucket);
-                  for (uint16_t y=0; y<heightV && minDistance > 0.5; y++)
-                  for (uint16_t x=0; x<widthV && minDistance > 0.5; x++) {
+                  for (uint16_t y=0; y<size.y && minDistance > 0.5; y++)
+                  for (uint16_t x=0; x<size.x && minDistance > 0.5; x++) {
 
-                    float xNew = sin(x * TWO_PI / (float)(widthV-1)) * widthV;
-                    float yNew = cos(x * TWO_PI / (float)(widthV-1)) * heightV;
+                    float xNew = sin(x * TWO_PI / (float)(size.x-1)) * size.x;
+                    float yNew = cos(x * TWO_PI / (float)(size.x-1)) * size.y;
 
-                    xNew = round(((heightV-1.0-y)/(heightV-1.0) * xNew + widthV) / 2.0);
-                    yNew = round(((heightV-1.0-y)/(heightV-1.0) * yNew + heightV) / 2.0);
+                    xNew = round(((size.y-1.0-y)/(size.y-1.0) * xNew + size.x) / 2.0);
+                    yNew = round(((size.y-1.0-y)/(size.y-1.0) * yNew + size.y) / 2.0);
 
-                    // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(widthP-1)), cos(x * TWO_PI / (float)(widthP-1)), xNew, yNew);
+                    // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(sizeP.x-1)), cos(x * TWO_PI / (float)(sizeP.x-1)), xNew, yNew);
 
-                    float distance = abs(bucket - xNew - yNew * widthV);
+                    float distance = abs(bucket - xNew - yNew * size.x);
 
                     //this should work (better) but needs more testing
                     // if (distance < minDistance) {
                     //   minDistance = distance;
-                    //   bucket = x+y*widthV;
+                    //   bucket = x+y*size.x;
                     // }
 
-                    if (bucket == (uint8_t)xNew + (uint8_t)yNew * widthV) {
-                      // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", bucket, x+y*widthV, x,y, widthV, xNew, yNew, widthV, distance);
+                    if (bucket == (uint8_t)xNew + (uint8_t)yNew * size.x) {
+                      // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", bucket, x+y*size.x, x,y, size.x, xNew, yNew, size.x, distance);
                       bucket = XY(x, y);
                       minDistance = 0; // stop looking further
                     }
@@ -286,9 +286,7 @@ void Leds::fixtureProjectAndMap() {
 
       if (projectionNr <= p_Random) {
         //defaults
-        widthV = widthP;
-        heightV = heightP;
-        depthV = depthP;
+        size = sizeP;
         nrOfLeds = nrOfLedsP;
       }
 
@@ -310,58 +308,15 @@ void Leds::fixtureProjectAndMap() {
         // }
       }
 
-      USER_PRINTF("fixtureProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLeds);
-      mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", widthP, heightP, depthP, widthV, heightV, depthV);
-      mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLeds);
+      USER_PRINTF("fixtureProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", sizeP.x, sizeP.y, sizeP.z, size.x, size.y, size.z, nrOfLedsP, nrOfLeds);
+      mdl->setValue("fxSize", size);
+      mdl->setValue("fxCount", nrOfLeds);
+
+      mdl->setValue("fixSize", sizeP);
+      mdl->setValue("fixCount", nrOfLedsP);
 
     } // if deserialize
   } //if fileName
   else
     USER_PRINTF("fixtureProjectAndMap: Filename for fixture %d not found\n", fixtureNr);
-}
-
-// indexVLocal stored to be used by other operators
-Leds& Leds::operator[](uint16_t indexV) {
-  indexVLocal = indexV;
-  return *this;
-}
-
-// CRGB& operator[](uint16_t indexV) {
-//   // indexVLocal = indexV;
-//   CRGB x = getPixelColor(indexV);
-//   return x;
-// }
-
-// uses indexVLocal and color to call setPixelColor
-Leds& Leds::operator=(const CRGB color) {
-  setPixelColor(indexVLocal, color);
-  return *this;
-}
-
-// maps the virtual led to the physical led(s) and assign a color to it
-void Leds::setPixelColor(int indexV, CRGB color) {
-  if (mappingTable.size()) {
-    if (indexV >= mappingTable.size()) return;
-    for (uint16_t indexP:mappingTable[indexV]) {
-      if (indexP < NUM_LEDS_Max)
-        ledsPhysical[indexP] = color;
-    }
-  }
-  else //no projection
-    ledsPhysical[projectionNr==p_Random?random(nrOfLedsP):indexV] = color;
-}
-
-CRGB Leds::getPixelColor(int indexV) {
-  if (mappingTable.size()) {
-    if (indexV >= mappingTable.size()) return CRGB::Black;
-    if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Max) return CRGB::Black;
-
-    return ledsPhysical[mappingTable[indexV][0]]; //any would do as they are all the same
-  }
-  else //no projection
-    return ledsPhysical[indexV];
-}
-
-void Leds::addPixelColor(int indexV, CRGB color) {
-  setPixelColor(indexV, getPixelColor(indexV) + color);
 }

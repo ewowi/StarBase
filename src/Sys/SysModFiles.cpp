@@ -80,7 +80,7 @@ void SysModFiles::setup() {
   ui->initText(parentVar, "drsize", nullptr, 32, true, [](JsonObject var) { //uiFun
     char details[32] = "";
     print->fFormat(details, sizeof(details)-1, "%d / %d B", files->usedBytes(), files->totalBytes());
-    web->addResponse(var["id"], "value", details);
+    web->addResponse(var["id"], "value", JsonString(details, JsonString::Copied));
     web->addResponse(var["id"], "label", "Total FS size");
   });
 

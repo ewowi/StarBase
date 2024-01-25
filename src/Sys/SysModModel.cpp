@@ -11,7 +11,6 @@
 
 #include "SysModModel.h"
 #include "SysModule.h"
-#include "SysModWeb.h"
 #include "SysModFiles.h"
 #include "SysJsonRDWS.h"
 
@@ -100,7 +99,7 @@ void SysModModel::setup() {
   }
 }
 void SysModModel::loop1s() {
-  setValueLossy("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
+  setValueV("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
 }
 
 void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
@@ -148,27 +147,25 @@ JsonObject SysModModel::setValueV(const char * id, const char * format, ...) {
   va_list args;
   va_start(args, format);
 
-  // size_t len = vprintf(format, args);
   char value[128];
   vsnprintf(value, sizeof(value)-1, format, args);
 
   va_end(args);
 
-  return setValue<JsonString>(id, JsonString(value, JsonString::Copied));
+  return setValue(id, JsonString(value, JsonString::Copied));
 }
 
 JsonObject SysModModel::setValueP(const char * id, const char * format, ...) {
   va_list args;
   va_start(args, format);
 
-  // size_t len = vprintf(format, args);
   char value[128];
   vsnprintf(value, sizeof(value)-1, format, args);
   USER_PRINTF("%s\n", value);
 
   va_end(args);
 
-  return setValue<JsonString>(id, JsonString(value, JsonString::Copied));
+  return setValue(id, JsonString(value, JsonString::Copied));
 }
 
 void SysModModel::setValueLossy(const char * id, const char * format, ...) {
@@ -186,10 +183,10 @@ void SysModModel::setValueLossy(const char * id, const char * format, ...) {
   responseDoc->clear(); //needed for deserializeJson?
   JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
-  web->addResponse(id, "value", value);
+  web->addResponse(id, "value", JsonString(value, JsonString::Copied));
 
   bool isOk = true;
-  for (auto client:SysModWeb::ws->getClients()) {
+  for (auto client:web->ws->getClients()) {
       if (client->status() != WS_CONNECTED || client->queueIsFull() || client->queueLength()>WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) //lossy
         isOk = false;
   }

@@ -64,7 +64,7 @@ void SysModNetwork::loop() {
 }
 
 void SysModNetwork::loop1s() {
-  mdl->setValueLossy("rssi", "%d dBm", WiFi.RSSI());
+  mdl->setValueV("rssi", "%d dBm", WiFi.RSSI());
 }
 
 void SysModNetwork::handleConnection() {

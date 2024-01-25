@@ -166,7 +166,7 @@ public:
       // ui needs to load the file also initially
       char fileName[32] = "";
       if (files->seqNrToName(fileName, var["value"])) {
-        web->addResponse("pview", "file", fileName);
+        web->addResponse("pview", "file", JsonString(fileName, JsonString::Copied));
       }
     }, [this](JsonObject var, uint8_t) { //chFun
 
@@ -180,7 +180,7 @@ public:
         responseDoc->clear(); //needed for deserializeJson?
         JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
-        web->addResponse("pview", "file", fileName);
+        web->addResponse("pview", "file", JsonString(fileName, JsonString::Copied));
         web->sendDataWs(responseVariant);
         print->printJson("fixture chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
       }
@@ -189,13 +189,13 @@ public:
     ui->initText(tableVar, "dimensions", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
       print->fFormat(details, sizeof(details)-1, "P:%dx%dx%d V:%dx%dx%d", ledsV.widthP, ledsV.heightP, ledsV.depthP, ledsV.widthV, ledsV.heightV, ledsV.depthV);
-      web->addResponse(var["id"], "value", details);
+      web->addResponse(var["id"], "value", JsonString(details, JsonString::Copied));
     });
 
     ui->initText(tableVar, "nrOfLeds", nullptr, 32, true, [](JsonObject var) { //uiFun
       char details[32] = "";
       print->fFormat(details, sizeof(details)-1, "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
-      web->addResponse(var["id"], "value", details);
+      web->addResponse(var["id"], "value", JsonString(details, JsonString::Copied));
       web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Max);
     });
 
@@ -422,7 +422,7 @@ public:
   } //loop
 
   void loop1s() {
-    mdl->setValueLossy("realFps", "%lu /s", frameCounter);
+    mdl->setValueV("realFps", "%lu /s", frameCounter);
     frameCounter = 0;
   }
 

@@ -12,7 +12,6 @@
 #include "SysModWeb.h"
 #include "SysModModel.h"
 #include "SysModUI.h"
-#include "SysModPrint.h"
 #include "SysModFiles.h"
 #include "SysModules.h"
 
@@ -35,8 +34,7 @@ DynamicJsonDocument * SysModWeb::responseDocLoopTask = nullptr;
 DynamicJsonDocument * SysModWeb::responseDocAsyncTCP = nullptr;
 bool SysModWeb::clientsChanged = false;
 
-unsigned long SysModWeb::wsSendBytesCounter = 0;
-unsigned long SysModWeb::wsSendJsonCounter = 0;
+unsigned long SysModWeb::sendDataWsCounter = 0;
 
 SemaphoreHandle_t SysModWeb::wsMutex = xSemaphoreCreateMutex();
 
@@ -87,8 +85,9 @@ void SysModWeb::setup() {
     web->addResponse(var["id"], "label", "Length");
   });
 
-  ui->initText(parentVar, "wsSendBytes", nullptr, 16, true);
-  ui->initText(parentVar, "wsSendJson", nullptr, 16, true);
+  ui->initText(parentVar, "wsCounter", nullptr, 16, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "comment", "#web socket calls");
+  });
   ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
 
   USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
@@ -120,7 +119,7 @@ void SysModWeb::loop1s() {
   }
 
   uint8_t rowNr = 0;
-  for (auto client:SysModWeb::ws->getClients()) {
+  for (auto client:ws->getClients()) {
     // print->printClient("up", client);
     //will only update if changed
     mdl->setValue("clNr", client->id(), rowNr);
@@ -132,10 +131,8 @@ void SysModWeb::loop1s() {
     rowNr++;
   }
 
-  mdl->setValueLossy("wsSendBytes", "%lu /s", wsSendBytesCounter);
-  wsSendBytesCounter = 0;
-  mdl->setValueLossy("wsSendJson", "%lu /s", wsSendJsonCounter);
-  wsSendJsonCounter = 0;
+  mdl->setValueV("wsCounter", "%lu /s", sendDataWsCounter);
+  sendDataWsCounter = 0;
 }
 
 void SysModWeb::reboot() {
@@ -144,9 +141,8 @@ void SysModWeb::reboot() {
 }
 
 void SysModWeb::connectedChanged() {
-  if (SysModules::isConnected) {
+  if (mdls->isConnected) {
     ws->onEvent(wsEvent);
-    // ws->onEvent(wsEvent2);
     server->addHandler(ws);
 
     server->begin();
@@ -321,81 +317,17 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
   }
 }
 
-void SysModWeb::wsEvent2(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
-  if(type == WS_EVT_CONNECT){
-    USER_PRINT_Async("ws[%s][%u] connect\n", server->url(), client->id());
-    // client->printf("Hello Client %u :)", client->id());
-    client->ping();
-  } else if(type == WS_EVT_DISCONNECT){
-    USER_PRINT_Async("ws[%s][%u] disconnect\n", server->url(), client->id());
-  } else if(type == WS_EVT_ERROR){
-    USER_PRINT_Async("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
-  } else if(type == WS_EVT_PONG){
-    USER_PRINT_Async("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
-  } else if(type == WS_EVT_DATA){
-    AwsFrameInfo * info = (AwsFrameInfo*)arg;
-    String msg = "";
-    if(info->final && info->index == 0 && info->len == len){
-      //the whole message is in a single frame and we got all of it's data
-      USER_PRINT_Async("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
+void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
 
-      if(info->opcode == WS_TEXT){
-        for(size_t i=0; i < info->len; i++) {
-          msg += (char) data[i];
-        }
-      } 
-      // else {
-      //   char buff[3];
-      //   for(size_t i=0; i < info->len; i++) {
-      //     sprintf(buff, "%02x ", (uint8_t) data[i]);
-      //     msg += buff ;
-      //   }
-      // }
-      USER_PRINT_Async("%s\n",msg.c_str());
+  size_t len = measureJson(json);
+  sendDataWs([json, len](AsyncWebSocketMessageBuffer * wsBuf) {
+      serializeJson(json, wsBuf->get(), len);
+  }, len, false, client); //false -> text
 
-      if(info->opcode == WS_TEXT)
-        client->text("I got your text message");
-      else
-        client->binary("I got your binary message");
-    } else {
-      //message is comprised of multiple frames or the frame is split into multiple packets
-      if(info->index == 0){
-        if(info->num == 0)
-          USER_PRINT_Async("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
-        USER_PRINT_Async("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
-      }
-
-      USER_PRINT_Async("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
-
-      if(info->opcode == WS_TEXT){
-        for(size_t i=0; i < len; i++) {
-          msg += (char) data[i];
-        }
-      }
-      // else {
-      //   char buff[3];
-      //   for(size_t i=0; i < len; i++) {
-      //     sprintf(buff, "%02x ", (uint8_t) data[i]);
-      //     msg += buff ;
-      //   }
-      // }
-      USER_PRINT_Async("%s\n",msg.c_str());
-
-      if((info->index + len) == info->len){
-        USER_PRINT_Async("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
-        if(info->final){
-          USER_PRINT_Async("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
-          if(info->message_opcode == WS_TEXT)
-            client->text("I got your text message");
-          else
-            client->binary("I got your binary message");
-        }
-      }
-    }
-  }
 }
 
-void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
+//https://kcwong-joe.medium.com/passing-a-function-as-a-parameter-in-c-a132e69669f6
+void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fill, size_t len, bool isBinary, AsyncWebSocketClient * client) {
   if (!ws) {
     USER_PRINT_Async("sendDataWs no ws\n");
     return;
@@ -403,29 +335,32 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
 
   xSemaphoreTake(wsMutex, portMAX_DELAY);
 
-  ws->cleanupClients();
+  ws->cleanupClients(); //only if above threshold
 
   if (ws->count()) {
-    size_t len = measureJson(json);
     if (len > 8192)
       USER_PRINTF("program error: sendDataWs BufferLen too high !!!%d\n", len);
     AsyncWebSocketMessageBuffer * wsBuf = ws->makeBuffer(len);
 
     if (wsBuf) {
       wsBuf->lock();
-      serializeJson(json, wsBuf->get(), len);
+
+      fill(wsBuf); //function parameter
+
       if (client) {
-        if (client->status() == WS_CONNECTED && !client->queueIsFull())
-          client->text(wsBuf);
+        if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) {
+          isBinary?client->binary(wsBuf):client->text(wsBuf);
+          sendDataWsCounter++;
+        }
         else 
           print->printClient("sendDataWs client full or not connected", client);
 
         // DEBUG_PRINTLN("to a single client.");
       } else {
         for (auto client:ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull()) {
-            client->text(wsBuf);
-            wsSendJsonCounter++;
+          if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) {
+            isBinary?client->binary(wsBuf): client->text(wsBuf);
+            sendDataWsCounter++;
           }
           else 
             // print->printClient("sendDataWs client(s) full or not connected", client); //crash!!
@@ -439,7 +374,7 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
     else {
       USER_PRINT_Async("sendDataWs WS buffer allocation failed\n");
       ws->closeAll(1013); //code 1013 = temporary overload, try again later
-      ws->cleanupClients(); //disconnect all clients to release memory
+      ws->cleanupClients(0); //disconnect ALL clients to release memory
       ws->_cleanBuffers();
     }
   }
@@ -449,22 +384,29 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
 
 //add an url to the webserver to listen to
 bool SysModWeb::addURL(const char * uri, const char * contentType, const char * path, const uint8_t * content, size_t len) {
-  server->on(uri, HTTP_GET, [uri, contentType, path, content, len](AsyncWebServerRequest *request) {
+  server->on(uri, HTTP_GET, [uri, contentType, path, content, len, this](AsyncWebServerRequest *request) {
     if (path) {
+      //currently not used, was used for htm/js/css file serving
       USER_PRINT_Async("Webserver: addUrl server->on %s %s file: %s", uri, contentType, path);
       request->send(LittleFS, path, contentType);
     }
     else {
       USER_PRINT_Async("Webserver: server->on addUrl %s %s csdata %d-%d (%s)", uri, contentType, content, len, request->url().c_str());
 
-      // if (handleIfNoneMatchCacheHeader(request)) return;
+      if (strcmp(uri, "/") == 0) {
 
-      AsyncWebServerResponse *response;
-      response = request->beginResponse_P(200, contentType, content, len);
-      response->addHeader(FPSTR("Content-Encoding"),"gzip");
-      // setStaticContentCacheHeaders(response);
-      request->send(response);
+        if (captivePortal(request)) return;
 
+        // if (handleIfNoneMatchCacheHeader(request)) return;
+
+        AsyncWebServerResponse *response;
+        response = request->beginResponse_P(200, contentType, content, len);
+        response->addHeader(FPSTR("Content-Encoding"),"gzip");
+        // setStaticContentCacheHeaders(response);
+        request->send(response);
+
+      }
+      
       USER_PRINT_Async("!\n");
     }
   });
@@ -593,49 +535,6 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
   });
   server->addHandler(handler);
   return true;
-}
-
-void SysModWeb::addResponse(const char * id, const char * key, const char * value) {
-  JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-  if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  responseVariant[id][key] = JsonString(value, JsonString::Copied);
-}
-
-void SysModWeb::addResponseArray(const char * id, const char * key, JsonArray value) {
-  JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-  if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  responseVariant[id][key] = value;
-}
-
-void SysModWeb::addResponseV(const char * id, const char * key, const char * format, ...) {
-  JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-  if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  va_list args;
-  va_start(args, format);
-
-  // size_t len = vprintf(format, args);
-  char value[128];
-  vsnprintf(value, sizeof(value)-1, format, args);
-
-  va_end(args);
-
-  responseVariant[id][key] = value;
-}
-
-void SysModWeb::addResponseI(const char * id, const char * key, int value) { //temporary, use overloading
-  JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-  if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  responseVariant[id][key] = value;
-}
-void SysModWeb::addResponseB(const char * id, const char * key, bool value) { //temporary, use overloading
-  JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-  if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  responseVariant[id][key] = value;
-}
-JsonArray SysModWeb::addResponseA(const char * id, const char * key) {
-  JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-  if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-  return responseVariant[id].createNestedArray(key);
 }
 
 void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {

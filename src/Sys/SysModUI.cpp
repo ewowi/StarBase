@@ -193,21 +193,21 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
   JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
   if (value)
-    web->addResponse(var["id"], "value", value);
+    web->addResponse(var["id"], "value", JsonString(value, JsonString::Copied));
   else {
     if (var["value"].is<int>())
-      web->addResponseI(var["id"], "value", var["value"].as<int>());
+      web->addResponse(var["id"], "value", var["value"].as<int>());
     else if (var["value"].is<bool>())
-      web->addResponseB(var["id"], "value", var["value"].as<bool>());
+      web->addResponse(var["id"], "value", var["value"].as<bool>());
     else if (var["value"].is<const char *>())
       web->addResponse(var["id"], "value", var["value"].as<const char *>());
     else if (var["value"].is<JsonArray>()) {
       USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-      web->addResponseArray(var["id"], "value", var["value"].as<JsonArray>());
+      web->addResponse(var["id"], "value", var["value"].as<JsonArray>());
     }
     else {
       USER_PRINTF("setChFunAndWs %s unknown type for %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-      web->addResponse(var["id"], "value", var["value"]);
+      // web->addResponse(var["id"], "value", var["value"]);
     }
   }
 

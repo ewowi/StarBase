@@ -121,20 +121,20 @@ void SysModSystem::loop() {
   loopCounter++;
 }
 void SysModSystem::loop1s() {
-  mdl->setValueLossy("upTime", "%lu s", millis()/1000);
-  mdl->setValueLossy("loops", "%lu /s", loopCounter);
+  mdl->setValueV("upTime", "%lu s", millis()/1000);
+  mdl->setValueV("loops", "%lu /s", loopCounter);
 
   loopCounter = 0;
 }
 void SysModSystem::loop10s() {
   mdl->setValue("version", JsonString(version)); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
 
-  mdl->setValueLossy("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
+  mdl->setValueV("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
 
-  mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
-  mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
+  mdl->setValueV("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
+  mdl->setValueV("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
   if (psramFound()) {
-    mdl->setValueLossy("psram", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
+    mdl->setValueV("psram", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
   }
   USER_PRINTF("❤️"); //heartbeat
 }

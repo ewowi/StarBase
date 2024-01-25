@@ -13,6 +13,7 @@
 #include "SysModule.h"
 #include "SysModPrint.h"
 #include "SysModUI.h"
+#include "SysModWeb.h"
 
 #include "ArduinoJson.h"
 
@@ -121,14 +122,20 @@ public:
   JsonObject setValue(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
     // print->printJson("setValueB", var);
     if (rowNr == UINT8_MAX) { //normal situation
-      bool notSame;
-      // if (std::is_same<Type, const char *>::value)
-      //   same = var["value"] != value;
-      // else
-        notSame = var["value"].as<Type>() != value;
-      if (var["value"].isNull() || notSame) {
-        USER_PRINTF("setValue changed %s (%d) %s->..\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());//, value?"true":"false");
+      if (var["ro"].as<bool>()) {
+        //read only vars not in the model (tbd: modify setChFunAndWs)
+        JsonDocument *responseDoc = web->getResponseDoc();
+        responseDoc->clear(); //needed for deserializeJson?
+        JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+
+        web->addResponse(var["id"], "value", value);
+
+        web->sendDataWs(responseVariant);
+      }
+      else if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
+        USER_PRINTF("setValue changed %s (%d) %s->", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str()); //old value
         var["value"] = value;
+        USER_PRINTF("%s\n", var["value"].as<String>().c_str()); //newvalue
         ui->setChFunAndWs(var, rowNr);
       }
     }

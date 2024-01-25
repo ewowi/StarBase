@@ -70,50 +70,26 @@ void SysModPins::setup() {
     web->addResponse(var["id"], "comment", "WIP");
   }, nullptr, [](JsonObject var, uint8_t rowNr) { //loopFun
 
-    xSemaphoreTake(web->wsMutex, portMAX_DELAY);
+    var["interval"] = 10*10*10; //every 10 sec from cs to ms
 
-    SysModWeb::ws->cleanupClients();
-    if (web->ws->count()) {
-
+    web->sendDataWs([](AsyncWebSocketMessageBuffer * wsBuf) {
       uint8_t* buffer;
-      AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(20 * 3 + 5);
-      if (wsBuf) {//out of memory
-        wsBuf->lock();
-        buffer = wsBuf->get();
 
-        // send leds preview to clients
-        for (size_t i = 0; i < 20; i++)
-        {
-          buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
-          buffer[i*3+5+1] = random(256);
-          buffer[i*3+5+2] = random(256);
-        }
-        //new values
-        buffer[0] = 0; //userFun id
-        // buffer[1] = 0; //0 * 256
-        // buffer[2] = 20; //20 pins
-        // buffer[4] = 10*10; //every 10 sec 
+      buffer = wsBuf->get();
 
-        var["interval"] = 10*10*10; //every 10 sec from cs to ms
-
-        for (auto client:SysModWeb::ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) {//lossy
-            client->binary(wsBuf);
-            web->wsSendBytesCounter++;
-          }
-          // else {
-            // web->clientsChanged = true; tbd: changed also if full status changes
-            // print->printClient("loopFun skip frame", client);
-          // }
-        }
-
-        wsBuf->unlock();
-        SysModWeb::ws->_cleanBuffers();
+      // send leds preview to clients
+      for (size_t i = 0; i < 20; i++)
+      {
+        buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
+        buffer[i*3+5+1] = random(256);
+        buffer[i*3+5+2] = random(256);
       }
-    }
-
-    xSemaphoreGive(web->wsMutex);
-
+      //new values
+      buffer[0] = 0; //userFun id
+      // buffer[1] = 0; //0 * 256
+      // buffer[2] = 20; //20 pins
+      // buffer[4] = 10*10; //every 10 sec 
+    }, 20 * 3 + 5, true);
   });
 
   // ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);

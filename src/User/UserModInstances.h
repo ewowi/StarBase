@@ -488,7 +488,7 @@ public:
 
     IPAddress broadcastIP(255, 255, 255, 255);
     if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
-      USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d\n", starModMessage.header.name, sizeof(UDPStarModMessage), instanceUDPPort, localIP[3]);
+      // USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d\n", starModMessage.header.name, sizeof(UDPStarModMessage), instanceUDPPort, localIP[3]);
       // for (size_t x = 0; x < sizeof(UDPWLEDMessage) + sizeof(SysData) + sizeof(AppData); x++) {
       //   char * xx = (char *)&starModMessage;
       //   Serial.printf("%d: %d - %c\n", x, xx[x], xx[x]);

@@ -347,26 +347,18 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
 
       fill(wsBuf); //function parameter
 
-      if (client) {
-        if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) {
-          isBinary?client->binary(wsBuf):client->text(wsBuf);
-          sendDataWsCounter++;
-        }
-        else 
-          print->printClient("sendDataWs client full or not connected", client);
-
-        // DEBUG_PRINTLN("to a single client.");
-      } else {
-        for (auto client:ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) {
-            isBinary?client->binary(wsBuf): client->text(wsBuf);
+      for (auto loopClient:ws->getClients()) {
+        if (!client || client == loopClient) {
+          if (loopClient->status() == WS_CONNECTED && !loopClient->queueIsFull() && loopClient->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) {
+            isBinary?loopClient->binary(wsBuf): loopClient->text(wsBuf);
             sendDataWsCounter++;
           }
-          else 
-            // print->printClient("sendDataWs client(s) full or not connected", client); //crash!!
-            USER_PRINT_Async("sendDataWs client full or not connected\n");
+          else {
+            USER_PRINT_Async("sendDataWs client full or not connected\n", client);
+            ws->cleanupClients(); //only if above threshold
+            ws->_cleanBuffers();
+          }
         }
-        // DEBUG_PRINTLN("to multiple clients.");
       }
       wsBuf->unlock();
       ws->_cleanBuffers();

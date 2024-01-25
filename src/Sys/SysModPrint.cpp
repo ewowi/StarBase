@@ -90,7 +90,7 @@ size_t SysModPrint::print(const char * format, ...) {
 
   va_start(args, format);
 
-  Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"λ":"α"); //looptask / asyncTCP task
+  Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"":"α"); //looptask λ/ asyncTCP task α
 
   for (size_t i = 0; i < strlen(format); i++) 
   {

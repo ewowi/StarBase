@@ -202,7 +202,7 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
     else if (var["value"].is<const char *>())
       web->addResponse(var["id"], "value", var["value"].as<const char *>());
     else if (var["value"].is<JsonArray>()) {
-      USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+      // USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
       web->addResponse(var["id"], "value", var["value"].as<JsonArray>());
     }
     else {

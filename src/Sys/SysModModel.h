@@ -97,6 +97,8 @@ public:
 
   static JsonObject modelParentVar;
 
+  bool doWriteModel = false;
+
   SysModModel();
   void setup();
   void loop();
@@ -210,7 +212,6 @@ public:
   void varToValues(JsonObject var, JsonArray values);
 
 private:
-  bool doWriteModel = false;
   bool doShowObsolete = false;
   bool cleanUpModelDone = false;
 

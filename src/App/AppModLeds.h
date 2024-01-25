@@ -187,15 +187,11 @@ public:
     }); //fixture
 
     ui->initText(tableVar, "dimensions", nullptr, 32, true, [](JsonObject var) { //uiFun
-      char details[32] = "";
-      print->fFormat(details, sizeof(details)-1, "P:%dx%dx%d V:%dx%dx%d", ledsV.widthP, ledsV.heightP, ledsV.depthP, ledsV.widthV, ledsV.heightV, ledsV.depthV);
-      web->addResponse(var["id"], "value", JsonString(details, JsonString::Copied));
+      web->addResponseV(var["id"], "value", "P:%dx%dx%d V:%dx%dx%d", ledsV.widthP, ledsV.heightP, ledsV.depthP, ledsV.widthV, ledsV.heightV, ledsV.depthV);
     });
 
     ui->initText(tableVar, "nrOfLeds", nullptr, 32, true, [](JsonObject var) { //uiFun
-      char details[32] = "";
-      print->fFormat(details, sizeof(details)-1, "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
-      web->addResponse(var["id"], "value", JsonString(details, JsonString::Copied));
+      web->addResponseV(var["id"], "value", "P:%d V:%d", ledsV.nrOfLedsP, ledsV.nrOfLedsV);
       web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Max);
     });
 

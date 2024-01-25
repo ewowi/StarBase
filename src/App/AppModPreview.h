@@ -30,7 +30,7 @@ public:
       // web->addResponse(var["id"], "comment", "Click to enlarge");
     }, nullptr, [](JsonObject var, uint8_t rowNr) { //loopFun
 
-      var["interval"] =  max(lds->ledsV.nrOfLedsP * web->ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
+      var["interval"] =  max(lds->leds.nrOfLedsP * web->ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
 
       web->sendDataWs([](AsyncWebSocketMessageBuffer * wsBuf) {
         uint8_t* buffer;
@@ -38,19 +38,19 @@ public:
         buffer = wsBuf->get();
 
         // send leds preview to clients
-        for (size_t i = 0; i < lds->ledsV.nrOfLedsP; i++)
+        for (size_t i = 0; i < lds->leds.nrOfLedsP; i++)
         {
-          buffer[i*3+5] = lds->ledsV.ledsPhysical[i].red;
-          buffer[i*3+5+1] = lds->ledsV.ledsPhysical[i].green;
-          buffer[i*3+5+2] = lds->ledsV.ledsPhysical[i].blue;
+          buffer[i*3+5] = lds->leds.ledsPhysical[i].red;
+          buffer[i*3+5+1] = lds->leds.ledsPhysical[i].green;
+          buffer[i*3+5+2] = lds->leds.ledsPhysical[i].blue;
         }
         //new values
         buffer[0] = 1; //userFun id
-        // buffer[1] = ledsV.nrOfLedsP/256;
-        // buffer[2] = ledsV.nrOfLedsP%256;
-        // buffer[4] = max(ledsV.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
+        // buffer[1] = leds.nrOfLedsP/256;
+        // buffer[2] = leds.nrOfLedsP%256;
+        // buffer[4] = max(leds.nrOfLedsP * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast
 
-      }, lds->ledsV.nrOfLedsP * 3 + 5, true); 
+      }, lds->leds.nrOfLedsP * 3 + 5, true); 
     });
   }
 };

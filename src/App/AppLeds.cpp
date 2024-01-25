@@ -9,7 +9,7 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-#include "AppLedsV.h"
+#include "AppLeds.h"
 
 #include "../Sys/SysModPrint.h"
 #include "../Sys/SysModModel.h"
@@ -23,7 +23,7 @@
 #define _3D 3
 
 //load fixture json file, parse it and depending on the projection, create a mapping for it
-void LedsV::fixtureProjectAndMap() {
+void Leds::fixtureProjectAndMap() {
   char fileName[32] = "";
 
   if (files->seqNrToName(fileName, fixtureNr)) {
@@ -289,11 +289,11 @@ void LedsV::fixtureProjectAndMap() {
         widthV = widthP;
         heightV = heightP;
         depthV = depthP;
-        nrOfLedsV = nrOfLedsP;
+        nrOfLeds = nrOfLedsP;
       }
 
       if (projectionNr > p_Random) {
-        nrOfLedsV = mappingTable.size();
+        nrOfLeds = mappingTable.size();
 
         // uint16_t x=0;
         // uint16_t y=0;
@@ -310,9 +310,9 @@ void LedsV::fixtureProjectAndMap() {
         // }
       }
 
-      USER_PRINTF("fixtureProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLedsV);
+      USER_PRINTF("fixtureProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", widthP, heightP, depthP, widthV, heightV, depthV, nrOfLedsP, nrOfLeds);
       mdl->setValueV("dimensions", "P:%dx%dx%d V:%dx%dx%d", widthP, heightP, depthP, widthV, heightV, depthV);
-      mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLedsV);
+      mdl->setValueV("nrOfLeds", "P:%d V:%d", nrOfLedsP, nrOfLeds);
 
     } // if deserialize
   } //if fileName
@@ -321,7 +321,7 @@ void LedsV::fixtureProjectAndMap() {
 }
 
 // indexVLocal stored to be used by other operators
-LedsV& LedsV::operator[](uint16_t indexV) {
+Leds& Leds::operator[](uint16_t indexV) {
   indexVLocal = indexV;
   return *this;
 }
@@ -333,13 +333,13 @@ LedsV& LedsV::operator[](uint16_t indexV) {
 // }
 
 // uses indexVLocal and color to call setPixelColor
-LedsV& LedsV::operator=(const CRGB color) {
+Leds& Leds::operator=(const CRGB color) {
   setPixelColor(indexVLocal, color);
   return *this;
 }
 
 // maps the virtual led to the physical led(s) and assign a color to it
-void LedsV::setPixelColor(int indexV, CRGB color) {
+void Leds::setPixelColor(int indexV, CRGB color) {
   if (mappingTable.size()) {
     if (indexV >= mappingTable.size()) return;
     for (uint16_t indexP:mappingTable[indexV]) {
@@ -351,7 +351,7 @@ void LedsV::setPixelColor(int indexV, CRGB color) {
     ledsPhysical[projectionNr==p_Random?random(nrOfLedsP):indexV] = color;
 }
 
-CRGB LedsV::getPixelColor(int indexV) {
+CRGB Leds::getPixelColor(int indexV) {
   if (mappingTable.size()) {
     if (indexV >= mappingTable.size()) return CRGB::Black;
     if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Max) return CRGB::Black;
@@ -362,6 +362,6 @@ CRGB LedsV::getPixelColor(int indexV) {
     return ledsPhysical[indexV];
 }
 
-void LedsV::addPixelColor(int indexV, CRGB color) {
+void Leds::addPixelColor(int indexV, CRGB color) {
   setPixelColor(indexV, getPixelColor(indexV) + color);
 }

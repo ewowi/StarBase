@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppLedsV.h
+   @file      AppLeds.h
    @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -38,11 +38,11 @@ enum Projections
   count
 };
 
-class LedsV {
+class Leds {
 
 public:
 
-  //tbd: move ledsPhysical and nrOfLedsP out of ledsV
+  //tbd: move ledsPhysical and nrOfLedsP out of Leds
   // CRGB *leds = nullptr;
   CRGB ledsPhysical[NUM_LEDS_Max];
     // if (!leds)
@@ -56,7 +56,7 @@ public:
   uint16_t nrOfLedsP = 64; //amount of physical leds
 
   
-  uint16_t nrOfLedsV = 64;  //amount of virtual leds (calculated by projection)
+  uint16_t nrOfLeds = 64;  //amount of virtual leds (calculated by projection)
 
   uint16_t widthP = 8; 
   uint16_t heightP = 8; 
@@ -90,7 +90,7 @@ public:
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=
 
-  LedsV& operator[](uint16_t indexV);
+  Leds& operator[](uint16_t indexV);
 
   // CRGB& operator[](uint16_t indexV) {
   //   // indexVLocal = indexV;
@@ -98,7 +98,7 @@ public:
   //   return x;
   // }
 
-  LedsV& operator=(const CRGB color);
+  Leds& operator=(const CRGB color);
 
   // maps the virtual led to the physical led(s) and assign a color to it
   void setPixelColor(int indexV, CRGB color);
@@ -107,17 +107,17 @@ public:
 
   void addPixelColor(int indexV, CRGB color);
 
-  LedsV& operator+=(const CRGB color) {
+  Leds& operator+=(const CRGB color) {
     setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
     return *this;
   }
-  LedsV& operator|=(const CRGB color) {
+  Leds& operator|=(const CRGB color) {
     // setPixelColor(indexVLocal, color);
     setPixelColor(indexVLocal, getPixelColor(indexVLocal) | color);
     return *this;
   }
 
-  // LedsV& operator+(const CRGB color) {
+  // Leds& operator+(const CRGB color) {
   //   setPixelColor(indexVLocal, getPixelColor(indexVLocal) + color);
   //   return *this;
   // }

@@ -93,7 +93,7 @@ public:
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;
 
-    const size_t channelCount = lds->ledsV.nrOfLedsP * (isRGBW? 4:3); // 1 channel for every R,G,B,(W?) value
+    const size_t channelCount = lds->leds.nrOfLedsP * (isRGBW? 4:3); // 1 channel for every R,G,B,(W?) value
     const size_t packetCount = ((channelCount-1) / DDP_CHANNELS_PER_PACKET) +1;
 
     uint32_t channel = 0; 
@@ -141,8 +141,8 @@ public:
       /*8*/ddpUdp.write(0xFF & (packetSize >> 8));
       /*9*/ddpUdp.write(0xFF & (packetSize     ));
 
-      for (size_t i = 0; i < lds->ledsV.nrOfLedsP; i++) {
-        CRGB pixel = lds->ledsV.ledsPhysical[i];
+      for (size_t i = 0; i < lds->leds.nrOfLedsP; i++) {
+        CRGB pixel = lds->leds.ledsPhysical[i];
         ddpUdp.write(scale8(pixel.r, bri)); // R
         ddpUdp.write(scale8(pixel.g, bri)); // G
         ddpUdp.write(scale8(pixel.b, bri)); // B

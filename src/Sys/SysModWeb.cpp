@@ -26,7 +26,7 @@
 
 
 PsychicHttpServer * SysModWeb::server = nullptr;
-AsyncWebSocket * SysModWeb::ws = nullptr;
+PsychicWebSocketHandler * SysModWeb::ws = nullptr;
 
 const char * (*SysModWeb::processWSFunc)(JsonVariant &) = nullptr;
 

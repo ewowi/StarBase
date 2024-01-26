@@ -16,7 +16,7 @@
 class SysModWeb:public SysModule {
 
 public:
-  static AsyncWebSocket *ws;
+  static PsychicWebSocketHandler *ws;
 
   SysModWeb();
 
@@ -81,7 +81,7 @@ private:
 
   static bool clientsChanged;
 
-  static AsyncWebServer *server;
+  static PsychicHttpServer *server;
   static const char * (*processWSFunc)(JsonVariant &);
 
   static DynamicJsonDocument *responseDocLoopTask;

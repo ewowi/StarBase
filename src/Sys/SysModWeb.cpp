@@ -25,7 +25,7 @@
 //https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
 
 
-AsyncWebServer * SysModWeb::server = nullptr;
+PsychicHttpServer * SysModWeb::server = nullptr;
 AsyncWebSocket * SysModWeb::ws = nullptr;
 
 const char * (*SysModWeb::processWSFunc)(JsonVariant &) = nullptr;
@@ -415,7 +415,7 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
 
 //add an url to the webserver to listen to
 bool SysModWeb::addURL(const char * uri, const char * contentType, const char * path, const uint8_t * content, size_t len) {
-  server->on(uri, HTTP_GET, [uri, contentType, path, content, len](AsyncWebServerRequest *request) {
+  server->on(uri, HTTP_GET, [uri, contentType, path, content, len](PsychicRequest *request) {
     if (path) {
       USER_PRINT_Async("Webserver: addUrl %s %s file: %s", uri, contentType, path);
       request->send(LittleFS, path, contentType);
@@ -439,8 +439,8 @@ bool SysModWeb::addURL(const char * uri, const char * contentType, const char * 
 }
 
 //not used at the moment
-bool SysModWeb::processURL(const char * uri, void (*func)(AsyncWebServerRequest *)) {
-  server->on(uri, HTTP_GET, [uri, func](AsyncWebServerRequest *request) {
+bool SysModWeb::processURL(const char * uri, void (*func)(PsychicRequest *)) {
+  server->on(uri, HTTP_GET, [uri, func](PsychicRequest *request) {
     func(request);
   });
   return true;
@@ -449,8 +449,8 @@ bool SysModWeb::processURL(const char * uri, void (*func)(AsyncWebServerRequest 
 bool SysModWeb::addUpload(const char * uri) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
-  [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
+  server->on(uri, HTTP_POST, [](PsychicRequest *request) {},
+  [](PsychicRequest *request, const String& filename, size_t index, uint8_t *data,
                 size_t len, bool final) {
     USER_PRINT_Async("handleUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
     if (!index) {
@@ -490,8 +490,8 @@ bool SysModWeb::addUpload(const char * uri) {
 bool SysModWeb::addUpdate(const char * uri) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
-  [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
+  server->on(uri, HTTP_POST, [](PsychicRequest *request) {},
+  [](PsychicRequest *request, const String& filename, size_t index, uint8_t *data,
                 size_t len, bool final) {
     USER_PRINT_Async("handleUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
     if(!index){
@@ -520,7 +520,7 @@ bool SysModWeb::addUpdate(const char * uri) {
 
 bool SysModWeb::addFileServer(const char * uri) {
 
-  server->on(uri, HTTP_GET, [uri](AsyncWebServerRequest *request){
+  server->on(uri, HTTP_GET, [uri](PsychicRequest *request){
     const char * ddd = request->url().c_str();
     const char * path = ddd + strlen(uri); //remove the uri from the path (skip their positions)
     USER_PRINT_Async("fileServer request %s %s %s\n", uri, request->url().c_str(), path);
@@ -535,7 +535,7 @@ bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(
   processWSFunc = processFunc; //for WebSocket requests
 
   //URL handler, e.g. for curl calls
-  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler(uri, [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
+  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler(uri, [processFunc](PsychicRequest *request, JsonVariant &json) {
     JsonDocument *responseDoc = web->getResponseDoc();
     responseDoc->clear(); //needed for deserializeJson?
     JsonVariant responseVariant = responseDoc->as<JsonVariant>();
@@ -626,7 +626,7 @@ JsonDocument * SysModWeb::getResponseDoc() {
   return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?web->responseDocLoopTask:web->responseDocAsyncTCP;
 }
 
-void SysModWeb::serveJson(AsyncWebServerRequest *request) {
+void SysModWeb::serveJson(PsychicRequest *request) {
 
   AsyncJsonResponse * response;
 

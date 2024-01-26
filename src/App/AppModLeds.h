@@ -141,28 +141,39 @@ public:
     });
     currentVar["stage"] = true;
 
-    ui->initCoord3D(tableVar, "fxStart", 0, 0, 127, false, [](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxStart", UINT16_MAX, 0, 127, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Start");
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
+      leds.startPos = mdl->getValue(var, rowNr).as<Coord3D>();
+
+      USER_PRINTF("fxStart %d %d %d - %d %d %d\n", leds.startPos.x, leds.startPos.y, leds.startPos.z, leds.endPos.x, leds.endPos.y, leds.endPos.z);
+
       leds.fadeToBlackBy();
 
-      leds.startPos = mdl->getValue(var, rowNr).as<Coord3D>();
       doMap = true;
+    }, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
+      mdl->setValue(var, leds.startPos, rowNr);
     });
-    ui->initCoord3D(tableVar, "fxEnd", 0, 0, 127, false, [](JsonObject var) { //uiFun
+
+    ui->initCoord3D(tableVar, "fxEnd", UINT16_MAX, 0, 127, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "End");
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
 
+      leds.endPos = mdl->getValue(var, rowNr).as<Coord3D>();
+
+      USER_PRINTF("fxEnd %d %d %d - %d %d %d\n", leds.startPos.x, leds.startPos.y, leds.startPos.z, leds.endPos.x, leds.endPos.y, leds.endPos.z);
+
       leds.fadeToBlackBy();
 
-      leds.endPos = mdl->getValue(var, rowNr).as<Coord3D>();
       doMap = true;
+    }, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
+      mdl->setValue(var, leds.endPos, rowNr);
     });
 
-    ui->initCoord3D(tableVar, "fxSize", 0, 0, 127, true, [this](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxSize", UINT16_MAX, 0, 127, true, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Size");
-      web->addResponse(var["id"], "value", leds.size);
+      web->addResponse(var["id"], "value", leds.size); //value in uiFun is only send to the ui, not stored in model
     });
     // , nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
     //   // char detail[32];
@@ -173,7 +184,7 @@ public:
 
     ui->initNumber(tableVar, "fxCount", UINT16_MAX, 0, UINT8_MAX, true, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Count");
-      // web->addResponse(var["id"], "value", leds.nrOfLeds);
+      // web->addResponse(var["id"], "value", leds.nrOfLeds); //value in uiFun is only send to the ui, not stored in model
     }, nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
       mdl->setValue(var, leds.nrOfLeds, rowNr);
     });
@@ -206,7 +217,7 @@ public:
       }
     }); //fixture
 
-    ui->initCoord3D(parentVar, "fixSize", 0, 0, 127, true, [this](JsonObject var) { //uiFun
+    ui->initCoord3D(parentVar, "fixSize", UINT16_MAX, 0, 127, true, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Size");
       web->addResponse(var["id"], "value", leds.sizeP);
     });

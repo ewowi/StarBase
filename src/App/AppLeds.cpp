@@ -131,7 +131,7 @@ void Leds::fixtureProjectAndMap() {
                   //1024 crash in makebuffer...
                   float scale = 1;
                   if (size.x * size.y > 256)
-                    scale = (sqrt((float)256.0 / (size.x * size.y))); //avoid very high virtual resolutions
+                    scale = (sqrt((float)256.0 / (size.x * size.y))); //avoid high virtual resolutions
                   size.x *= scale;
                   size.y *= scale;
                   x = (x+1) * scale - 1;

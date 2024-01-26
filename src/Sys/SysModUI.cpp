@@ -178,7 +178,7 @@ void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) 
   if (!var["chFun"].isNull()) {//isNull needed here!
     size_t funNr = var["chFun"];
     if (funNr < cFunctions.size()) {
-      USER_PRINTF("chFun %s r:%d v:%s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+      USER_PRINTF("chFun %s[%d] <- %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
       cFunctions[funNr](var, rowNr);
     }
     else    

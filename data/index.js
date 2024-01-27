@@ -969,14 +969,15 @@ function sendValue(varNode) {
     command[varId].value = varNode.innerText;
   else if (varNode.className == "coord3D") {
     let coord = {};
-    coord.x = varNode.childNodes[0].value;
-    coord.y = varNode.childNodes[1].value;
-    coord.z = varNode.childNodes[2].value;
+    coord.x = parseInt(varNode.childNodes[0].value);
+    coord.y = parseInt(varNode.childNodes[1].value);
+    coord.z = parseInt(varNode.childNodes[2].value);
     console.log("coord", coord);
     command[varId].value = coord;
   }
   else //number etc
-    command[varId].value = Number(varNode.value)?Number(varNode.value):varNode.value; //type number is default but html converts numbers in <option> to string
+    //https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
+    command[varId].value = isNaN(varNode.value)?varNode.value:parseFloat(varNode.value); //type number is default but html converts numbers in <option> to string, float to remove the quotes from all type of numbers
   console.log("sendValue", command);
   
   requestJson(command);

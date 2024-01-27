@@ -66,6 +66,7 @@ namespace ArduinoJson {
       dst["x"] = src.x;
       dst["y"] = src.y;
       dst["z"] = src.z;
+      USER_PRINTF("dest %d,%d,%d -> %s ", src.x, src.y, src.z, dst.as<String>().c_str());
       return true;
     }
 
@@ -74,7 +75,7 @@ namespace ArduinoJson {
     }
 
     static bool checkJson(JsonVariantConst src) {
-      return src["x"].is<int>() && src["y"].is<int>() && src["z"].is<int>();
+      return src["x"].is<uint16_t>() && src["y"].is<uint16_t>() && src["z"].is<uint16_t>();
     }
   };
 }

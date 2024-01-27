@@ -162,7 +162,7 @@ public:
 
       leds.endPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-      USER_PRINTF("fxEnd %d %d %d - %d %d %d\n", leds.startPos.x, leds.startPos.y, leds.startPos.z, leds.endPos.x, leds.endPos.y, leds.endPos.z);
+      USER_PRINTF("fxEnd chFun %d %d %d - %d %d %d\n", leds.startPos.x, leds.startPos.y, leds.startPos.z, leds.endPos.x, leds.endPos.y, leds.endPos.z);
 
       leds.fadeToBlackBy();
 

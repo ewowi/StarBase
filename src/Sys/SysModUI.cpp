@@ -290,7 +290,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
 
         JsonObject var = mdl->findVar(key);
 
-        USER_PRINTF("processJson k:%s r:%s (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value.as<String>().c_str(), var["value"] == value["value"]);
+        USER_PRINTF("processJson %s[%s] (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value["value"].as<String>().c_str(), var["value"] == value["value"]);
 
         if (!var.isNull())
         {
@@ -303,7 +303,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
               if (value["value"].is<bool>()) {
                 bool varValue = var["value"][atoi(rowNr)];
                 bool newValue = value["value"];
-                changed = (varValue && !newValue) || (!varValue && newValue);
+                changed = (varValue && !newValue) || (!varValue && newValue); //checking 2 booleans!
               }
               else
                 changed = var["value"][atoi(rowNr)] != value["value"];
@@ -329,8 +329,8 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
               mdl->setValue(key, value["value"].as<bool>(), rowNr?atoi(rowNr):-1);
             else if (value["value"].is<int>())
               mdl->setValue(key, value["value"].as<int>(), rowNr?atoi(rowNr):-1);
-            else if (value["value"].is<JsonObject>())
-              mdl->setValue(key, value["value"].as<JsonObject>(), rowNr?atoi(rowNr):-1);
+            else if (value["value"].is<Coord3D>()) //do not use is<JsonObject>() for Coord3D as Coord2D is more specific and we need to assign the values, otherwise corrupt values in model !!!!
+              mdl->setValue(key, value["value"].as<Coord3D>(), rowNr?atoi(rowNr):-1);
             else {
               USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
             }

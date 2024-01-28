@@ -18,8 +18,6 @@ PinObject SysModPins::pinObjects[NUM_PINS];
 bool SysModPins::pinsChanged = false;
 
 SysModPins::SysModPins() :SysModule("Pins") {
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   pinMode(2, OUTPUT);
   pinMode(4, OUTPUT);
   pinMode(19, OUTPUT);
@@ -29,14 +27,10 @@ SysModPins::SysModPins() :SysModule("Pins") {
   for (int i=0; i<NUM_PINS; i++) {
     deallocatePin(i, pinObjects[i].owner);
   }
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 void SysModPins::setup() {
   SysModule::setup();
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   parentVar = ui->initSysMod(parentVar, name);
 
   //show table of allocated pins
@@ -96,8 +90,6 @@ void SysModPins::setup() {
   // ui->initCheckBox(parentVar, "pin4");
   ui->initCheckBox(parentVar, "pin19", true, false, nullptr, updateGPIO);
   // ui->initCheckBox(parentVar, "pin33", true);
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModPins::loop1s() {

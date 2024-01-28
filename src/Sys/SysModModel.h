@@ -12,7 +12,6 @@
 #pragma once
 #include "SysModule.h"
 #include "SysModPrint.h"
-#include "SysModUI.h"
 #include "SysModWeb.h"
 
 #include "ArduinoJson.h"
@@ -66,7 +65,7 @@ namespace ArduinoJson {
       dst["x"] = src.x;
       dst["y"] = src.y;
       dst["z"] = src.z;
-      USER_PRINTF("dest %d,%d,%d -> %s ", src.x, src.y, src.z, dst.as<String>().c_str());
+      USER_PRINTF("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
       return true;
     }
 
@@ -137,21 +136,18 @@ public:
   JsonObject setValue(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
     // print->printJson("setValueB", var);
     if (rowNr == UINT8_MAX) { //normal situation
-      if (var["ro"].as<bool>()) {
-        //read only vars not in the model (tbd: modify setChFunAndWs)
-        JsonDocument *responseDoc = web->getResponseDoc();
-        responseDoc->clear(); //needed for deserializeJson?
-        JsonVariant responseVariant = responseDoc->as<JsonVariant>();
-
-        web->addResponse(var["id"], "value", value);
-
-        web->sendDataWs(responseVariant);
-      }
-      else if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
-        USER_PRINTF("setValue changed %s[%d] %s->", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str()); //old value
+      if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
+        JsonString oldValue = JsonString(var["value"], JsonString::Copied);
         var["value"] = value;
-        USER_PRINTF("%s\n", var["value"].as<String>().c_str()); //newvalue
-        ui->setChFunAndWs(var, rowNr);
+        //trick to remove null values
+        if (var["value"].isNull() || var["value"].as<uint32_t>() == UINT16_MAX) {
+          var.remove("value");
+          USER_PRINTF("setValue value removed %s %s\n", var["id"].as<const char *>(), oldValue.c_str()); //old value
+        }
+        else {
+          USER_PRINTF("setValue changed %s %s->%s\n", var["id"].as<const char *>(), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
+          setChFunAndWs(var);
+        }
       }
     }
     else {
@@ -172,8 +168,9 @@ public:
           notSame = valueArray[rowNr].isNull() || valueArray[rowNr].as<Type>() != value;
 
         if (notSame) {
+          // setValue(var, value, rowNr);
           valueArray[rowNr] = value; //if valueArray[rowNr] not exists it will be created
-          ui->setChFunAndWs(var, rowNr);
+          setChFunAndWs(var, rowNr);
         }
       }
       else {
@@ -185,10 +182,6 @@ public:
   }
 
   //Set value with argument list
-  // JsonObject setValueV(const char * id, uint8_t rowNr = UINT8_MAX, const char * format, ...) {
-  //   setValueV(id, UINT8_MAX, format);
-  // }
-
   JsonObject setValueV(const char * id, const char * format, ...) {
     va_list args;
     va_start(args, format);
@@ -198,20 +191,29 @@ public:
 
     va_end(args);
 
+    USER_PRINTF("%s\n", value);
+
     return setValue(id, JsonString(value, JsonString::Copied));
   }
 
-  JsonObject setValueP(const char * id, const char * format, ...) {
+  JsonObject setValueUIOnly(const char * id, const char * format, ...) {
     va_list args;
     va_start(args, format);
 
     char value[128];
     vsnprintf(value, sizeof(value)-1, format, args);
-    USER_PRINTF("%s\n", value);
 
     va_end(args);
 
-    return setValue(id, JsonString(value, JsonString::Copied));
+    JsonDocument *responseDoc = web->getResponseDoc();
+    responseDoc->clear(); //needed for deserializeJson?
+    JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+
+    web->addResponse(id, "value", JsonString(value, JsonString::Copied));
+
+    web->sendDataWs(responseVariant);
+
+    return JsonObject();
   }
 
   JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {
@@ -245,6 +247,9 @@ public:
   //recursively add values in  a variant
   void varToValues(JsonObject var, JsonArray values);
 
+  //run the change function and send response to all? websocket clients
+  static void setChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX, const char * value = nullptr);
+  
 private:
   bool doShowObsolete = false;
   bool cleanUpModelDone = false;

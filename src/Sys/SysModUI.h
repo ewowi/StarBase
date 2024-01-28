@@ -14,6 +14,7 @@
 #include "ArduinoJson.h"
 #include "SysModule.h"
 #include "SysModPrint.h"
+#include "SysModModel.h"
 
 // https://stackoverflow.com/questions/59111610/how-do-you-declare-a-lambda-function-using-typedef-and-then-use-it-by-passing-to
 typedef std::function<void(JsonObject)> UFun;
@@ -49,6 +50,7 @@ class SysModUI:public SysModule {
 public:
   static bool stageVarChanged;// = false; //tbd: move mechanism to UserModInstances as there it will be used
   static std::vector<UFun> uFunctions; //static because of static functions setChFunAndWs, processJson...
+  static std::vector<CFun> cFunctions; //static because of static functions setChFunAndWs, processJson...
 
   SysModUI();
 
@@ -84,8 +86,8 @@ public:
     return initVarAndUpdate<int>(parent, id, "number", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
-  JsonObject initCoord3D(JsonObject parent, const char * id, int value = UINT16_MAX, int min = 0, int max = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "coord3D", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  JsonObject initCoord3D(JsonObject parent, const char * id, Coord3D value = {UINT16_MAX, UINT16_MAX, UINT16_MAX}, int min = 0, int max = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<Coord3D>(parent, id, "coord3D", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   //init a range slider, range between 0 and 255!
@@ -121,70 +123,50 @@ public:
   template <typename Type>
   JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type value, int min, int max, bool readOnly = true, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
     JsonObject var = initVar(parent, id, type, readOnly, uiFun, chFun, loopFun);
-    bool isPointer = std::is_pointer<Type>::value;
-
-    if (!valueFun) {
-      //set a default if not a value yet
-      if (var["value"].isNull() && (!isPointer || value)) {
-        bool isChar = std::is_same<Type, const char *>::value;
-        if (isChar)
-          var["value"] = (char *)value; //if char make a copy !!
-        else {//if (value != UINT16_MAX)
-          var["value"] = value; //if value is a pointer, it needs to have a value
-          //workaround
-          if (var["value"].as<int>() == UINT16_MAX)
-            var.remove("value");
-        }
-      }
-    }
-    else {
-      bool runValueFun = false;
-      if (var["value"].isNull()) {
-        runValueFun = true;
-        print->printJson("initVarAndUpdate uiFun value is null", var);
-      } else if (var["value"].is<JsonArray>()) {
-        if (var["value"].as<JsonArray>().size() != count) {
-          print->printJson("initVarAndUpdate uiFun value array wrong size", var);
-          runValueFun = true;
-        }
-        //else everything okay, saved array is used
-      }
-      else {
-        print->printJson("initVarAndUpdate uiFun value not array", var);
-        runValueFun = true;
-      }
-
-      USER_PRINTF("initVarAndUpdate %s count:%d b:%d\n", id, count, runValueFun);
-
-      if (runValueFun) {
-        // JsonArray value = web->addResponseA(var["id"], "value");
-        for (int rowNr=0;rowNr<count;rowNr++)
-          valueFun(var, rowNr);
-      }
-    }
-
     if (min) var["min"] = min;
     if (max && max != UINT16_MAX) var["max"] = max;
 
-    //no call of fun for buttons otherwise all buttons will be fired which is highly undesirable
-    if (strcmp(type,"button") != 0 && chFun && (!isPointer || value)) { //!isPointer because 0 is also a value then
-      USER_PRINTF("initVarAndUpdate chFun init %s v:%s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-      if (var["value"].is<JsonArray>()) {
-        int rowNr = 0;
-        for (JsonVariant val:var["value"].as<JsonArray>()) {
-          chFun(var, rowNr++);
-        }
+    bool valueNeedsUpdate = false;
+    if (var["value"].isNull()) {
+      valueNeedsUpdate = true;
+      // print->printJson("initVarAndUpdate uiFun value is null", var);
+    } else if (count && var["value"].is<JsonArray>()) {
+      JsonArray valueArray = var["value"].as<JsonArray>();
+      if (valueArray.size() != count) {
+        print->printJson("initVarAndUpdate uiFun value array wrong size", var);
+        valueNeedsUpdate = true;
       }
-      else
-        chFun(var, UINT8_MAX);
     }
+
+    if (valueNeedsUpdate) {
+      if (!valueFun) {
+        mdl->setValue(var, value); //does changefun if needed
+      }
+      else {
+        USER_PRINTF("initVarAndUpdate valueFun %s count:%d\n", id, count);
+        for (int rowNr=0;rowNr<count;rowNr++)
+          valueFun(var, rowNr); //valueFun need to do its own changefun
+      }
+    }
+    else { //do changeFun on existing value
+      //no call of fun for buttons otherwise all buttons will be fired which is highly undesirable
+      if (strcmp(type,"button") != 0 && chFun ) { //!isPointer because 0 is also a value then && (!isPointer || value)
+        USER_PRINTF("initVarAndUpdate chFun init %s v:%s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+        if (var["value"].is<JsonArray>()) {
+          int rowNr = 0;
+          for (JsonVariant val:var["value"].as<JsonArray>()) {
+            chFun(var, rowNr++);
+          }
+        }
+        else
+          chFun(var, UINT8_MAX);
+      }
+    }
+
     return var;
   }
 
   JsonObject initVar(JsonObject parent, const char * id, const char * type, bool readOnly = true, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr);
-
-  //run the change function and send response to all? websocket clients
-  static void setChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX, const char * value = nullptr);
 
   //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
   static const char * processJson(JsonVariant &json); //static for setupJsonHandlers
@@ -195,7 +177,6 @@ public:
 private:
   static int varCounter; //not static crashes ??? (not called async...?)
 
-  static std::vector<CFun> cFunctions; //static because of static functions setChFunAndWs, processJson...
   static std::vector<VarLoop> loopFunctions; //non static crashing ...
 
 };

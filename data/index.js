@@ -190,19 +190,17 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
       ndivNeeded = false;
 
       varNode = cE("div");
+
       let h2Node = cE("h2");
       h2Node.innerText = initCap(variable.id);
       varNode.appendChild(h2Node);
-
-      let helpNode = cE("input");
-      helpNode.type = "button";
-      helpNode.value = "?";
-      helpNode.addEventListener('click', (event) => {
-        location.href="https://ewowi.github.io/StarDocs/";// + variable.id;
-        // location.href="https://starmod.org/" + variable.id;
-      });
+      
+      let helpNode = cE("a");
+      helpNode.innerText = "❓";
+      let initCapVarType = variable.type=="appmod"?"AppMod":variable.type=="usermod"?"UserMod":"SysMod"; 
+      helpNode.setAttribute('href', "https://ewowi.github.io/StarDocs/" + initCapVarType + "/" + initCapVarType + initCap(variable.id));
       varNode.appendChild(helpNode);
-
+      
       setupModule(varNode); //enable drag and drop of modules
     }
     else if (variable.type == "table") {
@@ -817,8 +815,10 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
       node.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
 
       //'hack' show the serverName on top of the page
-      if (variable.id == "serverName")
+      if (variable.id == "serverName") {
         gId("instanceName").innerText = commandJson.value;
+        document.title = commandJson.value;
+      }
     }
 
     //value assignments depending on different situations

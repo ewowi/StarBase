@@ -47,14 +47,14 @@ SysModWeb::SysModWeb() :SysModule("Web") {
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), "*");
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), "*");
 
+  processURL("/json", serveJson);
+
   responseDocLoopTask = new DynamicJsonDocument(2048);
   responseDocAsyncTCP = new DynamicJsonDocument(3072);
 };
 
 void SysModWeb::setup() {
   SysModule::setup();
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   parentVar = ui->initSysMod(parentVar, name);
 
   JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
@@ -89,8 +89,6 @@ void SysModWeb::setup() {
     web->addResponse(var["id"], "comment", "#web socket calls");
   });
   ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModWeb::loop() {
@@ -131,7 +129,7 @@ void SysModWeb::loop1s() {
     rowNr++;
   }
 
-  mdl->setValueV("wsCounter", "%lu /s", sendDataWsCounter);
+  mdl->setValueUIOnly("wsCounter", "%lu /s", sendDataWsCounter);
   sendDataWsCounter = 0;
 }
 

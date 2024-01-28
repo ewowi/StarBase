@@ -38,17 +38,12 @@ public:
   IPAddress targetIp; //tbd: targetip also configurable from fixtures, and ddp instead of pin output
 
   UserModDDP() :SysModule("DDP") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
     isEnabled = false; //default off
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initUserMod(parentVar, name);
 
@@ -77,8 +72,6 @@ public:
         USER_PRINTF("Start DDP to %s\n", targetIp.toString().c_str());
       }
     }); //ddpInst
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {

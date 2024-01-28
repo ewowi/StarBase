@@ -23,7 +23,6 @@ SysModNetwork::SysModNetwork() :SysModule("Network") {};
 //setup wifi an async webserver
 void SysModNetwork::setup() {
   SysModule::setup();
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initSysMod(parentVar, name);
   
@@ -54,8 +53,6 @@ void SysModNetwork::setup() {
   ui->initText(parentVar, "rssi", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Wifi signal");
   });
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModNetwork::loop() {
@@ -65,7 +62,7 @@ void SysModNetwork::loop() {
 }
 
 void SysModNetwork::loop1s() {
-  mdl->setValueV("rssi", "%d dBm", WiFi.RSSI());
+  mdl->setValueUIOnly("rssi", "%d dBm", WiFi.RSSI());
 }
 
 void SysModNetwork::handleConnection() {
@@ -95,7 +92,7 @@ void SysModNetwork::handleConnection() {
       initAP();
     }
   } else if (!interfacesInited) { //newly connected
-    mdl->setValueP("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+    mdl->setValueUIOnly("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
 
     interfacesInited = true;
 
@@ -146,7 +143,7 @@ void SysModNetwork::initAP() {
   WiFi.softAP(apSSID, apPass, apChannel, apHide);
   if (!apActive) // start captive portal if AP active
   {
-    mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
+    mdl->setValueUIOnly("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());
@@ -154,5 +151,4 @@ void SysModNetwork::initAP() {
 
     SysModules::newConnection = true; // send all modules connect notification
   }
-
 }

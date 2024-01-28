@@ -23,8 +23,6 @@ SysModSystem::SysModSystem() :SysModule("System") {};
 
 void SysModSystem::setup() {
   SysModule::setup();
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   parentVar = ui->initSysMod(parentVar, name);
 
   ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var) { //uiFun
@@ -111,8 +109,6 @@ void SysModSystem::setup() {
   //   case FM_DOUT: ui->initText(parentVar, "e32flashtext")] = F(" (DOUT or other)");break;
   //   default: ui->initText(parentVar, "e32flashtext")] = F(" (other)"); break;
   // }
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModSystem::loop() {
@@ -121,20 +117,20 @@ void SysModSystem::loop() {
   loopCounter++;
 }
 void SysModSystem::loop1s() {
-  mdl->setValueV("upTime", "%lu s", millis()/1000);
-  mdl->setValueV("loops", "%lu /s", loopCounter);
+  mdl->setValueUIOnly("upTime", "%lu s", millis()/1000);
+  mdl->setValueUIOnly("loops", "%lu /s", loopCounter);
 
   loopCounter = 0;
 }
 void SysModSystem::loop10s() {
   mdl->setValue("version", JsonString(version)); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
 
-  mdl->setValueV("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
+  mdl->setValueUIOnly("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
 
-  mdl->setValueV("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
-  mdl->setValueV("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
+  mdl->setValueUIOnly("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
+  mdl->setValueUIOnly("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
   if (psramFound()) {
-    mdl->setValueV("psram", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
+    mdl->setValueUIOnly("psram", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
   }
   USER_PRINTF("❤️"); //heartbeat
 }

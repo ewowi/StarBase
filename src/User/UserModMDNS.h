@@ -18,15 +18,11 @@ public:
   char cmDNS[64] = "";
 
   UserModMDNS() :SysModule("MDNS") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     escapedMac = WiFi.macAddress();
     escapedMac.replace(":", "");
@@ -34,8 +30,6 @@ public:
 
     sprintf(cmDNS, PSTR("wled-%*s"), 6, escapedMac.c_str() + 6);
     // strncpy(cmDNS, "wled-98765", sizeof(cmDNS) -1);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {

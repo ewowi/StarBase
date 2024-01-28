@@ -19,9 +19,6 @@ bool SysModules::newConnection = false;
 bool SysModules::isConnected = false;
 
 SysModules::SysModules() {
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 void SysModules::setup() {

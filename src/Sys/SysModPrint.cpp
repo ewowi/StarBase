@@ -17,7 +17,6 @@
 #include "esp32Tools.h"
 
 SysModPrint::SysModPrint() :SysModule("Print") {
-  // print("%s %s\n", __PRETTY_FUNCTION__, name);
 
 #if ARDUINO_USB_CDC_ON_BOOT || !defined(CONFIG_IDF_TARGET_ESP32S2)
   Serial.begin(115200);
@@ -50,14 +49,10 @@ SysModPrint::SysModPrint() :SysModule("Print") {
   }
   Serial.println("Ready.\n");
   if (Serial) Serial.flush(); // drain output buffer
-
-  // print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 };
 
 void SysModPrint::setup() {
   SysModule::setup();
-
-  // print("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initSysMod(parentVar, name);
 
@@ -76,8 +71,6 @@ void SysModPrint::setup() {
   ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Show the printed log");
   });
-
-  // print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 }
 
 void SysModPrint::loop() {

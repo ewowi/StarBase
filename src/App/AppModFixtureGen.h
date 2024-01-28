@@ -505,7 +505,6 @@ public:
 
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initUserMod(parentVar, name);
 
@@ -538,7 +537,6 @@ public:
       generateChFun(var);
     });
 
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {

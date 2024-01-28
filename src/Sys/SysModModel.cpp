@@ -13,6 +13,7 @@
 #include "SysModule.h"
 #include "SysModFiles.h"
 #include "SysJsonRDWS.h"
+#include "SysModUI.h"
 
 BasicJsonDocument<RAM_Allocator> * SysModModel::model = nullptr;
 JsonObject SysModModel::modelParentVar;
@@ -22,8 +23,6 @@ SysModModel::SysModModel() :SysModule("Model") {
 
   JsonArray root = model->to<JsonArray>(); //create
 
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   USER_PRINTF("Reading model from /model.json... (deserializeConfigFromFS)\n");
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     print->printJson("Read model", *model);
@@ -31,14 +30,10 @@ SysModModel::SysModModel() :SysModule("Model") {
   } else {
     root = model->to<JsonArray>(); //re create the model as it is corrupted by readFromFile
   }
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModModel::setup() {
   SysModule::setup();
-
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initSysMod(parentVar, name);
 
@@ -62,8 +57,6 @@ void SysModModel::setup() {
     web->addResponse(var["id"], "label", "Delete obsolete variables");
     web->addResponse(var["id"], "comment", "WIP");
   });
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
   void SysModModel::loop() {
@@ -99,7 +92,7 @@ void SysModModel::setup() {
   }
 }
 void SysModModel::loop1s() {
-  setValueV("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
+  setValueUIOnly("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
 }
 
 void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
@@ -113,7 +106,7 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
         if (oPos) {
           if (var["o"].isNull() || var["o"].as<int>() >= 0) { //not set negative in initVar
             if (!doShowObsolete) {
-              USER_PRINTF("remove var %s (o>=0)\n", var["id"].as<const char *>());          
+              USER_PRINTF("cleanUpModel remove var %s (""o"">=0)\n", var["id"].as<const char *>());          
               vars.remove(varV); //remove the obsolete var (no o or )
             }
           }
@@ -122,7 +115,7 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
           }
         } else { //!oPos
           if (var["o"].isNull() || var["o"].as<int>() < 0) { 
-            USER_PRINTF("remove var %s (o<0)\n", var["id"].as<const char *>());          
+            USER_PRINTF("cleanUpModel remove var %s (""o""<0)\n", var["id"].as<const char *>());          
             vars.remove(varV); //remove the obsolete var (no o or o is negative - not cleanedUp)
           }
         }
@@ -197,5 +190,50 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
         varToValues(childVar, row.createNestedArray());
       }
     }
+}
 
+//tbd: use template T for value
+//run the change function and send response to all? websocket clients
+void SysModModel::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) { //value: bypass var["value"]
+
+  if (!var["chFun"].isNull()) {//isNull needed here!
+    size_t funNr = var["chFun"];
+    if (funNr < ui->cFunctions.size()) {
+      USER_PRINTF("chFun %s", var["id"].as<const char *>());
+      if (rowNr!=UINT8_MAX)
+        USER_PRINTF("[%d]", rowNr);
+      USER_PRINTF(" <- %s\n", var["value"].as<String>().c_str());
+      ui->cFunctions[funNr](var, rowNr);
+    }
+    else    
+      USER_PRINTF("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ui->cFunctions.size());
+  }
+
+  if (var["stage"])
+    ui->stageVarChanged = true;
+
+  JsonDocument *responseDoc = web->getResponseDoc();
+  responseDoc->clear(); //needed for deserializeJson?
+  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+
+  if (value)
+    web->addResponse(var["id"], "value", JsonString(value, JsonString::Copied));
+  else {
+    if (var["value"].is<int>())
+      web->addResponse(var["id"], "value", var["value"].as<int>());
+    else if (var["value"].is<bool>())
+      web->addResponse(var["id"], "value", var["value"].as<bool>());
+    else if (var["value"].is<const char *>())
+      web->addResponse(var["id"], "value", var["value"].as<const char *>());
+    else if (var["value"].is<JsonArray>()) {
+      // USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+      web->addResponse(var["id"], "value", var["value"].as<JsonArray>());
+    }
+    else {
+      USER_PRINTF("setChFunAndWs %s unknown type for %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+      // web->addResponse(var["id"], "value", var["value"]);
+    }
+  }
+
+  web->sendDataWs(responseVariant);
 }

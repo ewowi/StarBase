@@ -143,9 +143,6 @@ public:
   std::vector<InstanceInfo> instances;
 
   UserModInstances() :SysModule("Instances") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   void addTblRow(JsonVariant rows, std::vector<InstanceInfo>::iterator instance) {
@@ -173,7 +170,6 @@ public:
   //setup filesystem
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initSysMod(parentVar, name);
 
@@ -205,9 +201,6 @@ public:
     ui->initNumber(tableVar, "insUp", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Uptime");
     });
-    // ui->initNumber(tableVar, "insTime", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
-    //   web->addResponse(var["id"], "label", "Timestamp");
-    // });
 
     JsonObject currentVar;
 
@@ -303,8 +296,6 @@ public:
     }
 
     USER_PRINTF("UDPWLEDSyncMessage %d %d %d\n", sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage), sizeof(UDPWLEDSyncMessage));
-    
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void onOffChanged() {

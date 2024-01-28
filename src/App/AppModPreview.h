@@ -20,7 +20,6 @@ public:
 
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initAppMod(parentVar, name);
 

@@ -47,6 +47,8 @@ public:
   uint16_t nrOfLeds = 64;  //amount of virtual leds (calculated by projection)
 
   Coord3D size = {8,8,1};
+
+  Coord3D head = {0,0,0};
   
   uint8_t fx = -1;
   uint8_t projectionNr = -1;

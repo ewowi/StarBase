@@ -175,6 +175,12 @@ public:
       web->addResponse(var["id"], "label", "Count");
     });
 
+    #ifdef USERMOD_WLEDAUDIO
+      ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var) { //uiFun
+        web->addResponse(var["id"], "label", "Moving heads");
+        web->addResponse(var["id"], "comment", "Move on GEQ");
+      });
+    #endif
 
     #ifdef USERMOD_E131
       // if (e131mod->isEnabled) {

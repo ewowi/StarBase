@@ -45,6 +45,9 @@ public:
         }
         //new values
         buffer[0] = 1; //userFun id
+        buffer[1] = lds->leds.head.x;
+        buffer[2] = lds->leds.head.y;
+        buffer[3] = lds->leds.head.y;
         // buffer[1] = fixture.nrOfLeds/256;
         // buffer[2] = fixture.nrOfLeds%256;
         // buffer[4] = max(fixture.nrOfLeds * SysModWeb::ws->count()/200, 16U); //interval in ms * 10, not too fast

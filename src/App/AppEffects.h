@@ -695,7 +695,6 @@ public:
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
 
-    uint8_t *fftResult = wledAudioMod->fftResults;
     #ifdef SR_DEBUG
     uint8_t samplePeak = *(uint8_t*)um_data->u_data[3];
     #endif
@@ -732,7 +731,7 @@ public:
       uint8_t frBand = ((NUM_BANDS < 16) && (NUM_BANDS > 1)) ? map(band, 0, NUM_BANDS - 1, 0, 15):band; // always use full range. comment out this line to get the previous behaviour.
       // frBand = constrain(frBand, 0, 15); //WLEDMM can never be out of bounds (I think...)
       uint16_t colorIndex = frBand * 17; //WLEDMM 0.255
-      uint16_t bandHeight = fftResult[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
+      uint16_t bandHeight = wledAudioMod->fftResults[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
 
       // WLEDMM begin - smooth out bars
       if ((pos.x > 0) && (pos.x < (leds.size.x-1)) && (smoothBars)) {
@@ -740,7 +739,7 @@ public:
         uint8_t nextband = (remaining < 1)? band +1: band;
         nextband = constrain(nextband, 0, 15);  // just to be sure
         frBand = ((NUM_BANDS < 16) && (NUM_BANDS > 1)) ? map(nextband, 0, NUM_BANDS - 1, 0, 15):nextband; // always use full range. comment out this line to get the previous behaviour.
-        uint16_t nextBandHeight = fftResult[frBand];
+        uint16_t nextBandHeight = wledAudioMod->fftResults[frBand];
         // smooth Band height
         bandHeight = (7*bandHeight + 3*lastBandHeight + 3*nextBandHeight) / 12;   // yeees, its 12 not 13 (10% amplification)
         bandHeight = constrain(bandHeight, 0, 255);   // remove potential over/underflows
@@ -802,17 +801,15 @@ public:
   }
 
   void loop(Leds &leds) {
-    uint8_t *fftResult = wledAudioMod->fftResults;
-
     for (int i = 0; i < 7; i++) { // 7 rings
 
       uint8_t val;
       if(mdl->getValue("inWards").as<bool>()) {
-        val = fftResult[(i*2)];
+        val = wledAudioMod->fftResults[(i*2)];
       }
       else {
         int b = 14 -(i*2);
-        val = fftResult[b];
+        val = wledAudioMod->fftResults[b];
       }
   
       // Visualize leds to the beat
@@ -828,8 +825,7 @@ public:
 
   }
   void setRingFromFtt(Leds &leds, int index, int ring) {
-    uint8_t *fftResult = wledAudioMod->fftResults;
-    uint8_t val = fftResult[index];
+    uint8_t val = wledAudioMod->fftResults[index];
     // Visualize leds to the beat
     CRGB color = ColorFromPalette(palette, val, 255);
     color.nscale8_video(val);
@@ -863,8 +859,6 @@ public:
     uint8_t lowBin = mdl->getValue("Low bin");
     uint8_t highBin = mdl->getValue("High bin");
     uint8_t sensitivity10 = mdl->getValue("Sensivity");
-
-    uint8_t *fftResult = wledAudioMod->fftResults;
 
     uint8_t secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
     if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
@@ -973,6 +967,16 @@ public:
     now = millis(); //tbd timebase
 
     effects[leds.fx%effects.size()]->loop(leds);
+
+    #ifdef USERMOD_WLEDAUDIO
+
+      if (mdl->getValue("mHead") ) {
+        leds.head.x = wledAudioMod->fftResults[3];
+        leds.head.y = wledAudioMod->fftResults[8];
+        leds.head.z = wledAudioMod->fftResults[13];
+      }
+
+    #endif
 
     call++;
 

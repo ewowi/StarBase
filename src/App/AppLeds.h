@@ -22,7 +22,7 @@
 #include "ArduinoJson.h"
 #include "../Sys/SysModModel.h" //for Coord3D
 
-#define NUM_LEDS_Max 4096
+#include "AppFixture.h"
 
 enum Projections
 {
@@ -42,22 +42,8 @@ class Leds {
 
 public:
 
-  //tbd: move ledsPhysical and nrOfLedsP out of Leds
-  // CRGB *leds = nullptr;
-  CRGB ledsPhysical[NUM_LEDS_Max];
-    // if (!leds)
-  //   leds = (CRGB*)calloc(nrOfLeds, sizeof(CRGB));
-  // else
-  //   leds = (CRGB*)reallocarray(leds, nrOfLeds, sizeof(CRGB));
-  // if (leds) free(leds);
-  // leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
-  // leds = (CRGB*)reallocarray
+  Fixture *fixture;
 
-  uint16_t nrOfLedsP = 64; //amount of physical leds
-  uint8_t fixtureNr = -1;
-  Coord3D sizeP = {8,8,1};
-
-  
   uint16_t nrOfLeds = 64;  //amount of virtual leds (calculated by projection)
 
   Coord3D size = {8,8,1};
@@ -131,11 +117,11 @@ public:
       if (indexV >= mappingTable.size()) return;
       for (uint16_t indexP:mappingTable[indexV]) {
         if (indexP < NUM_LEDS_Max)
-          ledsPhysical[indexP] = color;
+          fixture->ledsP[indexP] = color;
       }
     }
     else //no projection
-      ledsPhysical[projectionNr==p_Random?random(nrOfLedsP):indexV] = color;
+      fixture->ledsP[projectionNr==p_Random?random(fixture->nrOfLeds):indexV] = color;
   }
 
   CRGB getPixelColor(int indexV) {
@@ -143,10 +129,10 @@ public:
       if (indexV >= mappingTable.size()) return CRGB::Black;
       if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Max) return CRGB::Black;
 
-      return ledsPhysical[mappingTable[indexV][0]]; //any would do as they are all the same
+      return fixture->ledsP[mappingTable[indexV][0]]; //any would do as they are all the same
     }
     else //no projection
-      return ledsPhysical[indexV];
+      return fixture->ledsP[indexV];
   }
 
   void addPixelColor(int indexV, CRGB color) {
@@ -159,7 +145,7 @@ public:
     for (index.x = startPos.x; index.x <= endPos.x; index.x++)
       for (index.y = startPos.y; index.y <= endPos.y; index.y++)
         for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          ledsPhysical[index.x + index.y * sizeP.x + index.z * sizeP.x * sizeP.y].nscale8(255-fadeBy);
+          fixture->ledsP[index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y].nscale8(255-fadeBy);
         }
   }
   void fill_solid(const struct CRGB& color) {
@@ -168,7 +154,7 @@ public:
     for (index.x = startPos.x; index.x <= endPos.x; index.x++)
       for (index.y = startPos.y; index.y <= endPos.y; index.y++)
         for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          ledsPhysical[index.x + index.y * sizeP.x + index.z * sizeP.x * sizeP.y] = color;
+          fixture->ledsP[index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y] = color;
         }
   }
 
@@ -181,7 +167,7 @@ public:
     for (index.x = startPos.x; index.x <= endPos.x; index.x++)
       for (index.y = startPos.y; index.y <= endPos.y; index.y++)
         for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          ledsPhysical[index.x + index.y * sizeP.x + index.z * sizeP.x * sizeP.y] = hsv;
+          fixture->ledsP[index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y] = hsv;
           hsv.hue += deltahue;
         }
   }

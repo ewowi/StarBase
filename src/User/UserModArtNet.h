@@ -70,7 +70,7 @@ public:
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;
 
-    const size_t channelCount = lds->leds.nrOfLedsP * (isRGBW?4:3); // 1 channel for every R,G,B,(W?) value
+    const size_t channelCount = lds->fixture.nrOfLeds * (isRGBW?4:3); // 1 channel for every R,G,B,(W?) value
     const size_t ARTNET_CHANNELS_PER_PACKET = isRGBW?512:510; // 512/4=128 RGBW LEDs, 510/3=170 RGB LEDs
     const size_t packetCount = ((channelCount-1)/ARTNET_CHANNELS_PER_PACKET)+1;
 
@@ -111,8 +111,8 @@ public:
       ddpUdp.write(0xFF & (packetSize >> 8)); // 16-bit length of channel data, MSB
       ddpUdp.write(0xFF & (packetSize     )); // 16-bit length of channel data, LSB
 
-      for (size_t i = 0; i < lds->leds.nrOfLedsP; i++) {
-        CRGB pixel = lds->leds.ledsPhysical[i];
+      for (size_t i = 0; i < lds->fixture.nrOfLeds; i++) {
+        CRGB pixel = lds->fixture.ledsP[i];
         ddpUdp.write(scale8(pixel.r, bri)); // R
         ddpUdp.write(scale8(pixel.g, bri)); // G
         ddpUdp.write(scale8(pixel.b, bri)); // B

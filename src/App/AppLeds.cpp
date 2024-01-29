@@ -26,7 +26,7 @@
 void Leds::fixtureProjectAndMap() {
   char fileName[32] = "";
 
-  if (files->seqNrToName(fileName, fixtureNr)) {
+  if (files->seqNrToName(fileName, fixture->fixtureNr)) {
     JsonRDWS jrdws(fileName); //open fileName for deserialize
 
     mappingTableLedCounter = 0;
@@ -58,17 +58,17 @@ void Leds::fixtureProjectAndMap() {
         // startPos.z = 0;
         break;
       case p_DistanceFromCenter:
-        // startPos.x = sizeP.x / 2;
-        // startPos.y = sizeP.y / 2;
-        // startPos.z = sizeP.z / 2;
+        // startPos.x = fixture->size.x / 2;
+        // startPos.y = fixture->size.y / 2;
+        // startPos.z = fixture->size.z / 2;
         break;
     }
 
     //what to deserialize
-    jrdws.lookFor("width", &sizeP.x);
-    jrdws.lookFor("height", &sizeP.y);
-    jrdws.lookFor("depth", &sizeP.z);
-    jrdws.lookFor("nrOfLeds", &nrOfLedsP);
+    jrdws.lookFor("width", &fixture->size.x);
+    jrdws.lookFor("height", &fixture->size.y);
+    jrdws.lookFor("depth", &fixture->size.z);
+    jrdws.lookFor("nrOfLeds", &fixture->nrOfLeds);
     jrdws.lookFor("pin", &currPin);
 
     //lookFor leds array and for each item in array call lambdo to make a projection
@@ -79,9 +79,9 @@ void Leds::fixtureProjectAndMap() {
       // USER_PRINTF("\n");
 
       uint8_t fixtureDimension = 0;
-      if (sizeP.x>1) fixtureDimension++;
-      if (sizeP.y>1) fixtureDimension++;
-      if (sizeP.z>1) fixtureDimension++;
+      if (fixture->size.x>1) fixtureDimension++;
+      if (fixture->size.y>1) fixtureDimension++;
+      if (fixture->size.z>1) fixtureDimension++;
 
       if (uint16CollectList.size()>=1 && fixtureDimension>=1 && fixtureDimension<=3) {
 
@@ -93,7 +93,7 @@ void Leds::fixtureProjectAndMap() {
 
         if (x >= startPos.x && x <=endPos.x && y >= startPos.y && y <=endPos.y && z >= startPos.z && z <=endPos.z ) {
 
-          // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, fixtureDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], sizeP.x, sizeP.y, sizeP.z);
+          // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, fixtureDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], fixture->size.x, fixture->size.y, fixture->size.z);
 
           //calculate the bucket to add to current physical led to
           uint16_t bucket = UINT16_MAX;
@@ -141,8 +141,8 @@ void Leds::fixtureProjectAndMap() {
                   // USER_PRINTF("2D to 2D bucket %f %d  %d x %d %d x %d\n", scale, bucket, x, y, size.x, size.y);
                 }
                 else if (fixtureDimension == _3D) {
-                  size.x = sizeP.x + sizeP.y;
-                  size.y = sizeP.z;
+                  size.x = fixture->size.x + fixture->size.y;
+                  size.y = fixture->size.z;
                   size.z = 1;
                   bucket = XY(x + y + 1, z);
                   // USER_PRINTF("2D to 3D bucket %d %d\n", bucket, size.x);
@@ -167,12 +167,12 @@ void Leds::fixtureProjectAndMap() {
                   xNew = round(((size.y-1.0-y)/(size.y-1.0) * xNew + size.x) / 2.0);
                   yNew = round(((size.y-1.0-y)/(size.y-1.0) * yNew + size.y) / 2.0);
 
-                  USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(sizeP.x-1)), cos(x * TWO_PI / (float)(sizeP.x-1)), xNew, yNew);
+                  USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(fixture->size.x-1)), cos(x * TWO_PI / (float)(fixture->size.x-1)), xNew, yNew);
                   x = xNew;
                   y = yNew;
 
-                  size.x = sizeP.x;
-                  size.y = sizeP.y;
+                  size.x = fixture->size.x;
+                  size.y = fixture->size.y;
                   size.z = 1;
 
                   bucket = XY(x, y);
@@ -201,7 +201,7 @@ void Leds::fixtureProjectAndMap() {
                     xNew = round(((size.y-1.0-y)/(size.y-1.0) * xNew + size.x) / 2.0);
                     yNew = round(((size.y-1.0-y)/(size.y-1.0) * yNew + size.y) / 2.0);
 
-                    // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(sizeP.x-1)), cos(x * TWO_PI / (float)(sizeP.x-1)), xNew, yNew);
+                    // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sin(x * TWO_PI / (float)(size.x-1)), cos(x * TWO_PI / (float)(size.x-1)), xNew, yNew);
 
                     float distance = abs(bucket - xNew - yNew * size.x);
 
@@ -286,8 +286,8 @@ void Leds::fixtureProjectAndMap() {
 
       if (projectionNr <= p_Random) {
         //defaults
-        size = sizeP;
-        nrOfLeds = nrOfLedsP;
+        size = fixture->size;
+        nrOfLeds = fixture->nrOfLeds;
       }
 
       if (projectionNr > p_Random) {
@@ -308,15 +308,15 @@ void Leds::fixtureProjectAndMap() {
         // }
       }
 
-      USER_PRINTF("fixtureProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", sizeP.x, sizeP.y, sizeP.z, size.x, size.y, size.z, nrOfLedsP, nrOfLeds);
+      USER_PRINTF("fixtureProjectAndMap P:%dx%dx%d V:%dx%dx%d and P:%d V:%d\n", fixture->size.x, fixture->size.y, fixture->size.z, size.x, size.y, size.z, fixture->nrOfLeds, nrOfLeds);
       mdl->setValue("fxSize", size);
       mdl->setValue("fxCount", nrOfLeds);
 
-      mdl->setValue("fixSize", sizeP);
-      mdl->setValue("fixCount", nrOfLedsP);
+      mdl->setValue("fixSize", fixture->size);
+      mdl->setValue("fixCount", fixture->nrOfLeds);
 
     } // if deserialize
   } //if fileName
   else
-    USER_PRINTF("fixtureProjectAndMap: Filename for fixture %d not found\n", fixtureNr);
+    USER_PRINTF("fixtureProjectAndMap: Filename for fixture %d not found\n", fixture->fixtureNr);
 }

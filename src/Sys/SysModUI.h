@@ -169,7 +169,7 @@ public:
   JsonObject initVar(JsonObject parent, const char * id, const char * type, bool readOnly = true, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr);
 
   //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
-  static const char * processJson(JsonVariant &json); //static for setupJsonHandlers
+  static const char * processJson(JsonVariant json); //static for jsonHandler
 
   //called to rebuild selects and tables (tbd: also label and comments is done again, that is not needed)
   void processUiFun(const char * id);

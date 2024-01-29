@@ -22,6 +22,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initAppMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -1000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Preview");

@@ -31,6 +31,7 @@ SysModFiles::SysModFiles() :SysModule("Files") {
 void SysModFiles::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Files");
@@ -77,23 +78,10 @@ void SysModFiles::setup() {
     web->addResponseV(var["id"], "value", "%d / %d B", files->usedBytes(), files->totalBytes());
     web->addResponse(var["id"], "label", "Total FS size");
   });
-
-  // ui->initURL(parentVar, "urlTest", "file/3DCube202005.json", true);
-
-  web->addUpload("/upload");
-  web->addUpdate("/update");
-
-  web->addFileServer("/file");
-
 }
 
 void SysModFiles::loop(){
   // SysModule::loop();
-
-  // if (millis() - secondMillis >= 10000) {
-  //   secondMillis = millis();
-  //       // if something changed in fileTbl
-  // }
 
   if (filesChanged) {
     mdl->setValueUIOnly("drsize", "%d / %d B", usedBytes(), totalBytes());

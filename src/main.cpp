@@ -84,7 +84,6 @@ void setup() {
     wledAudioMod = new UserModWLEDAudio();
   #endif
 
-  //preferred default order in the UI. 
   //Reorder with care! If changed make sure mdlEnabled.chFun executes var.createNestedArray("value"); and saveModel! 
   //Default: add below, not in between
   #ifdef APPMOD_LEDS
@@ -110,12 +109,12 @@ void setup() {
     mdls->add(e131mod);
   #endif
   #ifdef USERMOD_HA
-    mdls->add(hamod);
+    mdls->add(hamod); //no ui
   #endif
   mdls->add(mdl);
   mdls->add(ui);
   #ifdef USERMOD_WLEDAUDIO
-    mdls->add(wledAudioMod);
+    mdls->add(wledAudioMod); //no ui
   #endif
   mdls->add(mdns); //no ui
   mdls->add(instances);

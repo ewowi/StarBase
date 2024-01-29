@@ -172,6 +172,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initSysMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -4200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
       const char * varID = var["id"];

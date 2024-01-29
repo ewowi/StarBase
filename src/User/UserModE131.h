@@ -28,6 +28,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initUserMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -3200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     ui->initNumber(parentVar, "dun", universe, 0, 7, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "DMX Universe");

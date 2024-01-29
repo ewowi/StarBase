@@ -17,6 +17,8 @@
 
 #include "User/UserModMDNS.h"
 
+#include "html_ui.h"
+
 #include "AsyncJson.h"
 
 #include <ArduinoOTA.h>
@@ -25,10 +27,8 @@
 //https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
 
 
-AsyncWebServer * SysModWeb::server = nullptr;
-AsyncWebSocket * SysModWeb::ws = nullptr;
-
-const char * (*SysModWeb::processWSFunc)(JsonVariant &) = nullptr;
+WebServer * SysModWeb::server = nullptr;
+WebSocket * SysModWeb::ws = nullptr;
 
 DynamicJsonDocument * SysModWeb::responseDocLoopTask = nullptr;
 DynamicJsonDocument * SysModWeb::responseDocAsyncTCP = nullptr;
@@ -39,15 +39,18 @@ unsigned long SysModWeb::sendDataWsCounter = 0;
 SemaphoreHandle_t SysModWeb::wsMutex = xSemaphoreCreateMutex();
 
 SysModWeb::SysModWeb() :SysModule("Web") {
-  ws = new AsyncWebSocket("/ws");
-  server = new AsyncWebServer(80);
+  #ifdef STARMOD_USE_Psychic
+    ws = new WebSocket();
+    server = new WebServer();
+  #else
+    ws = new WebSocket("/ws");
+    server = new WebServer(80);
+  #endif
 
   //CORS compatiblity
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Origin"), "*");
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), "*");
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), "*");
-
-  processURL("/json", serveJson);
 
   responseDocLoopTask = new DynamicJsonDocument(2048);
   responseDocAsyncTCP = new DynamicJsonDocument(3072);
@@ -56,6 +59,7 @@ SysModWeb::SysModWeb() :SysModule("Web") {
 void SysModWeb::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2400; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Clients");
@@ -118,7 +122,7 @@ void SysModWeb::loop1s() {
 
   uint8_t rowNr = 0;
   for (auto client:ws->getClients()) {
-    // print->printClient("up", client);
+    // printClient("up", client);
     //will only update if changed
     mdl->setValue("clNr", client->id(), rowNr);
     mdl->setValue("clIp", JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr);
@@ -140,10 +144,32 @@ void SysModWeb::reboot() {
 
 void SysModWeb::connectedChanged() {
   if (mdls->isConnected) {
-    ws->onEvent(wsEvent);
-    server->addHandler(ws);
+    #ifdef STARMOD_USE_Psychic
 
-    server->begin();
+      server->listen(80);
+
+      ws->onOpen(wsEventOpen);
+      ws->onFrame(wsEventFrame);
+      ws->onClose(wsEventClose);
+
+      server->on("/ws")->setHandler(ws);
+    
+    #else
+      ws->onEvent(wsEvent);
+      server->addHandler(ws);
+      server->begin();
+    #endif
+
+    server->on("/", HTTP_GET, serveIndex);
+
+    //serve json calls
+    server->on("/json", HTTP_GET, serveJson);
+
+    server->addHandler(new AsyncCallbackJsonWebHandler("/json", jsonHandler));
+
+    server->on("/update", HTTP_POST, [](WebRequest *request) {}, serveUpdate);
+    server->on("/file", HTTP_GET, serveFiles);
+    server->on("/upload", HTTP_POST, [](WebRequest *request) {}, serveUpload);
 
     // USER_PRINTF("%s server (re)started\n", name); //causes crash for some reason...
     USER_PRINTF("server (re)started\n"); //and this not causes crash ??? whats with name?
@@ -158,13 +184,13 @@ void SysModWeb::connectedChanged() {
 //wsEvent deserializeJson failed with code EmptyInput
 
 // https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
-void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
   // if (!ws->count()) {
   //   USER_PRINT_Async("wsEvent no clients\n");
   //   return;
   // }
   if (type == WS_EVT_CONNECT) {
-    print->printClient("WS client connected", client);
+    printClient("WS client connected", client);
 
     JsonArray model = mdl->model->as<JsonArray>();
 
@@ -188,27 +214,24 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
 
     clientsChanged = true;
   } else if (type == WS_EVT_DISCONNECT) {
-    print->printClient("WS Client disconnected", client);
+    printClient("WS Client disconnected", client);
     clientsChanged = true;
   } else if (type == WS_EVT_DATA) {
     AwsFrameInfo * info = (AwsFrameInfo*)arg;
     String msg = "";
     // USER_PRINT_Async("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
     if (info->final && info->index == 0 && info->len == len) { //not multipart
-      print->printClient("WS event data", client);
+      printClient("WS event data", client);
       // the whole message is in a single frame and we got all of its data (max. 1450 bytes)
       if (info->opcode == WS_TEXT)
       {
         if (len > 0 && len < 10 && data[0] == 'p') {
           // application layer ping/pong heartbeat.
           // client-side socket layer ping packets are unresponded (investigate)
-          // print->printClient("WS client pong", client); //crash?
+          // printClient("WS client pong", client); //crash?
           USER_PRINT_Async("pong\n");
           client->text("pong");
-          return;
-        }
-
-        if (processWSFunc) { //processJson defined
+        } else {
           JsonDocument *responseDoc = web->getResponseDoc();
           responseDoc->clear(); //needed for deserializeJson?
           JsonVariant responseVariant = responseDoc->as<JsonVariant>();
@@ -219,7 +242,7 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
             USER_PRINT_Async("wsEvent deserializeJson failed with code %s\n", error.c_str());
             client->text("{\"success\":true}"); // we have to send something back otherwise WS connection closes
           } else {
-            const char * error = processWSFunc(responseVariant); //processJson, adds to responseDoc / responseVariant
+            const char * error = ui->processJson(responseVariant); //processJson, adds to responseDoc / responseVariant
 
             if (responseVariant.size()) {
               print->printJson("WS_EVT_DATA json", responseVariant);
@@ -237,21 +260,17 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
             }
           }
         }
-        else {
-          USER_PRINT_Async("WS_EVT_DATA no processWSFunc\n");
-          client->text("{\"success\":true}"); // we have to send something back otherwise WS connection closes
-        }
-        }
+      }
     } else {
       //message is comprised of multiple frames or the frame is split into multiple packets
       if(info->index == 0){
         // if(info->num == 0)
-        //   USER_PRINT_Async("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
-        // USER_PRINT_Async("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+        //   USER_PRINT_Async("ws[%s][%u] %s-message start\n", ws->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+        // USER_PRINT_Async("ws[%s][%u] frame[%u] start[%llu]\n", ws->url(), client->id(), info->num, info->len);
         USER_PRINTF("💀");
       }
 
-      // USER_PRINT_Async("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+      // USER_PRINT_Async("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", ws->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
       USER_PRINTF("💀");
 
       if(info->opcode == WS_TEXT){
@@ -269,10 +288,10 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
       USER_PRINT_Async("%s\n",msg.c_str());
 
       if ((info->index + len) == info->len) {
-        // USER_PRINT_Async("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+        // USER_PRINT_Async("ws[%s][%u] frame[%u] end[%llu]\n", ws->url(), client->id(), info->num, info->len);
         USER_PRINTF("👻");
         if(info->final){
-          // USER_PRINT_Async("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          // USER_PRINT_Async("ws[%s][%u] %s-message end\n", ws->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
           USER_PRINTF("☠️");
           if(info->message_opcode == WS_TEXT)
             client->text("I got your text message");
@@ -303,19 +322,19 @@ void SysModWeb::wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, 
     }
   } else if (type == WS_EVT_ERROR){
     //error was received from the other end
-    // print->printClient("WS error", client); //crashes
+    // printClient("WS error", client); //crashes
     // USER_PRINT_Async("WS error\n");
-    USER_PRINT_Async("ws[%s][%u] error(): \n", server->url(), client->id());//, *((uint16_t*)arg));//, (char*)data);
+    USER_PRINT_Async("ws[%s][%u] error(): \n", ws->url(), client->id());//, *((uint16_t*)arg));//, (char*)data);
   } else if (type == WS_EVT_PONG){
     //pong message was received (in response to a ping request maybe)
-    // print->printClient("WS pong", client); //crashes!
+    // printClient("WS pong", client); //crashes!
     // USER_PRINT_Async("WS pong\n");
-    // USER_PRINT_Async("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
-    USER_PRINT_Async("ws[%s][%u] pong[%u]: \n", server->url(), client->id(), len);//, (len)?(char*)data:"");
+    // USER_PRINT_Async("ws[%s][%u] pong[%u]: %s\n", ws->url(), client->id(), len, (len)?(char*)data:"");
+    USER_PRINT_Async("ws[%s][%u] pong[%u]: \n", ws->url(), client->id(), len);//, (len)?(char*)data:"");
   }
 }
 
-void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
+void SysModWeb::sendDataWs(JsonVariant json, WebClient * client) {
 
   size_t len = measureJson(json);
   sendDataWs([json, len](AsyncWebSocketMessageBuffer * wsBuf) {
@@ -325,7 +344,7 @@ void SysModWeb::sendDataWs(JsonVariant json, AsyncWebSocketClient * client) {
 }
 
 //https://kcwong-joe.medium.com/passing-a-function-as-a-parameter-in-c-a132e69669f6
-void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fill, size_t len, bool isBinary, AsyncWebSocketClient * client) {
+void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fill, size_t len, bool isBinary, WebClient * client) {
   if (!ws) {
     USER_PRINT_Async("sendDataWs no ws\n");
     return;
@@ -352,7 +371,7 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
             sendDataWsCounter++;
           }
           else {
-            print->printClient("sendDataWs client full or not connected", loopClient); //causes crash
+            printClient("sendDataWs client full or not connected", loopClient); //causes crash
             // USER_PRINTF("sendDataWs client full or not connected\n");
             // ws->cleanupClients(); //only if above threshold
             // ws->_cleanBuffers();
@@ -374,158 +393,117 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
 }
 
 //add an url to the webserver to listen to
-bool SysModWeb::addURL(const char * uri, const char * contentType, const char * path, const uint8_t * content, size_t len) {
-  server->on(uri, HTTP_GET, [uri, contentType, path, content, len, this](AsyncWebServerRequest *request) {
-    if (path) {
-      //currently not used, was used for htm/js/css file serving
-      USER_PRINT_Async("Webserver: addUrl server->on %s %s file: %s", uri, contentType, path);
-      request->send(LittleFS, path, contentType);
-    }
-    else {
-      USER_PRINT_Async("Webserver: server->on addUrl %s %s csdata %d-%d (%s)", uri, contentType, content, len, request->url().c_str());
+void SysModWeb::serveIndex(WebRequest *request) {
 
-      if (strcmp(uri, "/") == 0) {
+  USER_PRINT_Async("Webserver: server->on serveIndex csdata %d-%d (%s)", PAGE_index, PAGE_index_L, request->url().c_str());
 
-        // if (captivePortal(request)) return;
+    // if (captivePortal(request)) return;
 
-        // if (handleIfNoneMatchCacheHeader(request)) return;
+    // if (handleIfNoneMatchCacheHeader(request)) return;
 
-        AsyncWebServerResponse *response;
-        response = request->beginResponse_P(200, contentType, content, len);
-        response->addHeader(FPSTR("Content-Encoding"),"gzip");
-        // setStaticContentCacheHeaders(response);
-        request->send(response);
+    WebResponse *response;
+    response = request->beginResponse_P(200, "text/html", PAGE_index, PAGE_index_L);
+    response->addHeader(FPSTR("Content-Encoding"),"gzip");
+    // setStaticContentCacheHeaders(response);
+    request->send(response);
 
-      }
-      
-      USER_PRINT_Async("!\n");
-    }
-  });
-
-  return true;
+  USER_PRINT_Async("!\n");
 }
 
-//not used at the moment
-bool SysModWeb::processURL(const char * uri, void (*func)(AsyncWebServerRequest *)) {
-  server->on(uri, HTTP_GET, [uri, func](AsyncWebServerRequest *request) {
-    func(request);
-  });
-  return true;
-}
-
-bool SysModWeb::addUpload(const char * uri) {
+void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
-  [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
-                size_t len, bool final) {
-    USER_PRINT_Async("handleUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
-    if (!index) {
-      String finalname = filename;
-      if (finalname.charAt(0) != '/') {
-        finalname = '/' + finalname; // prepend slash if missing
-      }
+  USER_PRINT_Async("handleUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+  if (!index) {
+    String finalname = filename;
+    if (finalname.charAt(0) != '/') {
+      finalname = '/' + finalname; // prepend slash if missing
+    }
 
-      request->_tempFile = files->open(finalname.c_str(), "w");
-      // DEBUG_PRINT("Uploading ");
-      // DEBUG_PRINTLN(finalname);
-      // if (finalname.equals("/presets.json")) presetsModifiedTime = toki.second();
-    }
-    if (len) {
-      request->_tempFile.write(data,len);
-    }
-    if (final) {
-      request->_tempFile.close();
-      // USER_PRINT("File uploaded: ");  // WLEDMM
-      // USER_PRINTLN(filename);            // WLEDMM
-      // if (filename.equalsIgnoreCase("/cfg.json") || filename.equalsIgnoreCase("cfg.json")) { // WLEDMM
-      //   request->send(200, "text/plain", F("Configuration restore successful.\nRebooting..."));
-      //   doReboot = true;
-      // } else {
-      //   if (filename.equals("/presets.json") || filename.equals("presets.json")) {  // WLEDMM
-      //     request->send(200, "text/plain", F("Presets File Uploaded!"));
-      //   } else
-          request->send(200, "text/plain", F("File Uploaded!"));
-      // }
-      // cacheInvalidate++;
-     files->filesChange();
-    }
-  });
-  return true;
+    request->_tempFile = files->open(finalname.c_str(), "w");
+    // DEBUG_PRINT("Uploading ");
+    // DEBUG_PRINTLN(finalname);
+    // if (finalname.equals("/presets.json")) presetsModifiedTime = toki.second();
+  }
+  if (len) {
+    request->_tempFile.write(data,len);
+  }
+  if (final) {
+    request->_tempFile.close();
+    // USER_PRINT("File uploaded: ");  // WLEDMM
+    // USER_PRINTLN(filename);            // WLEDMM
+    // if (filename.equalsIgnoreCase("/cfg.json") || filename.equalsIgnoreCase("cfg.json")) { // WLEDMM
+    //   request->send(200, "text/plain", F("Configuration restore successful.\nRebooting..."));
+    //   doReboot = true;
+    // } else {
+    //   if (filename.equals("/presets.json") || filename.equals("presets.json")) {  // WLEDMM
+    //     request->send(200, "text/plain", F("Presets File Uploaded!"));
+    //   } else
+        request->send(200, "text/plain", F("File Uploaded!"));
+    // }
+    // cacheInvalidate++;
+    files->filesChange();
+  }
 }
 
-bool SysModWeb::addUpdate(const char * uri) {
+void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  server->on(uri, HTTP_POST, [](AsyncWebServerRequest *request) {},
-  [](AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data,
-                size_t len, bool final) {
-    USER_PRINT_Async("handleUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
-    if(!index){
-      USER_PRINTF("OTA Update Start\n");
-      // WLED::instance().disableWatchdog();
-      // usermods.onUpdateBegin(true); // notify usermods that update is about to begin (some may require task de-init)
-      // lastEditTime = millis(); // make sure PIN does not lock during update
-      Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000);
-    }
-    if (!Update.hasError()) Update.write(data, len);
-    if (final) {
-      char message[64];
-      const char * serverName = mdl->getValue("serverName");
+  USER_PRINT_Async("handleUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+  if(!index){
+    USER_PRINTF("OTA Update Start\n");
+    // WLED::instance().disableWatchdog();
+    // usermods.onUpdateBegin(true); // notify usermods that update is about to begin (some may require task de-init)
+    // lastEditTime = millis(); // make sure PIN does not lock during update
+    Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000);
+  }
+  if (!Update.hasError()) Update.write(data, len);
+  if (final) {
+    char message[64];
+    const char * serverName = mdl->getValue("serverName");
 
-      print->fFormat(message, sizeof(message)-1, "Update of %s (...%d) %s", serverName, WiFi.localIP()[3], Update.end(true)?"Successful":"Failed");
+    print->fFormat(message, sizeof(message)-1, "Update of %s (...%d) %s", serverName, WiFi.localIP()[3], Update.end(true)?"Successful":"Failed");
 
-      USER_PRINTF("%s\n", message);
-      request->send(200, "text/plain", message);
+    USER_PRINTF("%s\n", message);
+    request->send(200, "text/plain", message);
 
-      // usermods.onUpdateBegin(false); // notify usermods that update has failed (some may require task init)
-      // WLED::instance().enableWatchdog();
-    }
-  });
-  return true;
+    // usermods.onUpdateBegin(false); // notify usermods that update has failed (some may require task init)
+    // WLED::instance().enableWatchdog();
+  }
 }
 
-bool SysModWeb::addFileServer(const char * uri) {
+void SysModWeb::serveFiles(WebRequest *request) {
 
-  server->on(uri, HTTP_GET, [uri](AsyncWebServerRequest *request){
-    const char * ddd = request->url().c_str();
-    const char * path = ddd + strlen(uri); //remove the uri from the path (skip their positions)
-    USER_PRINT_Async("fileServer request %s %s %s\n", uri, request->url().c_str(), path);
-    if(LittleFS.exists(path)) {
-      request->send(LittleFS, path, "text/plain");//"application/json");
-    }
-  });
-  return true;
+  const char * urlString = request->url().c_str();
+  const char * path = urlString + strlen("/file"); //remove the uri from the path (skip their positions)
+  USER_PRINT_Async("fileServer request %s %s\n", request->url().c_str(), path);
+  if(LittleFS.exists(path)) {
+    request->send(LittleFS, path, "text/plain");//"application/json");
+  }
 }
 
-bool SysModWeb::setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &)) {
-  processWSFunc = processFunc; //for WebSocket requests
+void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
 
-  //URL handler, e.g. for curl calls
-  AsyncCallbackJsonWebHandler *handler = new AsyncCallbackJsonWebHandler(uri, [processFunc](AsyncWebServerRequest *request, JsonVariant &json) {
-    JsonDocument *responseDoc = web->getResponseDoc();
-    responseDoc->clear(); //needed for deserializeJson?
-    JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+  JsonDocument *responseDoc = web->getResponseDoc();
+  responseDoc->clear(); //needed for deserializeJson?
+  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
-    print->printJson("AsyncCallbackJsonWebHandler", json);
-    const char * pErr = processFunc(json); //processJson
+  print->printJson("AsyncCallbackJsonWebHandler", json);
+  const char * pErr = ui->processJson(json); //processJson
 
-    //WLED compatibility
-    if (json["v"]) { //WLED compatibility: verbose response
-      serveJson (request);
-    }
-    else if (responseVariant.size()) { //responseVariant set by processFunc
-      char resStr[200]; 
-      serializeJson(responseVariant, resStr, 200);
-      USER_PRINT_Async("processJsonUrl response %s\n", resStr);
-      request->send(200, "application/json", resStr);
-    }
-    else
-      // request->send(200, "text/plain", "OK");
-      request->send(200, "application/json", F("{\"success\":true}"));
-  });
-  server->addHandler(handler);
-  return true;
+  //WLED compatibility
+  if (json["v"]) { //WLED compatibility: verbose response
+    serveJson (request);
+  }
+  else if (responseVariant.size()) { //responseVariant set by processFunc
+    char resStr[200]; 
+    serializeJson(responseVariant, resStr, 200);
+    USER_PRINT_Async("processJsonUrl response %s\n", resStr);
+    request->send(200, "application/json", resStr);
+  }
+  else
+    // request->send(200, "text/plain", "OK");
+    request->send(200, "application/json", F("{\"success\":true}"));
 }
 
 void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {
@@ -550,7 +528,7 @@ JsonDocument * SysModWeb::getResponseDoc() {
   return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?web->responseDocLoopTask:web->responseDocAsyncTCP;
 }
 
-void SysModWeb::serveJson(AsyncWebServerRequest *request) {
+void SysModWeb::serveJson(WebRequest *request) {
 
   AsyncJsonResponse * response;
 

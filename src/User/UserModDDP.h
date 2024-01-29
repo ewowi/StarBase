@@ -46,6 +46,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initUserMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -3000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     ui->initSelect(parentVar, "ddpInst", UINT16_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Instance");

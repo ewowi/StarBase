@@ -24,6 +24,7 @@ SysModSystem::SysModSystem() :SysModule("System") {};
 void SysModSystem::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");

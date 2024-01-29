@@ -13,8 +13,6 @@
 #include "SysModWeb.h"
 #include "SysModModel.h"
 
-#include "html_ui.h"
-
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 std::vector<UFun> SysModUI::uFunctions;
 std::vector<CFun> SysModUI::cFunctions;
@@ -23,12 +21,6 @@ int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::stageVarChanged = false;
 
 SysModUI::SysModUI() :SysModule("UI") {
-  success &= web->addURL("/", "text/html", nullptr, PAGE_index, PAGE_index_L);
-  // success &= web->addURL("/index.js", "application/javascript", nullptr, PAGE_indexJs, PAGE_indexJs_length);
-  // success &= web->addURL("/app.js", "application/javascript", nullptr, PAGE_appJs, PAGE_appJs_length);
-  // success &= web->addURL("/index.css", "text/css", "/index.css");
-
-  success &= web->setupJsonHandlers("/json", processJson); //for websocket ("GET") and curl (POST)
 };
 
 //serve index.htm
@@ -36,6 +28,7 @@ void SysModUI::setup() {
   SysModule::setup();
 
   parentVar = initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -4100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Variable loops");
@@ -114,7 +107,11 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     if (var["ro"] != readOnly) 
       var["ro"] = readOnly;
 
-    var["o"] = -varCounter++; //make order negative to check if not obsolete, see cleanUpModel
+    //set order. make order negative to check if not obsolete, see cleanUpModel
+    if (var["o"] >= 1000) //predefined! (modules)
+      var["o"] = -var["o"].as<int>(); //leave the order as is
+    else
+      var["o"] = -varCounter++; //redefine order
 
     //if uiFun, add it to the list
     if (uiFun) {
@@ -161,7 +158,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
   return var;
 }
 
-const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
+const char * SysModUI::processJson(JsonVariant json) {
   if (json.is<JsonObject>()) //should be
   {
      //uiFun adds object elements to json which would be processed in the for loop. So we freeze the original pairs in a vector and loop on this

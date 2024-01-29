@@ -58,6 +58,8 @@ public:
     SysModule::setup();
 
     parentVar = ui->initAppMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -1100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+
     JsonObject currentVar;
 
     currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var) { //uiFun
@@ -77,7 +79,7 @@ public:
 
       USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
     });
-    // currentVar["log"] = true; //logarithmic: not needed when using FastLED setCorrection
+    currentVar["log"] = true; //logarithmic: not needed when using FastLED setCorrection
     currentVar["stage"] = true; //these values override model.json???
 
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun

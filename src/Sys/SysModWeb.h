@@ -13,12 +13,31 @@
 #include "SysModule.h"
 #include "SysModPrint.h"
 
-#include <ESPAsyncWebServer.h>
+#ifdef STARMOD_USE_Psychic
+  #include <PsychicHttp.h>
+#else
+  #include <ESPAsyncWebServer.h>
+#endif
+
+
+#ifdef STARMOD_USE_Psychic
+  #define WebRequest PsychicRequest
+  #define WebClient PsychicWebSocketClient
+  #define WebServer PsychicHttpServer
+  #define WebSocket PsychicWebSocketHandler 
+  #define WebResponse PsychicResponse
+#else
+  #define WebRequest AsyncWebServerRequest
+  #define WebClient AsyncWebSocketClient
+  #define WebServer AsyncWebServer
+  #define WebSocket AsyncWebSocket 
+  #define WebResponse AsyncWebServerResponse
+#endif
 
 class SysModWeb:public SysModule {
 
 public:
-  static AsyncWebSocket *ws;
+  static WebSocket *ws;
   static SemaphoreHandle_t wsMutex;
 
   SysModWeb();
@@ -31,14 +50,33 @@ public:
 
   void connectedChanged();
 
-  static void wsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+  static void wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
   
   //send json to client or all clients
-  static void sendDataWs(JsonVariant json = JsonVariant(), AsyncWebSocketClient * client = nullptr);
-  static void sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fill, size_t len, bool isBinary, AsyncWebSocketClient * client = nullptr);
+  static void sendDataWs(JsonVariant json = JsonVariant(), WebClient * client = nullptr);
+  static void sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fill, size_t len, bool isBinary, WebClient * client = nullptr);
 
   //add an url to the webserver to listen to
-  bool addURL(const char * uri, const char * contentType, const char * path = nullptr, const uint8_t * content = nullptr, size_t len = -1);
+  static void serveIndex(WebRequest *request);
+  //mdl and WLED style state and info
+  static void serveJson(WebRequest *request);
+
+
+  // curl -F 'data=@fixture1.json' 192.168.8.213/upload
+  static void serveUpload(WebRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
+  // curl -s -F "update=@/Users/ewoudwijma/Developer/GitHub/ewowi/StarMod/.pio/build/esp32dev/firmware.bin" 192.168.8.102/update /dev/null &
+  static void serveUpdate(WebRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
+  static void serveFiles(WebRequest *request);
+
+  //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
+  //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"pin2":false}' -H "Content-Type: application/json"
+  //curl -X POST "http://4.3.2.1/json" -d '{"pin2":false}' -H "Content-Type: application/json"
+  //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
+  //curl -X POST "http://192.168.8.125/json" -d '{"fx":2}' -H "Content-Type: application/json"
+  //curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
+
+  //handle "v" and processJson (on /json)
+  static void jsonHandler(WebRequest *request, JsonVariant json);
 
   //Is this an IP?
   bool isIp(String str) {
@@ -51,7 +89,7 @@ public:
     return true;
   }
 
-  bool captivePortal(AsyncWebServerRequest *request)
+  bool captivePortal(WebRequest *request)
   {
     if (ON_STA_FILTER(request)) return false; //only serve captive in AP mode
     String hostH;
@@ -60,32 +98,13 @@ public:
 
     if (!isIp(hostH)) {// && hostH.indexOf("wled.me") < 0 && hostH.indexOf(cmDNS) < 0) {
       USER_PRINTF("Captive portal\n");
-      AsyncWebServerResponse *response = request->beginResponse(302);
+      WebResponse *response = request->beginResponse(302);
       response->addHeader(F("Location"), F("http://4.3.2.1"));
       request->send(response);
       return true;
     }
     return false;
   }
-
-  //not used at the moment
-  bool processURL(const char * uri, void (*func)(AsyncWebServerRequest *));
-
-  // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  bool addUpload(const char * uri);
-  // curl -s -F "update=@/Users/ewoudwijma/Developer/GitHub/ewowi/StarMod/.pio/build/esp32dev/firmware.bin" 192.168.8.102/update /dev/null &
-  bool addUpdate(const char * uri);
-  bool addFileServer(const char * uri);
-
-  //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
-  //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"pin2":false}' -H "Content-Type: application/json"
-  //curl -X POST "http://4.3.2.1/json" -d '{"pin2":false}' -H "Content-Type: application/json"
-  //curl -X POST "http://4.3.2.1/json" -d '{"bri":20}' -H "Content-Type: application/json"
-  //curl -X POST "http://192.168.8.125/json" -d '{"fx":2}' -H "Content-Type: application/json"
-  //curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
-
-  //set ws var and create AsyncCallbackJsonWebHandler , currently for /json
-  bool setupJsonHandlers(const char * uri, const char * (*processFunc)(JsonVariant &));
 
   template <typename Type>
   void addResponse(const char * id, const char * key, Type value) {
@@ -121,22 +140,22 @@ public:
   //gets the right responseDoc, depending on which task you are in, alternative for requestJSONBufferLock
   JsonDocument * getResponseDoc();
 
-  //Currently only WLED style state and info
-  static void serveJson(AsyncWebServerRequest *request);
+  static void printClient(const char * text, WebClient * client) {
+    USER_PRINTF("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
+    //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
+  }
 
 private:
   bool modelUpdated = false;
 
   static bool clientsChanged;
 
-  static AsyncWebServer *server;
-  static const char * (*processWSFunc)(JsonVariant &);
+  static WebServer *server;
 
   static DynamicJsonDocument *responseDocLoopTask;
   static DynamicJsonDocument *responseDocAsyncTCP;
 
   static unsigned long sendDataWsCounter;
-
 };
 
 static SysModWeb *web;

@@ -29,6 +29,7 @@ void SysModules::setup() {
   //do its own setup: will be shown as last module
   JsonObject parentVar;
   parentVar = ui->initSysMod(parentVar, "Modules");
+  if (parentVar["o"] > -1000) parentVar["o"] = -5000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Modules");

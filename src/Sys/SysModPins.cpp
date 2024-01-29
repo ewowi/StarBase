@@ -32,6 +32,7 @@ SysModPins::SysModPins() :SysModule("Pins") {
 void SysModPins::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   //show table of allocated pins
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete

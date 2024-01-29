@@ -36,6 +36,7 @@ void SysModModel::setup() {
   SysModule::setup();
 
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   ui->initText(parentVar, "mSize", nullptr, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size");

@@ -55,6 +55,7 @@ void SysModPrint::setup() {
   SysModule::setup();
 
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var) { //uiFun default 1 (Serial)
     web->addResponse(var["id"], "label", "Output");
@@ -167,9 +168,3 @@ void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
     percentage = 100 * source.memoryUsage() / source.capacity();
   print("%s  %u / %u (%u%%) (%u %u %u)\n", text, source.memoryUsage(), source.capacity(), percentage, source.size(), source.overflowed(), source.nesting());
 }
-
-void SysModPrint::printClient(const char * text, AsyncWebSocketClient * client) {
-  print("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
-  //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
-}
-

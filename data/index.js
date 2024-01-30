@@ -182,7 +182,7 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
     divNode.id = variable.id + (isPartOfTableRow?"#" + rowNr:"") + "_d";
 
     //table cells and buttons don't get a label
-    if (parentNodeType != "td") {
+    if (parentNodeType != "td" && variable.type != "checkbox") { //has its own label
       if (variable.type != "button" && !["appmod","usermod", "sysmod"].includes(variable.type)) divNode.appendChild(labelNode); //add label (tbd:must be done by childs n table cell)
     }
 
@@ -191,16 +191,26 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
 
       varNode = cE("div");
 
+      let hgroupNode = cE("hgroup");
+
       let h2Node = cE("h2");
+      h2Node.style="float: left;";
       h2Node.innerText = initCap(variable.id);
-      varNode.appendChild(h2Node);
-      
+      hgroupNode.appendChild(h2Node);
+
       let helpNode = cE("a");
-      helpNode.innerText = "❓";
+      helpNode.innerText = "ⓘ";
+      helpNode.style="float: right;"
       let initCapVarType = variable.type=="appmod"?"AppMod":variable.type=="usermod"?"UserMod":"SysMod"; 
       helpNode.setAttribute('href', "https://ewowi.github.io/StarDocs/" + initCapVarType + "/" + initCapVarType + initCap(variable.id));
-      varNode.appendChild(helpNode);
-      
+      hgroupNode.appendChild(helpNode);
+
+      varNode.appendChild(hgroupNode);
+
+      //otherwise next node is not positioned right. Improvements welcome on this hack
+      varNode.appendChild(cE("br"));
+      varNode.appendChild(cE("br"));
+
       setupModule(varNode); //enable drag and drop of modules
     }
     else if (variable.type == "table") {
@@ -281,17 +291,27 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
       varNode = cE("a");
       // varNode.setAttribute('target', "_blank"); //does not work well on mobile
     } else if (variable.type == "checkbox") {
-      varNode = cE("input");
-      varNode.type = variable.type;
-      varNode.disabled = variable.ro;
-      varNode.indeterminate = true; //until it gets a value;
-      varNode.addEventListener('change', (event) => {console.log(variable.type + " change", event);sendValue(event.target);});
-    } else if (variable.type == "button") {
+      varNode = cE("label");
+      if (parentNodeType != "td") {
+        let spanNode = cE("span");
+        spanNode.innerText = initCap(variable.id) + " "; // the default when not overridden by uiFun
+        varNode.appendChild(spanNode);
+      }
+      let inputNode = cE("input");
+      inputNode.type = variable.type;
+      inputNode.disabled = variable.ro;
+      inputNode.indeterminate = true; //until it gets a value;
+      inputNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);}); //send the label
+      varNode.appendChild(inputNode);
+      let cmarkNode = cE("span");
+      cmarkNode.className = "checkmark";
+      varNode.appendChild(cmarkNode);
+  } else if (variable.type == "button") {
       varNode = cE("input");
       varNode.type = variable.type;
       varNode.disabled = variable.ro;
       varNode.value = initCap(variable.id); //initial label
-      varNode.addEventListener('click', (event) => {console.log(variable.type + " click", event);sendValue(event.target);});
+      varNode.addEventListener('click', (event) => {console.log(variable.type + " click", event.target);sendValue(event.target);});
     } else if (variable.type == "range") {
       varNode = cE("input");
       varNode.type = variable.type;
@@ -582,6 +602,9 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
     else if (node.className == "button") {
       node.value = initCap(commandJson.label);
     }
+    else if (node.className == "checkbox") {
+      node.querySelector("span").innerText = initCap(commandJson.label) + " ";
+    }
     else {
       let labelNode = gId(node.id).parentNode.querySelector("label");
       if (labelNode) labelNode.innerText = initCap(commandJson.label);
@@ -790,8 +813,8 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
     else if (node.className == "canvas")
       console.log("not called anymore");
     else if (node.className == "checkbox") {
-      node.checked = commandJson.value;
-      node.indeterminate = (commandJson.value == null); //set the false if it has a non null value
+      node.querySelector("input").checked = commandJson.value;
+      node.querySelector("input").indeterminate = (commandJson.value == null); //set the false if it has a non null value
     }
     else if (node.className == "button") {
       if (commandJson.value) node.value = commandJson.value; //else the id / label is used as button label
@@ -964,7 +987,7 @@ function sendValue(varNode) {
   var command = {};
   command[varId] = {};
   if (varNode.className == "checkbox")
-    command[varId].value = varNode.checked;
+    command[varId].value = varNode.querySelector("input").checked;
   else if (varNode.nodeName.toLocaleLowerCase() == "span")
     command[varId].value = varNode.innerText;
   else if (varNode.className == "coord3D") {

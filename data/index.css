@@ -139,6 +139,31 @@ input {
 	color: var(--text-color);
 }
 
+/* https://blog.openreplay.com/how-to-customize-checkboxes-with-css/ */
+/* WIP */
+/* 
+.checkbox input {
+	height: 0;
+	width: 0;
+}
+.checkbox {
+	display: block;
+	position: relative;
+	padding-left: 26px;
+	margin-bottom: 18px;
+	user-select: none;
+}
+.checkmark {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 20px;
+	width: 20px;
+	border: 2px solid var(--text-color);
+	background-color: var(--text-color);
+}
+*/
+
 select {
 	background: transparent;
 	color: var(--text-color);
@@ -147,6 +172,11 @@ select {
 h1,h2 {
 	color: var(--h-color);
 	line-height: 5px;
+}
+
+a {
+	color: var(--h-color); 
+	text-decoration: none;
 }
 
 div {

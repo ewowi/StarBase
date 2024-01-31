@@ -81,9 +81,7 @@ void SysModPins::setup() {
       }
       //new values
       buffer[0] = 0; //userFun id
-      // buffer[1] = 0; //0 * 256
-      // buffer[2] = 20; //20 pins
-      // buffer[4] = 10*10; //every 10 sec 
+
     }, 20 * 3 + 5, true);
   });
 

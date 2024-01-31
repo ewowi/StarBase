@@ -137,7 +137,7 @@ JsonRDWS constructing /2DMatrix3232.json r
 pins 16: 0-1023
 allocatePin 16 Leds 0-1023
 JsonRDWS found all what it was looking for 1030 >= 6
-fixtureProjectAndMap P:32x32x1 V:15x15x1 and P:1024 V:225
+projectAndMap P:32x32x1 V:15x15x1 and P:1024 V:225
 Coord3D toJson 15,15,1 -> {"x":15,"y":15,"z":1}
 setValue changed fxSize ->{"x":15,"y":15,"z":1}
 setChFunAndWs fxSize unknown type for {"x":15,"y":15,"z":1}

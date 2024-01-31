@@ -281,7 +281,6 @@ function preview3D(canvasNode, buffer) {
       }
 
       // controls.rotateSpeed = 0.4;
-      // console.log(buffer[1], buffer[2], buffer[3]);
       scene.rotation.x = buffer[1];
       scene.rotation.y = buffer[2];
       scene.rotation.z = buffer[3];

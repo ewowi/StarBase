@@ -223,7 +223,7 @@ public:
     // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
     uint8_t BeatsPerMinute = 62;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-    for( int i = 0; i < leds.nrOfLeds; i++) { //9948
+    for (uint16_t i = 0; i < leds.nrOfLeds; i++) { //9948
       leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
     }
   }
@@ -242,7 +242,7 @@ public:
     // eight colored dots, weaving in and out of sync with each other
     leds.fadeToBlackBy(20);
     uint8_t dothue = 0;
-    for( int i = 0; i < 8; i++) {
+    for (uint8_t i = 0; i < 8; i++) {
       leds[beatsin16( i+7, 0, leds.nrOfLeds-1 )] |= CHSV(dothue, 200, 255);
       dothue += 32;
     }
@@ -265,7 +265,7 @@ public:
     Coord3D pos = {0,0,0};
     for (pos.z=0; pos.z<leds.size.z; pos.z++) {
         for (pos.x=0; pos.x<leds.size.x; pos.x++) {
-            float d = leds.distance(3.5, 3.5, 0, pos.x, pos.z, 0)/9.899495*leds.size.y;
+            float d = leds.fixture->distance(3.5, 3.5, 0, pos.x, pos.z, 0)/9.899495*leds.size.y;
             pos.y = floor(leds.size.y/2.0+sinf(d/ripple_interval + now/100/((256.0-128.0)/20.0))*leds.size.y/2.0); //between 0 and 8
 
             leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
@@ -304,7 +304,7 @@ public:
     for (pos.x=0; pos.x<leds.size.x; pos.x++) {
         for (pos.y=0; pos.y<leds.size.y; pos.y++) {
             for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-                d = leds.distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
+                d = leds.fixture->distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
 
                 if (d>diameter && d<diameter+1) {
                   leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
@@ -971,9 +971,9 @@ public:
     #ifdef USERMOD_WLEDAUDIO
 
       if (mdl->getValue("mHead") ) {
-        leds.head.x = wledAudioMod->fftResults[3];
-        leds.head.y = wledAudioMod->fftResults[8];
-        leds.head.z = wledAudioMod->fftResults[13];
+        leds.fixture->head.x = wledAudioMod->fftResults[3];
+        leds.fixture->head.y = wledAudioMod->fftResults[8];
+        leds.fixture->head.z = wledAudioMod->fftResults[13];
       }
 
     #endif
@@ -983,21 +983,19 @@ public:
     EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
   }
 
-  size_t size() {
-    return effects.size();
-  }
-
-  bool setEffect(Leds &leds, JsonObject parentVar, uint8_t rowNr) {
+  bool setEffect(Leds &leds, JsonObject var, uint8_t rowNr) {
     bool doMap = false;
 
-    leds.fx = mdl->getValue(parentVar, rowNr);
+    leds.fx = mdl->getValue(var, rowNr);
 
     if (rowNr != UINT8_MAX)
-      parentVar["rowNr"] = rowNr; //store the rownNr of the updated value to send back to ui
+      var["rowNr"] = rowNr; //store the rownNr of the updated value to send back to ui
+    else 
+      var.remove("rowNr");
 
     USER_PRINTF("setEffect %d\n", leds.fx);
 
-    if (leds.fx < size()) {
+    if (leds.fx < effects.size()) {
 
       //tbd: make property of effects
       if (strstr(effects[leds.fx]->name(), "2D")) {
@@ -1022,17 +1020,17 @@ public:
       sharedData.clear(); //make sure all values are 0
 
       // nullify values for this row
-      if (rowNr != UINT8_MAX) {
-        for (JsonObject var: parentVar["n"].as<JsonArray>()) {
-          mdl->setValue(var, -99, rowNr); //unused value for this row, so don't show
-        }
-      }
-      else 
-        parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+      // if (rowNr != UINT8_MAX) {
+      //   for (JsonObject var: var["n"].as<JsonArray>()) {
+      //     mdl->setValue(var, -99, rowNr); //unused value for this row, so don't show
+      //   }
+      // }
+      // else 
+        var.remove("n"); //tbd: we should also remove the uiFun and chFun !!
         //tbd: we need to reuse the values set...
 
       // // nullify values for this row
-      // for (JsonObject var: parentVar["n"].as<JsonArray>()) {
+      // for (JsonObject var: var["n"].as<JsonArray>()) {
       //   if (rowNr != UINT8_MAX) {
       //     if (var["value"].is<JsonArray>()) {
       //       var["value"][rowNr] = -99; //unused value for this row, so don't show
@@ -1045,10 +1043,10 @@ public:
       //     // var["value"] = -99;
       // }
       // // else 
-      // //   parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+      // //   var.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
       Effect* effect = effects[leds.fx];
-      effect->controls(parentVar); //tbd: add rowNr...
+      effect->controls(var); //tbd: add rowNr...
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 
@@ -1056,9 +1054,9 @@ public:
       responseDoc->clear(); //needed for deserializeJson?
       JsonObject responseObject = responseDoc->to<JsonObject>();
 
-      responseObject["details"] = parentVar;
+      responseObject["details"] = var;
 
-      print->printJson("parentVar", responseObject);
+      print->printJson("var", responseObject);
       web->sendDataWs(responseObject); //always send, also when no children, to remove them from ui
 
     } // fx < size

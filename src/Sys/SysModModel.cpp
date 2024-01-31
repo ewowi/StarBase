@@ -171,7 +171,7 @@ void SysModModel::findVars(const char * property, bool value, FindFun fun, JsonA
   else
     root = parent;
 
-  for(JsonObject var : root) {
+  for (JsonObject var : root) {
     if (var[property] == value)
       fun(var);
     if (!var["n"].isNull())
@@ -204,7 +204,7 @@ void SysModModel::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * valu
       if (rowNr!=UINT8_MAX)
         USER_PRINTF("[%d]", rowNr);
       USER_PRINTF(" <- %s\n", var["value"].as<String>().c_str());
-      ui->cFunctions[funNr](var, rowNr);
+      ui->cFunctions[funNr](var, rowNr==UINT8_MAX?0:rowNr); //send rowNr = 0 if no rowNr
     }
     else    
       USER_PRINTF("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ui->cFunctions.size());

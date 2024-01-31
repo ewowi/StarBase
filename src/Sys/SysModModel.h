@@ -35,6 +35,7 @@ struct Coord3D {
   //   this->z = y;
   // }
 
+  //comparisons
   bool operator!=(Coord3D rhs) {
     // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
     return x != rhs.x || y != rhs.y || z != rhs.z;
@@ -42,11 +43,33 @@ struct Coord3D {
   bool operator==(Coord3D rhs) {
     return x == rhs.x && y == rhs.y && z == rhs.z;
   }
+  bool operator>=(Coord3D rhs) {
+    return x >= rhs.x && y >= rhs.y && z >= rhs.z;
+  }
+  bool operator<=(Coord3D rhs) {
+    return x <= rhs.x && y <= rhs.y && z <= rhs.z;
+  }
+
+  //assignments
   Coord3D operator=(Coord3D rhs) {
     USER_PRINTF("Coord3D assign %d %d %d\n", rhs.x, rhs.y, rhs.z);
     this->x = rhs.x;
     this->y = rhs.y;
     this->z = rhs.z;
+    return *this;
+  }
+  Coord3D operator-=(Coord3D rhs) {
+    USER_PRINTF("Coord3D assign %d %d %d\n", rhs.x, rhs.y, rhs.z);
+    this->x -= rhs.x;
+    this->y -= rhs.y;
+    this->z -= rhs.z;
+    return *this;
+  }
+  Coord3D operator-(Coord3D rhs) {
+    USER_PRINTF("Coord3D assign %d %d %d\n", rhs.x, rhs.y, rhs.z);
+    this->x - rhs.x;
+    this->y - rhs.y;
+    this->z - rhs.z;
     return *this;
   }
 };
@@ -231,8 +254,10 @@ public:
       JsonArray valueArray = var["value"].as<JsonArray>();
       if (rowNr != UINT8_MAX && rowNr < valueArray.size())
         return valueArray[rowNr];
+      else if (valueArray.size())
+        return valueArray[0];
       else {
-        USER_PRINTF("perror getValue no array or rownr wrong %s %d\n", var["value"].as<String>().c_str(), rowNr);
+        USER_PRINTF("perror getValue no array or rownr wrong %s %s %d\n", var["id"].as<const char *>(), var["value"].as<String>().c_str(), rowNr);
         return JsonVariant();
       }
     }

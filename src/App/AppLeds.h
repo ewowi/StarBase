@@ -9,6 +9,7 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
+#pragma once
 // FastLED optional flags to configure drivers, see https://github.com/FastLED/FastLED/blob/master/src/platforms/esp/32
 // RMT driver (default)
 // #define FASTLED_ESP32_FLASH_LOCK 1    // temporarily disabled FLASH file access while driving LEDs (may prevent random flicker)
@@ -18,25 +19,10 @@
 // #define I2S_DEVICE 1                  // I2S driver: allows to still use I2S#0 for audio (only on esp32 and esp32-s3)
 // #define FASTLED_I2S_MAX_CONTROLLERS 8 // 8 LED pins should be enough (default = 24)
 #include "FastLED.h"
-#include <vector>
-#include "ArduinoJson.h"
-#include "../Sys/SysModModel.h" //for Coord3D
 
 #include "AppFixture.h"
 
-enum Projections
-{
-  p_None,
-  p_Random,
-  p_DistanceFromPoint,
-  p_DistanceFromCenter,
-  p_Reverse,
-  p_Mirror,
-  p_Multiply,
-  p_Kaleidoscope,
-  p_Fun,
-  count
-};
+class Fixture; //forward
 
 class Leds {
 
@@ -48,20 +34,12 @@ public:
 
   Coord3D size = {8,8,1};
 
-  Coord3D head = {0,0,0};
-  
   uint8_t fx = -1;
   uint8_t projectionNr = -1;
   uint8_t effectDimension = -1;
-
-  //track pins and leds
-  uint8_t currPin;
-  uint16_t prevLeds;
   Coord3D startPos = {0,0,0}, endPos = {7,7,0}; //default
 
-  float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16_t y2, uint16_t z2) {
-    return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-  }
+  std::vector<std::vector<uint16_t>> mappingTable;
 
   uint16_t XY( uint8_t x, uint8_t y) {
     return x + y * size.x;
@@ -69,8 +47,9 @@ public:
   uint16_t XYZ( uint8_t x, uint8_t y, uint8_t z) {
     return x + y * size.x + z * size.x * size.y;
   }
-
-  void fixtureProjectAndMap();
+  uint16_t XYZ(Coord3D coord) {
+    return coord.x + coord.y * size.x + coord.z * size.x * size.y;
+  }
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=
 
@@ -114,65 +93,18 @@ public:
 
 
   // maps the virtual led to the physical led(s) and assign a color to it
-  void setPixelColor(int indexV, CRGB color) {
-    if (mappingTable.size()) {
-      if (indexV >= mappingTable.size()) return;
-      for (uint16_t indexP:mappingTable[indexV]) {
-        if (indexP < NUM_LEDS_Max)
-          fixture->ledsP[indexP] = color;
-      }
-    }
-    else //no projection
-      fixture->ledsP[projectionNr==p_Random?random(fixture->nrOfLeds):indexV] = color;
-  }
+  void setPixelColor(uint16_t indexV, CRGB color);
 
-  CRGB getPixelColor(int indexV) {
-    if (mappingTable.size()) {
-      if (indexV >= mappingTable.size()) return CRGB::Black;
-      if (!mappingTable[indexV].size() || mappingTable[indexV][0] > NUM_LEDS_Max) return CRGB::Black;
+  CRGB getPixelColor(uint16_t indexV);
 
-      return fixture->ledsP[mappingTable[indexV][0]]; //any would do as they are all the same
-    }
-    else //no projection
-      return fixture->ledsP[indexV];
-  }
-
-  void addPixelColor(int indexV, CRGB color) {
+  void addPixelColor(uint16_t indexV, CRGB color) {
     setPixelColor(indexV, getPixelColor(indexV) + color);
   }
 
-  void fadeToBlackBy(uint8_t fadeBy = 255) {
-    //fade2black for old start to endpos
-    Coord3D index;
-    for (index.x = startPos.x; index.x <= endPos.x; index.x++)
-      for (index.y = startPos.y; index.y <= endPos.y; index.y++)
-        for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          fixture->ledsP[index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y].nscale8(255-fadeBy);
-        }
-  }
-  void fill_solid(const struct CRGB& color) {
-    //fade2black for old start to endpos
-    Coord3D index;
-    for (index.x = startPos.x; index.x <= endPos.x; index.x++)
-      for (index.y = startPos.y; index.y <= endPos.y; index.y++)
-        for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          fixture->ledsP[index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y] = color;
-        }
-  }
+  void fadeToBlackBy(uint8_t fadeBy = 255);
+  void fill_solid(const struct CRGB& color);
 
-  void fill_rainbow(uint8_t initialhue, uint8_t deltahue) {
-    CHSV hsv;
-    hsv.hue = initialhue;
-    hsv.val = 255;
-    hsv.sat = 240;
-    Coord3D index;
-    for (index.x = startPos.x; index.x <= endPos.x; index.x++)
-      for (index.y = startPos.y; index.y <= endPos.y; index.y++)
-        for (index.z = startPos.z; index.z <= endPos.z; index.z++) {
-          fixture->ledsP[index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y] = hsv;
-          hsv.hue += deltahue;
-        }
-  }
+  void fill_rainbow(uint8_t initialhue, uint8_t deltahue);
 
   void blur2d(fract8 blur_amount)
   {
@@ -226,7 +158,4 @@ public:
       }
   }
 
-private:
-  std::vector<std::vector<uint16_t>> mappingTable;
-  uint16_t mappingTableLedCounter;
 };

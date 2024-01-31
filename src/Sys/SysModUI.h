@@ -159,7 +159,7 @@ public:
           }
         }
         else
-          chFun(var, UINT8_MAX);
+          chFun(var, 0); //if no rowNr use rowNr 0
       }
     }
 

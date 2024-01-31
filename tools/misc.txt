@@ -1,0 +1,5 @@
+
+
+
+
+~/Applications/ffmpeg -f concat -safe 0 -i <(for f in (*.png|sort -n) ; do echo "file '$PWD/$f'"; done) -pix_fmt yuv420p out.mp4

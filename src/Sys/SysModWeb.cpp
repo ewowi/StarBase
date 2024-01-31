@@ -280,7 +280,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
       }
       // else {
       //   char buff[3];
-      //   for(size_t i=0; i < len; i++) {
+      //   for (size_t i=0; i < len; i++) {
       //     sprintf(buff, "%02x ", (uint8_t) data[i]);
       //     msg += buff ;
       //   }
@@ -366,9 +366,11 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
 
       for (auto loopClient:ws->getClients()) {
         if (!client || client == loopClient) {
-          if (loopClient->status() == WS_CONNECTED && !loopClient->queueIsFull() && (!isBinary || loopClient->queueLength() <= 3)) { //WS_MAX_QUEUED_MESSAGES / ws->count() / 2)) { //binary is lossy
-            isBinary?loopClient->binary(wsBuf): loopClient->text(wsBuf);
-            sendDataWsCounter++;
+          if (loopClient->status() == WS_CONNECTED && !loopClient->queueIsFull()) { //WS_MAX_QUEUED_MESSAGES / ws->count() / 2)) { //binary is lossy
+            if ((!isBinary || loopClient->queueLength() <= 3)) {
+              isBinary?loopClient->binary(wsBuf): loopClient->text(wsBuf);
+              sendDataWsCounter++;
+            }
           }
           else {
             printClient("sendDataWs client full or not connected", loopClient); //causes crash

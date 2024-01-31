@@ -69,8 +69,8 @@ function makeWS() {
           if (!found) {
             let module = json;
             model.push((module)); //this is the model
-            console.log("WS receive generateHTML", module);
-            generateHTML(module); //no parentNode
+            console.log("WS receive createHTML", module);
+            createHTML(module); //no parentNode
 
             if (module.id == "System") {
               console.log("system changes", module);
@@ -137,9 +137,9 @@ function linearToLogarithm(json, value) {
   return Math.round(result);
 }
 
-function generateHTML(json, parentNode = null, rowNr = -1) {
+function createHTML(json, parentNode = null, rowNr = -1) {
 
-  // console.log("generateHTML", json, parentNode);
+  // console.log("createHTML", json, parentNode);
   if (Array.isArray(json)) {
     //sort according to o value
     json.sort(function(a,b) {
@@ -147,7 +147,7 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
     });
 
     for (let variable of json) { //if isArray then variables of array
-      generateHTML(variable, parentNode, rowNr);
+      createHTML(variable, parentNode, rowNr);
     }
   }
   else { // json is variable
@@ -306,7 +306,7 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
       let cmarkNode = cE("span");
       cmarkNode.className = "checkmark";
       varNode.appendChild(cmarkNode);
-  } else if (variable.type == "button") {
+    } else if (variable.type == "button") {
       varNode = cE("input");
       varNode.type = variable.type;
       varNode.disabled = variable.ro;
@@ -409,10 +409,10 @@ function generateHTML(json, parentNode = null, rowNr = -1) {
         ndivNode.id = variable.id + (isPartOfTableRow?"#" + rowNr:"") + "_n";
         ndivNode.className = "ndiv";
         divNode.appendChild(ndivNode); // add to the parent of the node
-        generateHTML(variable.n, ndivNode, rowNr);
+        createHTML(variable.n, ndivNode, rowNr);
       }
       else
-        generateHTML(variable.n, varNode, rowNr); //details (e.g. module)
+        createHTML(variable.n, varNode, rowNr); //details (e.g. module)
     }
 
     //don't call uiFun on table rows (the table header calls uiFun and propagate this to table row columns in changeHTML when needed - e.g. select)
@@ -450,7 +450,7 @@ function genTableRowHTML(json, parentNode = null, rowNr = -1) {
   for (let columnVar of variable.n) {
     let tdNode = cE("td");
     trNode.appendChild(tdNode);
-    generateHTML(columnVar, tdNode, rowNr); //will also do the values
+    createHTML(columnVar, tdNode, rowNr); //will also do the values
   }
   if (!variable.ro) {
     let tdNode = cE("td");
@@ -502,7 +502,7 @@ function receiveData(json) {
         let rowNr = variable["rowNr"]!=null?variable["rowNr"]:-1;
         let nodeId = variable.id + ((rowNr != -1)?"#" + rowNr:"");
         //if var object with .n, create .n (e.g. see setEffect and fixtureGenChFun, tbd: )
-        console.log("receiveData details", key, variable);
+        console.log("receiveData details", key, variable, nodeId);
         if (gId(nodeId + "_n")) gId(nodeId + "_n").remove(); //remove old ndiv
 
         //create new ndiv
@@ -511,7 +511,7 @@ function receiveData(json) {
           ndivNode.id = nodeId + "_n";
           ndivNode.className = "ndiv";
           gId(nodeId).parentNode.appendChild(ndivNode);
-          generateHTML(variable.n, ndivNode, rowNr);
+          createHTML(variable.n, ndivNode, rowNr);
         }
         flushUIFunCommands(); //make sure uiFuns of new elements are called
       }
@@ -646,13 +646,22 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
   } //comment
 
   if (commandJson.hasOwnProperty("options")) { //replace the body of a table
-    // console.log("changeHTML options", variable, node, commandJson, rowNr);
+    
+    let selectNodes = [];
+    //check if there are also column select cells which also needs to be updated
+    if (nodeType == "th") {
+      let tableNode = node.parentNode.parentNode.parentNode;
+      selectNodes = tableNode.querySelector('tbody').querySelectorAll(`select[id*="${variable.id}"]`);
+    }
+    else if (nodeType == "select") { //span/ro will be set in .value
+      selectNodes.push(node);
+    }
 
-    if (nodeType == "select") { //span/ro will be set in .value
+    for (let selectNode of selectNodes) {
       //remove all old options first
       var index = 0;
-      while (node.options && node.options.length > 0) {
-        node.remove(0);
+      while (selectNode.options && selectNode.options.length > 0) {
+        selectNode.remove(0);
       }
       for (var value of commandJson.options) {
         let optNode = cE("option");
@@ -664,7 +673,7 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
           optNode.value = index;
           optNode.text = value;
         }
-        node.appendChild(optNode);
+        selectNode.appendChild(optNode);
         index++;
       }
     }
@@ -741,7 +750,7 @@ function changeHTML(variable, node, commandJson, rowNr = -1) {
             if (newRowNr < valueLength)
               changeHTML(variable, cellNode, {"value":newValue, "chk":"column"}, newRowNr);
             else
-              changeHTML(variable, cellNode, {"value":null, "chk":"column"}, newRowNr);
+              changeHTML(variable, cellNode, {"value":null, "chk":"column"}, newRowNr); //new row cell has no value
           }
           else
             console.log("changeHTML th cellNode not found", node, node.id + "#" + newRowNr);
@@ -919,7 +928,7 @@ function findVar(id, parent = model) {
   // console.log("findVar", id, parent, model);
 
   let foundVar = null;
-  for( var variable of parent) {
+  for (var variable of parent) {
     if (foundVar == null) {
       if (variable.id == id)
         foundVar = variable;

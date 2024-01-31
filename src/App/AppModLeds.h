@@ -11,13 +11,6 @@
 
 #include "SysModule.h"
 
-#include "AppLeds.h"
-#include "AppEffects.h"
-#ifdef USERMOD_E131
-  #include "../User/UserModE131.h"
-#endif
-
-#include <vector>
 // FastLED optional flags to configure drivers, see https://github.com/FastLED/FastLED/blob/master/src/platforms/esp/32
 // RMT driver (default)
 // #define FASTLED_ESP32_FLASH_LOCK 1    // temporarily disabled FLASH file access while driving LEDs (may prevent random flicker)
@@ -27,6 +20,13 @@
 // #define I2S_DEVICE 1                  // I2S driver: allows to still use I2S#0 for audio (only on esp32 and esp32-s3)
 // #define FASTLED_I2S_MAX_CONTROLLERS 8 // 8 LED pins should be enough (default = 24)
 #include "FastLED.h"
+
+#include "AppFixture.h"
+#include "AppEffects.h"
+
+// #ifdef USERMOD_E131
+//   #include "../User/UserModE131.h"
+// #endif
 
 // #define FASTLED_RGBW
 
@@ -50,13 +50,19 @@ public:
   bool doMap = false;
   Effects effects;
 
-  Leds leds = Leds(); //virtual leds
   Fixture fixture = Fixture();
 
-
   AppModLeds() :SysModule("Leds") {
-    fixture.leds = &leds;
+    Leds leds = Leds();
     leds.fixture = &fixture;
+    leds.fx = 13;
+    leds.projectionNr = 2;
+    fixture.ledsList.push_back(leds);
+    // leds = Leds();
+    // leds.fixture = &fixture;
+    // leds.projectionNr = 2;
+    // leds.fx = 14;
+    // fixture.ledsList.push_back(leds);
   };
 
   void setup() {
@@ -89,22 +95,7 @@ public:
 
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effects");
-      web->addResponse(var["id"], "comment", "List of effects (WIP)");
-      JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-
-      //add value for each child
-      JsonArray row = rows.createNestedArray(); //one row of data
-      for (JsonObject childVar : var["n"].as<JsonArray>()) {
-        // print->printJson("fxTbl childs", childVar);
-        row.add(childVar["value"]);
-        //recursive
-        // for (JsonObject childVar : childVar["n"].as<JsonArray>()) {
-        //   print->printJson("fxTbl child childs", childVar);
-        //   row.add(childVar["value"]);
-        // }
-      }
-
-      // print->printJson("fxTbl values", rows);
+      web->addResponse(var["id"], "comment", "List of effects");
     });
 
     currentVar = ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
@@ -115,13 +106,16 @@ public:
         select.add(effect->name());
       }
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      doMap = effects.setEffect(leds, var, rowNr);
+      // if (rowNr < fixture.ledsList.size()) {
+        doMap = effects.setEffect(fixture.ledsList[0], var, UINT8_MAX);
+        // doMap = effects.setEffect(fixture.ledsList[1], var, UINT8_MAX);
+      // }
     });
     currentVar["stage"] = true;
 
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Projection");
-      web->addResponse(var["id"], "comment", "How to project fx to fixture");
+      web->addResponse(var["id"], "comment", "How to project fx");
       JsonArray select = web->addResponseA(var["id"], "options");
       select.add("None"); // 0
       select.add("Random"); // 1
@@ -134,58 +128,88 @@ public:
       select.add("Fun"); //8
 
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
+      uint8_t val = mdl->getValue(var, rowNr);
+      USER_PRINTF("pro chFun %d %d %d\n", val, rowNr, fixture.ledsList.size());
+      if (rowNr < fixture.ledsList.size()) {
+        fixture.ledsList[rowNr].projectionNr = mdl->getValue(var, rowNr);
 
-      leds.projectionNr = mdl->getValue(var, rowNr);
-      doMap = true;
+        doMap = true;
+      }
+
+    }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
+        mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
+      }
 
     });
     currentVar["stage"] = true;
 
-    ui->initCoord3D(tableVar, "fxStart", leds.startPos, 0, UINT16_MAX, false, [](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, 0, UINT16_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Start");
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
+      if (rowNr < fixture.ledsList.size()) {
+        fixture.ledsList[rowNr].startPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-      leds.startPos = mdl->getValue(var, rowNr).as<Coord3D>();
+        USER_PRINTF("fxStart %d %d %d - %d %d %d\n", fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
 
-      USER_PRINTF("fxStart %d %d %d - %d %d %d\n", leds.startPos.x, leds.startPos.y, leds.startPos.z, leds.endPos.x, leds.endPos.y, leds.endPos.z);
-
-      leds.fadeToBlackBy();
+        fixture.ledsList[rowNr].fadeToBlackBy();
+      }
+      else {
+        USER_PRINTF("fxStart chfun rownr not in range %d > %d\n", rowNr, fixture.ledsList.size());
+      }
 
       doMap = true;
     });
 
-    ui->initCoord3D(tableVar, "fxEnd", leds.endPos, 0, UINT16_MAX, false, [](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, 0, UINT16_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "End");
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
+      if (rowNr < fixture.ledsList.size()) {
+        fixture.ledsList[rowNr].endPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-      leds.endPos = mdl->getValue(var, rowNr).as<Coord3D>();
+        USER_PRINTF("fxEnd chFun %d %d %d - %d %d %d\n", fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
 
-      USER_PRINTF("fxEnd chFun %d %d %d - %d %d %d\n", leds.startPos.x, leds.startPos.y, leds.startPos.z, leds.endPos.x, leds.endPos.y, leds.endPos.z);
-
-      leds.fadeToBlackBy();
+        fixture.ledsList[rowNr].fadeToBlackBy();
+      }
+      else {
+        USER_PRINTF("fxEnd chfun rownr not in range %d > %d\n", rowNr, fixture.ledsList.size());
+      }
 
       doMap = true;
     });
 
-    ui->initCoord3D(tableVar, "fxSize", leds.size, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxSize", fixture.ledsList[0].size, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Size");
     });
 
-    ui->initNumber(tableVar, "fxCount", leds.nrOfLeds, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
+    ui->initNumber(tableVar, "fxCount", fixture.ledsList[0].nrOfLeds, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Count");
     });
+
+    ui->initSelect(parentVar, "fxLayout", 0, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Layout");
+      JsonArray select = web->addResponseA(var["id"], "options");
+      select.add("□"); //0
+      select.add("="); //1
+      select.add("||"); //2
+      select.add("+"); //3
+    }, [this](JsonObject var, uint8_t) { //chFun
+    }); //fixtureGen
 
     #ifdef USERMOD_WLEDAUDIO
       ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var) { //uiFun
         web->addResponse(var["id"], "label", "Moving heads");
         web->addResponse(var["id"], "comment", "Move on GEQ");
+      }, [this](JsonObject var, uint8_t) { //chFun
+        if (!var["value"])
+          fixture.head = {0,0,0};
       });
     #endif
 
     #ifdef USERMOD_E131
       // if (e131mod->isEnabled) {
           e131mod->patchChannel(0, "bri", 255); //should be 256??
-          e131mod->patchChannel(1, "fx", effects.size());
+          e131mod->patchChannel(1, "fx", effects.effects.size());
           e131mod->patchChannel(2, "pal", 8); //tbd: calculate nr of palettes (from select)
           // //add these temporary to test remote changing of this values do not crash the system
           // e131mod->patchChannel(3, "pro", Projections::count);
@@ -214,8 +238,9 @@ public:
 
       //for each programmed effect
       //  run the next frame of the effect
-
-      effects.loop(leds);
+      // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
+      for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); leds++)
+        effects.loop(*leds);
 
       FastLED.show();  
 
@@ -230,12 +255,12 @@ public:
       const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
       USER_PRINTF("AppModLeds loop canvasData %s\n", canvasData);
 
-      leds.fadeToBlackBy();
+      fixture.ledsList[0].fadeToBlackBy();
 
       char * token = strtok((char *)canvasData, ":");
       bool isStart = strcmp(token, "start") == 0;
 
-      Coord3D *startOrEndPos = isStart? &leds.startPos: &leds.endPos;
+      Coord3D *startOrEndPos = isStart? &fixture.ledsList[0].startPos: &fixture.ledsList[0].endPos;
 
       token = strtok(NULL, ",");
       if (token != NULL) startOrEndPos->x = atoi(token) / 10; else startOrEndPos->x = 0; //should never happen
@@ -254,7 +279,7 @@ public:
     if (millis() - lastMappingMillis >= 1000 && doMap) { //not more then once per second (for E131)
       lastMappingMillis = millis();
       doMap = false;
-      leds.fixtureProjectAndMap();
+      fixture.projectAndMap();
 
       //https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples
 

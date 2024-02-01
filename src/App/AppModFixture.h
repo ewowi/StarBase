@@ -21,6 +21,26 @@ public:
     parentVar = ui->initAppMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -1000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
+    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "On/Off");
+    });
+    currentVar["stage"] = true;
+
+    //logarithmic slider (10)
+    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var) { //uiFun
+      web->addResponse(var["id"], "label", "Brightness");
+    }, [](JsonObject var, uint8_t) { //chFun
+      uint8_t bri = var["value"];
+
+      uint8_t result = linearToLogarithm(var, bri);
+
+      FastLED.setBrightness(result);
+
+      USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
+    });
+    currentVar["log"] = true; //logarithmic: not needed when using FastLED setCorrection
+    currentVar["stage"] = true; //these values override model.json???
+
     ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Preview");
       web->addResponse(var["id"], "comment", "Shows the fixture");
@@ -97,6 +117,16 @@ public:
     ui->initText(parentVar, "realFps", nullptr, 10, true, [this](JsonObject var) { //uiFun
       web->addResponseV(var["id"], "comment", "f(%d leds)", lds->fixture.nrOfLeds);
     });
+
+    #ifdef USERMOD_WLEDAUDIO
+      ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var) { //uiFun
+        web->addResponse(var["id"], "label", "Moving heads");
+        web->addResponse(var["id"], "comment", "Move on GEQ");
+      }, [this](JsonObject var, uint8_t) { //chFun
+        if (!var["value"])
+          lds->fixture.head = {0,0,0};
+      });
+    #endif
 
   }
 };

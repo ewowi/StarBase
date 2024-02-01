@@ -77,9 +77,9 @@ public:
 
   virtual void loop(Leds &leds) {}
 
-  virtual bool controls(JsonObject parentVar) {return false;}
+  virtual bool controls(JsonObject parentVar, uint8_t rowNr) {return false;}
 
-  void addPalette(JsonObject parentVar) {
+  void addPalette(JsonObject parentVar, uint8_t rowNr) {
     JsonObject currentVar = ui->initSelect(parentVar, "pal", 4, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Palette");
       web->addResponse(var["id"], "comment", "Colors");
@@ -121,7 +121,7 @@ public:
     CRGB color = CRGB(red, green, blue);
     leds.fill_solid(color);
   }
-  bool controls(JsonObject parentVar) {
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
     ui->initSlider(parentVar, "Red", 182);
     ui->initSlider(parentVar, "Green", 15);
     ui->initSlider(parentVar, "Blue", 98);
@@ -171,7 +171,7 @@ public:
     leds[pos] = leds.getPixelColor(pos) + CHSV( gHue, 255, 192);
     // CRGB x = leds[pos];
   }
-  bool controls(JsonObject parentVar) {
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
     ui->initSlider(parentVar, "BPM", 60);
     return true;
   }
@@ -191,7 +191,7 @@ public:
     leds[pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
     // leds[leds.nrOfLeds -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
-  bool controls(JsonObject parentVar) {
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
     ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "in BPM!");
     });
@@ -227,8 +227,8 @@ public:
       leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
     }
   }
-  bool controls(JsonObject parentVar) {
-    addPalette(parentVar);
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
+    addPalette(parentVar, rowNr);
     return false;
   }
 };
@@ -272,7 +272,7 @@ public:
         }
     }
   }
-  bool controls(JsonObject parentVar) {
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
     ui->initSlider(parentVar, "interval", 128);
     return true;
   }
@@ -334,8 +334,8 @@ public:
     }
     leds.blur2d(mdl->getValue("blur"));
   }
-  bool controls(JsonObject parentVar) {
-    addPalette(parentVar);
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
+    addPalette(parentVar, rowNr);
     ui->initSlider(parentVar, "BPM", 60);
     ui->initSlider(parentVar, "intensity", 128);
     ui->initSlider(parentVar, "blur", 128);
@@ -367,7 +367,7 @@ public:
     }
   }
 
-  bool controls(JsonObject parentVar) {
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
     ui->initSlider(parentVar, "BPM", 60);
     ui->initCheckBox(parentVar, "Vertical");
     return true;
@@ -428,7 +428,7 @@ public:
       }
     }
   }
-  bool controls(JsonObject parentVar) {
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
     ui->initSlider(parentVar, "speed", 128);
     ui->initSlider(parentVar, "scale", 128);
     return true;
@@ -499,8 +499,8 @@ public:
       }
     }
   }
-  bool controls(JsonObject parentVar) {
-    addPalette(parentVar);
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
+    addPalette(parentVar, rowNr);
     ui->initSlider(parentVar, "speed", 128, 1, 255); //start with speed 1
     ui->initSlider(parentVar, "Offset X", 128);
     ui->initSlider(parentVar, "Offset Y", 128);
@@ -550,8 +550,8 @@ public:
       leds[locn] = ColorFromPalette(palette, now/100+i);
     }
   }
-  bool controls(JsonObject parentVar) {
-    addPalette(parentVar);
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
+    addPalette(parentVar, rowNr);
     ui->initSlider(parentVar, "X frequency", 64);
     ui->initSlider(parentVar, "Fade rate", 128);
     ui->initSlider(parentVar, "Speed", 128);
@@ -635,8 +635,8 @@ public:
     } //balls
   }
 
-  bool controls(JsonObject parentVar) {
-    addPalette(parentVar);
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
+    addPalette(parentVar, rowNr);
     ui->initSlider(parentVar, "gravity", 128);
     ui->initSlider(parentVar, "balls", 8, 1, 16);
     return true;
@@ -771,8 +771,8 @@ public:
     }
   }
 
-  bool controls(JsonObject parentVar) {
-    addPalette(parentVar);
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
+    addPalette(parentVar, rowNr);
     ui->initSlider(parentVar, "fadeOut", 255);
     ui->initSlider(parentVar, "ripple", 128);
     ui->initCheckBox(parentVar, "colorBars");
@@ -832,8 +832,8 @@ public:
     setRing(leds, ring, color);
   }
 
-  bool controls(JsonObject parentVar) {
-    addPalette(parentVar);
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
+    addPalette(parentVar, rowNr);
     ui->initCheckBox(parentVar, "inWards");
     return true;
   }
@@ -893,7 +893,7 @@ public:
     }
   }
 
-  bool controls(JsonObject parentVar) {
+  bool controls(JsonObject parentVar, uint8_t rowNr) {
     ui->initSlider(parentVar, "Speed", 255);
     ui->initSlider(parentVar, "Sound effect", 128);
     ui->initSlider(parentVar, "Low bin", 18);
@@ -1020,12 +1020,21 @@ public:
       sharedData.clear(); //make sure all values are 0
 
       // nullify values for this row
-      // if (rowNr != UINT8_MAX) {
-      //   for (JsonObject var: var["n"].as<JsonArray>()) {
-      //     mdl->setValue(var, -99, rowNr); //unused value for this row, so don't show
-      //   }
-      // }
-      // else 
+      if (rowNr != UINT8_MAX) {
+        for (JsonObject var: var["n"].as<JsonArray>()) {
+          if (var["value"].is<JsonArray>()) {
+            var["value"][rowNr] = -99;
+          } else {
+            var["value"].to<JsonArray>();
+            var["value"][rowNr] = -99; //unused value for this row, so don't show
+          }
+          // mdl->setValue(var, -99, rowNr); //unused value for this row, so don't show
+        }
+        // set all values null for this row
+
+        // var.remove("value");
+      }
+      else 
         var.remove("n"); //tbd: we should also remove the uiFun and chFun !!
         //tbd: we need to reuse the values set...
 
@@ -1046,7 +1055,7 @@ public:
       // //   var.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
       Effect* effect = effects[leds.fx];
-      effect->controls(var); //tbd: add rowNr...
+      effect->controls(var, rowNr);
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 

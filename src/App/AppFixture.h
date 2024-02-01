@@ -63,11 +63,9 @@ public:
   Coord3D head = {0,0,0};
 
   //variables for json Scan
-  uint16_t prevLeds;
+  // uint16_t prevIndexP;
   //track pins and leds
-  uint8_t currPin;
-  uint16_t ledCounter;
-
+  
   //load fixture json file, parse it and depending on the projection, create a mapping for it
   void projectAndMap();
 

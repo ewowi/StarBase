@@ -52,25 +52,19 @@ struct Coord3D {
 
   //assignments
   Coord3D operator=(Coord3D rhs) {
-    USER_PRINTF("Coord3D assign %d %d %d\n", rhs.x, rhs.y, rhs.z);
     this->x = rhs.x;
     this->y = rhs.y;
     this->z = rhs.z;
     return *this;
   }
   Coord3D operator-=(Coord3D rhs) {
-    USER_PRINTF("Coord3D assign %d %d %d\n", rhs.x, rhs.y, rhs.z);
     this->x -= rhs.x;
     this->y -= rhs.y;
     this->z -= rhs.z;
     return *this;
   }
   Coord3D operator-(Coord3D rhs) {
-    USER_PRINTF("Coord3D assign %d %d %d\n", rhs.x, rhs.y, rhs.z);
-    this->x - rhs.x;
-    this->y - rhs.y;
-    this->z - rhs.z;
-    return *this;
+    return Coord3D{uint16_t(x - rhs.x), uint16_t(y - rhs.y), uint16_t(z- rhs.z)};
   }
 };
 
@@ -245,7 +239,7 @@ public:
       return getValue(var, rowNr);
     }
     else {
-      USER_PRINTF("getValue: Var %s does not exist!!\n", id);
+      // USER_PRINTF("getValue: Var %s does not exist!!\n", id);
       return JsonVariant();
     }
   }

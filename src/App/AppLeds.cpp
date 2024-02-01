@@ -17,11 +17,11 @@ void Leds::setPixelColor(uint16_t indexV, CRGB color) {
     if (indexV >= mappingTable.size()) return;
     for (uint16_t indexP:mappingTable[indexV]) {
       if (indexP < NUM_LEDS_Max)
-        fixture->ledsP[indexP] = color;
+        fixture->ledsP[indexP] = blend(color, getPixelColor(indexV), 128);
     }
   }
   else //no projection
-    fixture->ledsP[projectionNr==p_Random?random(fixture->nrOfLeds):indexV] = color;
+    fixture->ledsP[projectionNr==p_Random?random(fixture->nrOfLeds):indexV<NUM_LEDS_Max?indexV:NUM_LEDS_Max-1] = color;
 }
 
 CRGB Leds::getPixelColor(uint16_t indexV) {

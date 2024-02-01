@@ -58,11 +58,11 @@ public:
     leds.fx = 13;
     leds.projectionNr = 2;
     fixture.ledsList.push_back(leds);
-    // leds = Leds();
-    // leds.fixture = &fixture;
-    // leds.projectionNr = 2;
-    // leds.fx = 14;
-    // fixture.ledsList.push_back(leds);
+    leds = Leds();
+    leds.fixture = &fixture;
+    leds.projectionNr = 2;
+    leds.fx = 14;
+    fixture.ledsList.push_back(leds);
   };
 
   void setup() {
@@ -73,32 +73,12 @@ public:
 
     JsonObject currentVar;
 
-    currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "On/Off");
-    });
-    currentVar["stage"] = true;
-
-    //logarithmic slider (10)
-    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Brightness");
-    }, [](JsonObject var, uint8_t) { //chFun
-      uint8_t bri = var["value"];
-
-      uint8_t result = linearToLogarithm(var, bri);
-
-      FastLED.setBrightness(result);
-
-      USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
-    });
-    currentVar["log"] = true; //logarithmic: not needed when using FastLED setCorrection
-    currentVar["stage"] = true; //these values override model.json???
-
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effects");
       web->addResponse(var["id"], "comment", "List of effects");
     });
 
-    currentVar = ui->initSelect(parentVar, "fx", 0, false, [this](JsonObject var) { //uiFun
+    currentVar = ui->initSelect(tableVar, "fx", 0, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -106,10 +86,15 @@ public:
         select.add(effect->name());
       }
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      // if (rowNr < fixture.ledsList.size()) {
-        doMap = effects.setEffect(fixture.ledsList[0], var, UINT8_MAX);
+      if (rowNr < fixture.ledsList.size()) {
+        doMap |= effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
         // doMap = effects.setEffect(fixture.ledsList[1], var, UINT8_MAX);
-      // }
+      }
+    }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
+        mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
+      }
+
     });
     currentVar["stage"] = true;
 
@@ -159,6 +144,11 @@ public:
       }
 
       doMap = true;
+    }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
+        mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
+      }
+
     });
 
     ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, 0, UINT16_MAX, false, [](JsonObject var) { //uiFun
@@ -176,6 +166,11 @@ public:
       }
 
       doMap = true;
+    }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
+        mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
+      }
+
     });
 
     ui->initCoord3D(tableVar, "fxSize", fixture.ledsList[0].size, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
@@ -195,16 +190,6 @@ public:
       select.add("+"); //3
     }, [this](JsonObject var, uint8_t) { //chFun
     }); //fixtureGen
-
-    #ifdef USERMOD_WLEDAUDIO
-      ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var) { //uiFun
-        web->addResponse(var["id"], "label", "Moving heads");
-        web->addResponse(var["id"], "comment", "Move on GEQ");
-      }, [this](JsonObject var, uint8_t) { //chFun
-        if (!var["value"])
-          fixture.head = {0,0,0};
-      });
-    #endif
 
     #ifdef USERMOD_E131
       // if (e131mod->isEnabled) {
@@ -239,8 +224,10 @@ public:
       //for each programmed effect
       //  run the next frame of the effect
       // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
-      for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); leds++)
+      for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); leds++) {
+        // USER_PRINTF(" %d", leds->fx);
         effects.loop(*leds);
+      }
 
       FastLED.show();  
 

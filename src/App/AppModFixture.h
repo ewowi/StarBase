@@ -67,7 +67,7 @@ public:
         buffer[2] = lds->fixture.head.y;
         buffer[3] = lds->fixture.head.y;
 
-      }, lds->fixture.nrOfLeds * 3 + 5, true); 
+      }, lds->fixture.nrOfLeds * 3 + 5, true);
     });
     ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");

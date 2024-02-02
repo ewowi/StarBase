@@ -104,6 +104,8 @@ public:
         case 7: palette = HeatColors_p; break;
         default: palette = PartyColors_p; break;
       }
+    }, nullptr, 2, [this](JsonObject var, uint8_t rowNr) { //valueFun
+        mdl->setValue(var, 4, rowNr); //4 is default
     });
     currentVar["stage"] = true;
   }
@@ -387,7 +389,7 @@ public:
 
   void loop(Leds &leds) {
 
-    uint8_t speed = mdl->getValue("speed").as<int>()/32;
+    uint8_t speed = mdl->getValue("Speed").as<int>()/32;
     uint8_t scale = mdl->getValue("scale").as<int>()/32;
 
     uint8_t  w = 2;
@@ -429,7 +431,7 @@ public:
     }
   }
   bool controls(JsonObject parentVar, uint8_t rowNr) {
-    ui->initSlider(parentVar, "speed", 128);
+    ui->initSlider(parentVar, "Speed", 128);
     ui->initSlider(parentVar, "scale", 128);
     return true;
   }
@@ -452,7 +454,7 @@ public:
 
     const uint8_t mapp = 180 / max(leds.size.x,leds.size.y);
 
-    uint8_t speed = mdl->getValue("speed");
+    uint8_t speed = mdl->getValue("Speed");
     uint8_t offsetX = mdl->getValue("Offset X");
     uint8_t offsetY = mdl->getValue("Offset Y");
     uint8_t legs = mdl->getValue("Legs");
@@ -501,7 +503,7 @@ public:
   }
   bool controls(JsonObject parentVar, uint8_t rowNr) {
     addPalette(parentVar, rowNr);
-    ui->initSlider(parentVar, "speed", 128, 1, 255); //start with speed 1
+    ui->initSlider(parentVar, "Speed", 128, 1, 255); //start with speed 1
     ui->initSlider(parentVar, "Offset X", 128);
     ui->initSlider(parentVar, "Offset Y", 128);
     ui->initSlider(parentVar, "Legs", 4, 1, 8);
@@ -988,11 +990,6 @@ public:
 
     leds.fx = mdl->getValue(var, rowNr);
 
-    if (rowNr != UINT8_MAX)
-      var["rowNr"] = rowNr; //store the rownNr of the updated value to send back to ui
-    else 
-      var.remove("rowNr");
-
     USER_PRINTF("setEffect %d\n", leds.fx);
 
     if (leds.fx < effects.size()) {
@@ -1063,7 +1060,8 @@ public:
       responseDoc->clear(); //needed for deserializeJson?
       JsonObject responseObject = responseDoc->to<JsonObject>();
 
-      responseObject["details"] = var;
+      responseObject["details"]["var"] = var;
+      responseObject["details"]["rowNr"] = rowNr;
 
       print->printJson("var", responseObject);
       web->sendDataWs(responseObject); //always send, also when no children, to remove them from ui

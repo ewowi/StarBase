@@ -2,5 +2,16 @@
 
 
 
-~/Applications/ffmpeg -f concat -safe 0 -i <(for f in (*.png|sort -n) ; do echo "file '$PWD/$f'"; echo duration 0.03333; done) -pix_fmt yuv420p out.mp4
+Images
+~/Applications/ffmpeg -f concat -safe 0 -i <(for f in (*.png|sort -d) ; do echo "file '$PWD/$f'"; echo duration 0.03333; done) -pix_fmt yuv420p ../pout.mp4
 
+Video
+~/Applications/ffmpeg -f concat -safe 0 -i <(for f in (*.mov|sort -d) ; do echo "file '$PWD/$f'"; echo inpoint 0.5; echo outpoint 0.6; done)  -pix_fmt yuv420p ../vout.mp4
+
+-acodec libvo_aacenc -vcodec libx264 -s 1920x1080 -r 60 -strict experimental
+
+ls -tU
+
+
+remove sound
+for f in (I*.mov|sort -d) ; do ~/Applications/ffmpeg -i $PWD/$f -c copy -an $PWD/$f.nosound.mov; done

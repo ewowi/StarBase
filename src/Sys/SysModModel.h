@@ -179,14 +179,17 @@ public:
       if (var["value"].is<JsonArray>()) {
         JsonArray valueArray = var["value"].as<JsonArray>();
         //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
-        bool notSame = true;
+        bool notSame = true; //rowNr >= size
 
         if (rowNr < valueArray.size())
           notSame = valueArray[rowNr].isNull() || valueArray[rowNr].as<Type>() != value;
 
         if (notSame) {
           // setValue(var, value, rowNr);
+          if (rowNr >= valueArray.size())
+            USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
           valueArray[rowNr] = value; //if valueArray[rowNr] not exists it will be created
+          // USER_PRINTF("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
           setChFunAndWs(var, rowNr);
         }
       }
@@ -251,7 +254,7 @@ public:
       else if (valueArray.size())
         return valueArray[0];
       else {
-        USER_PRINTF("perror getValue no array or rownr wrong %s %s %d\n", var["id"].as<const char *>(), var["value"].as<String>().c_str(), rowNr);
+        USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", var["id"].as<const char *>(), var["value"].as<String>().c_str(), rowNr);
         return JsonVariant();
       }
     }

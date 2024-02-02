@@ -87,8 +87,7 @@ public:
       }
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
       if (rowNr < fixture.ledsList.size()) {
-        doMap |= effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
-        // doMap = effects.setEffect(fixture.ledsList[1], var, UINT8_MAX);
+        doMap = effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
       }
     }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
       if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
@@ -113,10 +112,9 @@ public:
       select.add("Fun"); //8
 
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      uint8_t val = mdl->getValue(var, rowNr);
-      USER_PRINTF("pro chFun %d %d %d\n", val, rowNr, fixture.ledsList.size());
       if (rowNr < fixture.ledsList.size()) {
         fixture.ledsList[rowNr].projectionNr = mdl->getValue(var, rowNr);
+        USER_PRINTF("pro chFun %d %d %d\n", fixture.ledsList[rowNr].projectionNr, rowNr, fixture.ledsList.size());
 
         doMap = true;
       }
@@ -225,7 +223,7 @@ public:
       //  run the next frame of the effect
       // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
       for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); leds++) {
-        // USER_PRINTF(" %d", leds->fx);
+        // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
         effects.loop(*leds);
       }
 

@@ -12,14 +12,14 @@
 #include "AppLeds.h"
 
 // maps the virtual led to the physical led(s) and assign a color to it
-void Leds::setPixelColor(uint16_t indexV, CRGB color) {
+void Leds::setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount) {
   if (mappingTable.size()) {
     if (indexV >= mappingTable.size()) {
-      USER_PRINTF(" dev sPC V:%d >= %d", indexV, mappingTable.size());
+      // USER_PRINTF(" dev sPC V:%d >= %d", indexV, mappingTable.size());
     }
     else {
       for (uint16_t indexP:mappingTable[indexV]) {
-        fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], 128); //more new color (75%) then old color (25%)
+        fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], blendAmount);
       }
     }
   }
@@ -35,7 +35,7 @@ CRGB Leds::getPixelColor(uint16_t indexV) {
       USER_PRINTF(" dev gPC V %d >= %d", indexV, mappingTable.size());
       return CRGB::Black;
     }
-    else if (!mappingTable[indexV].size()) //if no physMap
+    else if (!mappingTable[indexV].size()) //if no physMap // Core  1 panic'ed (LoadProhibited). Exception was unhandled. - std::vector<unsigned short, std::allocator<unsigned short> >::size() 
     {
       USER_PRINTF(" dev gPC P:%d >= %d", mappingTable[indexV][0], NUM_LEDS_Max);
       return CRGB::Black;
@@ -53,30 +53,23 @@ CRGB Leds::getPixelColor(uint16_t indexV) {
 
 void Leds::fadeToBlackBy(uint8_t fadeBy) {
   //fade2black for old start to endpos
-  Coord3D index;
-  Coord3D max = {min(endPos.x, (uint16_t)(fixture->size.x-1)), min(endPos.y, (uint16_t)(fixture->size.y-1)), min(endPos.z, (uint16_t)(fixture->size.z-1))};
-  for (index.x = startPos.x; index.x <= max.x; index.x++)
-    for (index.y = startPos.y; index.y <= max.y; index.y++)
-      for (index.z = startPos.z; index.z <= max.z; index.z++) {
-        uint16_t indexP = index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y;
-        if (indexP < NUM_LEDS_Max) fixture->ledsP[indexP].nscale8(255-fadeBy);
-        else
-          USER_PRINTF(" dev fB %d >= %d", indexP, NUM_LEDS_Max);
-      }
+
+  for (std::vector<std::vector<uint16_t>>::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); physMap++) {
+    for (uint16_t indexP:*physMap) {
+      CRGB oldValue = fixture->ledsP[indexP];
+      fixture->ledsP[indexP].nscale8(255-fadeBy); //this overrides the old value
+      fixture->ledsP[indexP] = blend(fixture->ledsP[indexP], oldValue, 128); // we want to blend in the old value
+    }
+  }
 }
 
 void Leds::fill_solid(const struct CRGB& color) {
   //fade2black for old start to endpos
-  Coord3D index;
-  Coord3D max = {min(endPos.x, (uint16_t)(fixture->size.x-1)), min(endPos.y, (uint16_t)(fixture->size.y-1)), min(endPos.z, (uint16_t)(fixture->size.z-1))};
-  for (index.x = startPos.x; index.x <= max.x; index.x++)
-    for (index.y = startPos.y; index.y <= max.y; index.y++)
-      for (index.z = startPos.z; index.z <= max.z; index.z++) {
-        uint16_t indexP = index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y;
-        if (indexP < NUM_LEDS_Max) fixture->ledsP[indexP] = color;
-        else
-          USER_PRINTF(" dev fS %d >= %d", indexP, NUM_LEDS_Max);
-      }
+  for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); physMap++) {
+    for (uint16_t indexP:*physMap) {
+      fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], 128);
+    }
+  }
 }
 
 void Leds::fill_rainbow(uint8_t initialhue, uint8_t deltahue) {
@@ -84,15 +77,11 @@ void Leds::fill_rainbow(uint8_t initialhue, uint8_t deltahue) {
   hsv.hue = initialhue;
   hsv.val = 255;
   hsv.sat = 240;
-  Coord3D index;
-  Coord3D max = {min(endPos.x, (uint16_t)(fixture->size.x-1)), min(endPos.y, (uint16_t)(fixture->size.y-1)), min(endPos.z, (uint16_t)(fixture->size.z-1))};
-  for (index.x = startPos.x; index.x <= max.x; index.x++)
-    for (index.y = startPos.y; index.y <= max.y; index.y++)
-      for (index.z = startPos.z; index.z <= max.z; index.z++) {
-        uint16_t indexP = index.x + index.y * fixture->size.x + index.z * fixture->size.x * fixture->size.y;
-        if (indexP < NUM_LEDS_Max) fixture->ledsP[indexP] = hsv;
-        else
-          USER_PRINTF(" dev fR %d >= %d", indexP, NUM_LEDS_Max);
-        hsv.hue += deltahue;
-      }
+
+  for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); physMap++) {
+    for (uint16_t indexP:*physMap) {
+      fixture->ledsP[indexP] = blend(hsv, fixture->ledsP[indexP], 128);
+    }
+    hsv.hue += deltahue;
+  }
 }

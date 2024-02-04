@@ -153,8 +153,12 @@ function createHTML(json, parentNode = null, rowNr = -1) {
   else { // json is variable
     let  variable = json;
 
-    if (Array.isArray(variable.value) && rowNr != -1)
-      if (variable.value[rowNr] == -99) return;
+    if (Array.isArray(variable.value) && rowNr != -1) {
+      if (rowNr < variable.value.length && variable.value[rowNr] == null) {
+        console.log("not showing this var as value is null", variable, rowNr);
+        return;
+      }
+    }
 
     //if root (type module) add the html to one of the mdlColumns
     if (parentNode == null) {
@@ -345,7 +349,9 @@ function createHTML(json, parentNode = null, rowNr = -1) {
         xNode.min = variable.min?variable.min:0; //if not specified then unsigned value (min=0)
         if (variable.max) xNode.max = variable.max;
         xNode.placeholder = "x";
-        xNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
+        xNode.min = variable.min?variable.min:0; //if not specified then unsigned value (min=0)
+        if (variable.max) xNode.max = variable.max;
+       xNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
         varNode.appendChild(xNode);
 
         let yNode = xNode.cloneNode();

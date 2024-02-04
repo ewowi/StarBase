@@ -38,7 +38,7 @@ void SysModModel::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initText(parentVar, "mSize", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "mSize", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Size");
   });
 
@@ -48,7 +48,7 @@ void SysModModel::setup() {
     doWriteModel = true;
   });
 
-  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, false, [](JsonObject var) { //uiFun
+  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, UINT8_MAX, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Show in UI (refresh)");
   }, [this](JsonObject var, uint8_t) { //chFun
     doShowObsolete = var["value"];
@@ -125,7 +125,6 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
       //remove ro values (ro vars cannot be deleted as SM uses these vars)
       if (ro && var["ro"].as<bool>()) {// && !var["value"].isNull())
         USER_PRINTF("remove ro value %s\n", var["id"].as<const char *>());          
-        // vars.remove(varV); //remove ro vars
         var.remove("value");
       }
 
@@ -226,6 +225,10 @@ void SysModModel::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * valu
       web->addResponse(var["id"], "value", var["value"].as<bool>());
     else if (var["value"].is<const char *>())
       web->addResponse(var["id"], "value", var["value"].as<const char *>());
+    else if (var["value"].is<Coord3D>()) {
+      // USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+      web->addResponse(var["id"], "value", var["value"].as<Coord3D>());
+    }
     else if (var["value"].is<JsonArray>()) {
       // USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
       web->addResponse(var["id"], "value", var["value"].as<JsonArray>());

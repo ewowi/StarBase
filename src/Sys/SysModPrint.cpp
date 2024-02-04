@@ -57,7 +57,7 @@ void SysModPrint::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var) { //uiFun default 1 (Serial)
+  ui->initSelect(parentVar, "pOut", 1, UINT8_MAX, false, [](JsonObject var) { //uiFun default 1 (Serial)
     web->addResponse(var["id"], "label", "Output");
     web->addResponse(var["id"], "comment", "System log to Serial or Net print (WIP)");
 

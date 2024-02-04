@@ -183,17 +183,17 @@ public:
         addTblRow(rows, instance);
       }
     });
-    ui->initText(tableVar, "insName", nullptr, 32, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insName", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Name");
     });
     ui->initURL(tableVar, "insLink", nullptr, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Show");
     });
 
-    ui->initText(tableVar, "insIp", nullptr, 16, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insIp", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "IP");
     });
-    ui->initText(tableVar, "insType", nullptr, 16, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insType", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Type");
     });
     ui->initNumber(tableVar, "insVersion", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
@@ -205,7 +205,7 @@ public:
 
     JsonObject currentVar;
 
-    currentVar = ui->initSelect(parentVar, "sma", 0, false, [this](JsonObject var) { //uiFun tbd: make dropdown where value is ...ip number
+    currentVar = ui->initSelect(parentVar, "sma", 0, UINT8_MAX, false, [this](JsonObject var) { //uiFun tbd: make dropdown where value is ...ip number
       web->addResponse(var["id"], "label", "Sync Master");
       web->addResponse(var["id"], "comment", "Instance to sync from");
       JsonArray select = web->addResponseA(var["id"], "options");

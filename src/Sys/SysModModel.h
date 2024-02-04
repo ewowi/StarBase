@@ -64,7 +64,10 @@ struct Coord3D {
     return *this;
   }
   Coord3D operator-(Coord3D rhs) {
-    return Coord3D{uint16_t(x - rhs.x), uint16_t(y - rhs.y), uint16_t(z- rhs.z)};
+    return Coord3D{uint16_t(x - rhs.x), uint16_t(y - rhs.y), uint16_t(z - rhs.z)};
+  }
+  Coord3D minimum(Coord3D rhs) {
+    return Coord3D{min(x, rhs.x), min(y, rhs.y), min(this->z, rhs.z)};
   }
 };
 
@@ -159,7 +162,8 @@ public:
         //trick to remove null values
         if (var["value"].isNull() || var["value"].as<uint32_t>() == UINT16_MAX) {
           var.remove("value");
-          USER_PRINTF("setValue value removed %s %s\n", var["id"].as<const char *>(), oldValue.c_str()); //old value
+          if (oldValue.size()>0)
+            USER_PRINTF("dev setValue value removed %s %s\n", var["id"].as<const char *>(), oldValue.c_str()); //old value
         }
         else {
           USER_PRINTF("setValue changed %s %s->%s\n", var["id"].as<const char *>(), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
@@ -186,9 +190,9 @@ public:
 
         if (notSame) {
           // setValue(var, value, rowNr);
-          if (rowNr >= valueArray.size())
-            USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
-          valueArray[rowNr] = value; //if valueArray[rowNr] not exists it will be created
+          // if (rowNr >= valueArray.size())
+          //   USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
+          valueArray[rowNr] = value; //if valueArray[<rowNr] not exists it will be created
           // USER_PRINTF("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
           setChFunAndWs(var, rowNr);
         }

@@ -31,7 +31,7 @@ public:
     parentVar = ui->initUserMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -3100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    ui->initSelect(parentVar, "artInst", UINT16_MAX, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "artInst", UINT16_MAX, UINT8_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Instance");
       web->addResponse(var["id"], "comment", "Instance to send data");
       JsonArray select = web->addResponseA(var["id"], "options");

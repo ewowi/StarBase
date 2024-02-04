@@ -41,7 +41,7 @@ void SysModUI::setup() {
       row.add(varLoop->counter);
     }
   });
-  initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var) { //uiFun
+  initText(tableVar, "vlVar", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
   initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var) { //uiFun
@@ -110,8 +110,13 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     //set order. make order negative to check if not obsolete, see cleanUpModel
     if (var["o"] >= 1000) //predefined! (modules)
       var["o"] = -var["o"].as<int>(); //leave the order as is
-    else
-      var["o"] = -varCounter++; //redefine order
+    else {
+      if (parent["o"].as<int>() >= 0) // if checks on the parent already done so vars added later, e.g. controls, will be autochecked
+        var["o"] = varCounter++; //redefine order
+      else
+        var["o"] = -varCounter++; //redefine order
+    }
+
 
     //if uiFun, add it to the list
     if (uiFun) {

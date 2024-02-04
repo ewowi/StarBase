@@ -26,28 +26,28 @@ void SysModSystem::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "serverName", "StarMod", UINT8_MAX, 32, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
     web->addResponse(var["id"], "comment", "Instance name");
   });
-  ui->initText(parentVar, "upTime", nullptr, 16, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "upTime", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Uptime of board");
   });
-  ui->initText(parentVar, "loops", nullptr, 16, true);
+  ui->initText(parentVar, "loops", nullptr, UINT8_MAX, 16, true);
 
-  ui->initText(parentVar, "chip", nullptr, 16, true);
+  ui->initText(parentVar, "chip", nullptr, UINT8_MAX, 16, true);
 
-  ui->initText(parentVar, "heap", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "heap", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Free / Total (largest free)");
   });
 
   if (psramFound()) {
-    ui->initText(parentVar, "psram", nullptr, 16, true, [](JsonObject var) { //uiFun
+    ui->initText(parentVar, "psram", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Free / Total (min free)");
     });
   }
 
-  ui->initText(parentVar, "stack", nullptr, 16, true);
+  ui->initText(parentVar, "stack", nullptr, UINT8_MAX, 16, true);
 
   ui->initButton(parentVar, "reboot", nullptr, false, nullptr, [](JsonObject var, uint8_t) {  //chFun
     web->ws->closeAll(1012);
@@ -61,18 +61,18 @@ void SysModSystem::setup() {
     ESP.restart();
   });
 
-  ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), true, [](JsonObject var) { //uiFun
+  ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), UINT8_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Reset 0");
     web->addResponse(var["id"], "comment", "Reason Core 0");
     sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
   });
   if (ESP.getChipCores() > 1)
-    ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), true, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), UINT8_MAX, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Reset 1");
       web->addResponse(var["id"], "comment", "Reason Core 1");
       sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
     });
-  ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), true, [](JsonObject var) { //uiFun
+  ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), UINT8_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Restart");
     web->addResponse(var["id"], "comment", "Reason restart");
     sys->addRestartReasonsSelect(web->addResponseA(var["id"], "options"));
@@ -89,7 +89,7 @@ void SysModSystem::setup() {
 
   USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
-  ui->initText(parentVar, "version", nullptr, 16, true);
+  ui->initText(parentVar, "version", nullptr, UINT8_MAX, 16, true);
   // ui->initText(parentVar, "date", __DATE__, 16, true);
   // ui->initText(parentVar, "time", __TIME__, 16, true);
 

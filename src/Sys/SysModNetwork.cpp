@@ -32,7 +32,7 @@ void SysModNetwork::setup() {
   //   web->addResponse(var["id"], "comment", "List of defined and available Wifi APs");
   // });
 
-  ui->initText(parentVar, "ssid", "", 32, false);
+  ui->initText(parentVar, "ssid", "", UINT8_MAX, 32, false);
   // , nullptr
   // , nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
   //   var["value"][0] = "";
@@ -48,10 +48,10 @@ void SysModNetwork::setup() {
     // mdl->doWriteModel = true; //saves the model
     forceReconnect = true;
   });
-  ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "nwstatus", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
   });
-  ui->initText(parentVar, "rssi", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "rssi", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Wifi signal");
   });
 }

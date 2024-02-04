@@ -70,26 +70,53 @@ void SysModWeb::setup() {
 
   ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Nr");
+  }, nullptr, nullptr, ws->count(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+    //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
+    uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, client->id(), rowNr);
+
+    // AsyncWebSocket::AsyncWebSocketClientLinkedList::iterator client = ws->getClients().nth(rowNr);
+    // LinkedList<WebClient *>::Iterator client;
+    //  = ws->getClients().nth(rowNr);
+    // WebClient * const * client = ws->getClients().nth(rowNr);
+    // WebClient * c2 = ws->getClients().nth(rowNr);
+    // const auto& c = ws->getClients().nth(rowNr);
+    // mdl->setValue(var, client->id(), rowNr);
   });
-  ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var) { //uiFun
+
+  ui->initText(tableVar, "clIp", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "IP");
+  }, nullptr, nullptr, ws->count(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+    //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
+    uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr);
   });
-  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [](JsonObject var) { //uiFun
+
+  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, UINT8_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Is full");
+  }, nullptr, nullptr, ws->count(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+    //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
+    uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, client->queueIsFull(), rowNr);
   });
-  ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [](JsonObject var) { //uiFun
+
+  ui->initSelect(tableVar, "clStatus", UINT16_MAX, UINT8_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
     //tbd: not working yet in ui
     JsonArray select = web->addResponseA(var["id"], "options");
     select.add("Disconnected"); //0
     select.add("Connected"); //1
     select.add("Disconnecting"); //2
-  });
-  ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Length");
+  }, nullptr, nullptr, ws->count(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+    //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
+    uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, client->status(), rowNr);
   });
 
-  ui->initText(parentVar, "wsCounter", nullptr, 16, true, [](JsonObject var) { //uiFun
+  ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var) { //uiFun
+    web->addResponse(var["id"], "label", "Length");
+  }, nullptr, nullptr, ws->count(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+    //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
+    uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, client->queueLength(), rowNr);
+  });
+
+  ui->initText(parentVar, "wsCounter", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "#web socket calls");
   });
   ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
@@ -113,13 +140,16 @@ void SysModWeb::loop1s() {
     clientsChanged = false;
     // ui->processUiFun("clTbl"); //every second (temp)
     USER_PRINTF("SysModWeb clientsChanged\n");
-    //clean variables
+    //clean variable arrays
     JsonObject var = mdl->findVar("clTbl");
     for (JsonObject childVar: var["n"].as<JsonArray>()) {
       childVar.remove("value");
+      //run ValueFun
+      // if (childVar["valuefun"])
     }
   }
 
+  // redefine variables for rows present
   uint8_t rowNr = 0;
   for (auto client:ws->getClients()) {
     // printClient("up", client);

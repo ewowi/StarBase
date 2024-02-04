@@ -23,7 +23,7 @@
     if (files->seqNrToName(fileName, fixtureNr)) {
       JsonRDWS jrdws(fileName); //open fileName for deserialize
 
-      for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); leds++) {
+      for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); ++leds) {
         //vectors really gone now?
         for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); physMap++)
           physMap->clear();
@@ -74,7 +74,13 @@
           //vector iterator needed to get the pointer to leds as we need to update leds, also vector iteration on classes is faster!!!
           //search: ^(?=.*\bfor\b)(?=.*\b:\b).*$
           for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); ++leds) {
-            if (pixel >= leds->startPos && pixel <=leds->endPos) {
+            Coord3D startPosAdjusted = (leds->startPos).minimum(size - Coord3D{1,1,1}) ;
+            Coord3D endPosAdjusted = (leds->endPos).minimum(size - Coord3D{1,1,1}) ;
+
+            if (pixel >= startPosAdjusted && pixel <= endPosAdjusted) {
+
+              if (fixtureDimension == 3 && endPosAdjusted.z == 0)
+                fixtureDimension = _2D;
 
               float scale = 1;
               switch (leds->effectDimension) {
@@ -84,16 +90,16 @@
                   leds->size.z = 1;
                   break;
                 case _2D:
-                  leds->size.x = abs(leds->endPos.x - leds->startPos.x + 1);
-                  leds->size.y = abs(leds->endPos.y - leds->startPos.y + 1);
+                  leds->size.x = abs(endPosAdjusted.x - startPosAdjusted.x) + 1;
+                  leds->size.y = abs(endPosAdjusted.y - startPosAdjusted.y) + 1;
                   leds->size.z = 1;
                   
                   //scaling (check rounding errors)
                   //1024 crash in makebuffer...
-                  if (leds->size.x * leds->size.y > 256)
-                    scale = (sqrt((float)256.0 / (leds->size.x * leds->size.y))); //avoid high virtual resolutions
-                  leds->size.x *= scale;
-                  leds->size.y *= scale;
+                  // if (leds->size.x * leds->size.y > 256)
+                  //   scale = (sqrt((float)256.0 / (leds->size.x * leds->size.y))); //avoid high virtual resolutions
+                  // leds->size.x *= scale;
+                  // leds->size.y *= scale;
                   break;
               }
 
@@ -115,20 +121,22 @@
                 case p_DistanceFromCenter:
                   if (leds->effectDimension == _1D) {
                     if (fixtureDimension == _1D)
-                      indexV = distance(pixel.x,0, 0, leds->startPos.x,0,0);
+                      indexV = distance(pixel.x,0, 0, startPosAdjusted.x,0,0);
                     else if (fixtureDimension == _2D) { 
-                      indexV = distance(pixel.x,pixel.y,0, leds->startPos.x, leds->startPos.y,0);
+                      indexV = distance(pixel.x,pixel.y,0, startPosAdjusted.x, startPosAdjusted.y,0);
                       // USER_PRINTF("indexV %d-%d %d-%d %d\n", x,y, startPos.x, startPos.y, indexV);
                     }
-                    else if (fixtureDimension == _3D)
-                      indexV = distance(pixel, leds->startPos);
+                    else if (fixtureDimension == _3D) {
+                      indexV = distance(pixel, startPosAdjusted);
+                      // USER_PRINTF(" %d,%d,%d - %d,%d,%d -> %d",pixel.x,pixel.y,pixel.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, indexV);
+                    }
                   }
                   else if (leds->effectDimension == _2D) {
                     if (fixtureDimension == _1D)
                       indexV = pixel.x;
                     else if (fixtureDimension == _2D) {
 
-                      Coord3D newPixel = pixel - leds->startPos;
+                      Coord3D newPixel = pixel - startPosAdjusted;
 
                       newPixel.x = (newPixel.x+1) * scale - 1;
                       newPixel.y = (newPixel.y+1) * scale - 1;
@@ -216,16 +224,16 @@
 
                 if (indexV != UINT16_MAX) { //can be nulled by inverse mapping 
                   //add physical tables if not present
-                  if (indexV >= NUM_LEDS_Max) {
+                  if (indexV >= NUM_LEDS_Max / 2) {
                     USER_PRINTF("dev mapping add physMap %d>=%d (%d) too big %d\n", indexV, NUM_LEDS_Max, leds->mappingTable.size(), UINT16_MAX);
                   }
                   else {
                     //create new physMaps if needed
                     if (indexV >= leds->mappingTable.size()) {
                       for (int i = leds->mappingTable.size(); i<=indexV;i++) {
-                        // USER_PRINTF("mapping add physMap %d %d\n", indexV, mappingTable.size());
+                        // USER_PRINTF("mapping %d,%d,%d add physMap %d %d\n", pixel.y, pixely, pixel.z, indexV, leds->mappingTable.size());
                         std::vector<uint16_t> physMap;
-                        leds->mappingTable.push_back(physMap);
+                        leds->mappingTable.push_back(physMap); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                       }
                     }
                     //indexV is within the square
@@ -275,7 +283,7 @@
       if (jrdws.deserialize(false)) { //this will call above function parameter for each led
 
         uint8_t rowNr = 0;
-        for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); leds++) {
+        for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); ++leds) {
           if (leds->projectionNr <= p_Random) {
             //defaults
             leds->size = size;
@@ -284,11 +292,11 @@
 
           if (leds->projectionNr > p_Random) {
 
-            // for (int i = leds->mappingTable.size(); i<leds->size.x * leds->size.y * leds->size.z;i++) {
-            //   USER_PRINTF("mapping add extra physMap %d %d\n", i, leds->mappingTable.size());
-            //   std::vector<uint16_t> physMap;
-            //   leds->mappingTable.push_back(physMap);
-            // }
+            for (int i = leds->mappingTable.size(); i<leds->size.x * leds->size.y * leds->size.z;i++) {
+              USER_PRINTF("mapping add extra physMap %d %d\n", i, leds->mappingTable.size());
+              std::vector<uint16_t> physMap;
+              leds->mappingTable.push_back(physMap);
+            }
             leds->nrOfLeds = leds->mappingTable.size();
 
             // uint16_t x=0; //indexV
@@ -297,10 +305,10 @@
             // for (std::vector<uint16_t>physMap:leds->mappingTable) {
             //   if (physMap.size()) {
             //     USER_PRINTF("ledV %d mapping: firstLedP: %d #ledsP: %d", x, physMap[0], physMap.size());
-            //     // for (uint16_t pos:physMap) {
-            //     //   USER_PRINTF(" %d", pos);
-            //     //   y++;
-            //     // }
+            //     for (uint16_t indexP:physMap) {
+            //       USER_PRINTF(" %d", indexP);
+            //       y++;
+            //     }
             //     USER_PRINTF("\n");
             //   }
             //   else
@@ -314,7 +322,7 @@
           mdl->setValue("fxSize", leds->size, rowNr);
           mdl->setValue("fxCount", leds->nrOfLeds, rowNr);
 
-          USER_PRINTF("Size of Leds is %d + %d\n", sizeof(Leds), leds->mappingTable.size()); //44
+          USER_PRINTF("leds[%d].size = %d + %d\n", leds->rowNr, sizeof(Leds), leds->mappingTable.size()); //44
 
           rowNr++;
         }

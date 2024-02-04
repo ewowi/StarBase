@@ -61,67 +61,67 @@ public:
   void loop1s();
 
   JsonObject initAppMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "appmod", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<const char *>(parent, id, "appmod", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
   JsonObject initSysMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "sysmod", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<const char *>(parent, id, "sysmod", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
   JsonObject initUserMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "usermod", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<const char *>(parent, id, "usermod", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initTable(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "table", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<const char *>(parent, id, "table", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
-  JsonObject initText(JsonObject parent, const char * id, const char * value = nullptr, uint16_t max = 32, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "text", value, 0, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  JsonObject initText(JsonObject parent, const char * id, const char * value = nullptr, uint8_t rowNr = UINT8_MAX, uint16_t max = 32, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "text", value, rowNr, 0, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, uint8_t max = 32, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "password", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<const char *>(parent, id, "password", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initNumber(JsonObject parent, const char * id, int value = UINT16_MAX, int min = 0, int max = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "number", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<int>(parent, id, "number", value, UINT8_MAX, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initCoord3D(JsonObject parent, const char * id, Coord3D value = {UINT16_MAX, UINT16_MAX, UINT16_MAX}, int min = 0, int max = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<Coord3D>(parent, id, "coord3D", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<Coord3D>(parent, id, "coord3D", value, UINT8_MAX, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   //init a range slider, range between 0 and 255!
-  JsonObject initSlider(JsonObject parent, const char * id, int value = UINT16_MAX, int min = 0, int max = 255, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "range", value, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  JsonObject initSlider(JsonObject parent, const char * id, int value = UINT16_MAX, uint8_t rowNr = UINT8_MAX, int min = 0, int max = 255, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "range", value, rowNr, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initCanvas(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "canvas", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<int>(parent, id, "canvas", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   //supports 3 state value: if UINT16_MAX it is indeterminated
-  JsonObject initCheckBox(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "checkbox", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  JsonObject initCheckBox(JsonObject parent, const char * id, int value = UINT16_MAX, uint8_t rowNr = UINT8_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "checkbox", value, rowNr, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initButton(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "button", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<const char *>(parent, id, "button", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
-  JsonObject initSelect(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<int>(parent, id, "select", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  JsonObject initSelect(JsonObject parent, const char * id, int value = UINT16_MAX, uint8_t rowNr = UINT8_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "select", value, rowNr, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initTextArea(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "textarea", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<const char *>(parent, id, "textarea", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initURL(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "url", value, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+    return initVarAndUpdate<const char *>(parent, id, "url", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   template <typename Type>
-  JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type value, int min, int max, bool readOnly = true, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+  JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type value, uint8_t rowNr = UINT8_MAX, int min = 0, int max = 255, bool readOnly = true, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
     JsonObject var = initVar(parent, id, type, readOnly, uiFun, chFun, loopFun);
     if (min) var["min"] = min;
     if (max && max != UINT16_MAX) var["max"] = max;
@@ -130,9 +130,15 @@ public:
     if (var["value"].isNull()) {
       valueNeedsUpdate = true;
       // print->printJson("initVarAndUpdate uiFun value is null", var);
-    } else if (count && var["value"].is<JsonArray>()) {
+    } else if (var["value"].is<JsonArray>()) {
       JsonArray valueArray = var["value"].as<JsonArray>();
-      if (valueArray.size() != count) {
+      if (rowNr != UINT8_MAX) {
+        if (rowNr >= valueArray.size())
+          valueNeedsUpdate = true;
+        else if (valueArray[rowNr].isNull())
+          valueNeedsUpdate = true;
+      }
+      else if (count && valueArray.size() != count) {
         print->printJson("initVarAndUpdate uiFun value array wrong size", var);
         valueNeedsUpdate = true;
       }
@@ -140,7 +146,7 @@ public:
 
     if (valueNeedsUpdate) {
       if (!valueFun) {
-        mdl->setValue(var, value); //does changefun if needed
+        mdl->setValue(var, value, rowNr); //does changefun if needed
       }
       else {
         USER_PRINTF("initVarAndUpdate valueFun %s count:%d\n", id, count);

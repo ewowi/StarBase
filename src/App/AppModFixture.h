@@ -21,13 +21,13 @@ public:
     parentVar = ui->initAppMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -1000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var) { //uiFun
+    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, UINT8_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "On/Off");
     });
     currentVar["stage"] = true;
 
     //logarithmic slider (10)
-    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var) { //uiFun
+    currentVar = ui->initSlider(parentVar, "bri", 10, UINT8_MAX, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Brightness");
     }, [](JsonObject var, uint8_t) { //chFun
       uint8_t bri = var["value"];
@@ -69,7 +69,7 @@ public:
 
       }, lds->fixture.nrOfLeds * 3 + 5, true);
     });
-    ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, UINT8_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
       JsonArray select = web->addResponseA(var["id"], "options");
       files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
@@ -114,12 +114,12 @@ public:
       lds->fps = var["value"];
     });
 
-    ui->initText(parentVar, "realFps", nullptr, 10, true, [this](JsonObject var) { //uiFun
+    ui->initText(parentVar, "realFps", nullptr, UINT8_MAX, 10, true, [this](JsonObject var) { //uiFun
       web->addResponseV(var["id"], "comment", "f(%d leds)", lds->fixture.nrOfLeds);
     });
 
     #ifdef USERMOD_WLEDAUDIO
-      ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var) { //uiFun
+      ui->initCheckBox(parentVar, "mHead", false, UINT8_MAX, false, [](JsonObject var) { //uiFun
         web->addResponse(var["id"], "label", "Moving heads");
         web->addResponse(var["id"], "comment", "Move on GEQ");
       }, [this](JsonObject var, uint8_t) { //chFun

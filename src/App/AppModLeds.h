@@ -54,11 +54,13 @@ public:
 
   AppModLeds() :SysModule("Leds") {
     Leds leds = Leds();
+    leds.rowNr = 0;
     leds.fixture = &fixture;
     leds.fx = 13;
     leds.projectionNr = 2;
     fixture.ledsList.push_back(leds);
     leds = Leds();
+    leds.rowNr = 1;
     leds.fixture = &fixture;
     leds.projectionNr = 2;
     leds.fx = 14;
@@ -78,7 +80,7 @@ public:
       web->addResponse(var["id"], "comment", "List of effects");
     });
 
-    currentVar = ui->initSelect(tableVar, "fx", 0, false, [this](JsonObject var) { //uiFun
+    currentVar = ui->initSelect(tableVar, "fx", 0, UINT8_MAX, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effect");
       web->addResponse(var["id"], "comment", "Effect to show");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -90,14 +92,11 @@ public:
         doMap = effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
       }
     }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
-        mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
-      }
-
+      mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
     });
     currentVar["stage"] = true;
 
-    currentVar = ui->initSelect(tableVar, "pro", 2, false, [](JsonObject var) { //uiFun.
+    currentVar = ui->initSelect(tableVar, "pro", 2, UINT8_MAX, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Projection");
       web->addResponse(var["id"], "comment", "How to project fx");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -120,14 +119,11 @@ public:
       }
 
     }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
-        mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
-      }
-
+      mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
     });
     currentVar["stage"] = true;
 
-    ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, 0, UINT16_MAX, false, [](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, 0, UINT16_MAX/2, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Start");
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
       if (rowNr < fixture.ledsList.size()) {
@@ -143,13 +139,10 @@ public:
 
       doMap = true;
     }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
-        mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
-      }
-
+      mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
     });
 
-    ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, 0, UINT16_MAX, false, [](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, 0, UINT16_MAX/2, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "End");
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
       if (rowNr < fixture.ledsList.size()) {
@@ -165,10 +158,7 @@ public:
 
       doMap = true;
     }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      if (rowNr != UINT8_MAX && rowNr < fixture.ledsList.size()) {
-        mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
-      }
-
+      mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
     });
 
     ui->initCoord3D(tableVar, "fxSize", fixture.ledsList[0].size, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
@@ -179,7 +169,7 @@ public:
       web->addResponse(var["id"], "label", "Count");
     });
 
-    ui->initSelect(parentVar, "fxLayout", 0, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "fxLayout", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Layout");
       JsonArray select = web->addResponseA(var["id"], "options");
       select.add("□"); //0
@@ -222,7 +212,7 @@ public:
       //for each programmed effect
       //  run the next frame of the effect
       // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
-      for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); leds++) {
+      for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
         // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
         effects.loop(*leds);
       }

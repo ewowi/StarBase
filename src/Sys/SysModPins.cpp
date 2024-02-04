@@ -53,10 +53,10 @@ void SysModPins::setup() {
   ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Pin");
   });
-  ui->initText(tableVar, "pinOwner", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "pinOwner", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Owner");
   });
-  ui->initText(tableVar, "pinDetails", nullptr, 256, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "pinDetails", nullptr, UINT8_MAX, 256, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Details");
   });
 
@@ -85,10 +85,10 @@ void SysModPins::setup() {
     }, 20 * 3 + 5, true);
   });
 
-  // ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);
+  // ui->initCheckBox(parentVar, "pin2", true, UINT8_MAX, false, nullptr, updateGPIO);
   // ui->initCheckBox(parentVar, "pin4");
-  ui->initCheckBox(parentVar, "pin19", true, false, nullptr, updateGPIO);
-  // ui->initCheckBox(parentVar, "pin33", true);
+  ui->initCheckBox(parentVar, "pin19", true, UINT8_MAX, false, nullptr, updateGPIO);
+  // ui->initCheckBox(parentVar, "pin33", true, UINT8_MAX);
 }
 
 void SysModPins::loop1s() {

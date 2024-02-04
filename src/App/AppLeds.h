@@ -22,17 +22,26 @@
 
 #include "AppFixture.h"
 
+#include "../data/font/console_font_4x6.h"
+#include "../data/font/console_font_5x8.h"
+#include "../data/font/console_font_5x12.h"
+#include "../data/font/console_font_6x8.h"
+#include "../data/font/console_font_7x9.h"
+
+
 class Fixture; //forward
 
 class Leds {
 
 public:
 
+  uint8_t rowNr = 0;
+
   Fixture *fixture;
 
   uint16_t nrOfLeds = 64;  //amount of virtual leds (calculated by projection)
 
-  Coord3D size = {8,8,1};
+  Coord3D size = {8,8,1}; //not 0,0,0 to prevent div0 eg in Octopus2D
 
   uint8_t fx = -1;
   uint8_t projectionNr = -1;
@@ -93,7 +102,8 @@ public:
 
 
   // maps the virtual led to the physical led(s) and assign a color to it
-  void setPixelColor(uint16_t indexV, CRGB color);
+  void setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount = 0);
+  void setPixelColor(Coord3D pixel, CRGB color, uint8_t blendAmount = 0) {setPixelColor(XYZ(pixel), color, blendAmount);}
 
   CRGB getPixelColor(uint16_t indexV);
 
@@ -156,6 +166,52 @@ public:
               carryover = part;
           }
       }
+  }
+
+  //shift is used by drawText indicating which letter it is drawing
+  void drawCharacter(unsigned char chr, int x = 0, int16_t y = 0, uint8_t font = 0, CRGB col = CRGB::Red, uint8_t shiftPixel = 0, uint8_t shiftChr = 0) {
+    if (chr < 32 || chr > 126) return; // only ASCII 32-126 supported
+    chr -= 32; // align with font table entries
+
+    Coord3D fontSize;
+    switch (font%5) {
+      case 0: fontSize.x = 4; fontSize.y = 6; break;
+      case 1: fontSize.x = 5; fontSize.y = 8; break;
+      case 2: fontSize.x = 5; fontSize.y = 12; break;
+      case 3: fontSize.x = 6; fontSize.y = 8; break;
+      case 4: fontSize.x = 7; fontSize.y = 9; break;
+    }
+
+    Coord3D chrPixel;
+    for (chrPixel.y = 0; chrPixel.y<fontSize.y; chrPixel.y++) { // character height
+      Coord3D pixel;
+      pixel.y = y + chrPixel.y;
+      if (pixel.y >=0 && pixel.y < size.y) {
+        uint8_t bits = 0;
+        switch (font%5) {
+          case 0: bits = pgm_read_byte_near(&console_font_4x6[(chr * fontSize.y) + chrPixel.y]); break;
+          case 1: bits = pgm_read_byte_near(&console_font_5x8[(chr * fontSize.y) + chrPixel.y]); break;
+          case 2: bits = pgm_read_byte_near(&console_font_5x12[(chr * fontSize.y) + chrPixel.y]); break;
+          case 3: bits = pgm_read_byte_near(&console_font_6x8[(chr * fontSize.y) + chrPixel.y]); break;
+          case 4: bits = pgm_read_byte_near(&console_font_7x9[(chr * fontSize.y) + chrPixel.y]); break;
+        }
+
+        for (chrPixel.x = 0; chrPixel.x<fontSize.x; chrPixel.x++) {
+          //x adjusted by: chr in text, scroll value, font column
+          pixel.x = (x + shiftChr * fontSize.x + shiftPixel + (fontSize.x-1) - chrPixel.x)%size.x;
+          if ((pixel.x >= 0 && pixel.x < size.x) && ((bits>>(chrPixel.x+(8-fontSize.x))) & 0x01)) { // bit set & drawing on-screen
+            setPixelColor(pixel, col);
+          }
+        }
+      }
+    }
+  }
+
+  void drawText(const char * text, int x = 0, int16_t y = 0, uint8_t font = 0, CRGB col = CRGB::Red, u_int16_t shiftPixel = 0) {
+    const int numberOfChr = strlen(text); //Core  1 panic'ed (LoadProhibited). Exception was unhandled. - /builds/idf/crosstool-NG/.build/HOST-x86_64-apple-darwin12/xtensa-esp32-elf/src/newlib/newlib/libc/machine/xtensa/strlen.S:82
+    for (int shiftChr = 0; shiftChr < numberOfChr; shiftChr++) {
+      drawCharacter(text[shiftChr], x, y, font, col, shiftPixel, shiftChr);
+    }
   }
 
 };

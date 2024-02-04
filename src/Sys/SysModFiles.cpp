@@ -64,7 +64,7 @@ void SysModFiles::setup() {
     }
   });
 
-  ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "flName", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
   ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var) { //uiFun
@@ -74,7 +74,7 @@ void SysModFiles::setup() {
     web->addResponse(var["id"], "label", "Show");
   });
 
-  ui->initText(parentVar, "drsize", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "drsize", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponseV(var["id"], "value", "%d / %d B", files->usedBytes(), files->totalBytes());
     web->addResponse(var["id"], "label", "Total FS size");
   });

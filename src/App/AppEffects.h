@@ -19,7 +19,6 @@
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 unsigned long call = 0; //not used at the moment (don't use in effect calculations)
 unsigned long now = millis();
-CRGBPalette16 palette = PartyColors_p;
 
 //StarMod implementation of segment.data
 class SharedData {
@@ -77,10 +76,10 @@ public:
 
   virtual void loop(Leds &leds) {}
 
-  virtual bool controls(JsonObject parentVar, uint8_t rowNr) {return false;}
+  virtual void controls(JsonObject parentVar, Leds &leds) {}
 
-  void addPalette(JsonObject parentVar, uint8_t rowNr) {
-    JsonObject currentVar = ui->initSelect(parentVar, "pal", 4, false, [](JsonObject var) { //uiFun.
+  void addPalette(JsonObject parentVar, uint8_t value, uint8_t rowNr) {
+    JsonObject currentVar = ui->initSelect(parentVar, "pal", value, rowNr, false, [](JsonObject var) { //uiFun.
       web->addResponse(var["id"], "label", "Palette");
       web->addResponse(var["id"], "comment", "Colors");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -92,22 +91,24 @@ public:
       select.add("RainbowStripeColors");
       select.add("PartyColors");
       select.add("HeatColors");
-    }, [](JsonObject var, uint8_t rowNr) { //chFun
-      switch (mdl->getValue(var, rowNr).as<uint8_t>()) {
-        case 0: palette = CloudColors_p; break;
-        case 1: palette = LavaColors_p; break;
-        case 2: palette = OceanColors_p; break;
-        case 3: palette = ForestColors_p; break;
-        case 4: palette = RainbowColors_p; break;
-        case 5: palette = RainbowStripeColors_p; break;
-        case 6: palette = PartyColors_p; break;
-        case 7: palette = HeatColors_p; break;
-        default: palette = PartyColors_p; break;
-      }
-    }, nullptr, 2, [this](JsonObject var, uint8_t rowNr) { //valueFun
+    }, nullptr, nullptr, 2, [this](JsonObject var, uint8_t rowNr) { //valueFun
         mdl->setValue(var, 4, rowNr); //4 is default
     });
     currentVar["stage"] = true;
+  }
+
+  CRGBPalette16 getPalette(uint8_t rowNr) {
+    switch (mdl->getValue("pal", rowNr).as<uint8_t>()) {
+      case 0: return CloudColors_p; break;
+      case 1: return LavaColors_p; break;
+      case 2: return OceanColors_p; break;
+      case 3: return ForestColors_p; break;
+      case 4: return RainbowColors_p; break;
+      case 5: return RainbowStripeColors_p; break;
+      case 6: return PartyColors_p; break;
+      case 7: return HeatColors_p; break;
+      default: return PartyColors_p; break;
+    }
   }
 };
 
@@ -117,17 +118,16 @@ public:
     return "Solid 1D";
   }
   void loop(Leds &leds) {
-    uint8_t red = mdl->getValue("Red");
-    uint8_t green = mdl->getValue("Green");
-    uint8_t blue = mdl->getValue("Blue");
+    uint8_t red = mdl->getValue("Red", leds.rowNr);
+    uint8_t green = mdl->getValue("Green", leds.rowNr);
+    uint8_t blue = mdl->getValue("Blue", leds.rowNr);
     CRGB color = CRGB(red, green, blue);
     leds.fill_solid(color);
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    ui->initSlider(parentVar, "Red", 182);
-    ui->initSlider(parentVar, "Green", 15);
-    ui->initSlider(parentVar, "Blue", 98);
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    ui->initSlider(parentVar, "Red", 182, leds.rowNr);
+    ui->initSlider(parentVar, "Green", 15, leds.rowNr);
+    ui->initSlider(parentVar, "Blue", 98, leds.rowNr);
   }
 };
 
@@ -168,14 +168,11 @@ public:
   void loop(Leds &leds) {
     // a colored dot sweeping back and forth, with fading trails
     leds.fadeToBlackBy(20);
-    int pos = beatsin16( mdl->getValue("BPM").as<int>(), 0, leds.nrOfLeds-1 );
-    // leds[pos] += CHSV( gHue, 255, 192);
+    int pos = beatsin16( mdl->getValue("BPM", leds.rowNr).as<int>(), 0, leds.nrOfLeds-1 );
     leds[pos] = leds.getPixelColor(pos) + CHSV( gHue, 255, 192);
-    // CRGB x = leds[pos];
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    ui->initSlider(parentVar, "BPM", 60);
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    ui->initSlider(parentVar, "BPM", 60, leds.rowNr);
   }
 }; //Sinelon
 
@@ -187,18 +184,17 @@ public:
   }
   void loop(Leds &leds) {
     // a colored dot sweeping back and forth, with fading trails
-    leds.fadeToBlackBy(mdl->getValue("fade").as<int>()); //physical leds
-    int pos = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, leds.nrOfLeds-1 ); //instead of call%leds.nrOfLeds
-    // int pos2 = map(beat16( mdl->getValue("BPM").as<int>(), 1000), 0, uint16_t(-1), 0, leds.nrOfLeds-1 ); //one second later
+    leds.fadeToBlackBy(mdl->getValue("fade", leds.rowNr).as<int>()); //physical leds
+    int pos = map(beat16( mdl->getValue("BPM", leds.rowNr).as<int>()), 0, uint16_t(-1), 0, leds.nrOfLeds-1 ); //instead of call%leds.nrOfLeds
+    // int pos2 = map(beat16( mdl->getValue("BPM", leds.rowNr).as<int>(), 1000), 0, uint16_t(-1), 0, leds.nrOfLeds-1 ); //one second later
     leds[pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
     // leds[leds.nrOfLeds -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var) { //uiFun
+  void controls(JsonObject parentVar, Leds &leds) {
+    ui->initSlider(parentVar, "BPM", 60, leds.rowNr, 0, 255, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "in BPM!");
     });
-    ui->initSlider(parentVar, "fade", 128);
-    return true;
+    ui->initSlider(parentVar, "fade", 128, leds.rowNr);
   }
 };
 
@@ -222,16 +218,17 @@ public:
   }
 
   void loop(Leds &leds) {
+    CRGBPalette16 pal = getPalette(leds.rowNr);
+
     // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
     uint8_t BeatsPerMinute = 62;
     uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
     for (uint16_t i = 0; i < leds.nrOfLeds; i++) { //9948
-      leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
+      leds[i] = ColorFromPalette(pal, gHue+(i*2), beat-gHue+(i*10));
     }
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    addPalette(parentVar, rowNr);
-    return false;
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4, leds.rowNr);
   }
 };
 
@@ -257,7 +254,7 @@ public:
     return "Ripples 3D";
   }
   void loop(Leds &leds) {
-    uint8_t interval = mdl->getValue("interval");
+    uint8_t interval = mdl->getValue("interval", leds.rowNr);
 
     float ripple_interval = 1.3 * (interval/128.0);
 
@@ -274,9 +271,8 @@ public:
         }
     }
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    ui->initSlider(parentVar, "interval", 128);
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    ui->initSlider(parentVar, "interval", 128, leds.rowNr);
   }
 };
 
@@ -327,21 +323,24 @@ public:
   void loop(Leds &leds) {
     leds.fadeToBlackBy(16);
 
+    uint16_t bpm = mdl->getValue("BPM", leds.rowNr);
+    uint16_t intensity = mdl->getValue("intensity", leds.rowNr);
+    CRGBPalette16 pal = getPalette(leds.rowNr);
+
     for (size_t i = 8; i > 0; i--) {
       Coord3D pos = {0,0,0};
-      pos.x = beatsin8(mdl->getValue("BPM").as<int>()/8 + i, 0, leds.size.x - 1);
-      pos.y = beatsin8(mdl->getValue("intensity").as<int>()/8 - i, 0, leds.size.y - 1);
-      CRGB color = ColorFromPalette(palette, beatsin8(12, 0, 255), 255);
+      pos.x = beatsin8(bpm/8 + i, 0, leds.size.x - 1);
+      pos.y = beatsin8(intensity/8 - i, 0, leds.size.y - 1);
+      CRGB color = ColorFromPalette(pal, beatsin8(12, 0, 255), 255);
       leds[pos] = color;
     }
-    leds.blur2d(mdl->getValue("blur"));
+    leds.blur2d(mdl->getValue("blur", leds.rowNr));
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    addPalette(parentVar, rowNr);
-    ui->initSlider(parentVar, "BPM", 60);
-    ui->initSlider(parentVar, "intensity", 128);
-    ui->initSlider(parentVar, "blur", 128);
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4, leds.rowNr);
+    ui->initSlider(parentVar, "BPM", 60, leds.rowNr);
+    ui->initSlider(parentVar, "intensity", 128, leds.rowNr);
+    ui->initSlider(parentVar, "blur", 128, leds.rowNr);
   }
 }; // Frizzles2D
 
@@ -355,24 +354,23 @@ public:
     leds.fadeToBlackBy(100);
 
     Coord3D pos = {0,0,0};
-    if (mdl->getValue("Vertical").as<bool>()) {
-      pos.x = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, leds.size.x-1 ); //instead of call%width
+    if (mdl->getValue("Vertical", leds.rowNr).as<bool>()) {
+      pos.x = map(beat16( mdl->getValue("BPM", leds.rowNr).as<int>()), 0, uint16_t(-1), 0, leds.size.x-1 ); //instead of call%width
 
       for (pos.y = 0; pos.y <  leds.size.y; pos.y++) {
         leds[pos] = CHSV( gHue, 255, 192);
       }
     } else {
-      pos.y = map(beat16( mdl->getValue("BPM").as<int>()), 0, uint16_t(-1), 0, leds.size.y-1 ); //instead of call%height
+      pos.y = map(beat16( mdl->getValue("BPM", leds.rowNr).as<int>()), 0, uint16_t(-1), 0, leds.size.y-1 ); //instead of call%height
       for (pos.x = 0; pos.x <  leds.size.x; pos.x++) {
         leds[pos] = CHSV( gHue, 255, 192);
       }
     }
   }
 
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    ui->initSlider(parentVar, "BPM", 60);
-    ui->initCheckBox(parentVar, "Vertical");
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    ui->initSlider(parentVar, "BPM", 60, leds.rowNr);
+    ui->initCheckBox(parentVar, "Vertical", true, leds.rowNr);
   }
 }; // Lines2D
 
@@ -389,8 +387,8 @@ public:
 
   void loop(Leds &leds) {
 
-    uint8_t speed = mdl->getValue("Speed").as<int>()/32;
-    uint8_t scale = mdl->getValue("scale").as<int>()/32;
+    uint8_t speed = mdl->getValue("Speed", leds.rowNr).as<uint8_t>()/32;
+    uint8_t scale = mdl->getValue("scale", leds.rowNr).as<uint8_t>()/32;
 
     uint8_t  w = 2;
 
@@ -430,10 +428,9 @@ public:
       }
     }
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    ui->initSlider(parentVar, "Speed", 128);
-    ui->initSlider(parentVar, "scale", 128);
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    ui->initSlider(parentVar, "Speed", 128, leds.rowNr);
+    ui->initSlider(parentVar, "scale", 128, leds.rowNr);
   }
 }; // DistortionWaves2D
 
@@ -454,10 +451,11 @@ public:
 
     const uint8_t mapp = 180 / max(leds.size.x,leds.size.y);
 
-    uint8_t speed = mdl->getValue("Speed");
-    uint8_t offsetX = mdl->getValue("Offset X");
-    uint8_t offsetY = mdl->getValue("Offset Y");
-    uint8_t legs = mdl->getValue("Legs");
+    uint8_t speed = mdl->getValue("Speed", leds.rowNr);
+    uint8_t offsetX = mdl->getValue("Offset X", leds.rowNr);
+    uint8_t offsetY = mdl->getValue("Offset Y", leds.rowNr);
+    uint8_t legs = mdl->getValue("Legs", leds.rowNr);
+    CRGBPalette16 pal = getPalette(leds.rowNr);
 
     sharedData.allocate(sizeof(map_t) * leds.size.x * leds.size.y + 2 * sizeof(uint8_t) + 2 * sizeof(uint16_t) + sizeof(uint32_t));
     map_t *rMap = sharedData.bind<map_t>(leds.size.x * leds.size.y); //array
@@ -487,7 +485,7 @@ public:
       }
     }
 
-    *step = now * speed / 32 / 10;//mdl->getValue("realFps").as<int>();  // WLEDMM 40fps
+    *step = now * speed / 32 / 10;//mdl->getValue("realFps", leds.rowNr).as<int>();  // WLEDMM 40fps
 
     for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
       for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
@@ -496,18 +494,18 @@ public:
         //CRGB c = CHSV(SEGENV.step / 2 - radius, 255, sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step) + radius - SEGENV.step * 2 + angle * (SEGMENT.custom3/3+1)));
         uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + *step/2) + radius - *step + angle * legs);
         intensity = map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
-        CRGB color = ColorFromPalette(palette, *step / 2 - radius, intensity);
+        CRGB color = ColorFromPalette(pal, *step / 2 - radius, intensity);
         leds[pos] = color;
       }
     }
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    addPalette(parentVar, rowNr);
-    ui->initSlider(parentVar, "Speed", 128, 1, 255); //start with speed 1
-    ui->initSlider(parentVar, "Offset X", 128);
-    ui->initSlider(parentVar, "Offset Y", 128);
-    ui->initSlider(parentVar, "Legs", 4, 1, 8);
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4, leds.rowNr);
+    ui->initSlider(parentVar, "Speed", 128, leds.rowNr, 1, 255); //start with speed 1
+    ui->initSlider(parentVar, "Offset X", 128, leds.rowNr);
+    ui->initSlider(parentVar, "Offset Y", 128, leds.rowNr);
+    USER_PRINTF("Legs %d\n", leds.rowNr);
+    ui->initSlider(parentVar, "Legs", 4, leds.rowNr, 1, 8);
   }
 }; // Octopus2D
 
@@ -520,10 +518,11 @@ public:
 
   void loop(Leds &leds) {
 
-    uint8_t freqX = mdl->getValue("X frequency");
-    uint8_t fadeRate = mdl->getValue("Fade rate");
-    uint8_t speed = mdl->getValue("Speed");
-    bool smooth = mdl->getValue("Smooth");
+    uint8_t freqX = mdl->getValue("X frequency", leds.rowNr);
+    uint8_t fadeRate = mdl->getValue("Fade rate", leds.rowNr);
+    uint8_t speed = mdl->getValue("Speed", leds.rowNr);
+    bool smooth = mdl->getValue("Smooth", leds.rowNr);
+    CRGBPalette16 pal = getPalette(leds.rowNr);
 
     leds.fadeToBlackBy(fadeRate);
 
@@ -539,7 +538,7 @@ public:
           //SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing
           unsigned palIndex = (256*locn.y) + phase/2 + (i* freqX)/64;
           // SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(palIndex, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing - color follows rotation
-          leds[locn] = ColorFromPalette(palette, palIndex);
+          leds[locn] = ColorFromPalette(pal, palIndex);
         }
     } else
     for (int i=0; i < 256; i ++) {
@@ -549,16 +548,15 @@ public:
       locn.x = (leds.size.x < 2) ? 1 : (map(2*locn.x, 0,511, 0,2*(leds.size.x-1)) +1) /2;    // softhack007: "*2 +1" for proper rounding
       locn.y = (leds.size.y < 2) ? 1 : (map(2*locn.y, 0,511, 0,2*(leds.size.y-1)) +1) /2;    // "leds.size.y > 2" is needed to avoid div/0 in map()
       // SEGMENT.setPixelColorXY((uint8_t)xlocn, (uint8_t)ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0));
-      leds[locn] = ColorFromPalette(palette, now/100+i);
+      leds[locn] = ColorFromPalette(pal, now/100+i);
     }
   }
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    addPalette(parentVar, rowNr);
-    ui->initSlider(parentVar, "X frequency", 64);
-    ui->initSlider(parentVar, "Fade rate", 128);
-    ui->initSlider(parentVar, "Speed", 128);
-    ui->initCheckBox(parentVar, "Smooth");
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4, leds.rowNr);
+    ui->initSlider(parentVar, "X frequency", 64, leds.rowNr);
+    ui->initSlider(parentVar, "Fade rate", 128, leds.rowNr);
+    ui->initSlider(parentVar, "Speed", 128, leds.rowNr);
+    ui->initCheckBox(parentVar, "Smooth", false, leds.rowNr);
   }
 }; // Lissajous2D
 
@@ -580,8 +578,9 @@ public:
   }
 
   void loop(Leds &leds) {
-    uint8_t grav = mdl->getValue("gravity");
-    uint8_t numBalls = mdl->getValue("balls");
+    uint8_t grav = mdl->getValue("gravity", leds.rowNr);
+    uint8_t numBalls = mdl->getValue("balls", leds.rowNr);
+    CRGBPalette16 pal = getPalette(leds.rowNr);
 
     sharedData.allocate(sizeof(Ball) * maxNumBalls);
     Ball *balls = sharedData.bind<Ball>(maxNumBalls); //array
@@ -629,7 +628,7 @@ public:
 
       int pos = roundf(balls[i].height * (leds.nrOfLeds - 1));
 
-      CRGB color = ColorFromPalette(palette, i*(256/max(numBalls, (uint8_t)8)), 255);
+      CRGB color = ColorFromPalette(pal, i*(256/max(numBalls, (uint8_t)8)), 255);
 
       leds[pos] = color;
       // if (SEGLEN<32) SEGMENT.setPixelColor(indexToVStrip(pos, stripNr), color); // encode virtual strip into index
@@ -637,11 +636,10 @@ public:
     } //balls
   }
 
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    addPalette(parentVar, rowNr);
-    ui->initSlider(parentVar, "gravity", 128);
-    ui->initSlider(parentVar, "balls", 8, 1, 16);
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4, leds.rowNr);
+    ui->initSlider(parentVar, "gravity", 128, leds.rowNr);
+    ui->initSlider(parentVar, "balls", 8, leds.rowNr, 1, 16);
   }
 }; // BouncingBalls2D
 
@@ -676,6 +674,39 @@ public:
   }
 };
 
+class ScrollingText2D: public Effect {
+public:
+  const char * name() {
+    return "Scrolling Text 2D";
+  }
+
+  void loop(Leds &leds) {
+    uint8_t speed = mdl->getValue("Speed", leds.rowNr);
+    uint8_t font = mdl->getValue("font", leds.rowNr);
+    const char * text = mdl->getValue("text", leds.rowNr);
+
+    // text might be nullified by selecting other effects and if effect is selected, controls are run afterwards  
+    // tbd: this should be removed and setEffect must make sure this cannot happen!!
+    if (text && strlen(text)>0) {
+      leds.fadeToBlackBy();
+      leds.drawText(text, 0, 0, font, CRGB::Red, - (call*speed/256));
+    }
+
+  }
+  void controls(JsonObject parentVar, Leds &leds) {
+    ui->initText(parentVar, "text", "StarMod", leds.rowNr);
+    ui->initSlider(parentVar, "Speed", 128, leds.rowNr);
+    ui->initSelect(parentVar, "font", 0, leds.rowNr, false, [](JsonObject var) { //uiFun.
+      JsonArray select = web->addResponseA(var["id"], "options");
+      select.add("4x6");
+      select.add("5x8");
+      select.add("5x12");
+      select.add("6x8");
+      select.add("7x9");
+    });
+  }
+};
+
 
 #ifdef USERMOD_WLEDAUDIO
 
@@ -701,10 +732,11 @@ public:
     uint8_t samplePeak = *(uint8_t*)um_data->u_data[3];
     #endif
 
-    uint8_t fadeOut = mdl->getValue("fadeOut");
-    uint8_t ripple = mdl->getValue("ripple"); 
-    bool colorBars = mdl->getValue("colorBars");
-    bool smoothBars = mdl->getValue("smoothBars");
+    uint8_t fadeOut = mdl->getValue("fadeOut", leds.rowNr);
+    uint8_t ripple = mdl->getValue("ripple", leds.rowNr); 
+    bool colorBars = mdl->getValue("colorBars", leds.rowNr);
+    bool smoothBars = mdl->getValue("smoothBars", leds.rowNr);
+    CRGBPalette16 pal = getPalette(leds.rowNr);
 
     bool rippleTime = false;
     if (now - *step >= (256U - ripple)) {
@@ -760,7 +792,7 @@ public:
         if (colorBars) //color_vertical / color bars toggle
           colorIndex = map(pos.y, 0, leds.size.y-1, 0, 255);
 
-        ledColor = ColorFromPalette(palette, (uint8_t)colorIndex);
+        ledColor = ColorFromPalette(pal, (uint8_t)colorIndex);
 
         leds.setPixelColor(leds.XY(pos.x, leds.size.y - 1 - pos.y), ledColor);
       }
@@ -773,12 +805,12 @@ public:
     }
   }
 
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    addPalette(parentVar, rowNr);
-    ui->initSlider(parentVar, "fadeOut", 255);
-    ui->initSlider(parentVar, "ripple", 128);
-    ui->initCheckBox(parentVar, "colorBars");
-    ui->initCheckBox(parentVar, "smoothBars", true); //default on
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4, leds.rowNr);
+    ui->initSlider(parentVar, "fadeOut", 255, leds.rowNr);
+    ui->initSlider(parentVar, "ripple", 128, leds.rowNr);
+    ui->initCheckBox(parentVar, "colorBars", false, leds.rowNr);
+    ui->initCheckBox(parentVar, "smoothBars", true, leds.rowNr);
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 
@@ -791,8 +823,6 @@ public:
       }
 
     #endif
-
-    return true;
   }
 };
 
@@ -803,10 +833,11 @@ public:
   }
 
   void loop(Leds &leds) {
+    CRGBPalette16 pal = getPalette(leds.rowNr);
     for (int i = 0; i < 7; i++) { // 7 rings
 
       uint8_t val;
-      if(mdl->getValue("inWards").as<bool>()) {
+      if(mdl->getValue("inWards", leds.rowNr).as<bool>()) {
         val = wledAudioMod->fftResults[(i*2)];
       }
       else {
@@ -815,29 +846,28 @@ public:
       }
   
       // Visualize leds to the beat
-      CRGB color = ColorFromPalette(palette, val, val);
+      CRGB color = ColorFromPalette(pal, val, val);
 //      CRGB color = ColorFromPalette(currentPalette, val, 255, currentBlending);
 //      color.nscale8_video(val);
       setRing(leds, i, color);
 //        setRingFromFtt((i * 2), i); 
     }
 
-    setRingFromFtt(leds, 2, 7); // set outer ring to bass
-    setRingFromFtt(leds, 0, 8); // set outer ring to bass
+    setRingFromFtt(leds, pal, 2, 7); // set outer ring to bass
+    setRingFromFtt(leds, pal, 0, 8); // set outer ring to bass
 
   }
-  void setRingFromFtt(Leds &leds, int index, int ring) {
+  void setRingFromFtt(Leds &leds, CRGBPalette16 pal, int index, int ring) {
     uint8_t val = wledAudioMod->fftResults[index];
     // Visualize leds to the beat
-    CRGB color = ColorFromPalette(palette, val, 255);
+    CRGB color = ColorFromPalette(pal, val, 255);
     color.nscale8_video(val);
     setRing(leds, ring, color);
   }
 
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    addPalette(parentVar, rowNr);
-    ui->initCheckBox(parentVar, "inWards");
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4, leds.rowNr);
+    ui->initCheckBox(parentVar, "inWards", true, leds.rowNr);
   }
 };
 
@@ -856,11 +886,11 @@ public:
     uint8_t *aux0 = sharedData.bind<uint8_t>();
     if (!sharedData.allocated()) return;
 
-    uint8_t speed = mdl->getValue("Speed");
-    uint8_t fx = mdl->getValue("Sound effect");
-    uint8_t lowBin = mdl->getValue("Low bin");
-    uint8_t highBin = mdl->getValue("High bin");
-    uint8_t sensitivity10 = mdl->getValue("Sensivity");
+    uint8_t speed = mdl->getValue("Speed", leds.rowNr);
+    uint8_t fx = mdl->getValue("Sound effect", leds.rowNr);
+    uint8_t lowBin = mdl->getValue("Low bin", leds.rowNr);
+    uint8_t highBin = mdl->getValue("High bin", leds.rowNr);
+    uint8_t sensitivity10 = mdl->getValue("Sensivity", leds.rowNr);
 
     uint8_t secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
     if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
@@ -895,14 +925,12 @@ public:
     }
   }
 
-  bool controls(JsonObject parentVar, uint8_t rowNr) {
-    ui->initSlider(parentVar, "Speed", 255);
-    ui->initSlider(parentVar, "Sound effect", 128);
-    ui->initSlider(parentVar, "Low bin", 18);
-    ui->initSlider(parentVar, "High bin", 48);
-    ui->initSlider(parentVar, "Sensivity", 30, 10, 100);
-
-    return true;
+  void controls(JsonObject parentVar, Leds &leds) {
+    ui->initSlider(parentVar, "Speed", 255, leds.rowNr);
+    ui->initSlider(parentVar, "Sound effect", 128, leds.rowNr);
+    ui->initSlider(parentVar, "Low bin", 18, leds.rowNr);
+    ui->initSlider(parentVar, "High bin", 48, leds.rowNr);
+    ui->initSlider(parentVar, "Sensivity", 30, leds.rowNr, 10, 100);
   }
 };
 
@@ -931,6 +959,7 @@ public:
     effects.push_back(new Lissajous2D);
     effects.push_back(new BouncingBalls1D);
     effects.push_back(new RingRandomFlow);
+    effects.push_back(new ScrollingText2D);
     #ifdef USERMOD_WLEDAUDIO
       effects.push_back(new GEQEffect);
       effects.push_back(new AudioRings);
@@ -988,9 +1017,9 @@ public:
   bool setEffect(Leds &leds, JsonObject var, uint8_t rowNr) {
     bool doMap = false;
 
-    leds.fx = mdl->getValue(var, rowNr);
+    leds.fx = mdl->getValue(var, leds.rowNr);
 
-    USER_PRINTF("setEffect %d\n", leds.fx);
+    USER_PRINTF("setEffect l:%d %d\n", leds.rowNr, leds.fx);
 
     if (leds.fx < effects.size()) {
 
@@ -1016,45 +1045,50 @@ public:
 
       sharedData.clear(); //make sure all values are 0
 
-      // nullify values for this row
-      if (rowNr != UINT8_MAX) {
-        for (JsonObject var: var["n"].as<JsonArray>()) {
-          if (var["value"].is<JsonArray>()) {
-            var["value"][rowNr] = -99;
-          } else {
-            var["value"].to<JsonArray>();
-            var["value"][rowNr] = -99; //unused value for this row, so don't show
-          }
-          // mdl->setValue(var, -99, rowNr); //unused value for this row, so don't show
+
+      for (JsonObject var: var["n"].as<JsonArray>()) { //for all controls
+        if (var["o"].as<int>() >= 0) { //post init
+          var["o"] = -var["o"].as<int>(); // set all negative
         }
-        // set all values null for this row
-
-        // var.remove("value");
       }
-      else 
-        var.remove("n"); //tbd: we should also remove the uiFun and chFun !!
-        //tbd: we need to reuse the values set...
-
-      // // nullify values for this row
-      // for (JsonObject var: var["n"].as<JsonArray>()) {
-      //   if (rowNr != UINT8_MAX) {
-      //     if (var["value"].is<JsonArray>()) {
-      //       var["value"][rowNr] = -99; //unused value for this row, so don't show
-      //     } else {
-      //       var["value"].to<JsonArray>();
-      //       var["value"][rowNr] = -99; //unused value for this row, so don't show
-      //     }
-      //   }
-      //   // else 
-      //     // var["value"] = -99;
-      // }
-      // // else 
-      // //   var.remove("n"); //tbd: we should also remove the uiFun and chFun !!
 
       Effect* effect = effects[leds.fx];
-      effect->controls(var, rowNr);
+      effect->controls(var, leds); //new controls are positive
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
+
+      //check if post init added
+      bool postInit = false;
+      for (JsonObject var: var["n"].as<JsonArray>()) {
+
+        if (var["o"].as<int>() >= 0) { //post init, just added, 
+          postInit = true;
+          break;
+        }
+      }
+      if (postInit) {
+        for (JsonObject var: var["n"].as<JsonArray>()) {
+
+          if (var["o"].as<int>() < 0) { //if not updated
+            var["value"][rowNr] = (char*)0; //null
+            // mdl->setValue(var, -99, rowNr); //set value -99
+            var["o"] = -var["o"].as<int>(); //make positive again
+            //if some values in array are not -99
+          }
+          print->printJson("control", var);
+        }
+      }
+        // if (var["o"].as<int>() >= 0) { //post init
+        //   var["o"] = -var["o"].as<int>(); //make positive again
+        //set unused vars to inactive 
+        // if (var["o"].as<int>() >=0)
+        //   mdl->setValue(var, UINT16_MAX, rowNr);
+      // }
+      // for (JsonObject var: var["n"].as<JsonArray>()) {
+      //   if (var["o"].as<int>() <0)
+      //     var["o"] = -var["o"].as<int>();
+      // }
+      //remove vars with all values -99
 
       JsonDocument *responseDoc = web->getResponseDoc();
       responseDoc->clear(); //needed for deserializeJson?

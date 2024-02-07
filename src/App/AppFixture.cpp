@@ -79,6 +79,7 @@
 
             if (pixel >= startPosAdjusted && pixel <= endPosAdjusted) {
 
+              // to display ScrollingText on one side of a cube (WIP)
               if (fixtureDimension == 3 && endPosAdjusted.z == 0)
                 fixtureDimension = _2D;
 
@@ -319,8 +320,8 @@
           }
 
           USER_PRINTF("projectAndMap V:%dx%dx%d V:%dx%dx%d and V:%d P:%d\n", leds->size.x, leds->size.y, leds->size.z, size.x, size.y, size.z, leds->nrOfLeds, nrOfLeds);
-          mdl->setValue("fxSize", leds->size, rowNr);
-          mdl->setValue("fxCount", leds->nrOfLeds, rowNr);
+
+          mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
 
           USER_PRINTF("leds[%d].size = %d + %d\n", leds->rowNr, sizeof(Leds), leds->mappingTable.size()); //44
 

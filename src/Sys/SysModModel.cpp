@@ -93,7 +93,7 @@ void SysModModel::setup() {
   }
 }
 void SysModModel::loop1s() {
-  setValueUIOnly("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
+  setUIValueV("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
 }
 
 void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
@@ -194,7 +194,20 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
 
 //tbd: use template T for value
 //run the change function and send response to all? websocket clients
-void SysModModel::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) { //value: bypass var["value"]
+void SysModModel::callChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) { //value: bypass var["value"]
+
+  //init before chFun so it can also use response
+  JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
+
+  if (value)
+    web->addResponse(var["id"], "value", JsonString(value, JsonString::Copied));
+  else {
+    web->addResponse(var["id"], "value", var["value"]);
+  }
+
+  //done here as ui cannot be used in SysModModel.h
+  if (var["stage"])
+    ui->stageVarChanged = true;
 
   if (!var["chFun"].isNull()) {//isNull needed here!
     size_t funNr = var["chFun"];
@@ -206,38 +219,8 @@ void SysModModel::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * valu
       ui->cFunctions[funNr](var, rowNr==UINT8_MAX?0:rowNr); //send rowNr = 0 if no rowNr
     }
     else    
-      USER_PRINTF("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ui->cFunctions.size());
+      USER_PRINTF("dev callChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ui->cFunctions.size());
   }
 
-  if (var["stage"])
-    ui->stageVarChanged = true;
-
-  JsonDocument *responseDoc = web->getResponseDoc();
-  responseDoc->clear(); //needed for deserializeJson?
-  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
-
-  if (value)
-    web->addResponse(var["id"], "value", JsonString(value, JsonString::Copied));
-  else {
-    if (var["value"].is<int>())
-      web->addResponse(var["id"], "value", var["value"].as<int>());
-    else if (var["value"].is<bool>())
-      web->addResponse(var["id"], "value", var["value"].as<bool>());
-    else if (var["value"].is<const char *>())
-      web->addResponse(var["id"], "value", var["value"].as<const char *>());
-    else if (var["value"].is<Coord3D>()) {
-      // USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-      web->addResponse(var["id"], "value", var["value"].as<Coord3D>());
-    }
-    else if (var["value"].is<JsonArray>()) {
-      // USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-      web->addResponse(var["id"], "value", var["value"].as<JsonArray>());
-    }
-    else {
-      USER_PRINTF("setChFunAndWs %s unknown type for %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-      // web->addResponse(var["id"], "value", var["value"]);
-    }
-  }
-
-  web->sendDataWs(responseVariant);
-}
+  web->sendDataWs(responseObject);
+}  

@@ -31,7 +31,11 @@ ls -tU
 remove sound
 for f in (I*.mov|sort -d) ; do ffmpeg -i $PWD/$f -c copy -an $PWD/$f.nosound.mov; done
 
+Update instance
+curl -s -F "update=@/Users/ewoudwijma/Developer/GitHub/ewowi/StarMod/.pio/build/esp32dev/firmware.bin" 192.168.8.189/update
 
 
 
 FileCreateDate for png files
+
+curl -F 'data=@model.json' 4.3.2.1/upload

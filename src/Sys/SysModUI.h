@@ -49,8 +49,8 @@ class SysModUI:public SysModule {
 
 public:
   static bool stageVarChanged;// = false; //tbd: move mechanism to UserModInstances as there it will be used
-  static std::vector<UFun> uFunctions; //static because of static functions setChFunAndWs, processJson...
-  static std::vector<CFun> cFunctions; //static because of static functions setChFunAndWs, processJson...
+  static std::vector<UFun> uFunctions; //static because of static functions callChFunAndWs, processJson...
+  static std::vector<CFun> cFunctions; //static because of static functions callChFunAndWs, processJson...
 
   SysModUI();
 
@@ -86,8 +86,12 @@ public:
     return initVarAndUpdate<int>(parent, id, "number", value, UINT8_MAX, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
-  JsonObject initCoord3D(JsonObject parent, const char * id, Coord3D value = {UINT16_MAX, UINT16_MAX, UINT16_MAX}, int min = 0, int max = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<Coord3D>(parent, id, "coord3D", value, UINT8_MAX, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  JsonObject initProgress(JsonObject parent, const char * id, int value = UINT16_MAX, uint8_t rowNr = UINT8_MAX, int min = 0, int max = 255, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "progress", value, rowNr, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  }
+
+  JsonObject initCoord3D(JsonObject parent, const char * id, Coord3D value = {UINT16_MAX, UINT16_MAX, UINT16_MAX}, uint8_t rowNr = UINT8_MAX, int min = 0, int max = UINT16_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<Coord3D>(parent, id, "coord3D", value, rowNr, min, max, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   //init a range slider, range between 0 and 255!
@@ -155,7 +159,7 @@ public:
       }
     }
     else { //do changeFun on existing value
-      //no call of fun for buttons otherwise all buttons will be fired which is highly undesirable
+      //no call of chFun for buttons otherwise all buttons will be fired which is highly undesirable
       if (strcmp(type,"button") != 0 && chFun ) { //!isPointer because 0 is also a value then && (!isPointer || value)
         USER_PRINTF("initVarAndUpdate chFun init %s v:%s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
         if (var["value"].is<JsonArray>()) {
@@ -175,7 +179,7 @@ public:
   JsonObject initVar(JsonObject parent, const char * id, const char * type, bool readOnly = true, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr);
 
   //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
-  static const char * processJson(JsonVariant json); //static for jsonHandler
+  void processJson(JsonVariant json); //static for jsonHandler, must be Variant, not object for jsonhandler
 
   //called to rebuild selects and tables (tbd: also label and comments is done again, that is not needed)
   void processUiFun(const char * id);

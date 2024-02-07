@@ -163,7 +163,7 @@ void SysModWeb::loop1s() {
     rowNr++;
   }
 
-  mdl->setValueUIOnly("wsCounter", "%lu /s", sendDataWsCounter);
+  mdl->setUIValueV("wsCounter", "%lu /s", sendDataWsCounter);
   sendDataWsCounter = 0;
 }
 
@@ -262,7 +262,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
           USER_PRINT_Async("pong\n");
           client->text("pong");
         } else {
-          JsonDocument *responseDoc = web->getResponseDoc();
+          JsonDocument *responseDoc = web->getResponseDoc(); //we need the doc for deserializeJson
           responseDoc->clear(); //needed for deserializeJson?
           JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
@@ -272,17 +272,18 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
             USER_PRINT_Async("wsEvent deserializeJson failed with code %s\n", error.c_str());
             client->text("{\"success\":true}"); // we have to send something back otherwise WS connection closes
           } else {
-            const char * error = ui->processJson(responseVariant); //processJson, adds to responseDoc / responseVariant
+            bool isUiFun = !responseVariant["uiFun"].isNull();
+            ui->processJson(responseVariant); //adds to responseDoc / responseVariant
 
             if (responseVariant.size()) {
               print->printJson("WS_EVT_DATA json", responseVariant);
               print->printJDocInfo("WS_EVT_DATA info", *responseDoc);
 
               //uiFun only send to requesting client
-              if (responseVariant["uiFun"].isNull())
-                sendDataWs(responseVariant);
-              else
+              if (isUiFun)
                 sendDataWs(responseVariant, client);
+              // else
+              //   sendDataWs(responseVariant); //is done already in processJson (WIP)
             }
             else {
               USER_PRINT_Async("WS_EVT_DATA no responseDoc\n");
@@ -387,7 +388,7 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
   if (ws->count()) {
     if (len > 8192)
       USER_PRINTF("program error: sendDataWs BufferLen too high !!!%d\n", len);
-    AsyncWebSocketMessageBuffer * wsBuf = ws->makeBuffer(len);
+    AsyncWebSocketMessageBuffer * wsBuf = ws->makeBuffer(len); //assert failed: block_trim_free heap_tlsf.c:371 (block_is_free(block) && "block must be free"), AsyncWebSocket::makeBuffer(unsigned int)
 
     if (wsBuf) {
       wsBuf->lock();
@@ -405,7 +406,7 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
           else {
             printClient("sendDataWs client full or not connected", loopClient); //causes crash
             // USER_PRINTF("sendDataWs client full or not connected\n");
-            // ws->cleanupClients(); //only if above threshold
+            ws->cleanupClients(); //only if above threshold
             // ws->_cleanBuffers();
           }
         }
@@ -508,7 +509,7 @@ void SysModWeb::serveFiles(WebRequest *request) {
 
   const char * urlString = request->url().c_str();
   const char * path = urlString + strlen("/file"); //remove the uri from the path (skip their positions)
-  USER_PRINT_Async("fileServer request %s %s\n", request->url().c_str(), path);
+  USER_PRINT_Async("fileServer request %s\n", path);
   if(LittleFS.exists(path)) {
     request->send(LittleFS, path, "text/plain");//"application/json");
   }
@@ -521,7 +522,7 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
   JsonVariant responseVariant = responseDoc->as<JsonVariant>();
 
   print->printJson("AsyncCallbackJsonWebHandler", json);
-  const char * pErr = ui->processJson(json); //processJson
+  ui->processJson(json); //processJson
 
   //WLED compatibility
   if (json["v"]) { //WLED compatibility: verbose response
@@ -574,7 +575,7 @@ void SysModWeb::serveJson(WebRequest *request) {
 
     // root = model does not work? so add each element individually
     for (JsonObject module: model)
-      root.add(module);
+      root.add(module); //Debug exception reason: Stack canary watchpoint triggered (async_tcp) (jsonarray add copyfrom memorypool)
   }
   // instances crashes!
   // else if (request->url().indexOf("instances") > 0) {

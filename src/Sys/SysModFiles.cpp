@@ -44,7 +44,7 @@ void SysModFiles::setup() {
       if (rowNr != UINT8_MAX) {
         // call uiFun of tbl to fill responseVariant with files
         ui->uFunctions[var["uiFun"]](var);
-        //get the table values
+        //trick to get the table values tbd: use column values
         JsonVariant responseVariant = web->getResponseDoc()->as<JsonVariant>();
         JsonArray row = responseVariant["fileTbl"]["value"][rowNr];
         if (!row.isNull()) {
@@ -84,7 +84,7 @@ void SysModFiles::loop(){
   // SysModule::loop();
 
   if (filesChanged) {
-    mdl->setValueUIOnly("drsize", "%d / %d B", usedBytes(), totalBytes());
+    mdl->setUIValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
     filesChanged = false;
 
     ui->processUiFun("fileTbl");

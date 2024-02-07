@@ -16,6 +16,7 @@ let jsonValues = {};
 let uiFunCommands = [];
 let model = []; //model.json (as send by the server), used by FindVar
 let savedView = null;
+const UINT8_MAX = 255;
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -97,7 +98,7 @@ function makeWS() {
             // console.log("WS receive update", json);
             receiveData(json);
           else
-            console.log("program error array not expected", json);
+            console.log("dev array not expected", json);
         }
       }
     }
@@ -137,7 +138,7 @@ function linearToLogarithm(json, value) {
   return Math.round(result);
 }
 
-function createHTML(json, parentNode = null, rowNr = -1) {
+function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
 
   // console.log("createHTML", json, parentNode);
   if (Array.isArray(json)) {
@@ -153,9 +154,9 @@ function createHTML(json, parentNode = null, rowNr = -1) {
   else { // json is variable
     let  variable = json;
 
-    if (Array.isArray(variable.value) && rowNr != -1) {
+    if (Array.isArray(variable.value) && rowNr != UINT8_MAX) {
       if (rowNr < variable.value.length && variable.value[rowNr] == null) {
-        console.log("not showing this var as value is null", variable, rowNr);
+        // console.log("not showing this var as value is null", variable, rowNr);
         return;
       }
     }
@@ -167,7 +168,7 @@ function createHTML(json, parentNode = null, rowNr = -1) {
     }
     let parentNodeType = parentNode.nodeName.toLocaleLowerCase();
 
-    let isPartOfTableRow = (rowNr != -1);
+    let isPartOfTableRow = (rowNr != UINT8_MAX);
 
     // if (!variable || !variable.id) {
     //   console.log("genHTML no variable and id", variable, parentNode); //tbd: caused by more data then columns in table...
@@ -317,7 +318,7 @@ function createHTML(json, parentNode = null, rowNr = -1) {
       varNode = cE("input");
       varNode.type = variable.type;
       varNode.disabled = variable.ro;
-      varNode.value = initCap(variable.id); //initial label
+      varNode.value = initCap(variable.id); //initial label, button.value is the label shown on the button
       varNode.addEventListener('click', (event) => {console.log(variable.type + " click", event.target);sendValue(event.target);});
     } else if (variable.type == "range") {
       varNode = cE("input");
@@ -364,6 +365,10 @@ function createHTML(json, parentNode = null, rowNr = -1) {
         zNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
         varNode.appendChild(zNode);
       }
+    } else if (variable.type == "progress") {
+      varNode = cE("progress");
+      varNode.min = variable.min?variable.min:0; //if not specified then unsigned value (min=0)
+      if (variable.max) varNode.max = variable.max;
     } else {
       //input types: text, search, tel, url, email, and password.
 
@@ -447,7 +452,7 @@ function createHTML(json, parentNode = null, rowNr = -1) {
   } //not an array but variable
 }
 
-function genTableRowHTML(json, parentNode = null, rowNr = -1) {
+function genTableRowHTML(json, parentNode = null, rowNr = UINT8_MAX) {
   let variable = json;
   let tbodyNode = parentNode.querySelector("tbody");
   // console.log("genTableRowHTML", parentNode.id, rowNr, tbodyNode.querySelectorAll("tr").length);
@@ -508,8 +513,8 @@ function receiveData(json) {
       }
       else if (key == "details") {
         let variable = value.var;
-        let rowNr = value.rowNr == null?-1:value.rowNr;
-        let nodeId = variable.id + ((rowNr != -1)?"#" + rowNr:"");
+        let rowNr = value.rowNr == null?UINT8_MAX:value.rowNr;
+        let nodeId = variable.id + ((rowNr != UINT8_MAX)?"#" + rowNr:"");
         //if var object with .n, create .n (e.g. see setEffect and fixtureGenChFun, tbd: )
         console.log("receiveData details", key, variable, nodeId, rowNr);
         if (gId(nodeId + "_n")) gId(nodeId + "_n").remove(); //remove old ndiv
@@ -533,7 +538,7 @@ function receiveData(json) {
           // console.log("updRow main", tableId, tableRows, tableNode, tableVar);
 
           let rowFound = false;
-          let rowNr = -1;
+          let rowNr = UINT8_MAX;
           for (let nodeRowNr = 1, rowNode; rowNode = tableNode.rows[nodeRowNr]; nodeRowNr++) { //<table> rows starting with header row
             rowNr = nodeRowNr - 1;
             // console.log("  noderow", rowNr, rowNode);
@@ -593,11 +598,11 @@ function receiveData(json) {
 } //receiveData
 
 //do something with an existing (variable) node, key is an existing node, json is what to do with it
-function changeHTML(variable, commandJson, rowNr = -1) {
+function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
 
   let node = null;
 
-  if (rowNr != -1) node = gId(variable.id + "#" + rowNr);
+  if (rowNr != UINT8_MAX) node = gId(variable.id + "#" + rowNr);
   else node = gId(variable.id);
 
   if (!node) {
@@ -605,16 +610,16 @@ function changeHTML(variable, commandJson, rowNr = -1) {
     let rowNodes = document.querySelectorAll(`${variable.type}[id*="${variable.id}#"]`); //find nodes from the right class with id + #nr
     for (let subNode of rowNodes) {
       let rowNr = parseInt(subNode.id.substring(variable.id.length + 1));
-      console.log("changeHTML found row nodes !", variable, subNode, commandJson, rowNr);
+      // console.log("changeHTML found row nodes !", variable, subNode, commandJson, rowNr);
       changeHTML(variable, commandJson, rowNr); //recursive call of all nodes
     }
-    if (rowNodes.length == 0)
-      console.log("dev changeHTML no node !", variable, node, commandJson, rowNr);
+    // if (rowNodes.length == 0) //can happen e.g. fixture parameters
+    //   console.log("changeHTML no node !", variable, node, commandJson, rowNr);
     return;
   }
 
   let nodeType = node.nodeName.toLocaleLowerCase();
-  let isPartOfTableRow = (rowNr != -1);
+  let isPartOfTableRow = (rowNr != UINT8_MAX);
 
   if (commandJson.hasOwnProperty("label")) {
     if (nodeType == "th") //table header
@@ -747,7 +752,7 @@ function changeHTML(variable, commandJson, rowNr = -1) {
       let trNodes = tableNode.querySelector('tbody').querySelectorAll("tr");
       let tableVar = findVar(tableNode.id); //tbd: table in table
       let valueLength = Array.isArray(commandJson.value)?commandJson.value.length:1; //tbd: use table nr of rows (not saved yet)
-      // console.log("changeHTML th column", node.id, (rowNr == -1)?JSON.stringify(commandJson.value):commandJson.value[rowNr], commandJson.chk, rowNr);
+      // console.log("changeHTML th column", node.id, (rowNr == UINT8_MAX)?JSON.stringify(commandJson.value):commandJson.value[rowNr], commandJson.chk, rowNr);
 
       let max = Math.max(valueLength, trNodes.length);
       for (let newRowNr = 0; newRowNr<max;newRowNr++) {
@@ -773,9 +778,9 @@ function changeHTML(variable, commandJson, rowNr = -1) {
 
     }
     else if (node.parentNode.parentNode.nodeName.toLocaleLowerCase() == "td" && Array.isArray(commandJson.value)) { //table column, called for each column cell!!!
-      // console.log("changeHTML value array", node.parentNode.parentNode.nodeName.toLocaleLowerCase(), node.id, (rowNr == -1)?JSON.stringify(commandJson.value):commandJson.value[rowNr], commandJson.chk, rowNr);
+      // console.log("changeHTML value array", node.parentNode.parentNode.nodeName.toLocaleLowerCase(), node.id, (rowNr == UINT8_MAX)?JSON.stringify(commandJson.value):commandJson.value[rowNr], commandJson.chk, rowNr);
 
-      if (rowNr == -1) {
+      if (rowNr == UINT8_MAX) {
         console.log("changeHTML value array should not happen when no rowNr", variable, node, commandJson, rowNr);
         let newRowNr = 0;
         for (let val of commandJson.value) {
@@ -848,7 +853,7 @@ function changeHTML(variable, commandJson, rowNr = -1) {
         console.log("   value coord3D value not object[x,y,z]", commandJson.value);
     }
     else {//inputs or select
-      if (Array.isArray(commandJson.value) && rowNr != -1)
+      if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX)
         node.value = commandJson.value[rowNr];
       else
         node.value = commandJson.value;
@@ -863,7 +868,7 @@ function changeHTML(variable, commandJson, rowNr = -1) {
 
     //value assignments depending on different situations
 
-    if ((variable.value == null || !Array.isArray(variable.value)) && !Array.isArray(commandJson.value) && rowNr == -1) {
+    if ((variable.value == null || !Array.isArray(variable.value)) && !Array.isArray(commandJson.value) && rowNr == UINT8_MAX) {
       //no arrays and rowNr. normal situation
       if (variable.value != commandJson.value)
         variable.value = commandJson.value;
@@ -888,7 +893,7 @@ function changeHTML(variable, commandJson, rowNr = -1) {
         variable.value[rowNr] = commandJson.value;
       }
     }
-    else if (!Array.isArray(variable.value) && !Array.isArray(commandJson.value) && rowNr != -1) {
+    else if (!Array.isArray(variable.value) && !Array.isArray(commandJson.value) && rowNr != UINT8_MAX) {
       if (variable.value != commandJson.value) {
         console.log("chHTML column with one value for all rows", variable.id, node.id, variable.value, commandJson.value, rowNr);
         variable.value = commandJson.value;

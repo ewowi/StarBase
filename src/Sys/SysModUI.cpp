@@ -102,10 +102,12 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
   // }
 
   if (!var.isNull()) {
-    if (var["type"] != type) 
+    if (var["type"].isNull() || strcmp(var["type"].as<const char *>(),  type) != 0 ) {
       var["type"] = JsonString(type, JsonString::Copied);
-    if (var["ro"] != readOnly) 
-      var["ro"] = readOnly;
+      print->printJson("initVar set type", var);
+    }
+
+    if (var["ro"] != readOnly) var["ro"] = readOnly;
 
     //set order. make order negative to check if not obsolete, see cleanUpModel
     if (var["o"] >= 1000) //predefined! (modules)
@@ -163,7 +165,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
   return var;
 }
 
-const char * SysModUI::processJson(JsonVariant json) {
+void SysModUI::processJson(JsonVariant json) {
   if (json.is<JsonObject>()) //should be
   {
      //uiFun adds object elements to json which would be processed in the for loop. So we freeze the original pairs in a vector and loop on this
@@ -171,6 +173,7 @@ const char * SysModUI::processJson(JsonVariant json) {
     for (JsonPair pair : json.as<JsonObject>()) { //iterate json elements
       pairs.push_back(pair);
     }
+
     for (JsonPair pair : pairs) { //iterate json elements
       const char * key = pair.key().c_str();
       JsonVariant value = pair.value();
@@ -192,7 +195,7 @@ const char * SysModUI::processJson(JsonVariant json) {
           JsonObject command = value.as<JsonObject>();
           JsonObject var = mdl->findVar(command["id"]);
           var["value"] = pair.key(); //store the action as variable workaround?
-          mdl->setChFunAndWs(var, command["rowNr"].as<int>());
+          mdl->callChFunAndWs(var, command["rowNr"].as<int>());
         }
         json.remove(key); //key processed we don't need the key in the response
       }
@@ -228,85 +231,56 @@ const char * SysModUI::processJson(JsonVariant json) {
           USER_PRINTF("processJson value not array? %s %s\n", key, value.as<String>().c_str());
         json.remove(key); //key processed we don't need the key in the response
       } 
-      else if (!value["value"].isNull()) { // {"varid": {"value":value}}
+      else if (!value.isNull()) { // {"varid": {"value":value}} or {"varid": value}
+
+        JsonVariant val;
+        if (value["value"].isNull()) // if no explicit value field (e.g. jsonHandler)
+          val = value;
+        else
+          val = value["value"]; //use the value field
 
         //check if we deal with multiple rows (from table type)
-        char * rowNr = strtok((char *)key, "#");
-        if (rowNr != NULL ) {
-          key = rowNr;
-          rowNr = strtok(NULL, " ");
+        char * rowNrC = strtok((char *)key, "#");
+        if (rowNrC != NULL ) {
+          key = rowNrC;
+          rowNrC = strtok(NULL, " ");
         }
+        uint8_t rowNr = rowNr?atoi(rowNrC):UINT8_MAX;
 
         JsonObject var = mdl->findVar(key);
 
-        USER_PRINTF("processJson %s[%s] (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value["value"].as<String>().c_str(), var["value"] == value["value"]);
+        USER_PRINTF("processJson %s[%d] (%s == %s ? %d)\n", key, rowNr, var["value"].as<String>().c_str(), val.as<String>().c_str(), var["value"] == val);
 
         if (!var.isNull())
         {
-          bool changed = false;
-          //if we deal with multiple rows, value should be an array and check the corresponding array item
-          //if value not array we change it anyway
-          if (rowNr) {
-            //var value should be array
-            if (var["value"].is<JsonArray>()) {
-              if (value["value"].is<bool>()) {
-                bool varValue = var["value"][atoi(rowNr)];
-                bool newValue = value["value"];
-                changed = (varValue && !newValue) || (!varValue && newValue); //checking 2 booleans!
-              }
-              else
-                changed = var["value"][atoi(rowNr)] != value["value"];
-            }
-            else {
-              print->printJson("we want an array for value but var:", var);
-              print->printJson("   value:", value["value"]);
-              changed = true; //we should change anyway
-            }
-          }
-          else //no array situation
-            changed = var["value"] != value["value"];
-
+          //a button never sets the value
           if (var["type"] == "button") //button always
-            mdl->setChFunAndWs(var, rowNr?atoi(rowNr):UINT8_MAX, value["value"]); //bypass var["value"] 
-          else if (changed) {
-            // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
-
-            //set new value
-            if (value["value"].is<const char *>())
-              mdl->setValue(key, JsonString(value["value"], JsonString::Copied), rowNr?atoi(rowNr):-1);
-            else if (value["value"].is<bool>())
-              mdl->setValue(key, value["value"].as<bool>(), rowNr?atoi(rowNr):-1);
-            else if (value["value"].is<int>())
-              mdl->setValue(key, value["value"].as<int>(), rowNr?atoi(rowNr):-1);
-            else if (value["value"].is<Coord3D>()) //do not use is<JsonObject>() for Coord3D as Coord2D is more specific and we need to assign the values, otherwise corrupt values in model !!!!
-              mdl->setValue(key, value["value"].as<Coord3D>(), rowNr?atoi(rowNr):-1);
-            else {
-              USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
-            }
+            mdl->callChFunAndWs(var, rowNr, val); //bypass var["value"] 
+          else {
+            USER_PRINTF("processJson %s[%d] %s->%s\n", key, rowNr, var["value"].as<String>().c_str(), value.as<String>().c_str());
+            if (val.is<const char *>())
+              mdl->setValue(var, JsonString(val, JsonString::Copied), rowNr);
+            else
+              mdl->setValue(var, val.as<JsonVariant>(), rowNr);
           }
         }
         else
-          USER_PRINTF("Object %s not found\n", key);
+          USER_PRINTF("Object %s[%d] not found\n", key, rowNr);
       } 
       else {
-        USER_PRINTF("processJson command not recognized k:%s v:%s\n", key, value.as<String>().c_str());
+        USER_PRINTF("dev processJson command not recognized k:%s v:%s\n", key, value.as<String>().c_str());
       }
     } //for json pairs
   }
-  else
-    USER_PRINTF("Json not object???\n");
-  return nullptr;
 }
 
 void SysModUI::processUiFun(const char * id) {
-  JsonDocument *responseDoc = web->getResponseDoc();
-  responseDoc->clear(); //needed for deserializeJson?
-  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+  JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
 
-  JsonArray array = responseVariant.createNestedArray("uiFun");
+  JsonArray array = responseObject.createNestedArray("uiFun");
   array.add(id);
-  processJson(responseVariant); //this calls uiFun command
+  processJson(responseObject); //this calls uiFun command if the var with id provided
   //this also updates uiFun stuff - not needed!
 
-  web->sendDataWs(*responseDoc);
+  web->sendDataWs(responseObject); //not needed?
 }

@@ -126,7 +126,7 @@ public:
   }
 
   void write2D(uint16_t x, uint16_t y) {
-    if (x>UINT16_MAX/2 || y>UINT8_MAX/2) USER_PRINTF("write2D coord too high %d,%d\n",x, y);
+    if (x>UINT16_MAX/2 || y>UINT16_MAX/2) USER_PRINTF("write2D coord too high %d,%d\n",x, y);
 
     f.printf("%s[%d,%d]", pixelSep, x, y);
     width = max(width, x);
@@ -176,30 +176,32 @@ public:
     closePin();
   }
 
-  void matrix2D (uint16_t startX, uint16_t startY, uint16_t width, uint16_t height) {
+  void matrix2D (uint16_t startX, uint16_t startY, uint8_t panels, uint16_t width, uint16_t height) {
 
     openPin();
 
     //qad setup of serpentine, should be done better!
     bool serpentine = mdl->getValue("serpentine");
 
-    if (serpentine) {
-      for (uint8_t y = 0; y<height; y++) { //1cm distance between leds
-        if (y%2==0)
+    for (uint8_t panel=0; panel < panels; panel++) {
+      if (serpentine) {
+        for (uint8_t y = 0; y<height; y++) { //1cm distance between leds
+          if (y%2==0)
+            for (uint16_t x = 0; x<width ; x++) {
+              write2D(x*10+startX,y*10+startY);
+            }
+          else
+            for (int x = width-1; x>=0 ; x--) {
+              write2D(x*10+startX,y*10+startY);
+            }
+        }
+      }
+      else {
+        for (uint8_t y = 0; y<height; y++) //1cm distance between leds
           for (uint16_t x = 0; x<width ; x++) {
             write2D(x*10+startX,y*10+startY);
           }
-        else
-          for (int x = width-1; x>=0 ; x--) {
-            write2D(x*10+startX,y*10+startY);
-          }
       }
-    }
-    else {
-      for (uint8_t y = 0; y<height; y++) //1cm distance between leds
-        for (uint16_t x = 0; x<width ; x++) {
-          write2D(x*10+startX,y*10+startY);
-        }
     }
 
     closePin();
@@ -554,6 +556,8 @@ public:
       select.add("3DGeodesicDome WIP"); //12
     }, [this](JsonObject var, uint8_t) { //chFun
       fixtureGenChFun(var);
+
+      web->addResponse("details", "var", var);
     }); //fixtureGen
 
     ui->initText(parentVar, "pinList", "16", UINT8_MAX, 32, false, [](JsonObject var) { //uiFun
@@ -563,6 +567,9 @@ public:
     ui->initButton(parentVar, "generate", nullptr, false, [](JsonObject var) { //uiFun
     }, [this](JsonObject var, uint8_t) { //chFun
       generateChFun(var);
+
+      //reload fixture select
+      ui->processUiFun("fixture"); //in AppModFixture sends data to ws...
     });
 
   }
@@ -613,6 +620,8 @@ public:
       ui->initNumber(parentVar, "nrOfRings", 24, 1, 360);
     }
     else if (value == f_2DMatrix) {
+      ui->initNumber(parentVar, "panels", 1, 1, 255);
+
       ui->initNumber(parentVar, "width", 8, 1, 255);
 
       ui->initNumber(parentVar, "height", 8, 1, 255);
@@ -645,15 +654,6 @@ public:
       ui->initNumber(parentVar, "width", 24, 1, 16);
     }
 
-    JsonDocument *responseDoc = web->getResponseDoc();
-    responseDoc->clear(); //needed for deserializeJson?
-    JsonObject responseObject = responseDoc->to<JsonObject>();
-
-    responseObject["details"] = parentVar;
-
-    print->printJson("parentVar", responseObject);
-    web->sendDataWs(responseObject); //always send, also when no children, to remove them from ui
-
   }
 
   void generateChFun(JsonObject var) {
@@ -673,12 +673,13 @@ public:
       genFix.closeHeader();
       
     } else if (fix == f_2DMatrix) {
+      uint16_t panels = mdl->getValue("panels");
       uint16_t width = mdl->getValue("width");
       uint16_t height = mdl->getValue("height");
 
-      genFix.openHeader("2DMatrix%d%d", width, height);
+      genFix.openHeader("2DMatrix%dx%d%d", panels, width, height);
 
-      genFix.matrix2D(0, 0, width, height);
+      genFix.matrix2D(0, 0, panels, width, height);
 
       genFix.closeHeader();
 
@@ -712,9 +713,9 @@ public:
 
       genFix.rings241(0, 0);
 
-      genFix.matrix2D(190, 0, 8, 8);
+      genFix.matrix2D(190, 0, 1, 8, 8);
 
-      genFix.matrix2D(0, 190, 50, 6);
+      genFix.matrix2D(0, 190, 1, 50, 6);
 
       genFix.ring2D(190, 85, 48);
 
@@ -816,9 +817,6 @@ public:
     }
 
     files->filesChange();
-
-    //reload fixture select
-    ui->processUiFun("fixture");
   }
 
   // File openFile(const char * name) {

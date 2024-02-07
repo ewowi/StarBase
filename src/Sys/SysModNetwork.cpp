@@ -63,7 +63,7 @@ void SysModNetwork::loop() {
 }
 
 void SysModNetwork::loop1s() {
-  mdl->setValueUIOnly("rssi", "%d dBm", WiFi.RSSI());
+  mdl->setUIValueV("rssi", "%d dBm", WiFi.RSSI());
 }
 
 void SysModNetwork::handleConnection() {
@@ -93,7 +93,7 @@ void SysModNetwork::handleConnection() {
       initAP();
     }
   } else if (!interfacesInited) { //newly connected
-    mdl->setValueUIOnly("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+    mdl->setUIValueV("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
 
     interfacesInited = true;
 
@@ -142,7 +142,7 @@ void SysModNetwork::initAP() {
   WiFi.softAP(apSSID, apPass, apChannel, apHide);
   if (!apActive) // start captive portal if AP active
   {
-    mdl->setValueUIOnly("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
+    mdl->setUIValueV("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());

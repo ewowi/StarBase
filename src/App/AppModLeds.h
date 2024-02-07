@@ -90,6 +90,10 @@ public:
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
       if (rowNr < fixture.ledsList.size()) {
         doMap = effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
+
+        web->addResponse("details", "var", var);
+        web->addResponse("details", "rowNr", rowNr);
+
       }
     }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
       mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
@@ -123,13 +127,13 @@ public:
     });
     currentVar["stage"] = true;
 
-    ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, 0, UINT16_MAX/2, false, [](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, UINT8_MAX, 0, NUM_LEDS_Max, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Start");
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
       if (rowNr < fixture.ledsList.size()) {
         fixture.ledsList[rowNr].startPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-        USER_PRINTF("fxStart %d %d %d - %d %d %d\n", fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
+        USER_PRINTF("fxStart[%d] chFun %d %d %d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
 
         fixture.ledsList[rowNr].fadeToBlackBy();
       }
@@ -139,16 +143,17 @@ public:
 
       doMap = true;
     }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      USER_PRINTF("fxStart[%d] valueFun %d %d %d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
       mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
     });
 
-    ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, 0, UINT16_MAX/2, false, [](JsonObject var) { //uiFun
+    ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, UINT8_MAX, 0, NUM_LEDS_Max, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "End");
     }, [this](JsonObject var, uint8_t rowNr) { //chFun
       if (rowNr < fixture.ledsList.size()) {
         fixture.ledsList[rowNr].endPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-        USER_PRINTF("fxEnd chFun %d %d %d - %d %d %d\n", fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
+        USER_PRINTF("fxEnd[%d] chFun %d %d %d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
 
         fixture.ledsList[rowNr].fadeToBlackBy();
       }
@@ -159,14 +164,11 @@ public:
       doMap = true;
     }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
       mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
+      USER_PRINTF("fxEnd[%d] valueFun %d %d %d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
     });
 
-    ui->initCoord3D(tableVar, "fxSize", fixture.ledsList[0].size, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
+    ui->initText(tableVar, "fxSize", nullptr, 0, 32, true, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Size");
-    });
-
-    ui->initNumber(tableVar, "fxCount", fixture.ledsList[0].nrOfLeds, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Count");
     });
 
     ui->initSelect(parentVar, "fxLayout", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
@@ -393,7 +395,7 @@ public:
   } //loop
 
   void loop1s() {
-    mdl->setValueUIOnly("realFps", "%lu /s", frameCounter);
+    mdl->setUIValueV("realFps", "%lu /s", frameCounter);
     frameCounter = 0;
   }
 

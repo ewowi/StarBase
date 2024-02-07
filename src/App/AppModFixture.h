@@ -87,17 +87,11 @@ public:
       char fileName[32] = "";
       if (files->seqNrToName(fileName, lds->fixture.fixtureNr)) {
         //send to pview a message to get file filename
-        JsonDocument *responseDoc = web->getResponseDoc();
-        responseDoc->clear(); //needed for deserializeJson?
-        JsonVariant responseVariant = responseDoc->as<JsonVariant>();
-
         web->addResponse("pview", "file", JsonString(fileName, JsonString::Copied));
-        web->sendDataWs(responseVariant);
-        print->printJson("fixture chFun send ws done", responseVariant); //during server startup this is not send to a client, so client refresh should also trigger this
       }
     }); //fixture
 
-    ui->initCoord3D(parentVar, "fixSize", lds->fixture.size, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
+    ui->initCoord3D(parentVar, "fixSize", lds->fixture.size, UINT8_MAX, 0, UINT16_MAX, true, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Size");
       // web->addResponse(var["id"], "value", fixture.size);
     });

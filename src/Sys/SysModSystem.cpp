@@ -59,7 +59,7 @@ void SysModSystem::setup() {
     web->addResponseV(var["id"], "comment", "%d B", uxTaskGetStackHighWaterMark(NULL));
   });
 
-  ui->initButton(parentVar, "reboot", nullptr, false, nullptr, [](JsonObject var, uint8_t) {  //chFun
+  ui->initButton(parentVar, "reboot", false, nullptr, [](JsonObject var, uint8_t) {  //chFun
     web->ws->closeAll(1012);
 
     // mdls->reboot(); //not working yet

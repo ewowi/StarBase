@@ -52,6 +52,7 @@ struct Coord3D {
 
   //assignments
   Coord3D operator=(Coord3D rhs) {
+    USER_PRINTF("Coord3D assign %d,%d,%d\n", rhs.x, rhs.y, rhs.z);
     this->x = rhs.x;
     this->y = rhs.y;
     this->z = rhs.z;

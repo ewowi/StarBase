@@ -42,7 +42,7 @@ void SysModNetwork::setup() {
     web->addResponse(var["id"], "label", "Password");
   });
 
-  ui->initButton(parentVar, "connect", nullptr, false, [](JsonObject var) { //uiFun
+  ui->initButton(parentVar, "connect", false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Force reconnect (loose current connection)");
   }, [this](JsonObject var, uint8_t) { //chFun
     // mdl->doWriteModel = true; //saves the model

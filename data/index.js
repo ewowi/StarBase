@@ -1012,6 +1012,8 @@ function sendValue(varNode) {
     command[varId].value = varNode.querySelector("input").checked;
   else if (varNode.nodeName.toLocaleLowerCase() == "span")
     command[varId].value = varNode.innerText;
+  else if (varNode.className == "button")
+    command[varId].value = true;
   else if (varNode.className == "coord3D") {
     let coord = {};
     coord.x = parseInt(varNode.childNodes[0].value);

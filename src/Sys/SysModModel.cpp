@@ -42,7 +42,7 @@ void SysModModel::setup() {
     web->addResponse(var["id"], "label", "Size");
   });
 
-  ui->initButton(parentVar, "saveModel", nullptr, false, [](JsonObject var) { //uiFun
+  ui->initButton(parentVar, "saveModel", false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Write to model.json (manual save only currently)");
   }, [this](JsonObject var, uint8_t) { //chFun
     doWriteModel = true;
@@ -54,7 +54,7 @@ void SysModModel::setup() {
     doShowObsolete = var["value"];
   });
 
-  ui->initButton(parentVar, "deleteObsolete", nullptr, false, [](JsonObject var) { //uiFun
+  ui->initButton(parentVar, "deleteObsolete", false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Delete obsolete variables");
     web->addResponse(var["id"], "comment", "WIP");
   });

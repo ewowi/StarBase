@@ -517,26 +517,27 @@ void SysModWeb::serveFiles(WebRequest *request) {
 
 void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
 
-  JsonDocument *responseDoc = web->getResponseDoc();
-  responseDoc->clear(); //needed for deserializeJson?
-  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+  JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
 
-  print->printJson("AsyncCallbackJsonWebHandler", json);
-  ui->processJson(json); //processJson
+  print->printJson("jsonHandler", json);
 
   //WLED compatibility
   if (json["v"]) { //WLED compatibility: verbose response
     serveJson (request);
   }
-  else if (responseVariant.size()) { //responseVariant set by processFunc
-    char resStr[200]; 
-    serializeJson(responseVariant, resStr, 200);
-    USER_PRINT_Async("processJsonUrl response %s\n", resStr);
-    request->send(200, "application/json", resStr);
+  else {
+    ui->processJson(json);
+    if (responseObject.size()) { //responseVariant set by processJson e.g. uiFun
+
+      char resStr[200];
+      serializeJson(responseObject, resStr, 200);
+      USER_PRINT_Async("processJsonUrl response %s\n", resStr);
+      request->send(200, "application/json", resStr);
+    }
+    else
+      // request->send(200, "text/plain", "OK");
+      request->send(200, "application/json", F("{\"success\":true}"));
   }
-  else
-    // request->send(200, "text/plain", "OK");
-    request->send(200, "application/json", F("{\"success\":true}"));
 }
 
 void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {

@@ -108,8 +108,9 @@ public:
     return initVarAndUpdate<int>(parent, id, "checkbox", value, rowNr, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
-  JsonObject initButton(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "button", value, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
+  //a button never gets a value
+  JsonObject initButton(JsonObject parent, const char * id, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
+    return initVarAndUpdate<bool>(parent, id, "button", false, UINT8_MAX, 0, 0, readOnly, uiFun, chFun, loopFun, count, valueFun);
   }
 
   JsonObject initSelect(JsonObject parent, const char * id, int value = UINT16_MAX, uint8_t rowNr = UINT8_MAX, bool readOnly = false, UFun uiFun = nullptr, CFun chFun = nullptr, CFun loopFun = nullptr, uint8_t count = 0, CFun valueFun = nullptr) {
@@ -131,20 +132,22 @@ public:
     if (max && max != UINT16_MAX) var["max"] = max;
 
     bool valueNeedsUpdate = false;
-    if (var["value"].isNull()) {
-      valueNeedsUpdate = true;
-      // print->printJson("initVarAndUpdate uiFun value is null", var);
-    } else if (var["value"].is<JsonArray>()) {
-      JsonArray valueArray = var["value"].as<JsonArray>();
-      if (rowNr != UINT8_MAX) {
-        if (rowNr >= valueArray.size())
-          valueNeedsUpdate = true;
-        else if (valueArray[rowNr].isNull())
-          valueNeedsUpdate = true;
-      }
-      else if (count && valueArray.size() != count) {
-        print->printJson("initVarAndUpdate uiFun value array wrong size", var);
+    if (strcmp(type, "button") != 0) { //button never gets a value
+      if (var["value"].isNull()) {
         valueNeedsUpdate = true;
+        // print->printJson("initVarAndUpdate uiFun value is null", var);
+      } else if (var["value"].is<JsonArray>()) {
+        JsonArray valueArray = var["value"].as<JsonArray>();
+        if (rowNr != UINT8_MAX) {
+          if (rowNr >= valueArray.size())
+            valueNeedsUpdate = true;
+          else if (valueArray[rowNr].isNull())
+            valueNeedsUpdate = true;
+        }
+        else if (count && valueArray.size() != count) {
+          print->printJson("initVarAndUpdate uiFun value array wrong size", var);
+          valueNeedsUpdate = true;
+        }
       }
     }
 

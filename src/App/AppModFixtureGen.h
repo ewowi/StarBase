@@ -564,7 +564,7 @@ public:
       web->addResponse(var["id"], "comment", "One or more e.g. 12,13,14");
     });
 
-    ui->initButton(parentVar, "generate", nullptr, false, [](JsonObject var) { //uiFun
+    ui->initButton(parentVar, "generate", false, [](JsonObject var) { //uiFun
     }, [this](JsonObject var, uint8_t) { //chFun
       generateChFun(var);
 

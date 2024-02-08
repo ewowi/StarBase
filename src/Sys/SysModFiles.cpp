@@ -42,11 +42,11 @@ void SysModFiles::setup() {
     if (strcmp(var["value"], "delRow") == 0) {
       USER_PRINTF("fileTbl chFun %s %d %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
       if (rowNr != UINT8_MAX) {
-        // call uiFun of tbl to fill responseVariant with files
+        // call uiFun of tbl to fill responseObject with files
         ui->uFunctions[var["uiFun"]](var);
         //trick to get the table values tbd: use column values
-        JsonVariant responseVariant = web->getResponseDoc()->as<JsonVariant>();
-        JsonArray row = responseVariant["fileTbl"]["value"][rowNr];
+        JsonObject responseObject = web->getResponseDoc()->as<JsonObject>(); //not to as already created by callChFunAndWs
+        JsonArray row = responseObject["fileTbl"]["value"][rowNr];
         if (!row.isNull()) {
           const char * fileName = row[0]; //first column
           print->printJson("delete file", row);

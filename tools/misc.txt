@@ -1,0 +1,37 @@
+
+1) Download ffmpeg and exiftool 
+copy to /usr/local/bin (macos)
+
+2) Rename all files with their creationdate (so the name sort will show up chronological)
+exiftool -d '%Y%m%d-%H%M%%-03.c.%%e' '-filename<CreateDate' *.png
+
+3) Make 3 second movies from png images
+for f in (*.png|sort -n) ; do ffmpeg -loop 1 -i $f -c:v libx264 -t 3 -pix_fmt yuv420p -vf scale=1920:1080 pngtomov/$f.mov; done
+
+4) Same from movies
+for f in (*.mov|sort -n) ; do ffmpeg -i $f -c:v libx264 -t 3 -pix_fmt yuv420p -vf scale=1920:1080 pngtomov/$f.mov; done
+
+5) Concatenate all to a move with 0.1 second shots
+ffmpeg -f concat -safe 0 -i <(for f in (*.mov|sort -n) ; do echo "file '$PWD/$f'"; echo inpoint 1.00000; echo outpoint 1.1666666667; done) ../voutall.mp4
+
+6) Go to a video editor and add soundtrack
+
+
+Images
+ffmpeg -f concat -safe 0 -i <(for f in (*.png|sort -n) ; do echo "file '$PWD/$f'"; echo duration 0.03333; done) -pix_fmt yuv420p ../pout.mp4
+
+Video
+ffmpeg -f concat -safe 0 -i <(for f in (*.mov|sort -n) ; do echo "file '$PWD/$f'"; echo inpoint 0.5; echo outpoint 0.6; done) -s 1920x1080 -pix_fmt yuv420p ../vout.mp4
+
+-acodec libvo_aacenc -vcodec libx264 -s 1920x1080 -r 60 -strict experimental
+
+ls -tU
+
+
+remove sound
+for f in (I*.mov|sort -d) ; do ffmpeg -i $PWD/$f -c copy -an $PWD/$f.nosound.mov; done
+
+
+
+
+FileCreateDate for png files

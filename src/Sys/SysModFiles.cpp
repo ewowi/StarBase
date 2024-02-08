@@ -20,21 +20,18 @@
 bool SysModFiles::filesChanged = false;
 
 SysModFiles::SysModFiles() :SysModule("Files") {
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   if (!LittleFS.begin(true)) { //true: formatOnFail
     USER_PRINTF(" An Error has occurred while mounting File system");
     USER_PRINTF(" fail\n");
     success = false;
   }
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 //setup filesystem
 void SysModFiles::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Files");
@@ -67,7 +64,7 @@ void SysModFiles::setup() {
     }
   });
 
-  ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "flName", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
   ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var) { //uiFun
@@ -77,32 +74,17 @@ void SysModFiles::setup() {
     web->addResponse(var["id"], "label", "Show");
   });
 
-  ui->initText(parentVar, "drsize", nullptr, 32, true, [](JsonObject var) { //uiFun
-    char details[32] = "";
-    print->fFormat(details, sizeof(details)-1, "%d / %d B", files->usedBytes(), files->totalBytes());
-    web->addResponse(var["id"], "value", details);
+  ui->initText(parentVar, "drsize", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
+    web->addResponseV(var["id"], "value", "%d / %d B", files->usedBytes(), files->totalBytes());
     web->addResponse(var["id"], "label", "Total FS size");
   });
-
-  // ui->initURL(parentVar, "urlTest", "file/3DCube202005.json", true);
-
-  web->addUpload("/upload");
-  web->addUpdate("/update");
-
-  web->addFileServer("/file");
-
 }
 
 void SysModFiles::loop(){
   // SysModule::loop();
 
-  // if (millis() - secondMillis >= 10000) {
-  //   secondMillis = millis();
-  //       // if something changed in fileTbl
-  // }
-
   if (filesChanged) {
-    mdl->setValueP("drsize", "%d / %d B", usedBytes(), totalBytes());
+    mdl->setValueUIOnly("drsize", "%d / %d B", usedBytes(), totalBytes());
     filesChanged = false;
 
     ui->processUiFun("fileTbl");

@@ -18,8 +18,6 @@ PinObject SysModPins::pinObjects[NUM_PINS];
 bool SysModPins::pinsChanged = false;
 
 SysModPins::SysModPins() :SysModule("Pins") {
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   pinMode(2, OUTPUT);
   pinMode(4, OUTPUT);
   pinMode(19, OUTPUT);
@@ -29,15 +27,12 @@ SysModPins::SysModPins() :SysModule("Pins") {
   for (int i=0; i<NUM_PINS; i++) {
     deallocatePin(i, pinObjects[i].owner);
   }
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 void SysModPins::setup() {
   SysModule::setup();
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   //show table of allocated pins
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
@@ -58,10 +53,10 @@ void SysModPins::setup() {
   ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Pin");
   });
-  ui->initText(tableVar, "pinOwner", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "pinOwner", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Owner");
   });
-  ui->initText(tableVar, "pinDetails", nullptr, 256, true, [](JsonObject var) { //uiFun
+  ui->initText(tableVar, "pinDetails", nullptr, UINT8_MAX, 256, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Details");
   });
 
@@ -70,58 +65,30 @@ void SysModPins::setup() {
     web->addResponse(var["id"], "comment", "WIP");
   }, nullptr, [](JsonObject var, uint8_t rowNr) { //loopFun
 
-    xSemaphoreTake(web->wsMutex, portMAX_DELAY);
+    var["interval"] = 10*10*10; //every 10 sec from cs to ms
 
-    SysModWeb::ws->cleanupClients();
-    if (web->ws->count()) {
-
+    web->sendDataWs([](AsyncWebSocketMessageBuffer * wsBuf) {
       uint8_t* buffer;
-      AsyncWebSocketMessageBuffer * wsBuf = SysModWeb::ws->makeBuffer(20 * 3 + 5);
-      if (wsBuf) {//out of memory
-        wsBuf->lock();
-        buffer = wsBuf->get();
 
-        // send leds preview to clients
-        for (size_t i = 0; i < 20; i++)
-        {
-          buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
-          buffer[i*3+5+1] = random(256);
-          buffer[i*3+5+2] = random(256);
-        }
-        //new values
-        buffer[0] = 0; //userFun id
-        // buffer[1] = 0; //0 * 256
-        // buffer[2] = 20; //20 pins
-        // buffer[4] = 10*10; //every 10 sec 
+      buffer = wsBuf->get();
 
-        var["interval"] = 10*10*10; //every 10 sec from cs to ms
-
-        for (auto client:SysModWeb::ws->getClients()) {
-          if (client->status() == WS_CONNECTED && !client->queueIsFull() && client->queueLength() <= WS_MAX_QUEUED_MESSAGES / web->ws->count() / 2) {//lossy
-            client->binary(wsBuf);
-            web->wsSendBytesCounter++;
-          }
-          // else {
-            // web->clientsChanged = true; tbd: changed also if full status changes
-            // print->printClient("loopFun skip frame", client);
-          // }
-        }
-
-        wsBuf->unlock();
-        SysModWeb::ws->_cleanBuffers();
+      // send leds preview to clients
+      for (size_t i = 0; i < 20; i++)
+      {
+        buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
+        buffer[i*3+5+1] = random(256);
+        buffer[i*3+5+2] = random(256);
       }
-    }
+      //new values
+      buffer[0] = 0; //userFun id
 
-    xSemaphoreGive(web->wsMutex);
-
+    }, 20 * 3 + 5, true);
   });
 
-  // ui->initCheckBox(parentVar, "pin2", true, false, nullptr, updateGPIO);
+  // ui->initCheckBox(parentVar, "pin2", true, UINT8_MAX, false, nullptr, updateGPIO);
   // ui->initCheckBox(parentVar, "pin4");
-  ui->initCheckBox(parentVar, "pin19", true, false, nullptr, updateGPIO);
-  // ui->initCheckBox(parentVar, "pin33", true);
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  ui->initCheckBox(parentVar, "pin19", true, UINT8_MAX, false, nullptr, updateGPIO);
+  // ui->initCheckBox(parentVar, "pin33", true, UINT8_MAX);
 }
 
 void SysModPins::loop1s() {

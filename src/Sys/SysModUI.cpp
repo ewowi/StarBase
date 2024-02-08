@@ -13,8 +13,6 @@
 #include "SysModWeb.h"
 #include "SysModModel.h"
 
-#include "html_ui.h"
-
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 std::vector<UFun> SysModUI::uFunctions;
 std::vector<CFun> SysModUI::cFunctions;
@@ -23,27 +21,14 @@ int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::stageVarChanged = false;
 
 SysModUI::SysModUI() :SysModule("UI") {
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-  success &= web->addURL("/", "text/html", nullptr, PAGE_index, PAGE_index_L);
-  // success &= web->addURL("/index.js", "application/javascript", nullptr, PAGE_indexJs, PAGE_indexJs_length);
-  // success &= web->addURL("/app.js", "application/javascript", nullptr, PAGE_appJs, PAGE_appJs_length);
-  // success &= web->addURL("/index.css", "text/css", "/index.css");
-
-  success &= web->setupJsonHandlers("/json", processJson); //for websocket ("GET") and curl (POST)
-
-  web->processURL("/json", web->serveJson);
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 };
 
 //serve index.htm
 void SysModUI::setup() {
   SysModule::setup();
 
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   parentVar = initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -4100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
     web->addResponse(var["id"], "label", "Variable loops");
@@ -56,14 +41,12 @@ void SysModUI::setup() {
       row.add(varLoop->counter);
     }
   });
-  initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var) { //uiFun
+  initText(tableVar, "vlVar", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
   });
   initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Loops p s");
   });
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModUI::loop() {
@@ -124,7 +107,16 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     if (var["ro"] != readOnly) 
       var["ro"] = readOnly;
 
-    var["o"] = -varCounter++; //make order negative to check if not obsolete, see cleanUpModel
+    //set order. make order negative to check if not obsolete, see cleanUpModel
+    if (var["o"] >= 1000) //predefined! (modules)
+      var["o"] = -var["o"].as<int>(); //leave the order as is
+    else {
+      if (parent["o"].as<int>() >= 0) // if checks on the parent already done so vars added later, e.g. controls, will be autochecked
+        var["o"] = varCounter++; //redefine order
+      else
+        var["o"] = -varCounter++; //redefine order
+    }
+
 
     //if uiFun, add it to the list
     if (uiFun) {
@@ -171,50 +163,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
   return var;
 }
 
-//tbd: use template T for value
-//run the change function and send response to all? websocket clients
-void SysModUI::setChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) { //value: bypass var["value"]
-
-  if (!var["chFun"].isNull()) {//isNull needed here!
-    size_t funNr = var["chFun"];
-    if (funNr < cFunctions.size()) {
-      USER_PRINTF("chFun %s r:%d v:%s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
-      cFunctions[funNr](var, rowNr);
-    }
-    else    
-      USER_PRINTF("setChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, cFunctions.size());
-  }
-
-  if (var["stage"])
-    stageVarChanged = true;
-
-  JsonDocument *responseDoc = web->getResponseDoc();
-  responseDoc->clear(); //needed for deserializeJson?
-  JsonVariant responseVariant = responseDoc->as<JsonVariant>();
-
-  if (value)
-    web->addResponse(var["id"], "value", value);
-  else {
-    if (var["value"].is<int>())
-      web->addResponseI(var["id"], "value", var["value"].as<int>());
-    else if (var["value"].is<bool>())
-      web->addResponseB(var["id"], "value", var["value"].as<bool>());
-    else if (var["value"].is<const char *>())
-      web->addResponse(var["id"], "value", var["value"].as<const char *>());
-    else if (var["value"].is<JsonArray>()) {
-      USER_PRINTF("setChFunAndWs %s JsonArray %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-      web->addResponseArray(var["id"], "value", var["value"].as<JsonArray>());
-    }
-    else {
-      USER_PRINTF("setChFunAndWs %s unknown type for %s\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
-      web->addResponse(var["id"], "value", var["value"]);
-    }
-  }
-
-  web->sendDataWs(responseVariant);
-}
-
-const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
+const char * SysModUI::processJson(JsonVariant json) {
   if (json.is<JsonObject>()) //should be
   {
      //uiFun adds object elements to json which would be processed in the for loop. So we freeze the original pairs in a vector and loop on this
@@ -243,7 +192,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
           JsonObject command = value.as<JsonObject>();
           JsonObject var = mdl->findVar(command["id"]);
           var["value"] = pair.key(); //store the action as variable workaround?
-          ui->setChFunAndWs(var, command["rowNr"].as<int>());
+          mdl->setChFunAndWs(var, command["rowNr"].as<int>());
         }
         json.remove(key); //key processed we don't need the key in the response
       }
@@ -290,7 +239,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
 
         JsonObject var = mdl->findVar(key);
 
-        USER_PRINTF("processJson k:%s r:%s (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value.as<String>().c_str(), var["value"] == value["value"]);
+        USER_PRINTF("processJson %s[%s] (%s == %s ? %d)\n", key, rowNr?rowNr:"na", var["value"].as<String>().c_str(), value["value"].as<String>().c_str(), var["value"] == value["value"]);
 
         if (!var.isNull())
         {
@@ -303,7 +252,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
               if (value["value"].is<bool>()) {
                 bool varValue = var["value"][atoi(rowNr)];
                 bool newValue = value["value"];
-                changed = (varValue && !newValue) || (!varValue && newValue);
+                changed = (varValue && !newValue) || (!varValue && newValue); //checking 2 booleans!
               }
               else
                 changed = var["value"][atoi(rowNr)] != value["value"];
@@ -318,7 +267,7 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
             changed = var["value"] != value["value"];
 
           if (var["type"] == "button") //button always
-            setChFunAndWs(var, rowNr?atoi(rowNr):UINT8_MAX, value["value"]); //bypass var["value"] 
+            mdl->setChFunAndWs(var, rowNr?atoi(rowNr):UINT8_MAX, value["value"]); //bypass var["value"] 
           else if (changed) {
             // USER_PRINTF("processJson %s %s->%s\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
 
@@ -329,8 +278,8 @@ const char * SysModUI::processJson(JsonVariant &json) { //& as we update it
               mdl->setValue(key, value["value"].as<bool>(), rowNr?atoi(rowNr):-1);
             else if (value["value"].is<int>())
               mdl->setValue(key, value["value"].as<int>(), rowNr?atoi(rowNr):-1);
-            else if (value["value"].is<JsonObject>())
-              mdl->setValue(key, value["value"].as<JsonObject>(), rowNr?atoi(rowNr):-1);
+            else if (value["value"].is<Coord3D>()) //do not use is<JsonObject>() for Coord3D as Coord2D is more specific and we need to assign the values, otherwise corrupt values in model !!!!
+              mdl->setValue(key, value["value"].as<Coord3D>(), rowNr?atoi(rowNr):-1);
             else {
               USER_PRINTF("processJson %s %s->%s not a supported type yet\n", key, var["value"].as<String>().c_str(), value.as<String>().c_str());
             }

@@ -38,21 +38,17 @@ public:
   IPAddress targetIp; //tbd: targetip also configurable from fixtures, and ddp instead of pin output
 
   UserModDDP() :SysModule("DDP") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
     isEnabled = false; //default off
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initUserMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -3000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    ui->initSelect(parentVar, "ddpInst", UINT16_MAX, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "ddpInst", UINT16_MAX, UINT8_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Instance");
       web->addResponse(var["id"], "comment", "Instance to send data");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -77,8 +73,6 @@ public:
         USER_PRINTF("Start DDP to %s\n", targetIp.toString().c_str());
       }
     }); //ddpInst
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {
@@ -93,7 +87,7 @@ public:
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;
 
-    const size_t channelCount = ledsV.nrOfLedsP * (isRGBW? 4:3); // 1 channel for every R,G,B,(W?) value
+    const size_t channelCount = lds->fixture.nrOfLeds * (isRGBW? 4:3); // 1 channel for every R,G,B,(W?) value
     const size_t packetCount = ((channelCount-1) / DDP_CHANNELS_PER_PACKET) +1;
 
     uint32_t channel = 0; 
@@ -141,8 +135,8 @@ public:
       /*8*/ddpUdp.write(0xFF & (packetSize >> 8));
       /*9*/ddpUdp.write(0xFF & (packetSize     ));
 
-      for (size_t i = 0; i < ledsV.nrOfLedsP; i++) {
-        CRGB pixel = ledsV.ledsPhysical[i];
+      for (size_t i = 0; i < lds->fixture.nrOfLeds; i++) {
+        CRGB pixel = lds->fixture.ledsP[i];
         ddpUdp.write(scale8(pixel.r, bri)); // R
         ddpUdp.write(scale8(pixel.g, bri)); // G
         ddpUdp.write(scale8(pixel.b, bri)); // B

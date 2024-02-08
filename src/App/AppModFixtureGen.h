@@ -126,6 +126,8 @@ public:
   }
 
   void write2D(uint16_t x, uint16_t y) {
+    if (x>UINT16_MAX/2 || y>UINT8_MAX/2) USER_PRINTF("write2D coord too high %d,%d\n",x, y);
+
     f.printf("%s[%d,%d]", pixelSep, x, y);
     width = max(width, x);
     height = max(height, y);
@@ -303,6 +305,30 @@ public:
     y = 10; for (int x = 270; x <= 350; x+=10) write2D(x+startX,y+startY);
     y = 00; for (int x = 330; x >= 290; x-=10) write2D(x+startX,y+startY);
     closePin();
+  }
+
+  //https://stackoverflow.com/questions/71816702/coordinates-of-dot-on-an-hexagon-path
+  void hexagon2D (uint16_t startX, uint16_t startY, uint16_t amountOfDots, float radius) {
+
+    startX*=1.3;
+    startY*=1.3;
+
+    const float y = sqrtf(3)/2;
+    float hexaX[7] = {1.0, 0.5, -0.5, -1.0, -0.5, 0.5, 1.0};
+    float hexaY[7] = {0.0, y, y, 0, -y, -y, 0.0};
+
+    for (uint16_t i = 0; i < amountOfDots; i++) {
+      float offset = 6.0 * (float)i / (float)amountOfDots;
+      uint8_t edgenum = floor(offset);
+      offset = offset - (float)edgenum;
+
+      float x = (float)startX + radius * (hexaX[edgenum] + offset * (hexaX[edgenum + 1] - hexaX[edgenum]));
+      float y = (float)startY + radius * (hexaY[edgenum] + offset * (hexaY[edgenum + 1] - hexaY[edgenum]));
+      USER_PRINTF(" %d %f: %f,%f", edgenum, offset, x, y);
+
+      write2D(x,y);
+
+    }
   }
 
   void cone3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint8_t nrOfRings) {
@@ -505,11 +531,11 @@ public:
 
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initUserMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -1200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    ui->initSelect(parentVar, "fixtureGen", 0, false, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "fixtureGen", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Fixture");
       web->addResponse(var["id"], "comment", "Type of fixture");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -520,16 +546,17 @@ public:
       select.add("2DCloud"); //4
       select.add("2DWall"); //5
       select.add("2DWheel"); //6
-      select.add("3DCone"); //7
-      select.add("3DSideCube"); //8
-      select.add("3DCube"); //9
-      select.add("3DGlobe WIP"); //10
-      select.add("3DGeodesicDome WIP"); //11
+      select.add("2DHexagon"); //7
+      select.add("3DCone"); //8
+      select.add("3DSideCube"); //9
+      select.add("3DCube"); //10
+      select.add("3DGlobe WIP"); //11
+      select.add("3DGeodesicDome WIP"); //12
     }, [this](JsonObject var, uint8_t) { //chFun
       fixtureGenChFun(var);
     }); //fixtureGen
 
-    ui->initText(parentVar, "pinList", "16", 32, false, [](JsonObject var) { //uiFun
+    ui->initText(parentVar, "pinList", "16", UINT8_MAX, 32, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "One or more e.g. 12,13,14");
     });
 
@@ -538,7 +565,6 @@ public:
       generateChFun(var);
     });
 
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {
@@ -554,6 +580,7 @@ public:
     f_2DCloud,
     f_2DWall,
     f_2DWheel,
+    f_2DHexagon,
     f_3DCone,
     f_3DSideCube,
     f_3DCube,
@@ -575,14 +602,14 @@ public:
       ui->initNumber(parentVar, "ledCount", 24, 1, NUM_LEDS_Max);
     }
     else if (value == f_2DRings241) {
-      ui->initCheckBox(parentVar, "in2out", true);
+      ui->initCheckBox(parentVar, "in2out", true, UINT8_MAX);
     }
     else if (value == f_2DWheel) {
       ui->initNumber(parentVar, "nrOfSpokes", 36, 1, 360);
       ui->initNumber(parentVar, "ledsPerSpoke", 24, 1, 360);
     }
     else if (value == f_3DCone) {
-      ui->initCheckBox(parentVar, "in2out", true);
+      ui->initCheckBox(parentVar, "in2out", true, UINT8_MAX);
       ui->initNumber(parentVar, "nrOfRings", 24, 1, 360);
     }
     else if (value == f_2DMatrix) {
@@ -590,13 +617,13 @@ public:
 
       ui->initNumber(parentVar, "height", 8, 1, 255);
 
-      ui->initSelect(parentVar, "firstLedX", 0, false, [](JsonObject var) { //uiFun
+      ui->initSelect(parentVar, "firstLedX", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
         // web->addResponse(var["id"], "label", "fixture generator");
         JsonArray select = web->addResponseA(var["id"], "options");
         select.add("Left"); //0
         select.add("Right"); //1
       });
-      ui->initSelect(parentVar, "firstLedY", 0, false, [](JsonObject var) { //uiFun
+      ui->initSelect(parentVar, "firstLedY", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
         // web->addResponse(var["id"], "label", "fixture generator");
         JsonArray select = web->addResponseA(var["id"], "options");
         select.add("Top"); //0
@@ -687,7 +714,7 @@ public:
 
       genFix.matrix2D(190, 0, 8, 8);
 
-      genFix.matrix2D(0, 190, 50, 4);
+      genFix.matrix2D(0, 190, 50, 6);
 
       genFix.ring2D(190, 85, 48);
 
@@ -702,6 +729,26 @@ public:
       genFix.openHeader("2DWheel%d_%d", nrOfSpokes, ledsPerSpoke);
 
       genFix.wheel2D(0, 0, nrOfSpokes, ledsPerSpoke);
+
+      genFix.closeHeader();
+    }
+    else if (fix == f_2DHexagon) {
+
+      genFix.openHeader("2DHexagon");
+
+      genFix.openPin();
+
+      genFix.hexagon2D(50, 50, 36, 40);
+      genFix.hexagon2D(100, 75, 36, 40);
+      genFix.hexagon2D(150, 50, 36, 40);
+      genFix.hexagon2D(200, 75, 36, 40);
+      genFix.hexagon2D(250, 100, 36, 40);
+      genFix.hexagon2D(300, 75, 36, 40);
+      genFix.hexagon2D(350, 50, 36, 40);
+      genFix.hexagon2D(100, 125, 36, 40);
+      genFix.hexagon2D(250, 150, 36, 40);
+
+      genFix.closePin();
 
       genFix.closeHeader();
 

@@ -92,6 +92,8 @@ let intersect = null;
 let mousePointer = null;
 
 //https://stackoverflow.com/questions/8426822/rotate-camera-in-three-js-with-mouse
+
+//inspiration: https://discoverthreejs.com/book/first-steps/transformations/
 function preview3D(canvasNode, buffer) {
   //3D vars
   import ('three').then((THREE) => {
@@ -225,7 +227,7 @@ function preview3D(canvasNode, buffer) {
                 const material = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.7});
                 // material.color = new THREE.Color(`${x/mW}`, `${y/mH}`, `${z/mD}`);
                 const sphere = new THREE.Mesh( geometry, material );
-                sphere.position.set(offset_x + d*led[0]/factor, offset_y + d*led[1]/factor, offset_z + d*led[2]/factor);
+                sphere.position.set(offset_x + d*led[0]/factor, -offset_y - d*led[1]/factor, - offset_z - d*led[2]/factor);
                 sphere.name = outputsIndex + " - " + ledsIndex++;
                 scene.add( sphere );
               }
@@ -279,6 +281,11 @@ function preview3D(canvasNode, buffer) {
           jsonValues.pview = null;
         }
       }
+
+      // controls.rotateSpeed = 0.4;
+      scene.rotation.x = buffer[1];
+      scene.rotation.y = buffer[2];
+      scene.rotation.z = buffer[3];
 
       controls.update(); // apply orbit controls
 

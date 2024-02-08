@@ -23,32 +23,31 @@ SysModSystem::SysModSystem() :SysModule("System") {};
 
 void SysModSystem::setup() {
   SysModule::setup();
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "serverName", "StarMod", UINT8_MAX, 32, false, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Name");
     web->addResponse(var["id"], "comment", "Instance name");
   });
-  ui->initText(parentVar, "upTime", nullptr, 16, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "upTime", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Uptime of board");
   });
-  ui->initText(parentVar, "loops", nullptr, 16, true);
+  ui->initText(parentVar, "loops", nullptr, UINT8_MAX, 16, true);
 
-  ui->initText(parentVar, "chip", nullptr, 16, true);
+  ui->initText(parentVar, "chip", nullptr, UINT8_MAX, 16, true);
 
-  ui->initText(parentVar, "heap", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "heap", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Free / Total (largest free)");
   });
 
   if (psramFound()) {
-    ui->initText(parentVar, "psram", nullptr, 16, true, [](JsonObject var) { //uiFun
+    ui->initText(parentVar, "psram", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Free / Total (min free)");
     });
   }
 
-  ui->initText(parentVar, "stack", nullptr, 16, true);
+  ui->initText(parentVar, "stack", nullptr, UINT8_MAX, 16, true);
 
   ui->initButton(parentVar, "reboot", nullptr, false, nullptr, [](JsonObject var, uint8_t) {  //chFun
     web->ws->closeAll(1012);
@@ -62,18 +61,18 @@ void SysModSystem::setup() {
     ESP.restart();
   });
 
-  ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), true, [](JsonObject var) { //uiFun
+  ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), UINT8_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Reset 0");
     web->addResponse(var["id"], "comment", "Reason Core 0");
     sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
   });
   if (ESP.getChipCores() > 1)
-    ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), true, [](JsonObject var) { //uiFun
+    ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), UINT8_MAX, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Reset 1");
       web->addResponse(var["id"], "comment", "Reason Core 1");
       sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
     });
-  ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), true, [](JsonObject var) { //uiFun
+  ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), UINT8_MAX, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Restart");
     web->addResponse(var["id"], "comment", "Reason restart");
     sys->addRestartReasonsSelect(web->addResponseA(var["id"], "options"));
@@ -90,7 +89,7 @@ void SysModSystem::setup() {
 
   USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
-  ui->initText(parentVar, "version", nullptr, 16, true);
+  ui->initText(parentVar, "version", nullptr, UINT8_MAX, 16, true);
   // ui->initText(parentVar, "date", __DATE__, 16, true);
   // ui->initText(parentVar, "time", __TIME__, 16, true);
 
@@ -111,8 +110,6 @@ void SysModSystem::setup() {
   //   case FM_DOUT: ui->initText(parentVar, "e32flashtext")] = F(" (DOUT or other)");break;
   //   default: ui->initText(parentVar, "e32flashtext")] = F(" (other)"); break;
   // }
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModSystem::loop() {
@@ -121,20 +118,20 @@ void SysModSystem::loop() {
   loopCounter++;
 }
 void SysModSystem::loop1s() {
-  mdl->setValueLossy("upTime", "%lu s", millis()/1000);
-  mdl->setValueLossy("loops", "%lu /s", loopCounter);
+  mdl->setValueUIOnly("upTime", "%lu s", millis()/1000);
+  mdl->setValueUIOnly("loops", "%lu /s", loopCounter);
 
   loopCounter = 0;
 }
 void SysModSystem::loop10s() {
   mdl->setValue("version", JsonString(version)); //make sure ui shows the right version !!!never do this as it interupts with uiFun sendDataWS!!
 
-  mdl->setValueLossy("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
+  mdl->setValueUIOnly("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
 
-  mdl->setValueLossy("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
-  mdl->setValueLossy("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
+  mdl->setValueUIOnly("heap", "%d / %d (%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
+  mdl->setValueUIOnly("stack", "%d B", uxTaskGetStackHighWaterMark(NULL));
   if (psramFound()) {
-    mdl->setValueLossy("psram", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
+    mdl->setValueUIOnly("psram", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
   }
   USER_PRINTF("❤️"); //heartbeat
 }

@@ -17,7 +17,6 @@
 #include "esp32Tools.h"
 
 SysModPrint::SysModPrint() :SysModule("Print") {
-  // print("%s %s\n", __PRETTY_FUNCTION__, name);
 
 #if ARDUINO_USB_CDC_ON_BOOT || !defined(CONFIG_IDF_TARGET_ESP32S2)
   Serial.begin(115200);
@@ -50,18 +49,15 @@ SysModPrint::SysModPrint() :SysModule("Print") {
   }
   Serial.println("Ready.\n");
   if (Serial) Serial.flush(); // drain output buffer
-
-  // print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 };
 
 void SysModPrint::setup() {
   SysModule::setup();
 
-  // print("%s %s\n", __PRETTY_FUNCTION__, name);
-
   parentVar = ui->initSysMod(parentVar, name);
+  if (parentVar["o"] > -1000) parentVar["o"] = -2300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var) { //uiFun default 1 (Serial)
+  ui->initSelect(parentVar, "pOut", 1, UINT8_MAX, false, [](JsonObject var) { //uiFun default 1 (Serial)
     web->addResponse(var["id"], "label", "Output");
     web->addResponse(var["id"], "comment", "System log to Serial or Net print (WIP)");
 
@@ -76,8 +72,6 @@ void SysModPrint::setup() {
   ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "comment", "Show the printed log");
   });
-
-  // print("%s %s %s\n",__PRETTY_FUNCTION__,name, success?"success":"failed");
 }
 
 void SysModPrint::loop() {
@@ -90,7 +84,7 @@ size_t SysModPrint::print(const char * format, ...) {
 
   va_start(args, format);
 
-  Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"λ":"α"); //looptask / asyncTCP task
+  Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"":"α"); //looptask λ/ asyncTCP task α
 
   for (size_t i = 0; i < strlen(format); i++) 
   {
@@ -174,9 +168,3 @@ void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
     percentage = 100 * source.memoryUsage() / source.capacity();
   print("%s  %u / %u (%u%%) (%u %u %u)\n", text, source.memoryUsage(), source.capacity(), percentage, source.size(), source.overflowed(), source.nesting());
 }
-
-void SysModPrint::printClient(const char * text, AsyncWebSocketClient * client) {
-  print("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
-  //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
-}
-

@@ -12,7 +12,7 @@
 #pragma once
 #include "SysModule.h"
 #include "SysModPrint.h"
-#include "SysModUI.h"
+#include "SysModWeb.h"
 
 #include "ArduinoJson.h"
 
@@ -23,6 +23,19 @@ struct Coord3D {
   uint16_t x;
   uint16_t y;
   uint16_t z;
+
+  // Coord3D() {
+  //   x = 0;
+  //   y = 0;
+  //   z = 0;
+  // }
+  // Coord3D(uint16_t x, uint16_t y, uint16_t z) {
+  //   this->x = x;
+  //   this->y = y;
+  //   this->z = y;
+  // }
+
+  //comparisons
   bool operator!=(Coord3D rhs) {
     // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
     return x != rhs.x || y != rhs.y || z != rhs.z;
@@ -30,12 +43,31 @@ struct Coord3D {
   bool operator==(Coord3D rhs) {
     return x == rhs.x && y == rhs.y && z == rhs.z;
   }
+  bool operator>=(Coord3D rhs) {
+    return x >= rhs.x && y >= rhs.y && z >= rhs.z;
+  }
+  bool operator<=(Coord3D rhs) {
+    return x <= rhs.x && y <= rhs.y && z <= rhs.z;
+  }
+
+  //assignments
   Coord3D operator=(Coord3D rhs) {
-    USER_PRINTF("Coord3D assign %d %d %d\n", rhs.x, rhs.y, rhs.z);
     this->x = rhs.x;
     this->y = rhs.y;
     this->z = rhs.z;
     return *this;
+  }
+  Coord3D operator-=(Coord3D rhs) {
+    this->x -= rhs.x;
+    this->y -= rhs.y;
+    this->z -= rhs.z;
+    return *this;
+  }
+  Coord3D operator-(Coord3D rhs) {
+    return Coord3D{uint16_t(x - rhs.x), uint16_t(y - rhs.y), uint16_t(z - rhs.z)};
+  }
+  Coord3D minimum(Coord3D rhs) {
+    return Coord3D{min(x, rhs.x), min(y, rhs.y), min(this->z, rhs.z)};
   }
 };
 
@@ -53,6 +85,7 @@ namespace ArduinoJson {
       dst["x"] = src.x;
       dst["y"] = src.y;
       dst["z"] = src.z;
+      USER_PRINTF("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
       return true;
     }
 
@@ -61,7 +94,7 @@ namespace ArduinoJson {
     }
 
     static bool checkJson(JsonVariantConst src) {
-      return src["x"].is<int>() && src["y"].is<int>() && src["z"].is<int>();
+      return src["x"].is<uint16_t>() && src["y"].is<uint16_t>() && src["z"].is<uint16_t>();
     }
   };
 }
@@ -96,6 +129,8 @@ public:
 
   static JsonObject modelParentVar;
 
+  bool doWriteModel = false;
+
   SysModModel();
   void setup();
   void loop();
@@ -121,22 +156,26 @@ public:
   JsonObject setValue(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
     // print->printJson("setValueB", var);
     if (rowNr == UINT8_MAX) { //normal situation
-      bool notSame;
-      // if (std::is_same<Type, const char *>::value)
-      //   same = var["value"] != value;
-      // else
-        notSame = var["value"].as<Type>() != value;
-      if (var["value"].isNull() || notSame) {
-        USER_PRINTF("setValue changed %s (%d) %s->..\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());//, value?"true":"false");
+      if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
+        JsonString oldValue = JsonString(var["value"], JsonString::Copied);
         var["value"] = value;
-        ui->setChFunAndWs(var, rowNr);
+        //trick to remove null values
+        if (var["value"].isNull() || var["value"].as<uint32_t>() == UINT16_MAX) {
+          var.remove("value");
+          if (oldValue.size()>0)
+            USER_PRINTF("dev setValue value removed %s %s\n", var["id"].as<const char *>(), oldValue.c_str()); //old value
+        }
+        else {
+          USER_PRINTF("setValue changed %s %s->%s\n", var["id"].as<const char *>(), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
+          setChFunAndWs(var);
+        }
       }
     }
     else {
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValue var %s (%d) value %s not array, creating\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+        USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
         // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
         var.createNestedArray("value");
       }
@@ -144,14 +183,18 @@ public:
       if (var["value"].is<JsonArray>()) {
         JsonArray valueArray = var["value"].as<JsonArray>();
         //set the right value in the array (if array did not contain values yet, all values before rownr are set to false)
-        bool notSame = true;
+        bool notSame = true; //rowNr >= size
 
         if (rowNr < valueArray.size())
           notSame = valueArray[rowNr].isNull() || valueArray[rowNr].as<Type>() != value;
 
         if (notSame) {
-          valueArray[rowNr] = value; //if valueArray[rowNr] not exists it will be created
-          ui->setChFunAndWs(var, rowNr);
+          // setValue(var, value, rowNr);
+          // if (rowNr >= valueArray.size())
+          //   USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
+          valueArray[rowNr] = value; //if valueArray[<rowNr] not exists it will be created
+          // USER_PRINTF("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
+          setChFunAndWs(var, rowNr);
         }
       }
       else {
@@ -163,13 +206,39 @@ public:
   }
 
   //Set value with argument list
-  JsonObject setValueV(const char * id, const char * format, ...); //static to use in *Fun
+  JsonObject setValueV(const char * id, const char * format, ...) {
+    va_list args;
+    va_start(args, format);
 
-  //Set value with argument list and print
-  JsonObject setValueP(const char * id, const char * format, ...);
+    char value[128];
+    vsnprintf(value, sizeof(value)-1, format, args);
 
-  //Send value directly to ws (tbd: no model function but web?)
-  void setValueLossy(const char * id, const char * format, ...);
+    va_end(args);
+
+    USER_PRINTF("%s\n", value);
+
+    return setValue(id, JsonString(value, JsonString::Copied));
+  }
+
+  JsonObject setValueUIOnly(const char * id, const char * format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    char value[128];
+    vsnprintf(value, sizeof(value)-1, format, args);
+
+    va_end(args);
+
+    JsonDocument *responseDoc = web->getResponseDoc();
+    responseDoc->clear(); //needed for deserializeJson?
+    JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+
+    web->addResponse(id, "value", JsonString(value, JsonString::Copied));
+
+    web->sendDataWs(responseVariant);
+
+    return JsonObject();
+  }
 
   JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {
     JsonObject var = findVar(id);
@@ -177,7 +246,7 @@ public:
       return getValue(var, rowNr);
     }
     else {
-      USER_PRINTF("getValue: Var %s does not exist!!\n", id);
+      // USER_PRINTF("getValue: Var %s does not exist!!\n", id);
       return JsonVariant();
     }
   }
@@ -186,8 +255,10 @@ public:
       JsonArray valueArray = var["value"].as<JsonArray>();
       if (rowNr != UINT8_MAX && rowNr < valueArray.size())
         return valueArray[rowNr];
+      else if (valueArray.size())
+        return valueArray[0];
       else {
-        USER_PRINTF("perror getValue no array or rownr wrong %s %d\n", var["value"].as<String>().c_str(), rowNr);
+        USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", var["id"].as<const char *>(), var["value"].as<String>().c_str(), rowNr);
         return JsonVariant();
       }
     }
@@ -202,8 +273,10 @@ public:
   //recursively add values in  a variant
   void varToValues(JsonObject var, JsonArray values);
 
+  //run the change function and send response to all? websocket clients
+  static void setChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX, const char * value = nullptr);
+  
 private:
-  bool doWriteModel = false;
   bool doShowObsolete = false;
   bool cleanUpModelDone = false;
 

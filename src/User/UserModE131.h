@@ -21,17 +21,14 @@ class UserModE131:public SysModule {
 public:
 
   UserModE131() :SysModule("e131-sACN") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   //setup filesystem
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initUserMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -3200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     ui->initNumber(parentVar, "dun", universe, 0, 7, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "DMX Universe");
@@ -50,26 +47,37 @@ public:
     JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
       web->addResponse(var["id"], "label", "Vars to watch");
       web->addResponse(var["id"], "comment", "List of instances");
-      JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-      for (auto varToWatch: varsToWatch) {
-        JsonArray row = rows.createNestedArray();
-        row.add(varToWatch.channel + mdl->getValue("dch").as<uint8_t>());
-        row.add(JsonString(varToWatch.id, JsonString::Copied));
-        row.add(varToWatch.max);
-        row.add(varToWatch.savedValue);
-      }
+      // JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
+      // for (auto varToWatch: varsToWatch) {
+      //   JsonArray row = rows.createNestedArray();
+      //   row.add(varToWatch.channel + mdl->getValue("dch").as<uint8_t>());
+      //   row.add(JsonString(varToWatch.id, JsonString::Copied));
+      //   row.add(varToWatch.max);
+      //   row.add(varToWatch.savedValue);
+      // }
     });
     ui->initNumber(tableVar, "e131Channel", UINT16_MAX, 1, 512, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Channel");
+    }, nullptr, nullptr, varsToWatch.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>(), rowNr);
     });
-    ui->initText(tableVar, "e131Name", nullptr, 32, true, [](JsonObject var) { //uiFun
+
+    ui->initText(tableVar, "e131Name", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Name");
+    }, nullptr, nullptr, varsToWatch.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      mdl->setValue(var, JsonString(varsToWatch[rowNr].id, JsonString::Copied), rowNr);
     });
+
     ui->initNumber(tableVar, "e131Max", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Max");
+    }, nullptr, nullptr, varsToWatch.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
     });
+
     ui->initNumber(tableVar, "e131Value", UINT16_MAX, 0, 255, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Value");
+    }, nullptr, nullptr, varsToWatch.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
+      mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
     });
 
   }

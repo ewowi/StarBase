@@ -27,7 +27,7 @@
 #include "User/UserModMDNS.h"
 #ifdef APPMOD_LEDS
   #include "App/AppModLeds.h"
-  #include "App/AppModPreview.h"
+  #include "App/AppModFixture.h"
   #include "App/AppModFixtureGen.h"
   #ifdef USERMOD_ARTNET
     #include "User/UserModArtNet.h"
@@ -65,7 +65,7 @@ void setup() {
   mdns = new UserModMDNS();
   #ifdef APPMOD_LEDS
     lds = new AppModLeds();
-    pvw = new AppModPreview();
+    fix = new AppModFixture();
     lfg = new AppModFixtureGen();
     #ifdef USERMOD_ARTNET
       artnetmod = new UserModArtNet();
@@ -84,11 +84,10 @@ void setup() {
     wledAudioMod = new UserModWLEDAudio();
   #endif
 
-  //preferred default order in the UI. 
   //Reorder with care! If changed make sure mdlEnabled.chFun executes var.createNestedArray("value"); and saveModel! 
   //Default: add below, not in between
   #ifdef APPMOD_LEDS
-    mdls->add(pvw);
+    mdls->add(fix);
     mdls->add(lds);
     mdls->add(lfg);
   #endif
@@ -110,12 +109,12 @@ void setup() {
     mdls->add(e131mod);
   #endif
   #ifdef USERMOD_HA
-    mdls->add(hamod);
+    mdls->add(hamod); //no ui
   #endif
   mdls->add(mdl);
   mdls->add(ui);
   #ifdef USERMOD_WLEDAUDIO
-    mdls->add(wledAudioMod);
+    mdls->add(wledAudioMod); //no ui
   #endif
   mdls->add(mdns); //no ui
   mdls->add(instances);

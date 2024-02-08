@@ -23,16 +23,16 @@ SysModNetwork::SysModNetwork() :SysModule("Network") {};
 //setup wifi an async webserver
 void SysModNetwork::setup() {
   SysModule::setup();
-  USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
   parentVar = ui->initSysMod(parentVar, name);
-  
+  if (parentVar["o"] > -1000) parentVar["o"] = -2500; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+
   // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var) { //uiFun ro false: create and delete row possible
   //   web->addResponse(var["id"], "label", "Wifi");
   //   web->addResponse(var["id"], "comment", "List of defined and available Wifi APs");
   // });
 
-  ui->initText(parentVar, "ssid", "", 32, false);
+  ui->initText(parentVar, "ssid", "", UINT8_MAX, 32, false);
   // , nullptr
   // , nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
   //   var["value"][0] = "";
@@ -43,18 +43,17 @@ void SysModNetwork::setup() {
   });
 
   ui->initButton(parentVar, "connect", nullptr, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Force reconnect (you loose current connection)");
+    web->addResponse(var["id"], "comment", "Force reconnect (loose current connection)");
   }, [this](JsonObject var, uint8_t) { //chFun
+    // mdl->doWriteModel = true; //saves the model
     forceReconnect = true;
   });
-  ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "nwstatus", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Status");
   });
-  ui->initText(parentVar, "rssi", nullptr, 32, true, [](JsonObject var) { //uiFun
+  ui->initText(parentVar, "rssi", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
     web->addResponse(var["id"], "label", "Wifi signal");
   });
-
-  USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
 }
 
 void SysModNetwork::loop() {
@@ -64,7 +63,7 @@ void SysModNetwork::loop() {
 }
 
 void SysModNetwork::loop1s() {
-  mdl->setValueLossy("rssi", "%d dBm", WiFi.RSSI());
+  mdl->setValueUIOnly("rssi", "%d dBm", WiFi.RSSI());
 }
 
 void SysModNetwork::handleConnection() {
@@ -94,7 +93,7 @@ void SysModNetwork::handleConnection() {
       initAP();
     }
   } else if (!interfacesInited) { //newly connected
-    mdl->setValueP("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+    mdl->setValueUIOnly("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
 
     interfacesInited = true;
 
@@ -111,8 +110,6 @@ void SysModNetwork::handleConnection() {
 }
 
 void SysModNetwork::initConnection() {
-
-  // ws.onEvent(wsEvent);
 
   WiFi.disconnect(true);        // close old connections
 
@@ -151,7 +148,7 @@ void SysModNetwork::initAP() {
   #endif
   if (!apActive) // start captive portal if AP active
   {
-    mdl->setValueP("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
+    mdl->setValueUIOnly("nwstatus", "AP %s / %s @ %s", apSSID, apPass, WiFi.softAPIP().toString().c_str());
 
     dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
     dnsServer.start(53, "*", WiFi.softAPIP());
@@ -159,5 +156,4 @@ void SysModNetwork::initAP() {
 
     SysModules::newConnection = true; // send all modules connect notification
   }
-
 }

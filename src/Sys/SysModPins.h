@@ -9,6 +9,7 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
+#pragma once
 #include "SysModule.h"
 
 #include "ArduinoJson.h"

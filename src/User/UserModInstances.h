@@ -143,9 +143,6 @@ public:
   std::vector<InstanceInfo> instances;
 
   UserModInstances() :SysModule("Instances") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   };
 
   void addTblRow(JsonVariant rows, std::vector<InstanceInfo>::iterator instance) {
@@ -173,9 +170,9 @@ public:
   //setup filesystem
   void setup() {
     SysModule::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
 
     parentVar = ui->initSysMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -4200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
       const char * varID = var["id"];
@@ -186,17 +183,17 @@ public:
         addTblRow(rows, instance);
       }
     });
-    ui->initText(tableVar, "insName", nullptr, 32, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insName", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Name");
     });
     ui->initURL(tableVar, "insLink", nullptr, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Show");
     });
 
-    ui->initText(tableVar, "insIp", nullptr, 16, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insIp", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "IP");
     });
-    ui->initText(tableVar, "insType", nullptr, 16, true, [](JsonObject var) { //uiFun
+    ui->initText(tableVar, "insType", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Type");
     });
     ui->initNumber(tableVar, "insVersion", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
@@ -205,13 +202,10 @@ public:
     ui->initNumber(tableVar, "insUp", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Uptime");
     });
-    // ui->initNumber(tableVar, "insTime", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
-    //   web->addResponse(var["id"], "label", "Timestamp");
-    // });
 
     JsonObject currentVar;
 
-    currentVar = ui->initSelect(parentVar, "sma", 0, false, [this](JsonObject var) { //uiFun tbd: make dropdown where value is ...ip number
+    currentVar = ui->initSelect(parentVar, "sma", 0, UINT8_MAX, false, [this](JsonObject var) { //uiFun tbd: make dropdown where value is ...ip number
       web->addResponse(var["id"], "label", "Sync Master");
       web->addResponse(var["id"], "comment", "Instance to sync from");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -303,8 +297,6 @@ public:
     }
 
     USER_PRINTF("UDPWLEDSyncMessage %d %d %d\n", sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage), sizeof(UDPWLEDSyncMessage));
-    
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void onOffChanged() {
@@ -488,7 +480,7 @@ public:
 
     IPAddress broadcastIP(255, 255, 255, 255);
     if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
-      USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d\n", starModMessage.header.name, sizeof(UDPStarModMessage), instanceUDPPort, localIP[3]);
+      // USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d\n", starModMessage.header.name, sizeof(UDPStarModMessage), instanceUDPPort, localIP[3]);
       // for (size_t x = 0; x < sizeof(UDPWLEDMessage) + sizeof(SysData) + sizeof(AppData); x++) {
       //   char * xx = (char *)&starModMessage;
       //   Serial.printf("%d: %d - %c\n", x, xx[x], xx[x]);

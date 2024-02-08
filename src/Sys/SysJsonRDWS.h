@@ -221,7 +221,7 @@ private:
     for (std::vector<VarDetails>::iterator vd=varDetails.begin(); vd!=varDetails.end(); ++vd) {
       // USER_PRINTF("check %s %s %s\n", vd->id, varId, value);
       if (strcmp(vd->id, varId)==0) {
-        // USER_PRINTF("JsonRDWS found %s:%s %d %s\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size());
+        // USER_PRINTF("JsonRDWS found %s:%s %d %s %d %d\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size(), funList.size());
         if (strcmp(vd->type, "uint8") ==0 && value) *uint8List[vd->index] = atoi(value);
         if (strcmp(vd->type, "uint16") ==0 && value) *uint16List[vd->index] = atoi(value);
         if (strcmp(vd->type, "char") ==0 && value) strncpy(charList[vd->index], value, 31); //assuming size 32-1 here
@@ -274,8 +274,11 @@ private:
     else if (variant.is<bool>()) {
       f.printf("%s", variant.as<bool>()?"true":"false");      
     }
+    else if (variant.isNull()) {
+      f.print("null");      
+    }
     else
-      USER_PRINTF("%s not supported", variant.as<String>().c_str());
+      USER_PRINTF("dev JsonRDWS write %s not supported\n", variant.as<String>().c_str());
   }
 
 };

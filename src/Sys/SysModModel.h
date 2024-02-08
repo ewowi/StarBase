@@ -52,6 +52,7 @@ struct Coord3D {
 
   //assignments
   Coord3D operator=(Coord3D rhs) {
+    USER_PRINTF("Coord3D assign %d,%d,%d\n", rhs.x, rhs.y, rhs.z);
     this->x = rhs.x;
     this->y = rhs.y;
     this->z = rhs.z;
@@ -82,10 +83,11 @@ namespace ArduinoJson {
   template <>
   struct Converter<Coord3D> {
     static bool toJson(const Coord3D& src, JsonVariant dst) {
+      // JsonObject obj = dst.to<JsonObject>();
       dst["x"] = src.x;
       dst["y"] = src.y;
       dst["z"] = src.z;
-      USER_PRINTF("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
+      USER_PRINTF("Coord3D toJson %d,%d,%d -> {x:%d,y:%d,z:%d}\n", src.x, src.y, src.z, dst["x"].as<uint8_t>(), dst["y"].as<uint8_t>(), dst["z"].as<uint8_t>());
       return true;
     }
 
@@ -167,7 +169,7 @@ public:
         }
         else {
           USER_PRINTF("setValue changed %s %s->%s\n", var["id"].as<const char *>(), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
-          setChFunAndWs(var);
+          callChFunAndWs(var);
         }
       }
     }
@@ -194,7 +196,7 @@ public:
           //   USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
           valueArray[rowNr] = value; //if valueArray[<rowNr] not exists it will be created
           // USER_PRINTF("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
-          setChFunAndWs(var, rowNr);
+          callChFunAndWs(var, rowNr);
         }
       }
       else {
@@ -205,8 +207,8 @@ public:
     return var;
   }
 
-  //Set value with argument list
-  JsonObject setValueV(const char * id, const char * format, ...) {
+  //Set value with argument list with rowNr (rowNr cannot have a default)
+  JsonObject setValueV(const char * id, uint8_t rowNr = UINT8_MAX, const char * format = nullptr, ...) {
     va_list args;
     va_start(args, format);
 
@@ -216,11 +218,10 @@ public:
     va_end(args);
 
     USER_PRINTF("%s\n", value);
-
-    return setValue(id, JsonString(value, JsonString::Copied));
+    return setValue(id, JsonString(value, JsonString::Copied), rowNr);
   }
 
-  JsonObject setValueUIOnly(const char * id, const char * format, ...) {
+  JsonObject setUIValueV(const char * id, const char * format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -229,13 +230,11 @@ public:
 
     va_end(args);
 
-    JsonDocument *responseDoc = web->getResponseDoc();
-    responseDoc->clear(); //needed for deserializeJson?
-    JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+    JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
 
     web->addResponse(id, "value", JsonString(value, JsonString::Copied));
 
-    web->sendDataWs(responseVariant);
+    web->sendDataWs(responseObject);
 
     return JsonObject();
   }
@@ -274,8 +273,8 @@ public:
   void varToValues(JsonObject var, JsonArray values);
 
   //run the change function and send response to all? websocket clients
-  static void setChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX, const char * value = nullptr);
-  
+  static void callChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX, const char * value = nullptr);
+
 private:
   bool doShowObsolete = false;
   bool cleanUpModelDone = false;

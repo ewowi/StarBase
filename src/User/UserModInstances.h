@@ -234,12 +234,12 @@ public:
       JsonObject newVar; // = ui->cloneVar(var, columnVarID, [this, var](JsonObject newVar){});
 
       //create a var of the same type. InitVar is not calling chFun which is good in this situation!
-      newVar = ui->initVar(tableVar, columnVarID, var["type"], false, nullptr, [this, var](JsonObject newVar, uint8_t rowNr) { //chFun
-
+      newVar = ui->initVar(tableVar, columnVarID, var["type"], false, nullptr
+      , [this, var](JsonObject newVar, uint8_t rowNr) { //chFun
         if (rowNr != UINT8_MAX) {
           //if this instance update directly, otherwise send over network
           if (instances[rowNr].ip == WiFi.localIP()) {
-            mdl->setValue(var, mdl->getValue(newVar, rowNr).as<uint8_t>());
+            mdl->setValue(var, mdl->getValue(newVar, rowNr).as<uint8_t>()); //this will call sendDataWS (tbd...)
           } else {
             // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
             HTTPClient http;
@@ -594,7 +594,6 @@ public:
 
       ui->processUiFun("insTbl");
     }
-
   }
 
   std::vector<InstanceInfo>::iterator findNode( IPAddress nodeIP) {

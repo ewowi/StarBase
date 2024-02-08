@@ -819,7 +819,7 @@ public:
       if (e131mod->isEnabled) {
         e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
         e131mod->patchChannel(4, "ripple", 255);
-        ui->processUiFun("e131Tbl");
+        ui->processUiFun("e131Tbl"); // sends data to ws...
       }
 
     #endif
@@ -1089,16 +1089,6 @@ public:
       //     var["o"] = -var["o"].as<int>();
       // }
       //remove vars with all values -99
-
-      JsonDocument *responseDoc = web->getResponseDoc();
-      responseDoc->clear(); //needed for deserializeJson?
-      JsonObject responseObject = responseDoc->to<JsonObject>();
-
-      responseObject["details"]["var"] = var;
-      responseObject["details"]["rowNr"] = rowNr;
-
-      print->printJson("var", responseObject);
-      web->sendDataWs(responseObject); //always send, also when no children, to remove them from ui
 
     } // fx < size
 

@@ -36,6 +36,7 @@ CRGB Leds::getPixelColor(uint16_t indexV) {
       return CRGB::Black;
     }
     else if (!mappingTable[indexV].size()) //if no physMap // Core  1 panic'ed (LoadProhibited). Exception was unhandled. - std::vector<unsigned short, std::allocator<unsigned short> >::size() 
+                                            // by blurrows CRGB cur = getPixelColor(XY(i,row));?
     {
       USER_PRINTF(" dev gPC P:%d >= %d", mappingTable[indexV][0], NUM_LEDS_Max);
       return CRGB::Black;

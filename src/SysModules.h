@@ -12,8 +12,6 @@
 #pragma once
 #include "SysModule.h"
 
-#include <vector>
-
 class SysModules {
 public:
   static bool newConnection;// = false; //need to be static otherwise crash

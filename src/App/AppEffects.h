@@ -9,10 +9,10 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-#ifdef USERMOD_WLEDAUDIO
+#ifdef STARMOD_USERMOD_WLEDAUDIO
   #include "../User/UserModWLEDAudio.h"
 #endif
-#ifdef USERMOD_E131
+#ifdef STARMOD_USERMOD_E131
   #include "../User/UserModE131.h"
 #endif
 
@@ -708,7 +708,7 @@ public:
 };
 
 
-#ifdef USERMOD_WLEDAUDIO
+#ifdef STARMOD_USERMOD_WLEDAUDIO
 
 class GEQEffect:public Effect {
 public:
@@ -814,7 +814,7 @@ public:
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 
-    #ifdef USERMOD_E131
+    #ifdef STARMOD_USERMOD_E131
 
       if (e131mod->isEnabled) {
         e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
@@ -960,7 +960,7 @@ public:
     effects.push_back(new BouncingBalls1D);
     effects.push_back(new RingRandomFlow);
     effects.push_back(new ScrollingText2D);
-    #ifdef USERMOD_WLEDAUDIO
+    #ifdef STARMOD_USERMOD_WLEDAUDIO
       effects.push_back(new GEQEffect);
       effects.push_back(new AudioRings);
       effects.push_back(new FreqMatrix);
@@ -988,7 +988,7 @@ public:
     // USER_PRINTF("Size of %s is %d\n", "Lissajous2D", sizeof(Lissajous2D));
     // USER_PRINTF("Size of %s is %d\n", "BouncingBalls1D", sizeof(BouncingBalls1D));
     // USER_PRINTF("Size of %s is %d\n", "RingRandomFlow", sizeof(RingRandomFlow));
-    // #ifdef USERMOD_WLEDAUDIO
+    // #ifdef STARMOD_USERMOD_WLEDAUDIO
     //   USER_PRINTF("Size of %s is %d\n", "GEQEffect", sizeof(GEQEffect));
     //   USER_PRINTF("Size of %s is %d\n", "AudioRings", sizeof(AudioRings));
     // #endif
@@ -999,7 +999,7 @@ public:
 
     effects[leds.fx%effects.size()]->loop(leds);
 
-    #ifdef USERMOD_WLEDAUDIO
+    #ifdef STARMOD_USERMOD_WLEDAUDIO
 
       if (mdl->getValue("mHead") ) {
         leds.fixture->head.x = wledAudioMod->fftResults[3];

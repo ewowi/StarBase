@@ -24,7 +24,7 @@
 #include "AppFixture.h"
 #include "AppEffects.h"
 
-// #ifdef USERMOD_E131
+// #ifdef STARMOD_USERMOD_E131
 //   #include "../User/UserModE131.h"
 // #endif
 
@@ -78,6 +78,38 @@ public:
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
       web->addResponse(var["id"], "label", "Effects");
       web->addResponse(var["id"], "comment", "List of effects");
+    }, [this](JsonObject var, uint8_t rowNr) { //chFun
+      JsonObject responseObject = web->getResponseObject();
+      if (responseObject[var["id"].as<const char *>()]["value"] == "addRow") {
+        rowNr = fixture.ledsList.size();
+        USER_PRINTF("chFun addRow %s %d\n", var["id"].as<const char *>(), rowNr);
+
+        responseObject["addRow"]["id"] = var["id"];
+        responseObject["addRow"]["rowNr"] = rowNr;
+        // responseObject["addRow"].createNestedArray("value");
+        // JsonArray row = responseObject["updRow"]["insTbl"].createNestedArray(rowNrC);
+        // addTblRow(responseObject["updRow"]["value"], instance);
+
+        Leds leds = Leds();
+        leds.rowNr = rowNr;
+        leds.fixture = &fixture;
+        leds.projectionNr = 2;
+        leds.fx = 14;
+        fixture.ledsList.push_back(leds);
+      }
+      if (responseObject[var["id"].as<const char *>()]["value"] == "delRow") {
+        USER_PRINTF("chFun delrow %s %d\n", var["id"].as<const char *>(), rowNr);
+        //fade to black
+        if (rowNr <fixture.ledsList.size()) {
+          fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from leds
+          //remove from columns
+          // for (JsonObject columnVar: var["n"].as<JsonArray>())
+          //   mdl->setValue(columnVar, fixture.ledsList[rowNr].fx, rowNr);
+          //remove from ui
+          responseObject["delRow"]["id"] = var["id"];
+          responseObject["delRow"]["rowNr"] = rowNr;
+        }
+      }
     });
 
     currentVar = ui->initSelect(tableVar, "fx", 0, UINT8_MAX, false, [this](JsonObject var) { //uiFun
@@ -181,7 +213,7 @@ public:
     }, [this](JsonObject var, uint8_t) { //chFun
     }); //fixtureGen
 
-    #ifdef USERMOD_E131
+    #ifdef STARMOD_USERMOD_E131
       // if (e131mod->isEnabled) {
           e131mod->patchChannel(0, "bri", 255); //should be 256??
           e131mod->patchChannel(1, "fx", effects.effects.size());

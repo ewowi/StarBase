@@ -10,8 +10,6 @@
 */
 
 #pragma once
-#include <vector>
-#include "ArduinoJson.h"
 #include "SysModule.h"
 #include "SysModPrint.h"
 #include "SysModModel.h"

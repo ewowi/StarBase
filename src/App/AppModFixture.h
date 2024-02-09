@@ -69,6 +69,7 @@ public:
 
       }, lds->fixture.nrOfLeds * 3 + 5, true);
     });
+
     ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, UINT8_MAX, false, [](JsonObject var) { //uiFun
       web->addResponse(var["id"], "comment", "Fixture to display effect on");
       JsonArray select = web->addResponseA(var["id"], "options");
@@ -112,7 +113,7 @@ public:
       web->addResponseV(var["id"], "comment", "f(%d leds)", lds->fixture.nrOfLeds);
     });
 
-    #ifdef USERMOD_WLEDAUDIO
+    #ifdef STARMOD_USERMOD_WLEDAUDIO
       ui->initCheckBox(parentVar, "mHead", false, UINT8_MAX, false, [](JsonObject var) { //uiFun
         web->addResponse(var["id"], "label", "Moving heads");
         web->addResponse(var["id"], "comment", "Move on GEQ");

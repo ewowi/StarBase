@@ -13,8 +13,6 @@
 
 #include "SysModule.h"
 
-#include "ArduinoJson.h"
-
 class SysModSystem:public SysModule {
 
 public:

@@ -39,13 +39,15 @@ void SysModFiles::setup() {
     JsonArray rows = web->addResponseA(var["id"], "value");  //overwrite the value
     dirToJson(rows);
   }, [this](JsonObject var, uint8_t rowNr) { //chFun
-    if (strcmp(var["value"], "delRow") == 0) {
+    JsonObject responseObject = web->getResponseObject();
+    if (responseObject[var["id"].as<const char *>()]["value"] == "delRow") {
+    // if (strcmp(var["value"], "delRow") == 0) {
       USER_PRINTF("fileTbl chFun %s %d %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
       if (rowNr != UINT8_MAX) {
         // call uiFun of tbl to fill responseObject with files
         ui->uFunctions[var["uiFun"]](var);
         //trick to get the table values tbd: use column values
-        JsonObject responseObject = web->getResponseDoc()->as<JsonObject>(); //not to as already created by callChFunAndWs
+        JsonObject responseObject = web->getResponseObject();
         JsonArray row = responseObject["fileTbl"]["value"][rowNr];
         if (!row.isNull()) {
           const char * fileName = row[0]; //first column
@@ -58,7 +60,7 @@ void SysModFiles::setup() {
       }
       print->printJson(" ", var);
     }
-    else if (strcmp(var["value"], "insRow") == 0) {
+    else if (responseObject[var["id"].as<const char *>()]["value"] == "addRow") {
       USER_PRINTF("fileTbl chFun %s %d %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
       //add a row with all defaults
     }

@@ -107,11 +107,9 @@ public:
     f.close();
 
     files->remove("/temp.json");
-
   }
 
-  void 
-  openPin() {
+  void openPin() {
     uint8_t nextPin;
     if (pinNr < nrOfPins)
       nextPin = pinNr++;
@@ -564,8 +562,8 @@ public:
       web->addResponse(var["id"], "comment", "One or more e.g. 12,13,14");
     });
 
-    ui->initButton(parentVar, "generate", false, [](JsonObject var) { //uiFun
-    }, [this](JsonObject var, uint8_t) { //chFun
+    ui->initButton(parentVar, "generate", false, nullptr
+    , [this](JsonObject var, uint8_t) { //chFun
       generateChFun(var);
 
       //reload fixture select
@@ -627,13 +625,13 @@ public:
       ui->initNumber(parentVar, "height", 8, 1, 255);
 
       ui->initSelect(parentVar, "firstLedX", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
-        // web->addResponse(var["id"], "label", "fixture generator");
+        web->addResponse(var["id"], "comment", "WIP");
         JsonArray select = web->addResponseA(var["id"], "options");
         select.add("Left"); //0
         select.add("Right"); //1
       });
       ui->initSelect(parentVar, "firstLedY", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
-        // web->addResponse(var["id"], "label", "fixture generator");
+        web->addResponse(var["id"], "comment", "WIP");
         JsonArray select = web->addResponseA(var["id"], "options");
         select.add("Top"); //0
         select.add("Bottom"); //1

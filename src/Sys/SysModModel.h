@@ -14,8 +14,6 @@
 #include "SysModPrint.h"
 #include "SysModWeb.h"
 
-#include "ArduinoJson.h"
-
 typedef std::function<void(JsonObject)> FindFun;
 typedef std::function<void(JsonObject, size_t)> ChangeFun;
 
@@ -221,7 +219,7 @@ public:
     return setValue(id, JsonString(value, JsonString::Copied), rowNr);
   }
 
-  JsonObject setUIValueV(const char * id, const char * format, ...) {
+  void setUIValueV(const char * id, const char * format, ...) {
     va_list args;
     va_start(args, format);
 
@@ -235,8 +233,6 @@ public:
     web->addResponse(id, "value", JsonString(value, JsonString::Copied));
 
     web->sendDataWs(responseObject);
-
-    return JsonObject();
   }
 
   JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {

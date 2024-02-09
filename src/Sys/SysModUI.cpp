@@ -190,8 +190,8 @@ void SysModUI::processJson(JsonVariant json) {
         if (value.is<JsonObject>()) {
           JsonObject command = value.as<JsonObject>();
           JsonObject var = mdl->findVar(command["id"]);
-          var["value"] = pair.key(); //store the action as variable workaround?
-          mdl->callChFunAndWs(var, command["rowNr"].as<int>());
+          // var["value"] = pair.key(); //store the action as variable workaround?
+          mdl->callChFunAndWs(var, command["rowNr"].as<int>(), pair.key().c_str()); //let chFun deal with it
         }
         json.remove(key); //key processed we don't need the key in the response
       }
@@ -241,7 +241,7 @@ void SysModUI::processJson(JsonVariant json) {
           key = rowNrC;
           rowNrC = strtok(NULL, " ");
         }
-        uint8_t rowNr = rowNr?atoi(rowNrC):UINT8_MAX;
+        uint8_t rowNr = rowNrC?atoi(rowNrC):UINT8_MAX;
 
         JsonObject var = mdl->findVar(key);
 
@@ -250,8 +250,10 @@ void SysModUI::processJson(JsonVariant json) {
         if (!var.isNull())
         {
           //a button never sets the value
-          if (var["type"] == "button") //button always
+          if (var["type"] == "button") { //button always
             mdl->callChFunAndWs(var, rowNr, val); //bypass var["value"] 
+            print->printJson("button", json);
+          }
           else {
             USER_PRINTF("processJson %s[%d] %s->%s\n", key, rowNr, var["value"].as<String>().c_str(), value.as<String>().c_str());
             if (val.is<const char *>())
@@ -259,9 +261,10 @@ void SysModUI::processJson(JsonVariant json) {
             else
               mdl->setValue(var, val.as<JsonVariant>(), rowNr);
           }
+          // json.remove(key); //key / var["id"] processed we don't need the key in the response
         }
         else
-          USER_PRINTF("Object %s[%d] not found\n", key, rowNr);
+          USER_PRINTF("dev Object %s[%d] not found\n", key, rowNr);
       } 
       else {
         USER_PRINTF("dev processJson command not recognized k:%s v:%s\n", key, value.as<String>().c_str());

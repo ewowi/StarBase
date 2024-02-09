@@ -9,7 +9,6 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-#include <WiFi.h>
 #include <ArduinoHA.h>
 
 #define BROKER_ADDR     IPAddress(192,168,178,42) //ewowi: could we scan that instead of hard coded?

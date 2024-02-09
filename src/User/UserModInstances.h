@@ -11,9 +11,7 @@
 
 #pragma once
 
-#include <vector>
-#include "ArduinoJson.h"
-#ifdef USERMOD_E131
+#ifdef STARMOD_USERMOD_E131
   #include "UserModE131.h"
 #endif
 // #include "Sys/SysModSystem.h" //for sys->version
@@ -145,8 +143,7 @@ public:
   UserModInstances() :SysModule("Instances") {
   };
 
-  void addTblRow(JsonVariant rows, std::vector<InstanceInfo>::iterator instance) {
-    JsonArray row = rows.createNestedArray();
+  void addTblRow(JsonArray row, std::vector<InstanceInfo>::iterator instance) {
     row.add(JsonString(instance->name, JsonString::Copied));
     char urlString[32] = "http://";
     strncat(urlString, instance->ip.toString().c_str(), sizeof(urlString)-1);
@@ -180,7 +177,8 @@ public:
       web->addResponse(varID, "comment", "List of instances");
       JsonArray rows = web->addResponseA(varID, "value"); //overwrite the value
       for (auto instance=this->instances.begin(); instance!=this->instances.end(); ++instance) {
-        addTblRow(rows, instance);
+        JsonArray row = rows.createNestedArray();
+        addTblRow(row, instance);
       }
     });
     ui->initText(tableVar, "insName", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
@@ -460,7 +458,7 @@ public:
     starModMessage.sys.dmx.universe = 0;
     starModMessage.sys.dmx.start = 0;
     starModMessage.sys.dmx.count = 0;
-    #ifdef USERMOD_E131
+    #ifdef STARMOD_USERMOD_E131
       if (e131mod->isEnabled) {
         starModMessage.sys.dmx.universe = mdl->getValue("dun");
         starModMessage.sys.dmx.start = mdl->getValue("dch");
@@ -526,6 +524,7 @@ public:
     }
 
     //iterate vector pointers so we can update the instances
+    uint8_t rowNr = 0;
     for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
       if (instance->ip == messageIP) {
         instance->timeStamp = millis(); //update timestamp
@@ -574,20 +573,25 @@ public:
         if (instanceFound) {
           JsonDocument *responseDoc = web->getResponseDoc();
           responseDoc->clear(); //needed for deserializeJson?
-          JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+          JsonObject responseObject = responseDoc->to<JsonObject>();
 
-          JsonArray rows = web->addResponseA("updRow", "insTbl");
-          addTblRow(rows, instance);
+          responseObject["updRow"]["id"] = "insTbl";
+          responseObject["updRow"]["rowNr"] = rowNr;
+          responseObject["updRow"].createNestedArray("value");
+          // JsonArray row = responseObject["updRow"]["insTbl"].createNestedArray(rowNrC);
+          addTblRow(responseObject["updRow"]["value"], instance);
 
-          web->sendDataWs(responseVariant); //send to all clients
+          web->sendDataWs(responseObject); //send to all clients
 
-          // print->printJson("updateNode updRow", responseVariant);
+          print->printJson("updateNode updRow", responseObject);
         }
 
       } //ip
-    }
+      rowNr ++;
+    } // for instances
+
     if (!instanceFound) {
-      USER_PRINTF("insTbl updateNode %d\n", messageIP[3]);
+      USER_PRINTF("insTbl new instance node %d\n", messageIP[3]);
       
       ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
       ui->processUiFun("artInst"); //show the new instance in the dropdown  

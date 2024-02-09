@@ -12,8 +12,6 @@
 #pragma once
 #include <ESPAsyncE131.h>
 
-#include <vector>
-
 #define maxChannels 513
 
 class UserModE131:public SysModule {

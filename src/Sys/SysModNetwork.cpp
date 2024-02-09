@@ -16,8 +16,6 @@
 #include "SysModUI.h"
 #include "SysModModel.h"
 
-#include <WiFi.h>
-
 SysModNetwork::SysModNetwork() :SysModule("Network") {};
 
 //setup wifi an async webserver
@@ -131,8 +129,8 @@ void SysModNetwork::initConnection() {
     for (int i = 0; i < strlen(password); i++) strncat(passXXX, "*", sizeof(passXXX)-1);
     USER_PRINTF("Connecting to WiFi %s / %s\n", ssid, passXXX);
     WiFi.begin(ssid, password);
-    #if defined(LOLIN_WIFI_FIX) && (defined(ARDUINO_ARCH_ESP32C3) || defined(ARDUINO_ARCH_ESP32S2) || defined(ARDUINO_ARCH_ESP32S3))
-      WiFi.setTxPower(WIFI_POWER_8_5dBm);
+    #if defined(STARMOD_LOLIN_WIFI_FIX )
+      WiFi.setTxPower(WIFI_POWER_8_5dBm );
     #endif
   }
   else
@@ -143,8 +141,8 @@ void SysModNetwork::initAP() {
   USER_PRINTF("Opening access point %s\n", apSSID);
   WiFi.softAPConfig(IPAddress(4, 3, 2, 1), IPAddress(4, 3, 2, 1), IPAddress(255, 255, 255, 0));
   WiFi.softAP(apSSID, apPass, apChannel, apHide);
-  #if defined(LOLIN_WIFI_FIX) && (defined(ARDUINO_ARCH_ESP32C3) || defined(ARDUINO_ARCH_ESP32S2) || defined(ARDUINO_ARCH_ESP32S3))
-    WiFi.setTxPower(WIFI_POWER_8_5dBm);
+  #if defined(STARMOD_LOLIN_WIFI_FIX )
+    WiFi.setTxPower(WIFI_POWER_8_5dBm );
   #endif
   if (!apActive) // start captive portal if AP active
   {

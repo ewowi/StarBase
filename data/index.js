@@ -239,17 +239,11 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
         buttonNode.type = "button";
         buttonNode.value = "+";
         buttonNode.addEventListener('click', (event) => {
-          let divNode = event.target.parentNode; //parent of the + button
-          let tableNode = divNode.querySelector("table");
-          let tbodyNode = tableNode.querySelector("tbody");
-          console.log("Table +", divNode, variable, tableNode);
-
-          let newRowNr = tbodyNode.querySelectorAll("tr").length;
-
-          genTableRowHTML(variable, tableNode, newRowNr);
+          console.log("Table +", event.target);
 
           var command = {};
-          command["addRow"] = {"id": variable.id, "rowNr":newRowNr};
+          command.addRow = {};
+          command.addRow.id = variable.id;
           requestJson(command);
         });
         divNode.appendChild(buttonNode);
@@ -476,7 +470,9 @@ function genTableRowHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       console.log("Table -", event.target);
 
       var command = {};
-      command["delRow"] = {"id": variable.id, "rowNr":rowNr};
+      command.delRow = {};
+      command.delRow.id = variable.id;
+      command.delRow.rowNr = rowNr;
       requestJson(command);
 
     });
@@ -529,55 +525,52 @@ function receiveData(json) {
         }
         flushUIFunCommands(); //make sure uiFuns of new elements are called
       }
+      else if (key == "addRow") { //update the row of a table
+        console.log("receiveData", key, value);
+
+        let tableId = value.id;
+        let tableVar = findVar(tableId);
+        let rowNr = value.rowNr;
+
+        let tableNode = gId(tableId);
+
+        let tbodyNode = tableNode.querySelector("tbody");
+
+        console.log("addRow ", tableVar, tableNode, rowNr);
+
+        let newRowNr = tbodyNode.querySelectorAll("tr").length;
+
+        genTableRowHTML(tableVar, tableNode, newRowNr);
+      }
+      else if (key == "delRow") { //update the row of a table
+        console.log("receiveData", key, value);
+        let tableId = value.id;
+        let tableVar = findVar(tableId);
+        let rowNr = value.rowNr;
+
+        let tableNode = gId(tableId);
+
+        tableNode.deleteRow(rowNr + 1); //header counts as 0
+
+        console.log("delRow ", tableVar, tableNode, rowNr);
+
+      }
       else if (key == "updRow") { //update the row of a table
-        for (let tableId of Object.keys(value)) { //currently only one table
-          let tableRows = value[tableId];
-          console.log("receiveData updRow", key, tableId, tableRows);
-          let tableNode = gId(tableId);
-          let tableVar = findVar(tableId);
-          // console.log("updRow main", tableId, tableRows, tableNode, tableVar);
+        let tableId = value.id;
+        let tableVar = findVar(tableId);
+        let rowNr = value.rowNr;
+        let tableRow = value.value;
 
-          let rowFound = false;
-          let rowNr = UINT8_MAX;
-          for (let nodeRowNr = 1, rowNode; rowNode = tableNode.rows[nodeRowNr]; nodeRowNr++) { //<table> rows starting with header row
-            rowNr = nodeRowNr - 1;
-            // console.log("  noderow", rowNr, rowNode);
+        // console.log("receiveData updRow", key, tableId, rowNr, tableRow);
+        // console.log("updRow main", tableId, tableRows, tableNode, tableVar);
 
-            if (Array.isArray(tableRows)) {
-              for (let tableRow of tableRows) {
-                // console.log("  tablerow", tableId, tableRow);
-
-                //loop over all column vars
-                //like genTableRowHTML but here only values, id's do exist already
-                let colNr = 0;
-                let keyFound = false; //reset each iteration
-                for (let colVar of tableVar.n) {
-                  let colNode = gId(colVar.id + "#" + rowNr); 
-                  if (colNode) {
-                    let colValue = tableRow[colNr];
-                    // console.log("    ", colVar, colNode, colValue);
-  
-                    if (colNr == 0) { //check on the value of the first table column: tbd: check other columns?
-                      keyFound = colNode.innerText == colValue; //innerText is assuming span like node. tbd: others
-                    } else if (keyFound) { //colNr 1..n
-                      rowFound = true;
-                      // console.log("receiveData updRow, existing row", tableVar, tableNode, colVar, colNode, rowNr);
-                      changeHTML(colVar, {"value":colValue, "chk":"updRow"}, rowNr);
-                    }
-                  }
-                  else
-                    console.log("receiveData node not found", colVar.id + "#" + rowNr, colVar);
-                  colNr++;
-                }
-              }
-            }
-          } //for each row
-          if (!rowFound) {
-            // this is a new rode, add it
-            console.log("receiveData updRow, new row", tableVar, tableNode, rowNr);
-            // genTableRowHTML(tableVar, tableNode, rowNr+1);
-          }
-        } //tableId
+        let colNr = 0;
+        for (let colVar of tableVar.n) {
+          let colValue = tableRow[colNr];
+          // console.log("    col", colNr, colVar, colValue);
+          changeHTML(colVar, {"value":colValue, "chk":"updRow"}, rowNr);
+          colNr++;
+        }
       }
       else { //{variable:{label:value:options:comment:}}
         let variable = findVar(key);
@@ -644,7 +637,13 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
 
       //if not a tablecell
       if (node.parentNode.parentNode.nodeName.toLocaleLowerCase() != "td") {
-        let commentNode = node.parentNode.querySelector('comment');
+        let commentNode; // = node.parentNode.querySelector('comment');
+        for (let childNode of node.parentNode.childNodes) {
+          if (childNode.nodeName.toLocaleLowerCase() == "comment") {
+            commentNode = childNode;
+            break;
+          }
+        }
         // console.log("commentNode", commentNode);
         if (!commentNode) { //create if not exist
           commentNode = cE("comment");
@@ -911,7 +910,7 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
   }
 
   if (commandJson.hasOwnProperty("file")) { //json send html nodes cannot process, store in jsonValues array
-    console.log("changeHTML file", variable, node, commandJson, rowNr);
+    console.log("changeHTML file requested", variable.id, rowNr, commandJson);
   
     //we need to send a request which the server can handle using request variable
     let url = `http://${window.location.hostname}/file`;
@@ -922,7 +921,7 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
       jsonValues[id].new = true;
       // variable[id].file = ledmapJson;
       // variable[id].file.new = true;
-      console.log("fetchAndExecute", jsonValues);
+      console.log("changeHTML file fetched", id, ledmapJson);
     }); 
   }
 } //changeHTML

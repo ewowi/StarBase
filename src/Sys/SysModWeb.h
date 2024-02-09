@@ -108,20 +108,20 @@ public:
 
   template <typename Type>
   void addResponse(const char * id, const char * key, Type value) {
-    JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-    // if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-    responseVariant[id][key] = value;
+    JsonObject responseObject = getResponseObject();
+    // if (responseObject[id].isNull()) responseObject.createNestedObject(id);
+    responseObject[id][key] = value;
   }
 
   JsonArray addResponseA(const char * id, const char * key) {
-    JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-    // if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
-    return responseVariant[id].createNestedArray(key);
+    JsonObject responseObject = getResponseObject();
+    // if (responseObject[id].isNull()) responseObject.createNestedObject(id);
+    return responseObject[id].createNestedArray(key);
   }
 
   void addResponseV(const char * id, const char * key, const char * format, ...) {
-    JsonVariant responseVariant = getResponseDoc()->as<JsonVariant>();
-    // if (responseVariant[id].isNull()) responseVariant.createNestedObject(id);
+    JsonObject responseObject = getResponseObject();
+    // if (responseObject[id].isNull()) responseObject.createNestedObject(id);
 
     va_list args;
     va_start(args, format);
@@ -132,13 +132,15 @@ public:
 
     va_end(args);
 
-    responseVariant[id][key] = JsonString(value, JsonString::Copied);
+    responseObject[id][key] = JsonString(value, JsonString::Copied);
   }
 
   void clientsToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
 
   //gets the right responseDoc, depending on which task you are in, alternative for requestJSONBufferLock
   JsonDocument * getResponseDoc();
+  JsonObject getResponseObject();
+  void sendResponseObject(WebClient * client = nullptr);
 
   static void printClient(const char * text, WebClient * client) {
     USER_PRINTF("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());

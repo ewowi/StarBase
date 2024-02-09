@@ -369,9 +369,8 @@ void SysModWeb::sendDataWs(JsonVariant json, WebClient * client) {
 
   size_t len = measureJson(json);
   sendDataWs([json, len](AsyncWebSocketMessageBuffer * wsBuf) {
-      serializeJson(json, wsBuf->get(), len);
+    serializeJson(json, wsBuf->get(), len);
   }, len, false, client); //false -> text
-
 }
 
 //https://kcwong-joe.medium.com/passing-a-function-as-a-parameter-in-c-a132e69669f6
@@ -407,7 +406,7 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
             printClient("sendDataWs client full or not connected", loopClient); //causes crash
             // USER_PRINTF("sendDataWs client full or not connected\n");
             ws->cleanupClients(); //only if above threshold
-            // ws->_cleanBuffers();
+            ws->_cleanBuffers();
           }
         }
       }
@@ -517,8 +516,6 @@ void SysModWeb::serveFiles(WebRequest *request) {
 
 void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
 
-  JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
-
   print->printJson("jsonHandler", json);
 
   //WLED compatibility
@@ -526,7 +523,10 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
     serveJson (request);
   }
   else {
+    JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
+  
     ui->processJson(json);
+
     if (responseObject.size()) { //responseVariant set by processJson e.g. uiFun
 
       char resStr[200];
@@ -560,6 +560,31 @@ JsonDocument * SysModWeb::getResponseDoc() {
   // USER_PRINTF("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
 
   return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?web->responseDocLoopTask:web->responseDocAsyncTCP;
+}
+
+JsonObject SysModWeb::getResponseObject() {
+  // USER_PRINTF("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
+
+  // if (!responseDocLoopTask->is<JsonObject>()) {
+  //   responseDocLoopTask->to<JsonObject>(); //(re)create
+  //   print->printJson("getResponseObject to", *responseDocLoopTask);
+  // }
+
+  return getResponseDoc()->as<JsonObject>();
+}
+
+void SysModWeb::sendResponseObject(WebClient * client) {
+  JsonObject responseObject = getResponseObject();
+  if (responseObject.size()) {
+    // print->printJson("sendResponseObject", responseObject);
+    web->sendDataWs(responseObject, client);
+    getResponseDoc()->clear();
+    getResponseDoc()->to<JsonObject>();
+    JsonObject responseObject = getResponseObject();
+    // strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?responseDocLoopTask->clear():responseDocAsyncTCP->clear();
+    print->printJson("getResponseObject cleared", responseObject);
+    print->printJDocInfo("getResponseObject info", responseObject);
+  }
 }
 
 void SysModWeb::serveJson(WebRequest *request) {

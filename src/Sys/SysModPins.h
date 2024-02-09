@@ -12,8 +12,6 @@
 #pragma once
 #include "SysModule.h"
 
-#include "ArduinoJson.h"
-
 #define NUM_PINS 50
 
 //info stored per pin

@@ -25,7 +25,7 @@ SysModModel::SysModModel() :SysModule("Model") {
 
   USER_PRINTF("Reading model from /model.json... (deserializeConfigFromFS)\n");
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
-    print->printJson("Read model", *model);
+    // print->printJson("Read model", *model);
     web->sendDataWs(*model);
   } else {
     root = model->to<JsonArray>(); //re create the model as it is corrupted by readFromFile

@@ -75,143 +75,174 @@ public:
 
     JsonObject currentVar;
 
-    JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Effects");
-      web->addResponse(var["id"], "comment", "List of effects");
-    }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      JsonObject responseObject = web->getResponseObject();
-      if (responseObject[var["id"].as<const char *>()]["value"] == "addRow") {
-        rowNr = fixture.ledsList.size();
-        USER_PRINTF("chFun addRow %s %d\n", var["id"].as<const char *>(), rowNr);
+    JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Effects");
+        web->addResponse(var["id"], "comment", "List of effects");
+        return true;
+      case f_ChangeFun: {
+        JsonObject responseObject = web->getResponseObject();
+        if (responseObject[var["id"].as<const char *>()]["value"] == "addRow") {
+          rowNr = fixture.ledsList.size();
+          USER_PRINTF("chFun addRow %s[%d]\n", var["id"].as<const char *>(), rowNr);
 
-        responseObject["addRow"]["id"] = var["id"];
-        responseObject["addRow"]["rowNr"] = rowNr;
-        // responseObject["addRow"].createNestedArray("value");
-        // JsonArray row = responseObject["updRow"]["insTbl"].createNestedArray(rowNrC);
-        // addTblRow(responseObject["updRow"]["value"], instance);
+          responseObject["addRow"]["id"] = var["id"];
+          responseObject["addRow"]["rowNr"] = rowNr;
+          // responseObject["addRow"].createNestedArray("value");
+          // JsonArray row = responseObject["updRow"]["insTbl"].createNestedArray(rowNrC);
+          // addTblRow(responseObject["updRow"]["value"], instance);
 
-        Leds leds = Leds();
-        leds.rowNr = rowNr;
-        leds.fixture = &fixture;
-        leds.projectionNr = 2;
-        leds.fx = 14;
-        fixture.ledsList.push_back(leds);
-      }
-      if (responseObject[var["id"].as<const char *>()]["value"] == "delRow") {
-        USER_PRINTF("chFun delrow %s %d\n", var["id"].as<const char *>(), rowNr);
-        //fade to black
-        if (rowNr <fixture.ledsList.size()) {
-          fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from leds
-          //remove from columns
-          // for (JsonObject columnVar: var["n"].as<JsonArray>())
-          //   mdl->setValue(columnVar, fixture.ledsList[rowNr].fx, rowNr);
-          //remove from ui
-          responseObject["delRow"]["id"] = var["id"];
-          responseObject["delRow"]["rowNr"] = rowNr;
+          Leds leds = Leds();
+          leds.rowNr = rowNr;
+          leds.fixture = &fixture;
+          leds.projectionNr = 2;
+          leds.fx = 14;
+          fixture.ledsList.push_back(leds);
         }
+        if (responseObject[var["id"].as<const char *>()]["value"] == "delRow") {
+          USER_PRINTF("chFun delrow %s[%d]\n", var["id"].as<const char *>(), rowNr);
+          //fade to black
+          if (rowNr <fixture.ledsList.size()) {
+            fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from leds
+            //remove from columns
+            // for (JsonObject columnVar: var["n"].as<JsonArray>())
+            //   mdl->setValue(columnVar, fixture.ledsList[rowNr].fx, rowNr);
+            //remove from ui
+            responseObject["delRow"]["id"] = var["id"];
+            responseObject["delRow"]["rowNr"] = rowNr;
+          }
+        }
+        return true;
       }
-    });
+      default: return false;
+    }});
 
-    currentVar = ui->initSelect(tableVar, "fx", 0, UINT8_MAX, false, [this](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Effect");
-      web->addResponse(var["id"], "comment", "Effect to show");
-      JsonArray select = web->addResponseA(var["id"], "options");
-      for (Effect *effect:effects.effects) {
-        select.add(effect->name());
+    currentVar = ui->initSelect(tableVar, "fx", 0, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
+        return true;
+      case f_UIFun: {
+        web->addResponse(var["id"], "label", "Effect");
+        web->addResponse(var["id"], "comment", "Effect to show");
+        JsonArray select = web->addResponseA(var["id"], "options");
+        for (Effect *effect:effects.effects) {
+          select.add(effect->name());
+        }
+        return true;
       }
-    }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      if (rowNr < fixture.ledsList.size()) {
-        doMap = effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
+      case f_ChangeFun:
+        if (rowNr < fixture.ledsList.size()) {
+          doMap = effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
 
-        web->addResponse("details", "var", var);
-        web->addResponse("details", "rowNr", rowNr);
+          web->addResponse("details", "var", var);
+          web->addResponse("details", "rowNr", rowNr);
 
-      }
-    }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
-    });
+        }
+        return true;
+      default: return false;
+    }}, fixture.ledsList.size());
     currentVar["stage"] = true;
 
-    currentVar = ui->initSelect(tableVar, "pro", 2, UINT8_MAX, false, [](JsonObject var) { //uiFun.
-      web->addResponse(var["id"], "label", "Projection");
-      web->addResponse(var["id"], "comment", "How to project fx");
-      JsonArray select = web->addResponseA(var["id"], "options");
-      select.add("None"); // 0
-      select.add("Random"); // 1
-      select.add("Distance from point"); //2
-      select.add("Distance from center"); //3
-      select.add("Mirror"); //4
-      select.add("Reverse"); //5
-      select.add("Multiply"); //6
-      select.add("Kaleidoscope"); //7
-      select.add("Fun"); //8
+    currentVar = ui->initSelect(tableVar, "pro", 2, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
+        return true;
+      case f_UIFun: {
+        web->addResponse(var["id"], "label", "Projection");
+        web->addResponse(var["id"], "comment", "How to project fx");
+        JsonArray select = web->addResponseA(var["id"], "options");
+        select.add("None"); // 0
+        select.add("Random"); // 1
+        select.add("Distance from point"); //2
+        select.add("Distance from center"); //3
+        select.add("Mirror"); //4
+        select.add("Reverse"); //5
+        select.add("Multiply"); //6
+        select.add("Kaleidoscope"); //7
+        select.add("Fun"); //8
+        return true;
+      }
+      case f_ChangeFun:
+        if (rowNr < fixture.ledsList.size()) {
+          fixture.ledsList[rowNr].projectionNr = mdl->getValue(var, rowNr);
+          USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, fixture.ledsList[rowNr].projectionNr, fixture.ledsList.size());
 
-    }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      if (rowNr < fixture.ledsList.size()) {
-        fixture.ledsList[rowNr].projectionNr = mdl->getValue(var, rowNr);
-        USER_PRINTF("pro chFun %d %d %d\n", fixture.ledsList[rowNr].projectionNr, rowNr, fixture.ledsList.size());
+          doMap = true;
+        }
+        return true;
+      default: return false;
+    }}, fixture.ledsList.size());
+    currentVar["stage"] = true;
+
+    ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, UINT8_MAX, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        USER_PRINTF("fxStart[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
+        mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
+        return true;
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Start");
+        return true;
+      case f_ChangeFun:
+        if (rowNr < fixture.ledsList.size()) {
+          fixture.ledsList[rowNr].startPos = mdl->getValue(var, rowNr).as<Coord3D>();
+
+          USER_PRINTF("fxStart[%d] chFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
+
+          fixture.ledsList[rowNr].fadeToBlackBy();
+        }
+        else {
+          USER_PRINTF("fxStart[%d] chfun rownr not in range > %d\n", rowNr, fixture.ledsList.size());
+        }
 
         doMap = true;
+        return true;
+      default: return false;
+    }}, fixture.ledsList.size());
+
+    ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, UINT8_MAX, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
+        USER_PRINTF("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
+        return true;
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "End");
+        return true;
+      case f_ChangeFun:
+        if (rowNr < fixture.ledsList.size()) {
+          fixture.ledsList[rowNr].endPos = mdl->getValue(var, rowNr).as<Coord3D>();
+
+          USER_PRINTF("fxEnd[%d] chFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
+
+          fixture.ledsList[rowNr].fadeToBlackBy();
+        }
+        else {
+          USER_PRINTF("fxEnd[%d] chfun rownr not in range > %d\n", rowNr, fixture.ledsList.size());
+        }
+
+        doMap = true;
+        return true;
+      default: return false;
+    }}, fixture.ledsList.size());
+
+    ui->initText(tableVar, "fxSize", nullptr, 0, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Size");
+        return true;
+      default: return false;
+    }});
+
+    ui->initSelect(parentVar, "fxLayout", 0, UINT8_MAX, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun: {
+        web->addResponse(var["id"], "label", "Layout");
+        JsonArray select = web->addResponseA(var["id"], "options");
+        select.add("□"); //0
+        select.add("="); //1
+        select.add("||"); //2
+        select.add("+"); //3
+        return true;
       }
-
-    }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
-    });
-    currentVar["stage"] = true;
-
-    ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, UINT8_MAX, 0, NUM_LEDS_Max, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Start");
-    }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      if (rowNr < fixture.ledsList.size()) {
-        fixture.ledsList[rowNr].startPos = mdl->getValue(var, rowNr).as<Coord3D>();
-
-        USER_PRINTF("fxStart[%d] chFun %d %d %d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
-
-        fixture.ledsList[rowNr].fadeToBlackBy();
-      }
-      else {
-        USER_PRINTF("fxStart chfun rownr not in range %d > %d\n", rowNr, fixture.ledsList.size());
-      }
-
-      doMap = true;
-    }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      USER_PRINTF("fxStart[%d] valueFun %d %d %d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
-      mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
-    });
-
-    ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, UINT8_MAX, 0, NUM_LEDS_Max, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "End");
-    }, [this](JsonObject var, uint8_t rowNr) { //chFun
-      if (rowNr < fixture.ledsList.size()) {
-        fixture.ledsList[rowNr].endPos = mdl->getValue(var, rowNr).as<Coord3D>();
-
-        USER_PRINTF("fxEnd[%d] chFun %d %d %d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
-
-        fixture.ledsList[rowNr].fadeToBlackBy();
-      }
-      else {
-        USER_PRINTF("fxEnd chfun rownr not in range %d > %d\n", rowNr, fixture.ledsList.size());
-      }
-
-      doMap = true;
-    }, nullptr, fixture.ledsList.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
-      USER_PRINTF("fxEnd[%d] valueFun %d %d %d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
-    });
-
-    ui->initText(tableVar, "fxSize", nullptr, 0, 32, true, [this](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Size");
-    });
-
-    ui->initSelect(parentVar, "fxLayout", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Layout");
-      JsonArray select = web->addResponseA(var["id"], "options");
-      select.add("□"); //0
-      select.add("="); //1
-      select.add("||"); //2
-      select.add("+"); //3
-    }, [this](JsonObject var, uint8_t) { //chFun
-    }); //fixtureGen
+      default: return false;
+    }}); //fixtureGen
 
     #ifdef STARMOD_USERMOD_E131
       // if (e131mod->isEnabled) {

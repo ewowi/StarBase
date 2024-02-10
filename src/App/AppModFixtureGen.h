@@ -535,40 +535,52 @@ public:
     parentVar = ui->initUserMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -1200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    ui->initSelect(parentVar, "fixtureGen", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Fixture");
-      web->addResponse(var["id"], "comment", "Type of fixture");
-      JsonArray select = web->addResponseA(var["id"], "options");
-      select.add("1DSpiral"); //0
-      select.add("2DMatrix"); //1
-      select.add("2DRing"); //2
-      select.add("2DRings241"); //3
-      select.add("2DCloud"); //4
-      select.add("2DWall"); //5
-      select.add("2DWheel"); //6
-      select.add("2DHexagon"); //7
-      select.add("3DCone"); //8
-      select.add("3DSideCube"); //9
-      select.add("3DCube"); //10
-      select.add("3DGlobe WIP"); //11
-      select.add("3DGeodesicDome WIP"); //12
-    }, [this](JsonObject var, uint8_t) { //chFun
-      fixtureGenChFun(var);
+    ui->initSelect(parentVar, "fixtureGen", 0, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    
+      case f_UIFun: {
+        web->addResponse(var["id"], "label", "Fixture");
+        web->addResponse(var["id"], "comment", "Type of fixture");
+        JsonArray select = web->addResponseA(var["id"], "options");
+        select.add("1DSpiral"); //0
+        select.add("2DMatrix"); //1
+        select.add("2DRing"); //2
+        select.add("2DRings241"); //3
+        select.add("2DCloud"); //4
+        select.add("2DWall"); //5
+        select.add("2DWheel"); //6
+        select.add("2DHexagon"); //7
+        select.add("3DCone"); //8
+        select.add("3DSideCube"); //9
+        select.add("3DCube"); //10
+        select.add("3DGlobe WIP"); //11
+        select.add("3DGeodesicDome WIP"); //12
+        return true;
+      }
+      case f_ChangeFun:
+        fixtureGenChFun(var);
 
-      web->addResponse("details", "var", var);
-    }); //fixtureGen
+        web->addResponse("details", "var", var);
+        return true;
 
-    ui->initText(parentVar, "pinList", "16", UINT8_MAX, 32, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "comment", "One or more e.g. 12,13,14");
-    });
+      default: return false; 
+    }}); //fixtureGen
 
-    ui->initButton(parentVar, "generate", false, nullptr
-    , [this](JsonObject var, uint8_t) { //chFun
-      generateChFun(var);
+    ui->initText(parentVar, "pinList", "16", UINT8_MAX, 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "comment", "One or more e.g. 12,13,14");
+        return true;
+      default: return false;
+    }});
 
-      //reload fixture select
-      ui->processUiFun("fixture"); //in AppModFixture sends data to ws...
-    });
+    ui->initButton(parentVar, "generate", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ChangeFun:
+        generateChFun(var);
+
+        //reload fixture select
+        ui->processUiFun("fixture"); //in AppModFixture sends data to ws...
+        return true;
+      default: return false;
+    }});
 
   }
 
@@ -597,7 +609,7 @@ public:
   //generate dynamic html for fixture controls
   void fixtureGenChFun(JsonObject var) {
     JsonObject parentVar = mdl->findVar(var["id"]);
-    parentVar.remove("n"); //tbd: we should also remove the uiFun and chFun !!
+    parentVar.remove("n"); //tbd: we should also remove the varFun !!
     uint8_t value = var["value"];
     
     if (value == f_1DSpiral) {
@@ -624,18 +636,27 @@ public:
 
       ui->initNumber(parentVar, "height", 8, 1, 255);
 
-      ui->initSelect(parentVar, "firstLedX", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
-        web->addResponse(var["id"], "comment", "WIP");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        select.add("Left"); //0
-        select.add("Right"); //1
-      });
-      ui->initSelect(parentVar, "firstLedY", 0, UINT8_MAX, false, [](JsonObject var) { //uiFun
-        web->addResponse(var["id"], "comment", "WIP");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        select.add("Top"); //0
-        select.add("Bottom"); //1
-      });
+      ui->initSelect(parentVar, "firstLedX", 0, UINT8_MAX, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_UIFun: {
+            web->addResponse(var["id"], "comment", "WIP");
+            JsonArray select = web->addResponseA(var["id"], "options");
+            select.add("Left"); //0
+            select.add("Right"); //1
+          return true;
+        }
+        default: return false;
+      }});
+
+      ui->initSelect(parentVar, "firstLedY", 0, UINT8_MAX, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_UIFun: {
+            web->addResponse(var["id"], "comment", "WIP");
+            JsonArray select = web->addResponseA(var["id"], "options");
+            select.add("Top"); //0
+            select.add("Bottom"); //1
+          return true;
+        }
+        default: return false;
+      }});
 
       ui->initCheckBox(parentVar, "serpentine");
     }

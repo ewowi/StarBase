@@ -33,7 +33,7 @@ enum Projections
   p_Multiply,
   p_Kaleidoscope,
   p_Fun,
-  count
+  p_count
 };
 
 

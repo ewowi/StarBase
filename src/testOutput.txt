@@ -21,7 +21,7 @@ initVar create new range var: fx->Offset Y
 setValue changed Offset Y ->128
 initVar create new range var: fx->Legs
 setValue changed Legs ->4
-parentVar {"details":{"id":"fx","type":"select","ro":false,"o":-7,"value":13,"stage":true,"uiFun":4,"chFun":1,"n":[{"id":"pal","type":"select","ro":false,"o":-8,"uiFun":5,"chFun":2,"value":4,"stage":true},{"id":"speed","type":"range","ro":false,"o":-9,"min":1,"max":255,"value":128},{"id":"Offset X","type":"range","ro":false,"o":-10,"max":255,"value":128},{"id":"Offset Y","type":"range","ro":false,"o":-11,"max":255,"value":128},{"id":"Legs","type":"range","ro":false,"o":-12,"min":1,"max":8,"value":4}]}}
+parentVar {"details":{"id":"fx","type":"select","ro":false,"o":-7,"value":13,"stage":true,"fun":4,"chFun":1,"n":[{"id":"pal","type":"select","ro":false,"o":-8,"fun":5,"chFun":2,"value":4,"stage":true},{"id":"speed","type":"range","ro":false,"o":-9,"min":1,"max":255,"value":128},{"id":"Offset X","type":"range","ro":false,"o":-10,"max":255,"value":128},{"id":"Offset Y","type":"range","ro":false,"o":-11,"max":255,"value":128},{"id":"Legs","type":"range","ro":false,"o":-12,"min":1,"max":8,"value":4}]}}
 initVarAndUpdate chFun init pro v:2
 initVarAndUpdate chFun init fxStart v:[{"x":0,"y":0,"z":0}]
 Coord3D assign 0 0 0
@@ -46,7 +46,7 @@ setValue value removed Fixture Generator
 initVarAndUpdate chFun init fixtureGen v:0
 initVar create new number var: fixtureGen->ledCount
 setValue changed ledCount ->64
-parentVar {"details":{"id":"fixtureGen","type":"select","ro":false,"o":-24,"value":0,"uiFun":16,"chFun":8,"n":[{"id":"ledCount","type":"number","ro":false,"o":-25,"min":1,"max":4096,"value":64}]}}
+parentVar {"details":{"id":"fixtureGen","type":"select","ro":false,"o":-24,"value":0,"fun":16,"chFun":8,"n":[{"id":"ledCount","type":"number","ro":false,"o":-25,"min":1,"max":4096,"value":64}]}}
 setValue value removed generate 
 setValue value removed Files 
 setValue value removed fileTbl 

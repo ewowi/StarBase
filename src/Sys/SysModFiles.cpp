@@ -33,53 +33,76 @@ void SysModFiles::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Files");
-    web->addResponse(var["id"], "comment", "List of files");
-    JsonArray rows = web->addResponseA(var["id"], "value");  //overwrite the value
-    dirToJson(rows);
-  }, [this](JsonObject var, uint8_t rowNr) { //chFun
-    JsonObject responseObject = web->getResponseObject();
-    if (responseObject[var["id"].as<const char *>()]["value"] == "delRow") {
-    // if (strcmp(var["value"], "delRow") == 0) {
-      USER_PRINTF("fileTbl chFun %s %d %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
-      if (rowNr != UINT8_MAX) {
-        // call uiFun of tbl to fill responseObject with files
-        ui->uFunctions[var["uiFun"]](var);
-        //trick to get the table values tbd: use column values
-        JsonObject responseObject = web->getResponseObject();
-        JsonArray row = responseObject["fileTbl"]["value"][rowNr];
-        if (!row.isNull()) {
-          const char * fileName = row[0]; //first column
-          print->printJson("delete file", row);
-          this->removeFiles(fileName, false);
+  JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    
+    case f_UIFun:
+    {
+      web->addResponse(var["id"], "label", "Files");
+      web->addResponse(var["id"], "comment", "List of files");
+      JsonArray rows = web->addResponseA(var["id"], "value");  //overwrite the value
+      dirToJson(rows);
+      return true;
+    }
+    case f_ChangeFun:
+    {
+      JsonObject responseObject = web->getResponseObject();
+      if (responseObject[var["id"].as<const char *>()]["value"] == "delRow") {
+      // if (strcmp(var["value"], "delRow") == 0) {
+        USER_PRINTF("chFun delRow %s[%d] = %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+        if (rowNr != UINT8_MAX) {
+          // call uiFun of tbl to fill responseObject with files
+          ui->varFunctions[var["fun"]](var, UINT8_MAX, f_UIFun);
+          //trick to get the table values tbd: use column values
+          JsonObject responseObject = web->getResponseObject();
+          JsonArray row = responseObject["fileTbl"]["value"][rowNr];
+          if (!row.isNull()) {
+            const char * fileName = row[0]; //first column
+            print->printJson("delete file", row);
+            this->removeFiles(fileName, false);
+          }
         }
+        else {
+          USER_PRINTF(" no rowNr!!\n");
+        }
+        print->printJson(" ", var);
       }
-      else {
-        USER_PRINTF(" no rowNr!!\n");
+      else if (responseObject[var["id"].as<const char *>()]["value"] == "addRow") {
+        USER_PRINTF("chFun addRow %s[%d] = %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+        //add a row with all defaults
       }
-      print->printJson(" ", var);
+      return true;
     }
-    else if (responseObject[var["id"].as<const char *>()]["value"] == "addRow") {
-      USER_PRINTF("fileTbl chFun %s %d %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
-      //add a row with all defaults
-    }
-  });
+    default: return false;
+  }});
 
-  ui->initText(tableVar, "flName", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Name");
-  });
-  ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Size (B)");
-  });
-  ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Show");
-  });
+  ui->initText(tableVar, "flName", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Name");
+      return true;
+    default: return false;
+  }});
 
-  ui->initText(parentVar, "drsize", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
-    web->addResponseV(var["id"], "value", "%d / %d B", files->usedBytes(), files->totalBytes());
-    web->addResponse(var["id"], "label", "Total FS size");
-  });
+  ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Size (B)");
+      return true;
+    default: return false;
+  }});
+
+  ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Show");
+      return true;
+    default: return false;
+  }});
+
+  ui->initText(parentVar, "drsize", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponseV(var["id"], "value", "%d / %d B", files->usedBytes(), files->totalBytes());
+      web->addResponse(var["id"], "label", "Total FS size");
+      return true;
+    default: return false;
+  }});
 }
 
 void SysModFiles::loop(){

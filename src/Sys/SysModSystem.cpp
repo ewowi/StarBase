@@ -26,67 +26,95 @@ void SysModSystem::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initText(parentVar, "serverName", "StarMod", UINT8_MAX, 32, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Name");
-    web->addResponse(var["id"], "comment", "Instance name");
-  });
-  ui->initText(parentVar, "upTime", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Uptime of board");
-  });
+  ui->initText(parentVar, "serverName", "StarMod", UINT8_MAX, 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Name");
+      web->addResponse(var["id"], "comment", "Instance name");
+      return true;
+    default: return false;
+  }});
+
+  ui->initText(parentVar, "upTime", nullptr, UINT8_MAX, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "comment", "Uptime of board");
+      return true;
+    default: return false;
+  }});
+
+  ui->initButton(parentVar, "reboot", false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ChangeFun:
+      web->ws->closeAll(1012);
+
+      // mdls->reboot(); //not working yet
+      // long dly = millis();
+      // while (millis() - dly < 450) {
+      //   yield();        // enough time to send response to client
+      // }
+      // FASTLED.clear();
+      ESP.restart();
+      return true;
+    default: return false;
+  }});
+
   ui->initText(parentVar, "loops", nullptr, UINT8_MAX, 16, true);
 
   ui->initText(parentVar, "chip", nullptr, UINT8_MAX, 16, true);
 
-  ui->initProgress(parentVar, "heap", 0, UINT8_MAX, 0, ESP.getHeapSize()/1000, true, nullptr
-  , [](JsonObject var, uint8_t) {  //chFun
-    var["max"] = ESP.getHeapSize()/1000; //makes sense?
-    web->addResponse(var["id"], "value", (ESP.getHeapSize()-ESP.getFreeHeap()) / 1000);
-    web->addResponseV(var["id"], "comment", "f:%d / t:%d (l:%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
-  });
+  ui->initProgress(parentVar, "heap", 0, UINT8_MAX, 0, ESP.getHeapSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ChangeFun:
+      var["max"] = ESP.getHeapSize()/1000; //makes sense?
+      web->addResponse(var["id"], "value", (ESP.getHeapSize()-ESP.getFreeHeap()) / 1000);
+      web->addResponseV(var["id"], "comment", "f:%d / t:%d (l:%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
+      return true;
+    default: return false;
+  }});
 
   if (psramFound()) {
-    ui->initProgress(parentVar, "psram", 0, UINT8_MAX, 0, ESP.getPsramSize()/1000, true, nullptr
-    , [](JsonObject var, uint8_t) {  //chFun
-      var["max"] = ESP.getPsramSize()/1000; //makes sense?
-      web->addResponse(var["id"], "value", (ESP.getPsramSize()-ESP.getFreePsram()) / 1000);
-      web->addResponseV(var["id"], "comment", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
-    });
-  }
+    ui->initProgress(parentVar, "psram", 0, UINT8_MAX, 0, ESP.getPsramSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ChangeFun:
+        var["max"] = ESP.getPsramSize()/1000; //makes sense?
+        web->addResponse(var["id"], "value", (ESP.getPsramSize()-ESP.getFreePsram()) / 1000);
+        web->addResponseV(var["id"], "comment", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
+        return true;
+      default: return false;
+    }});
+    }
 
-  ui->initProgress(parentVar, "stack", 0, UINT8_MAX, 0, 4096, true, nullptr
-  , [](JsonObject var, uint8_t) {  //chFun
-    web->addResponse(var["id"], "value", uxTaskGetStackHighWaterMark(NULL));
-    web->addResponseV(var["id"], "comment", "%d B", uxTaskGetStackHighWaterMark(NULL));
-  });
+  ui->initProgress(parentVar, "stack", 0, UINT8_MAX, 0, 4096, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ChangeFun:
+      web->addResponse(var["id"], "value", uxTaskGetStackHighWaterMark(NULL));
+      web->addResponseV(var["id"], "comment", "%d B", uxTaskGetStackHighWaterMark(NULL));
+      return true;
+    default: return false;
+  }});
 
-  ui->initButton(parentVar, "reboot", false, nullptr, [](JsonObject var, uint8_t) {  //chFun
-    web->ws->closeAll(1012);
-
-    // mdls->reboot(); //not working yet
-    // long dly = millis();
-    // while (millis() - dly < 450) {
-    //   yield();        // enough time to send response to client
-    // }
-    // FASTLED.clear();
-    ESP.restart();
-  });
-
-  ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), UINT8_MAX, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Reset 0");
-    web->addResponse(var["id"], "comment", "Reason Core 0");
-    sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
-  });
-  if (ESP.getChipCores() > 1)
-    ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), UINT8_MAX, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Reset 1");
-      web->addResponse(var["id"], "comment", "Reason Core 1");
+  ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), UINT8_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Reset 0");
+      web->addResponse(var["id"], "comment", "Reason Core 0");
       sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
-    });
-  ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), UINT8_MAX, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Restart");
-    web->addResponse(var["id"], "comment", "Reason restart");
-    sys->addRestartReasonsSelect(web->addResponseA(var["id"], "options"));
-  });
+      return true;
+    default: return false;
+  }});
+
+  if (ESP.getChipCores() > 1)
+    ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), UINT8_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Reset 1");
+        web->addResponse(var["id"], "comment", "Reason Core 1");
+        sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
+        return true;
+      default: return false;
+    }});
+
+  ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), UINT8_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Restart");
+      web->addResponse(var["id"], "comment", "Reason restart");
+      sys->addRestartReasonsSelect(web->addResponseA(var["id"], "options"));
+      return true;
+    default: return false;
+  }});
 
   //calculate version in format YYMMDDHH
   //https://forum.arduino.cc/t/can-you-format-__date__/200818/10

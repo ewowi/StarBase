@@ -171,55 +171,86 @@ public:
     parentVar = ui->initSysMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -4200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
-      const char * varID = var["id"];
-      web->addResponse(varID, "label", "Instances");
-      web->addResponse(varID, "comment", "List of instances");
-      JsonArray rows = web->addResponseA(varID, "value"); //overwrite the value
-      for (auto instance=this->instances.begin(); instance!=this->instances.end(); ++instance) {
-        JsonArray row = rows.createNestedArray();
-        addTblRow(row, instance);
+    JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun: {
+        const char * varID = var["id"];
+        web->addResponse(varID, "label", "Instances");
+        web->addResponse(varID, "comment", "List of instances");
+        JsonArray rows = web->addResponseA(varID, "value"); //overwrite the value
+        for (auto instance=this->instances.begin(); instance!=this->instances.end(); ++instance) {
+          JsonArray row = rows.createNestedArray();
+          addTblRow(row, instance);
+        }
+        return true;
       }
-    });
-    ui->initText(tableVar, "insName", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Name");
-    });
-    ui->initURL(tableVar, "insLink", nullptr, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Show");
-    });
+      default: return false;
+    }});
+    
+    ui->initText(tableVar, "insName", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Name");
+        return true;
+      default: return false;
+    }});
 
-    ui->initText(tableVar, "insIp", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "IP");
-    });
-    ui->initText(tableVar, "insType", nullptr, UINT8_MAX, 16, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Type");
-    });
-    ui->initNumber(tableVar, "insVersion", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Version");
-    });
-    ui->initNumber(tableVar, "insUp", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Uptime");
-    });
+    ui->initURL(tableVar, "insLink", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Show");
+        return true;
+      default: return false;
+    }});
+
+    ui->initText(tableVar, "insIp", nullptr, UINT8_MAX, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "IP");
+        return true;
+      default: return false;
+    }});
+
+    ui->initText(tableVar, "insType", nullptr, UINT8_MAX, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Type");
+        return true;
+      default: return false;
+    }});
+
+    ui->initNumber(tableVar, "insVersion", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Version");
+        return true;
+      default: return false;
+    }});
+
+    ui->initNumber(tableVar, "insUp", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Uptime");
+        return true;
+      default: return false;
+    }});
 
     JsonObject currentVar;
 
-    currentVar = ui->initSelect(parentVar, "sma", 0, UINT8_MAX, false, [this](JsonObject var) { //uiFun tbd: make dropdown where value is ...ip number
-      web->addResponse(var["id"], "label", "Sync Master");
-      web->addResponse(var["id"], "comment", "Instance to sync from");
-      JsonArray select = web->addResponseA(var["id"], "options");
-      JsonArray instanceObject = select.createNestedArray();
-      instanceObject.add(0);
-      instanceObject.add("no sync");
-      for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
-        char option[32] = { 0 };
-        strncpy(option, instance->ip.toString().c_str(), sizeof(option)-1);
-        strncat(option, " ", sizeof(option)-1);
-        strncat(option, instance->name, sizeof(option)-1);
-        instanceObject = select.createNestedArray();
-        instanceObject.add(instance->ip[3]);
-        instanceObject.add(option);
+    currentVar = ui->initSelect(parentVar, "sma", 0, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun: {
+        web->addResponse(var["id"], "label", "Sync Master");
+        web->addResponse(var["id"], "comment", "Instance to sync from");
+        JsonArray select = web->addResponseA(var["id"], "options");
+        JsonArray instanceObject = select.createNestedArray();
+        instanceObject.add(0);
+        instanceObject.add("no sync");
+        for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
+          char option[32] = { 0 };
+          strncpy(option, instance->ip.toString().c_str(), sizeof(option)-1);
+          strncat(option, " ", sizeof(option)-1);
+          strncat(option, instance->name, sizeof(option)-1);
+          instanceObject = select.createNestedArray();
+          instanceObject.add(instance->ip[3]);
+          instanceObject.add(option);
+        }
+        return true;
       }
-    }); //syncMaster
+      default: return false;
+    }}); //syncMaster
     currentVar["stage"] = true;
 
     //find stage variables and add them to the table
@@ -232,52 +263,54 @@ public:
       JsonObject newVar; // = ui->cloneVar(var, columnVarID, [this, var](JsonObject newVar){});
 
       //create a var of the same type. InitVar is not calling chFun which is good in this situation!
-      newVar = ui->initVar(tableVar, columnVarID, var["type"], false, nullptr
-      , [this, var](JsonObject newVar, uint8_t rowNr) { //chFun
-        if (rowNr != UINT8_MAX) {
-          //if this instance update directly, otherwise send over network
-          if (instances[rowNr].ip == WiFi.localIP()) {
-            mdl->setValue(var, mdl->getValue(newVar, rowNr).as<uint8_t>()); //this will call sendDataWS (tbd...)
-          } else {
-            // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
-            HTTPClient http;
-            char serverPath[32];
-            print->fFormat(serverPath, sizeof(serverPath)-1, "http://%s/json", instances[rowNr].ip.toString().c_str());
-            http.begin(serverPath);
-            http.addHeader("Content-Type", "application/json");
-            char postMessage[32];
-            print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), mdl->getValue(newVar, rowNr).as<uint8_t>());
+      newVar = ui->initVar(tableVar, columnVarID, var["type"], false, [this, var](JsonObject newVar, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_ChangeFun: {
+          if (rowNr != UINT8_MAX) {
+            //if this instance update directly, otherwise send over network
+            if (instances[rowNr].ip == WiFi.localIP()) {
+              mdl->setValue(var, mdl->getValue(newVar, rowNr).as<uint8_t>()); //this will call sendDataWS (tbd...)
+            } else {
+              // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
+              HTTPClient http;
+              char serverPath[32];
+              print->fFormat(serverPath, sizeof(serverPath)-1, "http://%s/json", instances[rowNr].ip.toString().c_str());
+              http.begin(serverPath);
+              http.addHeader("Content-Type", "application/json");
+              char postMessage[32];
+              print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), mdl->getValue(newVar, rowNr).as<uint8_t>());
 
-            USER_PRINTF("json post %s %s\n", serverPath, postMessage);
+              USER_PRINTF("json post %s %s\n", serverPath, postMessage);
 
-            int httpResponseCode = http.POST(postMessage);
+              int httpResponseCode = http.POST(postMessage);
 
-            if (httpResponseCode>0) {
-              Serial.print("HTTP Response code: ");
-              Serial.println(httpResponseCode);
-              String payload = http.getString();
-              Serial.println(payload);
+              if (httpResponseCode>0) {
+                Serial.print("HTTP Response code: ");
+                Serial.println(httpResponseCode);
+                String payload = http.getString();
+                Serial.println(payload);
+              }
+              else {
+                Serial.print("Error code: ");
+                Serial.println(httpResponseCode);
+              }
+              // Free resources
+              http.end();
             }
-            else {
-              Serial.print("Error code: ");
-              Serial.println(httpResponseCode);
-            }
-            // Free resources
-            http.end();
           }
+          else {
+            USER_PRINTF(" no rowNr!!");
+          }
+          print->printJson(" ", var);
+          return true;
         }
-        else {
-          USER_PRINTF(" no rowNr!!");
-        }
-        print->printJson(" ", var);
-
-      });
+        default: return false;
+      }});
 
       if (newVar) {
         if (!var["min"].isNull()) newVar["min"] = var["min"];
         if (!var["max"].isNull()) newVar["max"] = var["max"];
         if (!var["log"].isNull()) newVar["log"] = var["log"];
-        newVar["uiFun"] = var["uiFun"]; //copy the uiFun
+        newVar["fun"] = var["fun"]; //copy the uiFun
       }
 
     });
@@ -470,7 +503,7 @@ public:
     starModMessage.app.initVars();
 
     //send stage values
-    mdl->findVars("stage", true, [&starModMessage](JsonObject var) { //uiFun
+    mdl->findVars("stage", true, [&starModMessage](JsonObject var) { //varFun
       starModMessage.app.setVar(var["id"], var["value"]);
     });
 
@@ -583,7 +616,7 @@ public:
 
           web->sendDataWs(responseObject); //send to all clients
 
-          print->printJson("updateNode updRow", responseObject);
+          // print->printJson("updateNode updRow", responseObject);
         }
 
       } //ip

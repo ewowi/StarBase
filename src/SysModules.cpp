@@ -31,40 +31,58 @@ void SysModules::setup() {
   parentVar = ui->initSysMod(parentVar, "Modules");
   if (parentVar["o"] > -1000) parentVar["o"] = -5000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
-    web->addResponse(var["id"], "label", "Modules");
-    web->addResponse(var["id"], "comment", "List of modules");
-  });
+  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Modules");
+      web->addResponse(var["id"], "comment", "List of modules");
+      return true;
+    default: return false;
+  }});
 
-  ui->initText(tableVar, "mdlName", nullptr, UINT8_MAX, 32, true, [this](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Name");
-  }, nullptr, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-    mdl->setValue(var, modules[rowNr]->name, rowNr);
-  });
+  ui->initText(tableVar, "mdlName", nullptr, UINT8_MAX, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, modules[rowNr]->name, rowNr);
+      return true;
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Name");
+      return true;
+    default: return false;
+  }}, modules.size());
 
-  ui->initCheckBox(tableVar, "mdlSucces", UINT16_MAX, UINT8_MAX, true, [this](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Success");
-  }, nullptr, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-    mdl->setValue(var, modules[rowNr]->success, rowNr);
-  });
+  ui->initCheckBox(tableVar, "mdlSucces", UINT16_MAX, UINT8_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, modules[rowNr]->success, rowNr);
+      return true;
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Success");
+      return true;
+    default: return false;
+  }}, modules.size());
 
-  ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, UINT8_MAX, false, [this](JsonObject var) { //uiFun not readonly! (tbd)
-    //initially set to true, but as enabled are table cells, will be updated to an array
-    web->addResponse(var["id"], "label", "Enabled");
-  }, [this](JsonObject var, uint8_t rowNr) { //chFun
+  ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, UINT8_MAX, false
+  , [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun not readonly! (tbd)
+    
+    case f_ValueFun:
+      mdl->setValue(var, modules[rowNr]->isEnabled, rowNr);
+      return true;
+    case f_UIFun:
+      //initially set to true, but as enabled are table cells, will be updated to an array
+      web->addResponse(var["id"], "label", "Enabled");
+      return true;
 
-    if (rowNr != UINT8_MAX && rowNr < modules.size()) {
-      modules[rowNr]->isEnabled = mdl->getValue(var, rowNr);
-      modules[rowNr]->enabledChanged();
-    }
-    else {
-      USER_PRINTF(" no rowNr or > modules.size!!", rowNr);
-    }
-    // print->printJson(" ", var);
+    case f_ChangeFun:
+      if (rowNr != UINT8_MAX && rowNr < modules.size()) {
+        modules[rowNr]->isEnabled = mdl->getValue(var, rowNr);
+        modules[rowNr]->enabledChanged();
+      }
+      else {
+        USER_PRINTF(" no rowNr or > modules.size!!", rowNr);
+      }
+      // print->printJson(" ", var);
+      return true;
 
-  }, nullptr, modules.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-    mdl->setValue(var, modules[rowNr]->isEnabled, rowNr);
-  });
+    default: return false;
+  }}, modules.size());
 }
 
 void SysModules::loop() {

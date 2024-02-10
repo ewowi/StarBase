@@ -25,7 +25,7 @@ void SysModNetwork::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2500; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var) { //uiFun ro false: create and delete row possible
+  // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { //varFun ro false: create and delete row possible
   //   web->addResponse(var["id"], "label", "Wifi");
   //   web->addResponse(var["id"], "comment", "List of defined and available Wifi APs");
   // });
@@ -36,22 +36,37 @@ void SysModNetwork::setup() {
   //   var["value"][0] = "";
   // });
 
-  ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Password");
-  });
+  ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Password");
+      return true;
+    default: return false;
+  }});
 
-  ui->initButton(parentVar, "connect", false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Force reconnect (loose current connection)");
-  }, [this](JsonObject var, uint8_t) { //chFun
-    // mdl->doWriteModel = true; //saves the model
-    forceReconnect = true;
-  });
-  ui->initText(parentVar, "nwstatus", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Status");
-  });
-  ui->initText(parentVar, "rssi", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Wifi signal");
-  });
+  ui->initButton(parentVar, "connect", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "comment", "Force reconnect (loose current connection)");
+      return true;
+    case f_ChangeFun:
+      // mdl->doWriteModel = true; //saves the model
+      forceReconnect = true;
+      return true;
+    default: return false;
+  }});
+
+  ui->initText(parentVar, "nwstatus", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Status");
+      return true;
+    default: return false;
+  }});
+
+  ui->initText(parentVar, "rssi", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Wifi signal");
+      return true;
+    default: return false;
+  }});
 }
 
 void SysModNetwork::loop() {

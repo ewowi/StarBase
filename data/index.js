@@ -424,7 +424,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     }
 
     //don't call uiFun on table rows (the table header calls uiFun and propagate this to table row columns in changeHTML when needed - e.g. select)
-    if (variable.uiFun == null || variable.uiFun == -2) { //request processed
+    if (variable.fun == null || variable.fun == -2) { //request processed
       variable.chk = "gen2";
       changeHTML(variable, variable, rowNr); // set the variable with its own changed values
     }
@@ -433,12 +433,12 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
         changeHTML(variable, {"value":variable.value, "chk":"gen1"}, rowNr); //set only the value
 
       //call ui Functionality, if defined (to set label, comment, select etc)
-      if (variable.uiFun >= 0) { //>=0 as element in var
+      if (variable.fun >= 0) { //>=0 as element in var
         uiFunCommands.push(variable.id);
         if (uiFunCommands.length > 8) { //every 8 vars (to respect responseDoc size) check WS_EVT_DATA info
           flushUIFunCommands();
         }
-        variable.uiFun = -1; //requested
+        variable.fun = -1; //requested
       }
     }
 
@@ -576,7 +576,7 @@ function receiveData(json) {
         let variable = findVar(key);
 
         if (variable) {
-          variable.uiFun = -2; // request processed
+          variable.fun = -2; // request processed
 
           value.chk = "uiFun";
           changeHTML(variable, value); //changeHTML will find the rownumbers if needed

@@ -28,55 +28,83 @@ public:
     parentVar = ui->initUserMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -3200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    ui->initNumber(parentVar, "dun", universe, 0, 7, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "DMX Universe");
-    }, [this](JsonObject var, uint8_t) { //chFun
-      universe = var["value"];
-    });
+    ui->initNumber(parentVar, "dun", universe, 0, 7, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "DMX Universe");
+        return true;
+      case f_ChangeFun:
+        universe = var["value"];
+        return true;
+      default: return false;
+    }});
 
-    JsonObject currentVar = ui->initNumber(parentVar, "dch", 1, 1, 512, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "DMX Channel");
-      web->addResponse(var["id"], "comment", "First channel");
-    }, [](JsonObject var, uint8_t) { //chFun
-      ui->processUiFun("e131Tbl"); //rebuild table
-    });
+    JsonObject currentVar = ui->initNumber(parentVar, "dch", 1, 1, 512, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "DMX Channel");
+        web->addResponse(var["id"], "comment", "First channel");
+        return true;
+      case f_ChangeFun:
+        ui->processUiFun("e131Tbl"); //rebuild table
+        return true;
+      default: return false;
+    }});
     currentVar["stage"] = true;
 
-    JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, true, [this](JsonObject var) { //uiFun ro true: no update and delete
-      web->addResponse(var["id"], "label", "Vars to watch");
-      web->addResponse(var["id"], "comment", "List of instances");
-      // JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-      // for (auto varToWatch: varsToWatch) {
-      //   JsonArray row = rows.createNestedArray();
-      //   row.add(varToWatch.channel + mdl->getValue("dch").as<uint8_t>());
-      //   row.add(JsonString(varToWatch.id, JsonString::Copied));
-      //   row.add(varToWatch.max);
-      //   row.add(varToWatch.savedValue);
-      // }
-    });
-    ui->initNumber(tableVar, "e131Channel", UINT16_MAX, 1, 512, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Channel");
-    }, nullptr, nullptr, varsToWatch.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>(), rowNr);
-    });
+    JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        // JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
+        // for (auto varToWatch: varsToWatch) {
+        //   JsonArray row = rows.createNestedArray();
+        //   row.add(varToWatch.channel + mdl->getValue("dch").as<uint8_t>());
+        //   row.add(JsonString(varToWatch.id, JsonString::Copied));
+        //   row.add(varToWatch.max);
+        //   row.add(varToWatch.savedValue);
+        // }
+        web->addResponse(var["id"], "label", "Vars to watch");
+        web->addResponse(var["id"], "comment", "List of instances");
+        return true;
+      default: return false;
+    }});
 
-    ui->initText(tableVar, "e131Name", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Name");
-    }, nullptr, nullptr, varsToWatch.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      mdl->setValue(var, JsonString(varsToWatch[rowNr].id, JsonString::Copied), rowNr);
-    });
+    ui->initNumber(tableVar, "e131Channel", UINT16_MAX, 1, 512, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>(), rowNr);
+        return true;
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Channel");
+        return true;
+      default: return false;
+    }}, varsToWatch.size());
 
-    ui->initNumber(tableVar, "e131Max", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Max");
-    }, nullptr, nullptr, varsToWatch.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
-    });
+    ui->initText(tableVar, "e131Name", nullptr, UINT8_MAX, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        mdl->setValue(var, JsonString(varsToWatch[rowNr].id, JsonString::Copied), rowNr);
+        return true;
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Name");
+        return true;
+      default: return false;
+    }}, varsToWatch.size());
 
-    ui->initNumber(tableVar, "e131Value", UINT16_MAX, 0, 255, true, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Value");
-    }, nullptr, nullptr, varsToWatch.size(), [this](JsonObject var, uint8_t rowNr) { //valueFun
-      mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
-    });
+    ui->initNumber(tableVar, "e131Max", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        web->addResponse(var["id"], "label", "Max");
+        return true;
+      case f_UIFun:
+        mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
+        return true;
+      default: return false;
+    }}, varsToWatch.size());
+
+    ui->initNumber(tableVar, "e131Value", UINT16_MAX, 0, 255, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
+        return true;
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Value");
+        return true;
+      default: return false;
+    }}, varsToWatch.size());
 
   }
 

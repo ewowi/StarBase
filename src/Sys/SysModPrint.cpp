@@ -57,21 +57,29 @@ void SysModPrint::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initSelect(parentVar, "pOut", 1, UINT8_MAX, false, [](JsonObject var) { //uiFun default 1 (Serial)
-    web->addResponse(var["id"], "label", "Output");
-    web->addResponse(var["id"], "comment", "System log to Serial or Net print (WIP)");
+  ui->initSelect(parentVar, "pOut", 1, UINT8_MAX, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+    {
+      web->addResponse(var["id"], "label", "Output");
+      web->addResponse(var["id"], "comment", "System log to Serial or Net print (WIP)");
 
-    JsonArray rows = web->addResponseA(var["id"], "options");
-    rows.add("No");
-    rows.add("Serial");
-    rows.add("UI");
+      JsonArray rows = web->addResponseA(var["id"], "options");
+      rows.add("No");
+      rows.add("Serial");
+      rows.add("UI");
 
-    web->clientsToJson(rows, true); //ip only
-  });
+      web->clientsToJson(rows, true); //ip only
+      return true;
+    }
+    default: return false;
+  }});
 
-  ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Show the printed log");
-  });
+  ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "comment", "Show the printed log");
+      return true;
+    default: return false;
+  }});
 }
 
 void SysModPrint::loop() {

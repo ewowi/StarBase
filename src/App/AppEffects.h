@@ -79,21 +79,27 @@ public:
   virtual void controls(JsonObject parentVar, Leds &leds) {}
 
   void addPalette(JsonObject parentVar, uint8_t value, uint8_t rowNr) {
-    JsonObject currentVar = ui->initSelect(parentVar, "pal", value, rowNr, false, [](JsonObject var) { //uiFun.
-      web->addResponse(var["id"], "label", "Palette");
-      web->addResponse(var["id"], "comment", "Colors");
-      JsonArray select = web->addResponseA(var["id"], "options");
-      select.add("CloudColors");
-      select.add("LavaColors");
-      select.add("OceanColors");
-      select.add("ForestColors");
-      select.add("RainbowColors");
-      select.add("RainbowStripeColors");
-      select.add("PartyColors");
-      select.add("HeatColors");
-    }, nullptr, nullptr, 2, [this](JsonObject var, uint8_t rowNr) { //valueFun
+    JsonObject currentVar = ui->initSelect(parentVar, "pal", value, rowNr, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
         mdl->setValue(var, 4, rowNr); //4 is default
-    });
+        return true;
+      case f_UIFun: {
+        web->addResponse(var["id"], "label", "Palette");
+        web->addResponse(var["id"], "comment", "Colors");
+        JsonArray select = web->addResponseA(var["id"], "options");
+        select.add("CloudColors");
+        select.add("LavaColors");
+        select.add("OceanColors");
+        select.add("ForestColors");
+        select.add("RainbowColors");
+        select.add("RainbowStripeColors");
+        select.add("PartyColors");
+        select.add("HeatColors");
+        return true;
+      }
+      default: return false;
+    }});
+    //tbd: check if memory is freed!
     currentVar["stage"] = true;
   }
 
@@ -191,9 +197,13 @@ public:
     // leds[leds.nrOfLeds -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "BPM", 60, leds.rowNr, 0, 255, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "comment", "in BPM!");
-    });
+    ui->initSlider(parentVar, "BPM", 60, leds.rowNr, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponse(var["id"], "comment", "in BPM!");
+        return true;
+      default: return false;
+    }});
+    //tbd: check if memory is freed!
     ui->initSlider(parentVar, "fade", 128, leds.rowNr);
   }
 };
@@ -696,14 +706,18 @@ public:
   void controls(JsonObject parentVar, Leds &leds) {
     ui->initText(parentVar, "text", "StarMod", leds.rowNr);
     ui->initSlider(parentVar, "Speed", 128, leds.rowNr);
-    ui->initSelect(parentVar, "font", 0, leds.rowNr, false, [](JsonObject var) { //uiFun.
-      JsonArray select = web->addResponseA(var["id"], "options");
-      select.add("4x6");
-      select.add("5x8");
-      select.add("5x12");
-      select.add("6x8");
-      select.add("7x9");
-    });
+    ui->initSelect(parentVar, "font", 0, leds.rowNr, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun: {
+        JsonArray select = web->addResponseA(var["id"], "options");
+        select.add("4x6");
+        select.add("5x8");
+        select.add("5x12");
+        select.add("6x8");
+        select.add("7x9");
+        return true;
+      }
+      default: return false;
+    }});
   }
 };
 

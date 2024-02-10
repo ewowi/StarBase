@@ -35,59 +35,82 @@ void SysModPins::setup() {
   if (parentVar["o"] > -1000) parentVar["o"] = -2200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   //show table of allocated pins
-  JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var) { //uiFun ro true: no update and delete
-    web->addResponse(var["id"], "label", "Pins");
-    web->addResponse(var["id"], "comment", "List of pins");
-    JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-    uint8_t pinNr = 0;
-    for (PinObject pinObject:pinObjects) {
-      if (strcmp(pinObject.owner, "") != 0) {
-        JsonArray row = rows.createNestedArray();
-        row.add(pinNr);
-        row.add(pinObject.owner);
-        row.add(pinObject.details);
+  JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+    {
+      web->addResponse(var["id"], "label", "Pins");
+      web->addResponse(var["id"], "comment", "List of pins");
+      JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
+      uint8_t pinNr = 0;
+      for (PinObject pinObject:pinObjects) {
+        if (strcmp(pinObject.owner, "") != 0) {
+          JsonArray row = rows.createNestedArray();
+          row.add(pinNr);
+          row.add(pinObject.owner);
+          row.add(pinObject.details);
+        }
+        pinNr++;
       }
-      pinNr++;
+      return true;
     }
-  });
-  ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Pin");
-  });
-  ui->initText(tableVar, "pinOwner", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Owner");
-  });
-  ui->initText(tableVar, "pinDetails", nullptr, UINT8_MAX, 256, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Details");
-  });
+    default: return false;
+  }});
 
-  ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Board layout");
-    web->addResponse(var["id"], "comment", "WIP");
-  }, nullptr, [](JsonObject var, uint8_t rowNr) { //loopFun
+  ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Pin");
+      return true;
+    default: return false;
+  }});
 
-    var["interval"] = 10*10*10; //every 10 sec from cs to ms
+  ui->initText(tableVar, "pinOwner", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Owner");
+      return true;
+    default: return false;
+  }});
 
-    web->sendDataWs([](AsyncWebSocketMessageBuffer * wsBuf) {
-      uint8_t* buffer;
+  ui->initText(tableVar, "pinDetails", nullptr, UINT8_MAX, 256, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Details");
+      return true;
+    default: return false;
+  }});
 
-      buffer = wsBuf->get();
+  ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Board layout");
+      web->addResponse(var["id"], "comment", "WIP");
+      return true;
 
-      // send leds preview to clients
-      for (size_t i = 0; i < 20; i++)
-      {
-        buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
-        buffer[i*3+5+1] = random(256);
-        buffer[i*3+5+2] = random(256);
-      }
-      //new values
-      buffer[0] = 0; //userFun id
+    case f_LoopFun:
+      var["interval"] = 10*10*10; //every 10 sec from cs to ms
 
-    }, 20 * 3 + 5, true);
-  });
+      web->sendDataWs([](AsyncWebSocketMessageBuffer * wsBuf) {
+        uint8_t* buffer;
+
+        buffer = wsBuf->get();
+
+        // send leds preview to clients
+        for (size_t i = 0; i < 20; i++)
+        {
+          buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
+          buffer[i*3+5+1] = random(256);
+          buffer[i*3+5+2] = random(256);
+        }
+        //new values
+        buffer[0] = 0; //userFun id
+
+      }, 20 * 3 + 5, true);
+      return true;
+
+    default: return false;
+  }});
 
   // ui->initCheckBox(parentVar, "pin2", true, UINT8_MAX, false, nullptr, updateGPIO);
   // ui->initCheckBox(parentVar, "pin4");
-  ui->initCheckBox(parentVar, "pin19", true, UINT8_MAX, false, nullptr, updateGPIO);
+  ui->initCheckBox(parentVar, "pin19", true, UINT8_MAX, false, updateGPIO);
   // ui->initCheckBox(parentVar, "pin33", true, UINT8_MAX);
 }
 
@@ -99,19 +122,22 @@ void SysModPins::loop1s() {
   }
 }
 
-void SysModPins::updateGPIO(JsonObject var, size_t index) {
-  if (var["value"].is<bool>()) {
-    bool pinValue = var["value"];
-    JsonString id = var["id"];
+bool SysModPins::updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ChangeFun:
+      if (var["value"].is<bool>()) {
+        bool pinValue = var["value"];
+        JsonString id = var["id"];
 
-    USER_PRINTF("updateGPIO %s:=%d\n", id.c_str(), pinValue);
+        USER_PRINTF("updateGPIO %s:=%d\n", id.c_str(), pinValue);
 
-    if (id == "pin2") digitalWrite(2, pinValue?HIGH:LOW);
-    if (id == "pin4") digitalWrite(4, pinValue?HIGH:LOW);
-    if (id == "pin19") digitalWrite(19, pinValue?HIGH:LOW);
-    if (id == "pin33") digitalWrite(33, pinValue?HIGH:LOW);
-  }
-}
+        if (id == "pin2") digitalWrite(2, pinValue?HIGH:LOW);
+        if (id == "pin4") digitalWrite(4, pinValue?HIGH:LOW);
+        if (id == "pin19") digitalWrite(19, pinValue?HIGH:LOW);
+        if (id == "pin33") digitalWrite(33, pinValue?HIGH:LOW);
+      }
+      return true;
+    default: return false;
+  }};
 
 void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * details) {
   USER_PRINTF("allocatePin %d %s %s\n", pinNr, owner, details);

@@ -25,7 +25,7 @@
 
       for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); ++leds) {
         //vectors really gone now?
-        for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); physMap++)
+        for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap)
           physMap->clear();
         leds->mappingTable.clear();
       }
@@ -302,7 +302,7 @@
 
             // uint16_t x=0; //indexV
             // uint16_t y=0;
-            // // for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); physMap++) {
+            // // for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap) {
             // for (std::vector<uint16_t>physMap:leds->mappingTable) {
             //   if (physMap.size()) {
             //     USER_PRINTF("ledV %d mapping: firstLedP: %d #ledsP: %d", x, physMap[0], physMap.size());

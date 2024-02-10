@@ -31,31 +31,38 @@ public:
     parentVar = ui->initUserMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -3100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    ui->initSelect(parentVar, "artInst", UINT16_MAX, UINT8_MAX, false, [](JsonObject var) { //uiFun
-      web->addResponse(var["id"], "label", "Instance");
-      web->addResponse(var["id"], "comment", "Instance to send data");
-      JsonArray select = web->addResponseA(var["id"], "options");
-      JsonArray instanceObject = select.createNestedArray();
-      instanceObject.add(0);
-      instanceObject.add("no sync");
-      for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
-        if (node->ip != WiFi.localIP()) {
-          char option[32] = { 0 };
-          strncpy(option, node->ip.toString().c_str(), sizeof(option)-1);
-          strncat(option, " ", sizeof(option)-1);
-          strncat(option, node->name, sizeof(option)-1);
-          instanceObject = select.createNestedArray();
-          instanceObject.add(node->ip[3]);
-          instanceObject.add(option);
+    ui->initSelect(parentVar, "artInst", UINT16_MAX, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    
+      case f_UIFun: {
+        web->addResponse(var["id"], "label", "Instance");
+        web->addResponse(var["id"], "comment", "Instance to send data");
+        JsonArray select = web->addResponseA(var["id"], "options");
+        JsonArray instanceObject = select.createNestedArray();
+        instanceObject.add(0);
+        instanceObject.add("no sync");
+        for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
+          if (node->ip != WiFi.localIP()) {
+            char option[32] = { 0 };
+            strncpy(option, node->ip.toString().c_str(), sizeof(option)-1);
+            strncat(option, " ", sizeof(option)-1);
+            strncat(option, node->name, sizeof(option)-1);
+            instanceObject = select.createNestedArray();
+            instanceObject.add(node->ip[3]);
+            instanceObject.add(option);
+          }
         }
+        return true;
       }
-    }, [this](JsonObject var, uint8_t) { //chFun
-      size_t ddpInst = var["value"];
-      if (ddpInst >=0 && ddpInst < instances->instances.size()) {
-        targetIp = instances->instances[ddpInst].ip;
-        USER_PRINTF("Start ArtNet to %s\n", targetIp.toString().c_str());
+      case f_ChangeFun: {
+        size_t ddpInst = var["value"];
+        if (ddpInst >=0 && ddpInst < instances->instances.size()) {
+          targetIp = instances->instances[ddpInst].ip;
+          USER_PRINTF("Start ArtNet to %s\n", targetIp.toString().c_str());
+        }
+        return true;
       }
-    }); //ddpInst
+      default: return false;
+    }}); //ddpInst
   }
 
   void loop() {

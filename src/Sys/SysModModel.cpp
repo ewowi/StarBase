@@ -38,26 +38,41 @@ void SysModModel::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initText(parentVar, "mSize", nullptr, UINT8_MAX, 32, true, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Size");
-  });
+  ui->initText(parentVar, "mSize", nullptr, UINT8_MAX, 32, true
+  , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Size");
+      return true;
+    default: return false;
+  }});
 
-  ui->initButton(parentVar, "saveModel", false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Write to model.json (manual save only currently)");
-  }, [this](JsonObject var, uint8_t) { //chFun
-    doWriteModel = true;
-  });
+  ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "comment", "Write to model.json (manual save only currently)");
+      return true;
+    case f_ChangeFun:
+      doWriteModel = true;
+      return true;
+    default: return false;
+  }});
 
-  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, UINT8_MAX, false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "comment", "Show in UI (refresh)");
-  }, [this](JsonObject var, uint8_t) { //chFun
-    doShowObsolete = var["value"];
-  });
+  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "comment", "Show in UI (refresh)");
+      return true;
+    case f_ChangeFun:
+      doShowObsolete = var["value"];
+      return true;
+    default: return false;
+  }});
 
-  ui->initButton(parentVar, "deleteObsolete", false, [](JsonObject var) { //uiFun
-    web->addResponse(var["id"], "label", "Delete obsolete variables");
-    web->addResponse(var["id"], "comment", "WIP");
-  });
+  ui->initButton(parentVar, "deleteObsolete", false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Delete obsolete variables");
+      web->addResponse(var["id"], "comment", "WIP");
+      return true;
+    default: return false;
+  }});
 }
 
   void SysModModel::loop() {
@@ -76,8 +91,7 @@ void SysModModel::setup() {
     cleanUpModel(model->as<JsonArray>(), false, true);//remove if var["o"] is negative (not cleanedUp) and remove ro values
 
     JsonRDWS jrdws("/model.json", "w"); //open fileName for deserialize
-    jrdws.addExclusion("uiFun");
-    jrdws.addExclusion("chFun");
+    jrdws.addExclusion("fun");
     jrdws.writeJsonDocToFile(model);
 
     // print->printJson("Write model", *model); //this shows the model before exclusion
@@ -209,17 +223,18 @@ void SysModModel::callChFunAndWs(JsonObject var, uint8_t rowNr, const char * val
   if (var["stage"])
     ui->stageVarChanged = true;
 
-  if (!var["chFun"].isNull()) {//isNull needed here!
-    size_t funNr = var["chFun"];
-    if (funNr < ui->cFunctions.size()) {
-      USER_PRINTF("chFun %s", var["id"].as<const char *>());
-      if (rowNr!=UINT8_MAX)
-        USER_PRINTF("[%d]", rowNr);
-      USER_PRINTF(" <- %s\n", var["value"].as<String>().c_str());
-      ui->cFunctions[funNr](var, rowNr==UINT8_MAX?0:rowNr); //send rowNr = 0 if no rowNr
+  if (!var["fun"].isNull()) {//isNull needed here!
+    size_t funNr = var["fun"];
+    if (funNr < ui->varFunctions.size()) {
+      if (ui->varFunctions[funNr](var, rowNr==UINT8_MAX?0:rowNr, f_ChangeFun)) { //send rowNr = 0 if no rowNr
+        USER_PRINTF("chFun v2 !!!! %s", var["id"].as<const char *>());
+        if (rowNr!=UINT8_MAX)
+          USER_PRINTF("[%d]", rowNr);
+        USER_PRINTF(" <- %s\n", var["value"].as<String>().c_str());
+      }
     }
     else    
-      USER_PRINTF("dev callChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ui->cFunctions.size());
+      USER_PRINTF("dev callChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ui->varFunctions.size());
   }
 
   web->sendDataWs(responseObject);

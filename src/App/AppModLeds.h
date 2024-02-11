@@ -80,37 +80,25 @@ public:
         web->addResponse(var["id"], "label", "Effects");
         web->addResponse(var["id"], "comment", "List of effects");
         return true;
-      case f_ChangeFun: {
-        JsonObject responseObject = web->getResponseObject();
-        if (responseObject[var["id"].as<const char *>()]["value"] == "addRow") {
-          rowNr = fixture.ledsList.size();
-          USER_PRINTF("chFun addRow %s[%d]\n", var["id"].as<const char *>(), rowNr);
+      case f_AddRow: {
+        rowNr = fixture.ledsList.size();
+        USER_PRINTF("chFun addRow %s[%d]\n", var["id"].as<const char *>(), rowNr);
 
-          responseObject["addRow"]["id"] = var["id"];
-          responseObject["addRow"]["rowNr"] = rowNr;
-          // responseObject["addRow"].createNestedArray("value");
-          // JsonArray row = responseObject["updRow"]["insTbl"].createNestedArray(rowNrC);
-          // addTblRow(responseObject["updRow"]["value"], instance);
+        web->getResponseObject()["addRow"]["rowNr"] = rowNr;
 
-          Leds leds = Leds();
-          leds.rowNr = rowNr;
-          leds.fixture = &fixture;
-          leds.projectionNr = 2;
-          leds.fx = 14;
-          fixture.ledsList.push_back(leds);
-        }
-        if (responseObject[var["id"].as<const char *>()]["value"] == "delRow") {
-          USER_PRINTF("chFun delrow %s[%d]\n", var["id"].as<const char *>(), rowNr);
-          //fade to black
-          if (rowNr <fixture.ledsList.size()) {
-            fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from leds
-            //remove from columns
-            // for (JsonObject columnVar: var["n"].as<JsonArray>())
-            //   mdl->setValue(columnVar, fixture.ledsList[rowNr].fx, rowNr);
-            //remove from ui
-            responseObject["delRow"]["id"] = var["id"];
-            responseObject["delRow"]["rowNr"] = rowNr;
-          }
+        Leds leds = Leds();
+        leds.rowNr = rowNr;
+        leds.fixture = &fixture;
+        leds.projectionNr = 2;
+        leds.fx = 14;
+        fixture.ledsList.push_back(leds);
+        return true;
+      }
+      case f_DelRow: {
+        USER_PRINTF("chFun delrow %s[%d]\n", var["id"].as<const char *>(), rowNr);
+        //tbd: fade to black
+        if (rowNr <fixture.ledsList.size()) {
+          fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from leds
         }
         return true;
       }

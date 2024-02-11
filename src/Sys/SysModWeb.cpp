@@ -52,8 +52,8 @@ SysModWeb::SysModWeb() :SysModule("Web") {
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), "*");
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), "*");
 
-  responseDocLoopTask = new DynamicJsonDocument(2048);
-  responseDocAsyncTCP = new DynamicJsonDocument(3072);
+  responseDocLoopTask = new DynamicJsonDocument(2048); responseDocLoopTask->to<JsonObject>();
+  responseDocAsyncTCP = new DynamicJsonDocument(3072); responseDocAsyncTCP->to<JsonObject>();
 };
 
 void SysModWeb::setup() {
@@ -311,27 +311,23 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
           client->text("pong");
         } else {
           JsonDocument *responseDoc = web->getResponseDoc(); //we need the doc for deserializeJson
-          responseDoc->clear(); //needed for deserializeJson?
-          JsonVariant responseVariant = responseDoc->as<JsonVariant>();
+          JsonObject responseObject = web->getResponseObject();
 
           DeserializationError error = deserializeJson(*responseDoc, data, len); //data to responseDoc
 
-          if (error || responseVariant.isNull()) {
+          if (error || responseObject.isNull()) {
             USER_PRINT_Async("wsEvent deserializeJson failed with code %s\n", error.c_str());
             client->text("{\"success\":true}"); // we have to send something back otherwise WS connection closes
           } else {
-            bool isUiFun = !responseVariant["uiFun"].isNull();
-            ui->processJson(responseVariant); //adds to responseDoc / responseVariant
+            bool isUiFun = !responseObject["uiFun"].isNull();
+            ui->processJson(responseObject); //adds to responseDoc / responseObject
 
-            if (responseVariant.size()) {
-              print->printJson("WS_EVT_DATA json", responseVariant);
+            if (responseObject.size()) {
+              print->printJson("WS_EVT_DATA json", responseObject);
               print->printJDocInfo("WS_EVT_DATA info", *responseDoc);
 
-              //varFun only send to requesting client
-              if (isUiFun)
-                sendDataWs(responseVariant, client);
-              // else
-              //   sendDataWs(responseVariant); //is done already in processJson (WIP)
+              //uiFun only send to requesting client
+              web->sendResponseObject(isUiFun?client:nullptr);
             }
             else {
               USER_PRINT_Async("WS_EVT_DATA no responseDoc\n");
@@ -571,11 +567,11 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
     serveJson (request);
   }
   else {
-    JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
+    JsonObject responseObject = web->getResponseObject();
   
     ui->processJson(json);
 
-    if (responseObject.size()) { //responseVariant set by processJson e.g. uiFun
+    if (responseObject.size()) { //responseObject set by processJson e.g. uiFun
 
       char resStr[200];
       serializeJson(responseObject, resStr, 200);
@@ -611,27 +607,17 @@ JsonDocument * SysModWeb::getResponseDoc() {
 }
 
 JsonObject SysModWeb::getResponseObject() {
-  // USER_PRINTF("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
-
-  // if (!responseDocLoopTask->is<JsonObject>()) {
-  //   responseDocLoopTask->to<JsonObject>(); //(re)create
-  //   print->printJson("getResponseObject to", *responseDocLoopTask);
-  // }
-
   return getResponseDoc()->as<JsonObject>();
 }
 
 void SysModWeb::sendResponseObject(WebClient * client) {
   JsonObject responseObject = getResponseObject();
   if (responseObject.size()) {
-    // print->printJson("sendResponseObject", responseObject);
     web->sendDataWs(responseObject, client);
     getResponseDoc()->clear();
-    getResponseDoc()->to<JsonObject>();
-    JsonObject responseObject = getResponseObject();
-    // strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?responseDocLoopTask->clear():responseDocAsyncTCP->clear();
-    print->printJson("getResponseObject cleared", responseObject);
-    print->printJDocInfo("getResponseObject info", responseObject);
+    getResponseDoc()->to<JsonObject>(); //recreate!
+    // print->printJson("sendResponseObject cleared", responseObject);
+    // print->printJDocInfo("sendResponseObject info", responseObject);
   }
 }
 

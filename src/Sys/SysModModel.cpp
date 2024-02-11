@@ -38,17 +38,21 @@ void SysModModel::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initText(parentVar, "mSize", nullptr, UINT8_MAX, 32, true
-  , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initProgress(parentVar, "mSize", UINT16_MAX, UINT8_MAX, 0, model->capacity(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Size");
+      return true;
+    case f_ChangeFun:
+      var["max"] = model->capacity(); //makes sense?
+      web->addResponse(var["id"], "value", model->memoryUsage());
+      web->addResponseV(var["id"], "comment", "%d / %d B", model->memoryUsage(), model->capacity());
       return true;
     default: return false;
   }});
 
   ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "comment", "Write to model.json (manual save only currently)");
+      web->addResponse(var["id"], "comment", "Write to model.json");
       return true;
     case f_ChangeFun:
       doWriteModel = true;
@@ -106,15 +110,15 @@ void SysModModel::setup() {
     print->printJDocInfo("garbageCollect", *model);
   }
 }
-void SysModModel::loop1s() {
-  setUIValueV("mSize", "%d / %d B", model->memoryUsage(), model->capacity());
+void SysModModel::loop10s() {
+  ui->callVarFun(mdl->findVar("mSize"), UINT8_MAX, f_ChangeFun);
 }
 
 void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
   for (JsonArray::iterator varV=vars.begin(); varV!=vars.end(); ++varV) {
   // for (JsonVariant varV : vars) {
     if (varV->is<JsonObject>()) {
-      JsonObject var = varV->as<JsonObject>();
+      JsonObject var = *varV;
 
       //no cleanup of o in case of ro value removal
       if (!ro) {
@@ -210,9 +214,6 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
 //run the change function and send response to all? websocket clients
 void SysModModel::callChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) { //value: bypass var["value"]
 
-  //init before chFun so it can also use response
-  JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
-
   if (value)
     web->addResponse(var["id"], "value", JsonString(value, JsonString::Copied));
   else {
@@ -223,19 +224,7 @@ void SysModModel::callChFunAndWs(JsonObject var, uint8_t rowNr, const char * val
   if (var["stage"])
     ui->stageVarChanged = true;
 
-  if (!var["fun"].isNull()) {//isNull needed here!
-    size_t funNr = var["fun"];
-    if (funNr < ui->varFunctions.size()) {
-      if (ui->varFunctions[funNr](var, rowNr==UINT8_MAX?0:rowNr, f_ChangeFun)) { //send rowNr = 0 if no rowNr
-        USER_PRINTF("chFun v2 !!!! %s", var["id"].as<const char *>());
-        if (rowNr!=UINT8_MAX)
-          USER_PRINTF("[%d]", rowNr);
-        USER_PRINTF(" <- %s\n", var["value"].as<String>().c_str());
-      }
-    }
-    else    
-      USER_PRINTF("dev callChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, ui->varFunctions.size());
-  }
+  ui->callVarFun(var, rowNr==UINT8_MAX?0:rowNr, f_ChangeFun);  //send rowNr = 0 if no rowNr
 
-  web->sendDataWs(responseObject);
+  web->sendResponseObject();
 }  

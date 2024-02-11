@@ -435,7 +435,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       //call ui Functionality, if defined (to set label, comment, select etc)
       if (variable.fun >= 0) { //>=0 as element in var
         uiFunCommands.push(variable.id);
-        if (uiFunCommands.length > 8) { //every 8 vars (to respect responseDoc size) check WS_EVT_DATA info
+        if (uiFunCommands.length > 4) { //every 4 vars (to respect responseDoc size) check WS_EVT_DATA info
           flushUIFunCommands();
         }
         variable.fun = -1; //requested
@@ -929,7 +929,7 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
 function flushUIFunCommands() {
   if (uiFunCommands.length > 0) { //if something to flush
     var command = {};
-    command["uiFun"] = uiFunCommands; //ask to run uiFun for vars (to add the options)
+    command.uiFun = uiFunCommands; //ask to run uiFun for vars (to add the options)
     // console.log("flushUIFunCommands", command);
     requestJson(command);
     uiFunCommands = [];
@@ -1011,8 +1011,9 @@ function sendValue(varNode) {
     command[varId].value = varNode.querySelector("input").checked;
   else if (varNode.nodeName.toLocaleLowerCase() == "span")
     command[varId].value = varNode.innerText;
-  else if (varNode.className == "button")
-    command[varId].value = true;
+  else if (varNode.className == "button") {
+    // don't send the value as that is just the label
+  }
   else if (varNode.className == "coord3D") {
     let coord = {};
     coord.x = parseInt(varNode.childNodes[0].value);

@@ -134,7 +134,7 @@ public:
   SysModModel();
   void setup();
   void loop();
-  void loop1s();
+  void loop10s();
 
   //scan all vars in the model and remove vars where var["o"] is negative or positive, if ro then remove ro values
   void cleanUpModel(JsonArray vars, bool oPos = true, bool ro = false);
@@ -228,11 +228,9 @@ public:
 
     va_end(args);
 
-    JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
-
     web->addResponse(id, "value", JsonString(value, JsonString::Copied));
 
-    web->sendDataWs(responseObject);
+    web->sendResponseObject();
   }
 
   JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {

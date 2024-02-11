@@ -604,17 +604,14 @@ public:
         //ui to parse the json
 
         if (instanceFound) {
-          JsonDocument *responseDoc = web->getResponseDoc();
-          responseDoc->clear(); //needed for deserializeJson?
-          JsonObject responseObject = responseDoc->to<JsonObject>();
+          JsonObject responseObject = web->getResponseObject();
 
           responseObject["updRow"]["id"] = "insTbl";
           responseObject["updRow"]["rowNr"] = rowNr;
           responseObject["updRow"].createNestedArray("value");
-          // JsonArray row = responseObject["updRow"]["insTbl"].createNestedArray(rowNrC);
           addTblRow(responseObject["updRow"]["value"], instance);
 
-          web->sendDataWs(responseObject); //send to all clients
+          web->sendResponseObject();
 
           // print->printJson("updateNode updRow", responseObject);
         }

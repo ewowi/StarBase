@@ -171,7 +171,7 @@ size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {
 void SysModPrint::printJDocInfo(const char * text, DynamicJsonDocument source) {
   uint8_t percentage;
   if (source.capacity() == 0)
-    percentage = 100;
+    percentage = 0;
   else
     percentage = 100 * source.memoryUsage() / source.capacity();
   print("%s  %u / %u (%u%%) (%u %u %u)\n", text, source.memoryUsage(), source.capacity(), percentage, source.size(), source.overflowed(), source.nesting());

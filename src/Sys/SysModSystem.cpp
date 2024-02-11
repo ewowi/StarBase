@@ -60,7 +60,7 @@ void SysModSystem::setup() {
 
   ui->initText(parentVar, "chip", nullptr, UINT8_MAX, 16, true);
 
-  ui->initProgress(parentVar, "heap", 0, UINT8_MAX, 0, ESP.getHeapSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initProgress(parentVar, "heap", UINT16_MAX, UINT8_MAX, 0, ESP.getHeapSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ChangeFun:
       var["max"] = ESP.getHeapSize()/1000; //makes sense?
       web->addResponse(var["id"], "value", (ESP.getHeapSize()-ESP.getFreeHeap()) / 1000);
@@ -70,7 +70,7 @@ void SysModSystem::setup() {
   }});
 
   if (psramFound()) {
-    ui->initProgress(parentVar, "psram", 0, UINT8_MAX, 0, ESP.getPsramSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initProgress(parentVar, "psram", UINT16_MAX, UINT8_MAX, 0, ESP.getPsramSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ChangeFun:
         var["max"] = ESP.getPsramSize()/1000; //makes sense?
         web->addResponse(var["id"], "value", (ESP.getPsramSize()-ESP.getFreePsram()) / 1000);
@@ -78,12 +78,12 @@ void SysModSystem::setup() {
         return true;
       default: return false;
     }});
-    }
+  }
 
-  ui->initProgress(parentVar, "stack", 0, UINT8_MAX, 0, 4096, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initProgress(parentVar, "stack", UINT16_MAX, UINT8_MAX, 0, 4096, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ChangeFun:
       web->addResponse(var["id"], "value", uxTaskGetStackHighWaterMark(NULL));
-      web->addResponseV(var["id"], "comment", "%d B", uxTaskGetStackHighWaterMark(NULL));
+      web->addResponseV(var["id"], "comment", "%d / 4096 B", uxTaskGetStackHighWaterMark(NULL));
       return true;
     default: return false;
   }});
@@ -166,13 +166,11 @@ void SysModSystem::loop10s() {
 
   mdl->setUIValueV("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
 
-  mdl->callChFunAndWs(mdl->findVar("heap"));
-
-  mdl->callChFunAndWs(mdl->findVar("stack"));
+  ui->callVarFun(mdl->findVar("heap"), UINT8_MAX, f_ChangeFun);
+  ui->callVarFun(mdl->findVar("stack"), UINT8_MAX, f_ChangeFun);
 
   if (psramFound()) {
-    // mdl->setUIValueV("psram", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
-    mdl->callChFunAndWs(mdl->findVar("psram"));
+    ui->callVarFun(mdl->findVar("psram"), UINT8_MAX, f_ChangeFun);
   }
   USER_PRINTF("❤️"); //heartbeat
 }

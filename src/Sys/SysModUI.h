@@ -20,11 +20,13 @@ enum FunIDs
   f_UIFun,
   f_ChangeFun,
   f_LoopFun,
+  f_AddRow,
+  f_DelRow,
   f_count
 };
 
 // https://stackoverflow.com/questions/59111610/how-do-you-declare-a-lambda-function-using-typedef-and-then-use-it-by-passing-to
-typedef std::function<bool(JsonObject, uint8_t, uint8_t)> VarFun;
+typedef std::function<uint8_t(JsonObject, uint8_t, uint8_t)> VarFun;
 // typedef void(*LoopFun)(JsonObject, uint8_t*); //std::function is crashing...
 // typedef std::function<void(JsonObject, uint8_t)> LoopFun;
 
@@ -191,6 +193,28 @@ public:
   }
 
   JsonObject initVar(JsonObject parent, const char * id, const char * type, bool readOnly = true, VarFun varFun = nullptr);
+
+  uint8_t callVarFun(JsonObject var, uint8_t rowNr, uint8_t funType) {
+    uint8_t result = false;
+    if (!var["fun"].isNull()) {//isNull needed here!
+      size_t funNr = var["fun"];
+      if (funNr < varFunctions.size()) {
+        result = varFunctions[funNr](var, rowNr, funType);
+        if (result) { //send rowNr = 0 if no rowNr
+          //only print vars with a value
+          if (!var["value"].isNull()) {
+            USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", var["id"].as<const char *>());
+            if (rowNr!=UINT8_MAX)
+              USER_PRINTF("[%d]", rowNr);
+            USER_PRINTF(" <- %s\n", var["value"].as<String>().c_str());
+          }
+        }
+      }
+      else    
+        USER_PRINTF("dev callChFunAndWs function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, varFunctions.size());
+    }
+    return result;
+  }
 
   //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
   void processJson(JsonVariant json); //static for jsonHandler, must be Variant, not object for jsonhandler

@@ -34,7 +34,6 @@ void SysModFiles::setup() {
   if (parentVar["o"] > -1000) parentVar["o"] = -2000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
     case f_UIFun:
     {
       web->addResponse(var["id"], "label", "Files");
@@ -43,33 +42,27 @@ void SysModFiles::setup() {
       dirToJson(rows);
       return true;
     }
-    case f_ChangeFun:
-    {
-      JsonObject responseObject = web->getResponseObject();
-      if (responseObject[var["id"].as<const char *>()]["value"] == "delRow") {
-      // if (strcmp(var["value"], "delRow") == 0) {
-        USER_PRINTF("chFun delRow %s[%d] = %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
-        if (rowNr != UINT8_MAX) {
-          // call uiFun of tbl to fill responseObject with files
-          ui->varFunctions[var["fun"]](var, UINT8_MAX, f_UIFun);
-          //trick to get the table values tbd: use column values
-          JsonObject responseObject = web->getResponseObject();
-          JsonArray row = responseObject["fileTbl"]["value"][rowNr];
-          if (!row.isNull()) {
-            const char * fileName = row[0]; //first column
-            print->printJson("delete file", row);
-            this->removeFiles(fileName, false);
-          }
+    case f_AddRow: {
+      USER_PRINTF("chFun addRow %s[%d] = %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+      web->getResponseObject()["addRow"]["rowNr"] = rowNr;
+      //add a row with all defaults
+      return true;
+    }
+    case f_DelRow: {
+      USER_PRINTF("chFun delRow %s[%d] = %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+      if (rowNr != UINT8_MAX) {
+        // call uiFun of tbl to fill responseObject with files
+        ui->varFunctions[var["fun"]](var, UINT8_MAX, f_UIFun);
+        //trick to get the table values tbd: use column values
+        JsonObject responseObject = web->getResponseObject();
+        JsonArray row = responseObject["fileTbl"]["value"][rowNr];
+        if (!row.isNull()) {
+          const char * fileName = row[0]; //first column
+          print->printJson("delete file", row);
+          this->removeFiles(fileName, false);
         }
-        else {
-          USER_PRINTF(" no rowNr!!\n");
-        }
-        print->printJson(" ", var);
       }
-      else if (responseObject[var["id"].as<const char *>()]["value"] == "addRow") {
-        USER_PRINTF("chFun addRow %s[%d] = %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
-        //add a row with all defaults
-      }
+      print->printJson(" ", var);
       return true;
     }
     default: return false;

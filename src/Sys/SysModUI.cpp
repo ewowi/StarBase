@@ -188,10 +188,10 @@ void SysModUI::processJson(JsonVariant json) {
         if (value.is<JsonObject>()) {
           JsonObject command = value;
           JsonObject var = mdl->findVar(command["id"]);
-          uint8_t rowNr = command["rowNr"];
           USER_PRINTF("processJson %s - %s\n", key, value.as<String>().c_str());
-          // var["value"] = pair.key(); //store the action as variable workaround?
-          mdl->callChFunAndWs(var, rowNr, pair.key().c_str()); //let chFun deal with it
+
+          if (callVarFun(var, command["rowNr"], pair.key() == "addRow"?f_AddRow:f_DelRow))
+            web->sendResponseObject();
         }
         json.remove(key); //key processed we don't need the key in the response
       }
@@ -201,24 +201,8 @@ void SysModUI::processJson(JsonVariant json) {
           for (JsonVariant varInArray: value.as<JsonArray>()) {
             JsonObject var = mdl->findVar(varInArray); //value is the id
             if (!var.isNull()) {
-              //call ui function...
-              if (!var["fun"].isNull()) {//isnull needed here!
-                size_t funNr = var["fun"];
-                if (funNr < varFunctions.size())
-                  varFunctions[funNr](var, UINT8_MAX, f_UIFun); // no rowNr for uiFun
-                else    
-                  USER_PRINTF("dev processJson function nr %s outside bounds %d >= %d\n", var["id"].as<const char *>(), funNr, varFunctions.size());
-
-                //if select var, send value back
-                // if (var["type"] == "select") {
-                //   if (var["value"].is<JsonArray>()) //for tables
-                //     web->addResponseArray(var["id"], "value", var["value"]);
-                //   else
-                //     web->addResponseI(var["id"], "value", var["value"]);
-                // }
-
-                // print->printJson("PJ Command", responseDoc);
-              }
+              callVarFun(var, UINT8_MAX, f_UIFun);
+              //sendDataWs done in caller of processJson
             }
             else
               USER_PRINTF("dev processJson Command %s var %s not found\n", key, varInArray.as<String>().c_str());
@@ -229,11 +213,11 @@ void SysModUI::processJson(JsonVariant json) {
       } 
       else if (!value.isNull()) { // {"varid": {"value":value}} or {"varid": value}
 
-        JsonVariant val;
+        JsonVariant newValue;
         if (value["value"].isNull()) // if no explicit value field (e.g. jsonHandler)
-          val = value;
+          newValue = value;
         else
-          val = value["value"]; //use the value field
+          newValue = value["value"]; //use the value field
 
         //check if we deal with multiple rows (from table type)
         char * rowNrC = strtok((char *)key, "#");
@@ -245,21 +229,19 @@ void SysModUI::processJson(JsonVariant json) {
 
         JsonObject var = mdl->findVar(key);
 
-        USER_PRINTF("processJson %s[%d] (%s == %s ? %d)\n", key, rowNr, var["value"].as<String>().c_str(), val.as<String>().c_str(), var["value"] == val);
+        USER_PRINTF("processJson var %s[%d] %s -> %s\n", key, rowNr, var["value"].as<String>().c_str(), newValue.as<String>().c_str());
 
         if (!var.isNull())
         {
           //a button never sets the value
           if (var["type"] == "button") { //button always
-            mdl->callChFunAndWs(var, rowNr, val); //bypass var["value"] 
-            print->printJson("button", json);
+            ui->callVarFun(var, rowNr, f_ChangeFun);
           }
           else {
-            USER_PRINTF("processJson %s[%d] %s->%s\n", key, rowNr, var["value"].as<String>().c_str(), value.as<String>().c_str());
-            if (val.is<const char *>())
-              mdl->setValue(var, JsonString(val, JsonString::Copied), rowNr);
+            if (newValue.is<const char *>())
+              mdl->setValue(var, JsonString(newValue, JsonString::Copied), rowNr);
             else
-              mdl->setValue(var, val.as<JsonVariant>(), rowNr);
+              mdl->setValue(var, newValue.as<JsonVariant>(), rowNr);
           }
           // json.remove(key); //key / var["id"] processed we don't need the key in the response
         }
@@ -274,12 +256,14 @@ void SysModUI::processJson(JsonVariant json) {
 }
 
 void SysModUI::processUiFun(const char * id) {
-  JsonObject responseObject = web->getResponseDoc()->to<JsonObject>();
+  web->sendResponseObject(); //send old stuff first
+
+  JsonObject responseObject = web->getResponseDoc()->as<JsonObject>();
 
   JsonArray array = responseObject.createNestedArray("uiFun");
   array.add(id);
   processJson(responseObject); //this calls uiFun command if the var with id provided
   //this also updates uiFun stuff - not needed!
 
-  web->sendDataWs(responseObject); //not needed?
+  web->sendResponseObject();
 }

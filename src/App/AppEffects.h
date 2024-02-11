@@ -78,8 +78,8 @@ public:
 
   virtual void controls(JsonObject parentVar, Leds &leds) {}
 
-  void addPalette(JsonObject parentVar, uint8_t value, uint8_t rowNr) {
-    JsonObject currentVar = ui->initSelect(parentVar, "pal", value, rowNr, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  void addPalette(JsonObject parentVar, uint8_t value) {
+    JsonObject currentVar = ui->initSelect(parentVar, "pal", value, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
         mdl->setValue(var, 4, rowNr); //4 is default
         return true;
@@ -131,9 +131,9 @@ public:
     leds.fill_solid(color);
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "Red", 182, leds.rowNr);
-    ui->initSlider(parentVar, "Green", 15, leds.rowNr);
-    ui->initSlider(parentVar, "Blue", 98, leds.rowNr);
+    ui->initSlider(parentVar, "Red", 182);
+    ui->initSlider(parentVar, "Green", 15);
+    ui->initSlider(parentVar, "Blue", 98);
   }
 };
 
@@ -178,7 +178,7 @@ public:
     leds[pos] = leds.getPixelColor(pos) + CHSV( gHue, 255, 192);
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "BPM", 60, leds.rowNr);
+    ui->initSlider(parentVar, "BPM", 60);
   }
 }; //Sinelon
 
@@ -197,14 +197,14 @@ public:
     // leds[leds.nrOfLeds -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "BPM", 60, leds.rowNr, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "comment", "in BPM!");
         return true;
       default: return false;
     }});
     //tbd: check if memory is freed!
-    ui->initSlider(parentVar, "fade", 128, leds.rowNr);
+    ui->initSlider(parentVar, "fade", 128);
   }
 };
 
@@ -238,7 +238,7 @@ public:
     }
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    addPalette(parentVar, 4, leds.rowNr);
+    addPalette(parentVar, 4);
   }
 };
 
@@ -282,7 +282,7 @@ public:
     }
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "interval", 128, leds.rowNr);
+    ui->initSlider(parentVar, "interval", 128);
   }
 };
 
@@ -347,10 +347,10 @@ public:
     leds.blur2d(mdl->getValue("blur", leds.rowNr));
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    addPalette(parentVar, 4, leds.rowNr);
-    ui->initSlider(parentVar, "BPM", 60, leds.rowNr);
-    ui->initSlider(parentVar, "intensity", 128, leds.rowNr);
-    ui->initSlider(parentVar, "blur", 128, leds.rowNr);
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "BPM", 60);
+    ui->initSlider(parentVar, "intensity", 128);
+    ui->initSlider(parentVar, "blur", 128);
   }
 }; // Frizzles2D
 
@@ -379,8 +379,8 @@ public:
   }
 
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "BPM", 60, leds.rowNr);
-    ui->initCheckBox(parentVar, "Vertical", true, leds.rowNr);
+    ui->initSlider(parentVar, "BPM", 60);
+    ui->initCheckBox(parentVar, "Vertical", true);
   }
 }; // Lines2D
 
@@ -439,8 +439,8 @@ public:
     }
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "Speed", 128, leds.rowNr);
-    ui->initSlider(parentVar, "scale", 128, leds.rowNr);
+    ui->initSlider(parentVar, "Speed", 128);
+    ui->initSlider(parentVar, "scale", 128);
   }
 }; // DistortionWaves2D
 
@@ -510,12 +510,11 @@ public:
     }
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    addPalette(parentVar, 4, leds.rowNr);
-    ui->initSlider(parentVar, "Speed", 128, leds.rowNr, 1, 255); //start with speed 1
-    ui->initSlider(parentVar, "Offset X", 128, leds.rowNr);
-    ui->initSlider(parentVar, "Offset Y", 128, leds.rowNr);
-    USER_PRINTF("Legs %d\n", leds.rowNr);
-    ui->initSlider(parentVar, "Legs", 4, leds.rowNr, 1, 8);
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "Speed", 128, 1, 255); //start with speed 1
+    ui->initSlider(parentVar, "Offset X", 128);
+    ui->initSlider(parentVar, "Offset Y", 128);
+    ui->initSlider(parentVar, "Legs", 4, 1, 8);
   }
 }; // Octopus2D
 
@@ -562,11 +561,11 @@ public:
     }
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    addPalette(parentVar, 4, leds.rowNr);
-    ui->initSlider(parentVar, "X frequency", 64, leds.rowNr);
-    ui->initSlider(parentVar, "Fade rate", 128, leds.rowNr);
-    ui->initSlider(parentVar, "Speed", 128, leds.rowNr);
-    ui->initCheckBox(parentVar, "Smooth", false, leds.rowNr);
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "X frequency", 64);
+    ui->initSlider(parentVar, "Fade rate", 128);
+    ui->initSlider(parentVar, "Speed", 128);
+    ui->initCheckBox(parentVar, "Smooth", false);
   }
 }; // Lissajous2D
 
@@ -647,9 +646,9 @@ public:
   }
 
   void controls(JsonObject parentVar, Leds &leds) {
-    addPalette(parentVar, 4, leds.rowNr);
-    ui->initSlider(parentVar, "gravity", 128, leds.rowNr);
-    ui->initSlider(parentVar, "balls", 8, leds.rowNr, 1, 16);
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "gravity", 128);
+    ui->initSlider(parentVar, "balls", 8, 1, 16);
   }
 }; // BouncingBalls2D
 
@@ -704,9 +703,9 @@ public:
 
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initText(parentVar, "text", "StarMod", leds.rowNr);
-    ui->initSlider(parentVar, "Speed", 128, leds.rowNr);
-    ui->initSelect(parentVar, "font", 0, leds.rowNr, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(parentVar, "text", "StarMod");
+    ui->initSlider(parentVar, "Speed", 128);
+    ui->initSelect(parentVar, "font", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
         JsonArray select = web->addResponseA(var["id"], "options");
         select.add("4x6");
@@ -820,11 +819,11 @@ public:
   }
 
   void controls(JsonObject parentVar, Leds &leds) {
-    addPalette(parentVar, 4, leds.rowNr);
-    ui->initSlider(parentVar, "fadeOut", 255, leds.rowNr);
-    ui->initSlider(parentVar, "ripple", 128, leds.rowNr);
-    ui->initCheckBox(parentVar, "colorBars", false, leds.rowNr);
-    ui->initCheckBox(parentVar, "smoothBars", true, leds.rowNr);
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "fadeOut", 255);
+    ui->initSlider(parentVar, "ripple", 128);
+    ui->initCheckBox(parentVar, "colorBars", false);
+    ui->initCheckBox(parentVar, "smoothBars", true);
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 
@@ -880,8 +879,8 @@ public:
   }
 
   void controls(JsonObject parentVar, Leds &leds) {
-    addPalette(parentVar, 4, leds.rowNr);
-    ui->initCheckBox(parentVar, "inWards", true, leds.rowNr);
+    addPalette(parentVar, 4);
+    ui->initCheckBox(parentVar, "inWards", true);
   }
 };
 
@@ -940,11 +939,11 @@ public:
   }
 
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "Speed", 255, leds.rowNr);
-    ui->initSlider(parentVar, "Sound effect", 128, leds.rowNr);
-    ui->initSlider(parentVar, "Low bin", 18, leds.rowNr);
-    ui->initSlider(parentVar, "High bin", 48, leds.rowNr);
-    ui->initSlider(parentVar, "Sensivity", 30, leds.rowNr, 10, 100);
+    ui->initSlider(parentVar, "Speed", 255);
+    ui->initSlider(parentVar, "Sound effect", 128);
+    ui->initSlider(parentVar, "Low bin", 18);
+    ui->initSlider(parentVar, "High bin", 48);
+    ui->initSlider(parentVar, "Sensivity", 30, 10, 100);
   }
 };
 
@@ -1031,9 +1030,9 @@ public:
   bool setEffect(Leds &leds, JsonObject var, uint8_t rowNr) {
     bool doMap = false;
 
-    leds.fx = mdl->getValue(var, leds.rowNr);
+    leds.fx = mdl->getValue(var, rowNr);
 
-    USER_PRINTF("setEffect l:%d %d\n", leds.rowNr, leds.fx);
+    USER_PRINTF("setEffect fx[%d]: %d\n", rowNr, leds.fx);
 
     if (leds.fx < effects.size()) {
 
@@ -1059,7 +1058,6 @@ public:
 
       sharedData.clear(); //make sure all values are 0
 
-
       for (JsonObject var: var["n"].as<JsonArray>()) { //for all controls
         if (var["o"].as<int>() >= 0) { //post init
           var["o"] = -var["o"].as<int>(); // set all negative
@@ -1067,7 +1065,9 @@ public:
       }
 
       Effect* effect = effects[leds.fx];
+      ui->parentRowNr = rowNr;
       effect->controls(var, leds); //new controls are positive
+      ui->parentRowNr = UINT8_MAX;
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 

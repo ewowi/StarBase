@@ -535,7 +535,7 @@ public:
     parentVar = ui->initUserMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -1200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    ui->initSelect(parentVar, "fixtureGen", 0, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initSelect(parentVar, "fixtureGen", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     
       case f_UIFun: {
         web->addResponse(var["id"], "label", "Fixture");
@@ -565,7 +565,7 @@ public:
       default: return false; 
     }}); //fixtureGen
 
-    ui->initText(parentVar, "pinList", "16", UINT8_MAX, 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(parentVar, "pinList", "16", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "comment", "One or more e.g. 12,13,14");
         return true;
@@ -619,14 +619,14 @@ public:
       ui->initNumber(parentVar, "ledCount", 24, 1, NUM_LEDS_Max);
     }
     else if (value == f_2DRings241) {
-      ui->initCheckBox(parentVar, "in2out", true, UINT8_MAX);
+      ui->initCheckBox(parentVar, "in2out", true);
     }
     else if (value == f_2DWheel) {
       ui->initNumber(parentVar, "nrOfSpokes", 36, 1, 360);
       ui->initNumber(parentVar, "ledsPerSpoke", 24, 1, 360);
     }
     else if (value == f_3DCone) {
-      ui->initCheckBox(parentVar, "in2out", true, UINT8_MAX);
+      ui->initCheckBox(parentVar, "in2out", true);
       ui->initNumber(parentVar, "nrOfRings", 24, 1, 360);
     }
     else if (value == f_2DMatrix) {
@@ -636,7 +636,7 @@ public:
 
       ui->initNumber(parentVar, "height", 8, 1, 255);
 
-      ui->initSelect(parentVar, "firstLedX", 0, UINT8_MAX, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      ui->initSelect(parentVar, "firstLedX", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
         case f_UIFun: {
             web->addResponse(var["id"], "comment", "WIP");
             JsonArray select = web->addResponseA(var["id"], "options");
@@ -647,7 +647,7 @@ public:
         default: return false;
       }});
 
-      ui->initSelect(parentVar, "firstLedY", 0, UINT8_MAX, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      ui->initSelect(parentVar, "firstLedY", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
         case f_UIFun: {
             web->addResponse(var["id"], "comment", "WIP");
             JsonArray select = web->addResponseA(var["id"], "options");

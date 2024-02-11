@@ -38,7 +38,7 @@ void SysModModel::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initProgress(parentVar, "mSize", UINT16_MAX, UINT8_MAX, 0, model->capacity(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initProgress(parentVar, "mSize", UINT16_MAX, 0, model->capacity(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Size");
       return true;
@@ -60,7 +60,7 @@ void SysModModel::setup() {
     default: return false;
   }});
 
-  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "comment", "Show in UI (refresh)");
       return true;
@@ -111,7 +111,7 @@ void SysModModel::setup() {
   }
 }
 void SysModModel::loop10s() {
-  ui->callVarFun(mdl->findVar("mSize"), UINT8_MAX, f_ChangeFun);
+  ui->callVarFun(mdl->findVar("mSize"));
 }
 
 void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
@@ -224,7 +224,7 @@ void SysModModel::callChFunAndWs(JsonObject var, uint8_t rowNr, const char * val
   if (var["stage"])
     ui->stageVarChanged = true;
 
-  ui->callVarFun(var, rowNr==UINT8_MAX?0:rowNr, f_ChangeFun);  //send rowNr = 0 if no rowNr
+  ui->callVarFun(var, rowNr, f_ChangeFun);   //if no rowNr use rowNr 0
 
   web->sendResponseObject();
 }  

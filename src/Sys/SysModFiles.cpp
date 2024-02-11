@@ -68,7 +68,7 @@ void SysModFiles::setup() {
     default: return false;
   }});
 
-  ui->initText(tableVar, "flName", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Name");
       return true;
@@ -89,24 +89,33 @@ void SysModFiles::setup() {
     default: return false;
   }});
 
-  ui->initText(parentVar, "drsize", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initProgress(parentVar, "drsize", UINT16_MAX, 0, files->totalBytes(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponseV(var["id"], "value", "%d / %d B", files->usedBytes(), files->totalBytes());
-      web->addResponse(var["id"], "label", "Total FS size");
+      web->addResponse(var["id"], "label", "FS Size");
+      return true;
+    case f_ChangeFun:
+      var["max"] = files->totalBytes(); //makes sense?
+      web->addResponse(var["id"], "value", files->usedBytes());
+      web->addResponseV(var["id"], "comment", "%d / %d B", files->usedBytes(), files->totalBytes());
       return true;
     default: return false;
   }});
+
 }
 
-void SysModFiles::loop(){
+void SysModFiles::loop() {
   // SysModule::loop();
 
   if (filesChanged) {
-    mdl->setUIValueV("drsize", "%d / %d B", usedBytes(), totalBytes());
+    ui->callVarFun(mdl->findVar("drsize"));
     filesChanged = false;
 
     ui->processUiFun("fileTbl");
   }
+}
+
+void SysModFiles::loop10s() {
+  ui->callVarFun(mdl->findVar("drsize"));
 }
 
 bool SysModFiles::remove(const char * path) {

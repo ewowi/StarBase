@@ -735,7 +735,7 @@
               "max": 32
             },
             {
-              "id": "mdlSucces",
+              "id": "mdlSuccess",
               "type": "checkbox",
               "ro": true,
               "o": 106,

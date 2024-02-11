@@ -30,7 +30,7 @@ void SysModNetwork::setup() {
   //   web->addResponse(var["id"], "comment", "List of defined and available Wifi APs");
   // });
 
-  ui->initText(parentVar, "ssid", "", UINT8_MAX, 32, false);
+  ui->initText(parentVar, "ssid", "", 32, false);
   // , nullptr
   // , nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
   //   var["value"][0] = "";
@@ -54,14 +54,14 @@ void SysModNetwork::setup() {
     default: return false;
   }});
 
-  ui->initText(parentVar, "nwstatus", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Status");
       return true;
     default: return false;
   }});
 
-  ui->initText(parentVar, "rssi", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "rssi", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Wifi signal");
       return true;

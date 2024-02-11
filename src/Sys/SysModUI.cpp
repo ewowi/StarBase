@@ -18,6 +18,7 @@ std::vector<VarFun> SysModUI::varFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
 int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::stageVarChanged = false;
+uint8_t SysModUI::parentRowNr = UINT8_MAX;
 
 SysModUI::SysModUI() :SysModule("UI") {
 };
@@ -46,7 +47,7 @@ void SysModUI::setup() {
     default: return false;
   }});
 
-  initText(tableVar, "vlVar", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Name");
       return true;
@@ -258,7 +259,7 @@ void SysModUI::processJson(JsonVariant json) {
 void SysModUI::processUiFun(const char * id) {
   web->sendResponseObject(); //send old stuff first
 
-  JsonObject responseObject = web->getResponseDoc()->as<JsonObject>();
+  JsonObject responseObject = web->getResponseObject();
 
   JsonArray array = responseObject.createNestedArray("uiFun");
   array.add(id);

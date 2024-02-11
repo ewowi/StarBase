@@ -19,6 +19,7 @@ public:
   SysModFiles();
   void setup();
   void loop();
+  void loop10s();
 
   bool remove(const char * path);
 

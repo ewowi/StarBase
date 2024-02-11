@@ -186,7 +186,7 @@ public:
       default: return false;
     }});
     
-    ui->initText(tableVar, "insName", nullptr, UINT8_MAX, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "insName", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Name");
         return true;
@@ -200,14 +200,14 @@ public:
       default: return false;
     }});
 
-    ui->initText(tableVar, "insIp", nullptr, UINT8_MAX, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "insIp", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "IP");
         return true;
       default: return false;
     }});
 
-    ui->initText(tableVar, "insType", nullptr, UINT8_MAX, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "insType", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Type");
         return true;
@@ -230,7 +230,7 @@ public:
 
     JsonObject currentVar;
 
-    currentVar = ui->initSelect(parentVar, "sma", 0, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    currentVar = ui->initSelect(parentVar, "sma", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
         web->addResponse(var["id"], "label", "Sync Master");
         web->addResponse(var["id"], "comment", "Instance to sync from");

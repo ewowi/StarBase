@@ -76,7 +76,7 @@ public:
       default: return false;
     }}, varsToWatch.size());
 
-    ui->initText(tableVar, "e131Name", nullptr, UINT8_MAX, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "e131Name", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
         mdl->setValue(var, JsonString(varsToWatch[rowNr].id, JsonString::Copied), rowNr);
         return true;

@@ -72,7 +72,6 @@ void SysModWeb::setup() {
   }});
 
   ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
     case f_ValueFun:
     {
       //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
@@ -90,12 +89,10 @@ void SysModWeb::setup() {
     case f_UIFun:
       web->addResponse(var["id"], "label", "Nr");
       return true;
-
     default: return false;
   }}, ws->count());
 
-  ui->initText(tableVar, "clIp", nullptr, UINT8_MAX, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
+  ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
     {
       //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
@@ -109,8 +106,7 @@ void SysModWeb::setup() {
     default: return false;
   }}, ws->count());
 
-  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, UINT8_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
+  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
     {
       //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
@@ -120,12 +116,10 @@ void SysModWeb::setup() {
     case f_UIFun:
       web->addResponse(var["id"], "label", "Is full");
       return true;
-
     default: return false;
   }}, ws->count());
 
-  ui->initSelect(tableVar, "clStatus", UINT16_MAX, UINT8_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
+  ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
     {
       //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
@@ -146,7 +140,6 @@ void SysModWeb::setup() {
   }}, ws->count());
 
   ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
     case f_ValueFun:
     {
       //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
@@ -160,7 +153,7 @@ void SysModWeb::setup() {
     default: return false;
   }}, ws->count());
 
-  ui->initText(parentVar, "wsCounter", nullptr, UINT8_MAX, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "wsCounter", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "comment", "#web socket calls");
       return true;

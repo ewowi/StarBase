@@ -166,7 +166,7 @@ public:
             USER_PRINTF("dev setValue value removed %s %s\n", var["id"].as<const char *>(), oldValue.c_str()); //old value
         }
         else {
-          USER_PRINTF("setValue changed %s %s->%s\n", var["id"].as<const char *>(), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
+          USER_PRINTF("setValue changed %s %s -> %s\n", var["id"].as<const char *>(), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
           callChFunAndWs(var);
         }
       }
@@ -268,6 +268,10 @@ public:
 
   //run the change function and send response to all? websocket clients
   static void callChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX, const char * value = nullptr);
+
+  const char * jsonToChar(JsonObject var, const char * name) {
+    return var[name].as<const char *>();
+  }
 
 private:
   bool doShowObsolete = false;

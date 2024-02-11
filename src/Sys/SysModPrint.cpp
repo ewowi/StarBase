@@ -57,7 +57,7 @@ void SysModPrint::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initSelect(parentVar, "pOut", 1, UINT8_MAX, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
     {
       web->addResponse(var["id"], "label", "Output");

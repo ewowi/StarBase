@@ -39,7 +39,7 @@ void SysModules::setup() {
     default: return false;
   }});
 
-  ui->initText(tableVar, "mdlName", nullptr, UINT8_MAX, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "mdlName", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
       mdl->setValue(var, modules[rowNr]->name, rowNr);
       return true;
@@ -49,7 +49,7 @@ void SysModules::setup() {
     default: return false;
   }}, modules.size());
 
-  ui->initCheckBox(tableVar, "mdlSucces", UINT16_MAX, UINT8_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initCheckBox(tableVar, "mdlSuccess", UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
       mdl->setValue(var, modules[rowNr]->success, rowNr);
       return true;
@@ -59,9 +59,7 @@ void SysModules::setup() {
     default: return false;
   }}, modules.size());
 
-  ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, UINT8_MAX, false
-  , [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun not readonly! (tbd)
-    
+  ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun not readonly! (tbd)
     case f_ValueFun:
       mdl->setValue(var, modules[rowNr]->isEnabled, rowNr);
       return true;
@@ -69,7 +67,6 @@ void SysModules::setup() {
       //initially set to true, but as enabled are table cells, will be updated to an array
       web->addResponse(var["id"], "label", "Enabled");
       return true;
-
     case f_ChangeFun:
       if (rowNr != UINT8_MAX && rowNr < modules.size()) {
         modules[rowNr]->isEnabled = mdl->getValue(var, rowNr);
@@ -80,7 +77,6 @@ void SysModules::setup() {
       }
       // print->printJson(" ", var);
       return true;
-
     default: return false;
   }}, modules.size());
 }

@@ -125,7 +125,7 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
         if (oPos) {
           if (var["o"].isNull() || var["o"].as<int>() >= 0) { //not set negative in initVar
             if (!doShowObsolete) {
-              USER_PRINTF("cleanUpModel remove var %s (""o"">=0)\n", var["id"].as<const char *>());          
+              USER_PRINTF("cleanUpModel remove var %s (""o"">=0)\n", mdl->jsonToChar(var, "id"));          
               vars.remove(varV); //remove the obsolete var (no o or )
             }
           }
@@ -134,7 +134,7 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
           }
         } else { //!oPos
           if (var["o"].isNull() || var["o"].as<int>() < 0) { 
-            USER_PRINTF("cleanUpModel remove var %s (""o""<0)\n", var["id"].as<const char *>());          
+            USER_PRINTF("cleanUpModel remove var %s (""o""<0)\n", mdl->jsonToChar(var, "id"));          
             vars.remove(varV); //remove the obsolete var (no o or o is negative - not cleanedUp)
           }
         }
@@ -142,7 +142,7 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
 
       //remove ro values (ro vars cannot be deleted as SM uses these vars)
       if (ro && var["ro"].as<bool>()) {// && !var["value"].isNull())
-        USER_PRINTF("remove ro value %s\n", var["id"].as<const char *>());          
+        USER_PRINTF("remove ro value %s\n", mdl->jsonToChar(var, "id"));          
         var.remove("value");
       }
 
@@ -171,7 +171,7 @@ JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
         JsonObject foundVar = findVar(id, var["n"]);
         if (!foundVar.isNull()) {
           if (modelParentVar.isNull()) modelParentVar = var;  //only recursive lowest assigns parentVar
-          // USER_PRINTF("findvar parent of %s is %s\n", id, modelParentVar["id"].as<const char *>());
+          // USER_PRINTF("findvar parent of %s is %s\n", id, modelParentmdl->jsonToChar(var, "id"));
           return foundVar;
         }
       }
@@ -210,15 +210,10 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
     }
 }
 
-//tbd: use template T for value
-//run the change function and send response to all? websocket clients
-void SysModModel::callChFunAndWs(JsonObject var, uint8_t rowNr, const char * value) { //value: bypass var["value"]
+//run the change function and send response to all websocket clients
+void SysModModel::callChFunAndWs(JsonObject var, uint8_t rowNr) {
 
-  if (value)
-    web->addResponse(var["id"], "value", JsonString(value, JsonString::Copied));
-  else {
-    web->addResponse(var["id"], "value", var["value"]);
-  }
+  web->addResponse(var["id"], "value", var["value"]);
 
   //done here as ui cannot be used in SysModModel.h
   if (var["stage"])

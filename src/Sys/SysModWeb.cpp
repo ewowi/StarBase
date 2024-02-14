@@ -65,67 +65,41 @@ void SysModWeb::setup() {
     case f_UIFun:
       web->addResponse(var["id"], "label", "Clients");
       web->addResponse(var["id"], "comment", "List of clients");
-      // JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-      // web->clientsToJson(rows);
       return true;
     default: return false;
   }});
 
   ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-    {
-      //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
-      uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, client->id(), rowNr);
-
-      // AsyncWebSocket::AsyncWebSocketClientLinkedList::iterator client = ws->getClients().nth(rowNr);
-      // LinkedList<WebClient *>::Iterator client;
-      //  = ws->getClients().nth(rowNr);
-      // WebClient * const * client = ws->getClients().nth(rowNr);
-      // WebClient * c2 = ws->getClients().nth(rowNr);
-      // const auto& c = ws->getClients().nth(rowNr);
-      // mdl->setValue(var, client->id(), rowNr);
+    case f_UIFun: {
+      web->addResponse(var["id"], "label", "Nr");
+      uint8_t rowNr = 0; for (auto client:ws->getClients())
+        web->addResponse(var["id"], "value", client->id(), rowNr++);
       return true;
     }
-    case f_UIFun:
-      web->addResponse(var["id"], "label", "Nr");
-      return true;
     default: return false;
-  }}, ws->count());
+  }});
 
   ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-    {
-      //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
-      uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr);
+    case f_UIFun: {
+      web->addResponse(var["id"], "label", "IP");
+      uint8_t rowNr = 0; for (auto client:ws->getClients())
+        web->addResponse(var["id"], "value", JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr++);
       return true;
     }
-    case f_UIFun:
-      web->addResponse(var["id"], "label", "IP");
-      return true;
-
     default: return false;
-  }}, ws->count());
+  }});
 
   ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-    {
-      //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
-      uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, client->queueIsFull(), rowNr);
+    case f_UIFun: {
+      web->addResponse(var["id"], "label", "Is full");
+      uint8_t rowNr = 0; for (auto client:ws->getClients())
+        web->addResponse(var["id"], "value", client->queueIsFull(), rowNr++);
       return true;
     }
-    case f_UIFun:
-      web->addResponse(var["id"], "label", "Is full");
-      return true;
     default: return false;
-  }}, ws->count());
+  }});
 
   ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-    {
-      //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
-      uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, client->status(), rowNr);
-      return true;
-    }
     case f_UIFun:
     {
       web->addResponse(var["id"], "label", "Status");
@@ -134,24 +108,22 @@ void SysModWeb::setup() {
       select.add("Disconnected"); //0
       select.add("Connected"); //1
       select.add("Disconnecting"); //2
+      uint8_t rowNr = 0; for (auto client:ws->getClients())
+        web->addResponse(var["id"], "value", client->status(), rowNr++);
       return true;
     }
     default: return false;
-  }}, ws->count());
+  }});
 
   ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-    {
-      //workaround as WebClient * client = ws->getClients().nth(rowNr); not working
-      uint8_t iterator = 0; for (auto client:ws->getClients()) if (iterator++ == rowNr) mdl->setValue(var, client->queueLength(), rowNr);
+    case f_UIFun: {
+      web->addResponse(var["id"], "label", "Length");
+      uint8_t rowNr = 0; for (auto client:ws->getClients())
+        web->addResponse(var["id"], "value", client->queueLength(), rowNr++);
       return true;
     }
-    case f_UIFun:
-      web->addResponse(var["id"], "label", "Length");
-      return true;
-
     default: return false;
-  }}, ws->count());
+  }});
 
   ui->initText(parentVar, "wsCounter", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -160,7 +132,12 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
+  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      web->addResponse(var["id"], "value", WS_MAX_QUEUED_MESSAGES);
+      return true;
+    default: return false;
+  }});
 }
 
 void SysModWeb::loop() {
@@ -173,35 +150,22 @@ void SysModWeb::loop() {
     this->modelUpdated = false;
   }
 
-}
-
-void SysModWeb::loop1s() {
   // if something changed in clTbl
   if (clientsChanged) {
     clientsChanged = false;
-    // ui->processUiFun("clTbl"); //every second (temp)
+
     USER_PRINTF("SysModWeb clientsChanged\n");
-    //clean variable arrays
-    JsonObject var = mdl->findVar("clTbl");
-    for (JsonObject childVar: var["n"].as<JsonArray>()) {
-      childVar.remove("value");
-      //run ValueFun
-      // if (childVar["valuefun"])
+    for (JsonObject childVar: mdl->findVar("clTbl")["n"].as<JsonArray>()) {
+      ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
     }
   }
 
-  // redefine variables for rows present
-  uint8_t rowNr = 0;
-  for (auto client:ws->getClients()) {
-    // printClient("up", client);
-    //will only update if changed
-    mdl->setValue("clNr", client->id(), rowNr);
-    mdl->setValue("clIp", JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr);
-    mdl->setValue("clIsFull", client->queueIsFull(), rowNr);
-    mdl->setValue("clStatus", client->status(), rowNr);
-    mdl->setValue("clLength", client->queueLength(), rowNr);
-    
-    rowNr++;
+
+}
+
+void SysModWeb::loop1s() {
+  for (JsonObject childVar: mdl->findVar("clTbl")["n"].as<JsonArray>()) {
+    ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
   }
 
   mdl->setUIValueV("wsCounter", "%lu /s", sendDataWsCounter);
@@ -319,8 +283,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
               print->printJson("WS_EVT_DATA json", responseObject);
               print->printJDocInfo("WS_EVT_DATA info", *responseDoc);
 
-              //uiFun only send to requesting client
-              web->sendResponseObject(isUiFun?client:nullptr);
+              web->sendResponseObject(isUiFun?client:nullptr); //uiFun only send to requesting client
             }
             else {
               USER_PRINT_Async("WS_EVT_DATA no responseDoc\n");

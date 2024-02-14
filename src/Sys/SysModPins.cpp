@@ -40,50 +40,44 @@ void SysModPins::setup() {
     {
       web->addResponse(var["id"], "label", "Pins");
       web->addResponse(var["id"], "comment", "List of pins");
-      JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-      uint8_t pinNr = 0;
-      for (PinObject pinObject:pinObjects) {
-        if (strcmp(pinObject.owner, "") != 0) {
-          JsonArray row = rows.createNestedArray();
-          row.add(pinNr);
-          row.add(pinObject.owner);
-          row.add(pinObject.details);
-        }
-        pinNr++;
-      }
       return true;
     }
     default: return false;
   }});
 
-  ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Pin");
+      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++) {
+        web->addResponse(var["id"], "value", getPinNr(rowNr), rowNr);
+      }
       return true;
     default: return false;
   }});
 
-  ui->initText(tableVar, "pinOwner", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "pinOwner", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Owner");
+      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+        web->addResponse(var["id"], "value", JsonString(getNthAllocatedPinObject(rowNr).owner, JsonString::Copied), rowNr);
       return true;
     default: return false;
   }});
 
-  ui->initText(tableVar, "pinDetails", nullptr, 256, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Details");
+      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+        web->addResponse(var["id"], "value", JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
       return true;
     default: return false;
   }});
 
   ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
     case f_UIFun:
       web->addResponse(var["id"], "label", "Board layout");
       web->addResponse(var["id"], "comment", "WIP");
       return true;
-
     case f_LoopFun:
       var["interval"] = 10*10*10; //every 10 sec from cs to ms
 
@@ -118,7 +112,9 @@ void SysModPins::loop1s() {
   if (pinsChanged) {
     pinsChanged = false;
 
-    ui->processUiFun("pinTbl");
+    for (JsonObject childVar: mdl->findVar("pinTbl")["n"].as<JsonArray>()) {
+      ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
+    }
   }
 }
 

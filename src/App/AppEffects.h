@@ -79,10 +79,8 @@ public:
   virtual void controls(JsonObject parentVar, Leds &leds) {}
 
   void addPalette(JsonObject parentVar, uint8_t value) {
+    //currentVar["value"][parentRowNr] will be set to value parameter
     JsonObject currentVar = ui->initSelect(parentVar, "pal", value, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_ValueFun:
-        mdl->setValue(var, 4, rowNr); //4 is default
-        return true;
       case f_UIFun: {
         web->addResponse(var["id"], "label", "Palette");
         web->addResponse(var["id"], "comment", "Colors");
@@ -827,15 +825,17 @@ public:
 
     // Nice an effect can register it's own DMX channel, but not a fan of repeating the range and type of the param
 
-    #ifdef STARMOD_USERMOD_E131
+    // #ifdef STARMOD_USERMOD_E131
 
-      if (e131mod->isEnabled) {
-        e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
-        e131mod->patchChannel(4, "ripple", 255);
-        ui->processUiFun("e131Tbl"); // sends data to ws...
-      }
+    //   if (e131mod->isEnabled) {
+    //     e131mod->patchChannel(3, "fadeOut", 255); // TODO: add constant for name
+    //     e131mod->patchChannel(4, "ripple", 255);
+    //     for (JsonObject childVar: mdl->findVar("e131Tbl")["n"].as<JsonArray>()) {
+    //       ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
+    //     }
+    //   }
 
-    #endif
+    // #endif
   }
 };
 
@@ -1065,8 +1065,9 @@ public:
       }
 
       Effect* effect = effects[leds.fx];
+
       ui->parentRowNr = rowNr;
-      effect->controls(var, leds); //new controls are positive
+      effect->controls(var, leds); //new controls have positive order (var["o"])
       ui->parentRowNr = UINT8_MAX;
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)

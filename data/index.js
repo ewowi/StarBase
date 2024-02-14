@@ -576,6 +576,8 @@ function receiveData(json) {
         let variable = findVar(key);
 
         if (variable) {
+          // if (variable.id == "pinNr")
+          //   console.log("receiveData ", variable, value);
           variable.fun = -2; // request processed
 
           value.chk = "uiFun";
@@ -599,11 +601,11 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
   else node = gId(variable.id);
 
   if (!node) {
-    //we should find all nodes, it's a bit if a trick just checking for node0 (what if deleted): tbd: improve
-    let rowNodes = document.querySelectorAll(`${variable.type}[id*="${variable.id}#"]`); //find nodes from the right class with id + #nr
+    //we should find all nodes
+    let rowNodes = document.querySelectorAll(`${variable.type}[id^="${variable.id}#"]`); //find nodes from the right class with id + #nr (^: starting with)
     for (let subNode of rowNodes) {
       let rowNr = parseInt(subNode.id.substring(variable.id.length + 1));
-      // console.log("changeHTML found row nodes !", variable, subNode, commandJson, rowNr);
+      // console.log("changeHTML found row nodes !", variable.id, subNode.id, commandJson, rowNr);
       changeHTML(variable, commandJson, rowNr); //recursive call of all nodes
     }
     // if (rowNodes.length == 0) //can happen e.g. fixture parameters
@@ -765,12 +767,11 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
         if (newRowNr > trNodes.length - 1) {
           genTableRowHTML(tableVar, tableNode, newRowNr); //this will set the whole row and its (default) values as stored in the model
         }
-        else {
-          if (newRowNr < valueLength)
-            changeHTML(variable, {"value":newValue, "chk":"column"}, newRowNr);
-          else
-            changeHTML(variable, {"value":null, "chk":"column"}, newRowNr); //new row cell has no value
-        }
+
+        if (newRowNr < valueLength)
+          changeHTML(variable, {"value":newValue, "chk":"column"}, newRowNr);
+        else
+          changeHTML(variable, {"value":null, "chk":"column"}, newRowNr); //new row cell has no value
       }
 
       flushUIFunCommands(); //make sure uiFuns of new elements are called
@@ -1225,11 +1226,8 @@ function setInstanceTableColumns() {
   function showHideColumn(colNr, doHide) {
     // console.log("showHideColumn", thead.parentNode.parentNode, colNr, doHide);
     thead.querySelector("tr").childNodes[colNr].hidden = doHide;
-    for (let row of tbody.childNodes) {
-      // console.log("   row", row, row.childNodes, i);
-      if (colNr < row.childNodes.length) //currently there are comments in the table header ...
-        row.childNodes[colNr].hidden = doHide;
-    }
+    for (let trNode of tbody.querySelectorAll("tr"))
+      trNode.childNodes[colNr].hidden = doHide;
   }
 
   // console.log("setInstanceTableColumns", tbl, thead, tbody);

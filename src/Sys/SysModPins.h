@@ -33,6 +33,41 @@ public:
   void allocatePin(uint8_t pinNr, const char * owner, const char * details);
   void deallocatePin(uint8_t pinNr, const char * owner);
 
+  //temporary functions until we refactored the PinObject
+  PinObject getNthAllocatedPinObject(uint8_t rowNr) {
+    uint8_t n = 0;
+    for (PinObject pinObject:pinObjects) {
+      if (strcmp(pinObject.owner, "") != 0) {
+        if (n == rowNr)
+          return pinObject;
+        n++;
+      }
+    }
+    return PinObject();
+  }
+  uint8_t getNrOfAllocatedPins() {
+    uint8_t n = 0;
+    for (PinObject pinObject:pinObjects) {
+      if (strcmp(pinObject.owner, "") != 0) {
+        n++;
+      }
+    }
+    return n;
+  }
+  uint8_t getPinNr(uint8_t rowNr) {
+    uint8_t pinNr = 0;
+    uint8_t n = 0;
+    for (PinObject pinObject:pinObjects) {
+      if (strcmp(pinObject.owner, "") != 0) {
+        if (n == rowNr)
+          return pinNr;
+        n++;
+      }
+      pinNr++;
+    }
+    return UINT8_MAX;
+  }
+
   static bool updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType);
 
 private:

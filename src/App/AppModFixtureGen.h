@@ -32,7 +32,7 @@ public:
   GenFix() {
     USER_PRINTF("GenFix construct\n");
     if (!mdl->getValue("pinList").isNull()) {
-      USER_PRINTF( "pinlist %s\n",mdl->getValue("pinList").as<const char *>());
+      USER_PRINTF( "pinlist %s\n", mdl->getValue("pinList").as<const char *>());
       char str[32];
       strncpy(str, mdl->getValue("pinList").as<const char *>(), sizeof(str)-1);
       const char s[2] = ","; //delimiter
@@ -577,7 +577,7 @@ public:
         generateChFun(var);
 
         //reload fixture select
-        ui->processUiFun("fixture"); //in AppModFixture sends data to ws...
+        ui->callVarFun("fixture", UINT8_MAX, f_UIFun);
         return true;
       default: return false;
     }});

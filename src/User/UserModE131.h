@@ -44,7 +44,9 @@ public:
         web->addResponse(var["id"], "comment", "First channel");
         return true;
       case f_ChangeFun:
-        ui->processUiFun("e131Tbl"); //rebuild table
+        for (JsonObject childVar: mdl->findVar("e131Tbl")["n"].as<JsonArray>()) {
+          ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
+        }
         return true;
       default: return false;
     }});
@@ -52,14 +54,6 @@ public:
 
     JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        // JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-        // for (auto varToWatch: varsToWatch) {
-        //   JsonArray row = rows.createNestedArray();
-        //   row.add(varToWatch.channel + mdl->getValue("dch").as<uint8_t>());
-        //   row.add(JsonString(varToWatch.id, JsonString::Copied));
-        //   row.add(varToWatch.max);
-        //   row.add(varToWatch.savedValue);
-        // }
         web->addResponse(var["id"], "label", "Vars to watch");
         web->addResponse(var["id"], "comment", "List of instances");
         return true;
@@ -67,44 +61,40 @@ public:
     }});
 
     ui->initNumber(tableVar, "e131Channel", UINT16_MAX, 1, 512, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_ValueFun:
-        mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>(), rowNr);
-        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Channel");
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          web->addResponse(var["id"], "value", (varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>()), rowNr);
         return true;
       default: return false;
-    }}, varsToWatch.size());
+    }});
 
     ui->initText(tableVar, "e131Name", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_ValueFun:
-        mdl->setValue(var, JsonString(varsToWatch[rowNr].id, JsonString::Copied), rowNr);
-        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Name");
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          web->addResponse(var["id"], "value", varsToWatch[rowNr].id, rowNr);
         return true;
       default: return false;
-    }}, varsToWatch.size());
+    }});
 
     ui->initNumber(tableVar, "e131Max", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_ValueFun:
-        web->addResponse(var["id"], "label", "Max");
-        return true;
       case f_UIFun:
-        mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
+        web->addResponse(var["id"], "label", "Max");
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          web->addResponse(var["id"], "value", varsToWatch[rowNr].max, rowNr);
         return true;
       default: return false;
-    }}, varsToWatch.size());
+    }});
 
     ui->initNumber(tableVar, "e131Value", UINT16_MAX, 0, 255, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_ValueFun:
-        mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
-        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Value");
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          web->addResponse(var["id"], "value", varsToWatch[rowNr].savedValue, rowNr);
         return true;
       default: return false;
-    }}, varsToWatch.size());
+    }});
 
   }
 

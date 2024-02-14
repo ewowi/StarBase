@@ -92,6 +92,18 @@ size_t SysModPrint::print(const char * format, ...) {
 
   va_start(args, format);
 
+
+  //tbd: print to UI (crashes because of recursive calls to print in setUIValueV...
+  // uint8_t pOut = mdl->getValue("pOut");
+  // if (pOut == 2) {
+    // Serial.println(format);
+    // char value[1024];
+    // vsnprintf(value, sizeof(value)-1, format, args);
+    // mdl->setUIValueV("log", "%s", format);
+    // va_end(args);
+    // return 1;
+  // }
+
   Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"":"α"); //looptask λ/ asyncTCP task α
 
   for (size_t i = 0; i < strlen(format); i++) 

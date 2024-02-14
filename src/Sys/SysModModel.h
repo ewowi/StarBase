@@ -36,7 +36,8 @@ struct Coord3D {
   //comparisons
   bool operator!=(Coord3D rhs) {
     // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
-    return x != rhs.x || y != rhs.y || z != rhs.z;
+    // return x != rhs.x || y != rhs.y || z != rhs.z;
+    return !(*this==rhs);
   }
   bool operator==(Coord3D rhs) {
     return x == rhs.x && y == rhs.y && z == rhs.z;
@@ -155,6 +156,13 @@ public:
   template <typename Type>
   JsonObject setValue(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
     // print->printJson("setValueB", var);
+    if (var["ro"].as<bool>()) {
+      web->addResponse(var["id"], "value", value, rowNr);
+      // print->printJson("setValue ro to ws", web->getResponseObject());
+      web->sendResponseObject();
+      return var;
+    }
+
     if (rowNr == UINT8_MAX) { //normal situation
       if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
         JsonString oldValue = JsonString(var["value"], JsonString::Copied);
@@ -163,10 +171,10 @@ public:
         if (var["value"].isNull() || var["value"].as<uint32_t>() == UINT16_MAX) {
           var.remove("value");
           if (oldValue.size()>0)
-            USER_PRINTF("dev setValue value removed %s %s\n", var["id"].as<const char *>(), oldValue.c_str()); //old value
+            USER_PRINTF("dev setValue value removed %s %s\n", jsonToChar(var, "id"), oldValue.c_str()); //old value
         }
         else {
-          USER_PRINTF("setValue changed %s %s -> %s\n", var["id"].as<const char *>(), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
+          USER_PRINTF("setValue changed %s %s -> %s\n", jsonToChar(var, "id"), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
           callChFunAndWs(var);
         }
       }
@@ -175,7 +183,7 @@ public:
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+        USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", jsonToChar(var, "id"), rowNr, var["value"].as<String>().c_str());
         // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
         var.createNestedArray("value");
       }
@@ -198,7 +206,7 @@ public:
         }
       }
       else {
-        USER_PRINTF("setValue %s could not create value array\n", var["id"].as<const char *>());
+        USER_PRINTF("setValue %s could not create value array\n", jsonToChar(var, "id"));
       }
     }
     
@@ -251,7 +259,7 @@ public:
       else if (valueArray.size())
         return valueArray[0];
       else {
-        USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", var["id"].as<const char *>(), var["value"].as<String>().c_str(), rowNr);
+        USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", jsonToChar(var, "id"), var["value"].as<String>().c_str(), rowNr);
         return JsonVariant();
       }
     }
@@ -267,11 +275,14 @@ public:
   void varToValues(JsonObject var, JsonArray values);
 
   //run the change function and send response to all? websocket clients
-  static void callChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX, const char * value = nullptr);
+  static void callChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX);
 
   const char * jsonToChar(JsonObject var, const char * name) {
     return var[name].as<const char *>();
   }
+  // const char * jsonToStringChar(JsonObject var, const char * name) {
+  //   return var[name].as<String>().c_str(); //var["value"].as<String>().c_str()
+  // }
 
 private:
   bool doShowObsolete = false;

@@ -107,10 +107,16 @@ public:
   }
 
   template <typename Type>
-  void addResponse(const char * id, const char * key, Type value) {
+  void addResponse(const char * id, const char * key, Type value, uint8_t rowNr = UINT8_MAX) {
     JsonObject responseObject = getResponseObject();
     // if (responseObject[id].isNull()) responseObject.createNestedObject(id);
-    responseObject[id][key] = value;
+    if (rowNr == UINT8_MAX)
+      responseObject[id][key] = value;
+    else {
+      if (!responseObject[id][key].is<JsonArray>())
+        responseObject[id].createNestedArray(key);
+      responseObject[id][key][rowNr] = value;
+    }
   }
 
   JsonArray addResponseA(const char * id, const char * key) {

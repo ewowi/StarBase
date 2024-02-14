@@ -93,6 +93,7 @@ void SysModSystem::setup() {
       web->addResponse(var["id"], "label", "Reset 0");
       web->addResponse(var["id"], "comment", "Reason Core 0");
       sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
+      web->addResponse(var["id"], "value", rtc_get_reset_reason(0)); //tmp as ro values not saved
       return true;
     default: return false;
   }});
@@ -103,6 +104,7 @@ void SysModSystem::setup() {
         web->addResponse(var["id"], "label", "Reset 1");
         web->addResponse(var["id"], "comment", "Reason Core 1");
         sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
+        web->addResponse(var["id"], "value", rtc_get_reset_reason(1)); //tmp as ro values not saved
         return true;
       default: return false;
     }});
@@ -112,6 +114,7 @@ void SysModSystem::setup() {
       web->addResponse(var["id"], "label", "Restart");
       web->addResponse(var["id"], "comment", "Reason restart");
       sys->addRestartReasonsSelect(web->addResponseA(var["id"], "options"));
+      web->addResponse(var["id"], "value", esp_reset_reason()); //tmp as ro values not saved
       return true;
     default: return false;
   }});

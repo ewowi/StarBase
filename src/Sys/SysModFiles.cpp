@@ -43,13 +43,13 @@ void SysModFiles::setup() {
       return true;
     }
     case f_AddRow: {
-      USER_PRINTF("chFun addRow %s[%d] = %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+      USER_PRINTF("chFun addRow %s[%d] = %s\n", mdl->jsonToChar(var, "id"), rowNr, var["value"].as<String>().c_str());
       web->getResponseObject()["addRow"]["rowNr"] = rowNr;
       //add a row with all defaults
       return true;
     }
     case f_DelRow: {
-      USER_PRINTF("chFun delRow %s[%d] = %s\n", var["id"].as<const char *>(), rowNr, var["value"].as<String>().c_str());
+      USER_PRINTF("chFun delRow %s[%d] = %s\n", mdl->jsonToChar(var, "id"), rowNr, var["value"].as<String>().c_str());
       if (rowNr != UINT8_MAX) {
         // call uiFun of tbl to fill responseObject with files
         ui->varFunctions[var["fun"]](var, UINT8_MAX, f_UIFun);
@@ -110,7 +110,8 @@ void SysModFiles::loop() {
     ui->callVarFun(mdl->findVar("drsize"));
     filesChanged = false;
 
-    ui->processUiFun("fileTbl");
+    // ui->processUiFun("fileTbl");
+    ui->callVarFun("fileTbl", UINT8_MAX, f_UIFun);
   }
 }
 

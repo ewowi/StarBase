@@ -32,24 +32,17 @@ void SysModUI::setup() {
 
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-    {
       web->addResponse(var["id"], "label", "Variable loops");
       web->addResponse(var["id"], "comment", "Loops initiated by a variable");
-      JsonArray rows = web->addResponseA(var["id"], "value"); //overwrite the value
-
-      for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
-        JsonArray row = rows.createNestedArray();
-        row.add(varLoop->var["id"]);
-        row.add(varLoop->counter);
-      }
       return true;
-    }
     default: return false;
   }});
 
   initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Name");
+      for (uint8_t rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+        web->addResponse(var["id"], "value", JsonString(loopFunctions[rowNr].var["id"], JsonString::Copied), rowNr);
       return true;
     default: return false;
   }});
@@ -57,6 +50,8 @@ void SysModUI::setup() {
   initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       web->addResponse(var["id"], "label", "Loops p s");
+      for (uint8_t rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+        web->addResponse(var["id"], "value", loopFunctions[rowNr].counter, rowNr);
       return true;
     default: return false;
   }});
@@ -72,18 +67,16 @@ void SysModUI::loop() {
       varLoop->loopFun(varLoop->var, 1, f_LoopFun); //rowNr..
 
       varLoop->counter++;
-      // USER_PRINTF("%s %u %u %d %d\n", varLoop->var["id"].as<const char *>(), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
+      // USER_PRINTF("%s %u %u %d %d\n", varLoop->mdl->jsonToChar(var, "id"), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
     }
   }
 }
 
 void SysModUI::loop1s() {
   //if something changed in vloops
-  uint8_t rowNr = 0;
-  for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
-    mdl->setValue("vlLoopps", varLoop->counter, rowNr++);
+  ui->callVarFun("vlLoopps", UINT8_MAX, f_UIFun);
+  for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop)
     varLoop->counter = 0;
-  }
 }
 
 JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, VarFun varFun) {
@@ -155,7 +148,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
         loopFunctions.push_back(loop);
         var["loopFun"] = loopFunctions.size()-1;
-        // USER_PRINTF("iObject loopFun %s %u %u %d %d\n", var["id"].as<const char *>());
+        // USER_PRINTF("iObject loopFun %s %u %u %d %d\n", mdl->jsonToChar(var, "id"));
       }
     }
   }
@@ -181,7 +174,7 @@ void SysModUI::processJson(JsonVariant json) {
       // commands
       if (pair.key() == "view" || pair.key() == "canvasData" || pair.key() == "theme") { //save the chosen view in System (see index.js)
         JsonObject var = mdl->findVar("System");
-        USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>().c_str(), var.isNull(), var["id"].as<const char *>());
+        USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>().c_str(), var.isNull(), mdl->jsonToChar(var, "id"));
         var[JsonString(key, JsonString::Copied)] = JsonString(value, JsonString::Copied);
         // json.remove(key); //key should stay as all clients use this to perform the changeHTML action
       }
@@ -254,17 +247,4 @@ void SysModUI::processJson(JsonVariant json) {
       }
     } //for json pairs
   }
-}
-
-void SysModUI::processUiFun(const char * id) {
-  web->sendResponseObject(); //send old stuff first
-
-  JsonObject responseObject = web->getResponseObject();
-
-  JsonArray array = responseObject.createNestedArray("uiFun");
-  array.add(id);
-  processJson(responseObject); //this calls uiFun command if the var with id provided
-  //this also updates uiFun stuff - not needed!
-
-  web->sendResponseObject();
 }

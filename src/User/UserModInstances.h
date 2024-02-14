@@ -173,63 +173,73 @@ public:
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
-        const char * varID = var["id"];
-        web->addResponse(varID, "label", "Instances");
-        web->addResponse(varID, "comment", "List of instances");
-        JsonArray rows = web->addResponseA(varID, "value"); //overwrite the value
-        for (auto instance=this->instances.begin(); instance!=this->instances.end(); ++instance) {
-          JsonArray row = rows.createNestedArray();
-          addTblRow(row, instance);
-        }
+        web->addResponse(var["id"], "label", "Instances");
+        web->addResponse(var["id"], "comment", "List of instances");
         return true;
       }
       default: return false;
     }});
     
-    ui->initText(tableVar, "insName", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "insName", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Name");
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          web->addResponse(var["id"], "value", JsonString(instances[rowNr].name, JsonString::Copied), rowNr);
         return true;
       default: return false;
     }});
 
-    ui->initURL(tableVar, "insLink", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initURL(tableVar, "insLink", nullptr, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Show");
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++) {
+          char urlString[32] = "http://";
+          strncat(urlString, instances[rowNr].ip.toString().c_str(), sizeof(urlString)-1);
+          web->addResponse(var["id"], "value", JsonString(urlString, JsonString::Copied), rowNr);
+        }
         return true;
       default: return false;
     }});
 
-    ui->initText(tableVar, "insIp", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "insIp", nullptr, 16, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "IP");
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          web->addResponse(var["id"], "value", JsonString(instances[rowNr].ip.toString().c_str(), JsonString::Copied), rowNr);
         return true;
       default: return false;
     }});
 
-    ui->initText(tableVar, "insType", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "insType", nullptr, 16, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Type");
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          web->addResponse(var["id"], "value", instances[rowNr].sys.type?"StarMod":"WLED", rowNr);
         return true;
       default: return false;
     }});
 
-    ui->initNumber(tableVar, "insVersion", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initNumber(tableVar, "insVersion", UINT16_MAX, 0, (unsigned long)-1, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Version");
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          web->addResponse(var["id"], "value", instances[rowNr].version, rowNr);
         return true;
       default: return false;
     }});
 
-    ui->initNumber(tableVar, "insUp", UINT16_MAX, 0, (unsigned long)-1, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initNumber(tableVar, "insUp", UINT16_MAX, 0, (unsigned long)-1, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Uptime");
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          web->addResponse(var["id"], "value", instances[rowNr].sys.upTime, rowNr);
         return true;
       default: return false;
     }});
 
     JsonObject currentVar;
 
+    //default is 0 / None
     currentVar = ui->initSelect(parentVar, "sma", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
         web->addResponse(var["id"], "label", "Sync Master");
@@ -256,19 +266,32 @@ public:
     //find stage variables and add them to the table
     mdl->findVars("stage", true, [tableVar, this](JsonObject var) { //findFun
 
-      USER_PRINTF("stage %s %s found\n", var["id"].as<const char *>(), var["value"].as<String>().c_str());
+      USER_PRINTF("stage %s %s found\n", mdl->jsonToChar(var, "id"), var["value"].as<String>().c_str());
 
       char columnVarID[32] = "ins";
       strcat(columnVarID, var["id"]);
-      JsonObject newVar; // = ui->cloneVar(var, columnVarID, [this, var](JsonObject newVar){});
+      JsonObject insVar; // = ui->cloneVar(var, columnVarID, [this, var](JsonObject insVar){});
 
       //create a var of the same type. InitVar is not calling chFun which is good in this situation!
-      newVar = ui->initVar(tableVar, columnVarID, var["type"], false, [this, var](JsonObject newVar, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      insVar = ui->initVar(tableVar, columnVarID, var["type"], false, [this, var](JsonObject insVar, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_ValueFun:
+          //should not trigger chFun
+          // USER_PRINTF("initVar stage %s[%d]\n", mdl->jsonToChar(insVar, "id"), rowNr);
+          for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+            insVar["value"][rowNr] = instances[rowNr].app.getVar(var["id"]); //only int values...
+            // mdl->setValue(insVar, instances[rowNr].app.getVar(var["id"]), rowNr);
+          //send to ws?
+          return true;
+        case f_UIFun:
+          // call uiFun of the base variable for the new variable
+          ui->varFunctions[var["fun"]](insVar, rowNr, f_UIFun);
+          return true;
         case f_ChangeFun: {
+          //do not set this initially!!!
           if (rowNr != UINT8_MAX) {
             //if this instance update directly, otherwise send over network
             if (instances[rowNr].ip == WiFi.localIP()) {
-              mdl->setValue(var, mdl->getValue(newVar, rowNr).as<uint8_t>()); //this will call sendDataWS (tbd...)
+              mdl->setValue(var, mdl->getValue(insVar, rowNr).as<uint8_t>()); //this will call sendDataWS (tbd...), do not set for rowNr
             } else {
               // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
               HTTPClient http;
@@ -277,7 +300,7 @@ public:
               http.begin(serverPath);
               http.addHeader("Content-Type", "application/json");
               char postMessage[32];
-              print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", var["id"].as<const char *>(), mdl->getValue(newVar, rowNr).as<uint8_t>());
+              print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", mdl->jsonToChar(var, "id"), mdl->getValue(insVar, rowNr).as<uint8_t>());
 
               USER_PRINTF("json post %s %s\n", serverPath, postMessage);
 
@@ -297,20 +320,17 @@ public:
               http.end();
             }
           }
-          else {
-            USER_PRINTF(" no rowNr!!");
-          }
-          print->printJson(" ", var);
+          // print->printJson(" ", var);
           return true;
         }
         default: return false;
       }});
 
-      if (newVar) {
-        if (!var["min"].isNull()) newVar["min"] = var["min"];
-        if (!var["max"].isNull()) newVar["max"] = var["max"];
-        if (!var["log"].isNull()) newVar["log"] = var["log"];
-        newVar["fun"] = var["fun"]; //copy the uiFun
+      if (insVar) {
+        if (!var["min"].isNull()) insVar["min"] = var["min"];
+        if (!var["max"].isNull()) insVar["max"] = var["max"];
+        if (!var["log"].isNull()) insVar["log"] = var["log"];
+        // insVar["fun"] = var["fun"]; //copy the uiFun
       }
 
     });
@@ -338,7 +358,10 @@ public:
       udpConnected = false;
       udp2Connected = false;
       instances.clear();
-      ui->processUiFun("insTbl");
+
+      //not needed here as there is no connection
+      // ui->processUiFun("insTbl");
+
       //udp off ??
     }
   }
@@ -407,7 +430,10 @@ public:
         // Serial.println();
 
         USER_PRINTF("insTbl handleNotifications %d\n", remoteIp[3]);
-        ui->processUiFun("insTbl");
+        JsonObject var = mdl->findVar("insTbl");
+        for (JsonObject childVar: var["n"].as<JsonArray>()) {
+          ui->callVarFun(childVar, instance - instances.begin(), f_UIFun);
+        }
 
         return;
       }
@@ -456,9 +482,13 @@ public:
       if (millis() - instance->timeStamp > 32000) { //assuming a ping each 30 seconds
         instance = instances.erase(instance);
         USER_PRINTF("insTbl remove inactive instances %d\n", instance->ip[3]);
-        ui->processUiFun("insTbl");
-        ui->processUiFun("ddpInst");
-        ui->processUiFun("artInst");
+
+        for (JsonObject childVar: mdl->findVar("insTbl")["n"].as<JsonArray>()) {
+          ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
+        }
+
+        ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun);
+        ui->callVarFun("artInst", UINT8_MAX, f_UIFun);
       }
       else
         ++instance;
@@ -557,7 +587,7 @@ public:
     }
 
     //iterate vector pointers so we can update the instances
-    uint8_t rowNr = 0;
+    // uint8_t rowNr = 0;
     for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
       if (instance->ip == messageIP) {
         instance->timeStamp = millis(); //update timestamp
@@ -604,33 +634,52 @@ public:
         //ui to parse the json
 
         if (instanceFound) {
-          JsonObject responseObject = web->getResponseObject();
+          // JsonObject responseObject = web->getResponseObject();
 
-          responseObject["updRow"]["id"] = "insTbl";
-          responseObject["updRow"]["rowNr"] = rowNr;
-          responseObject["updRow"].createNestedArray("value");
-          addTblRow(responseObject["updRow"]["value"], instance);
+          // responseObject["updRow"]["id"] = "insTbl";
+          // responseObject["updRow"]["rowNr"] = rowNr;
+          // responseObject["updRow"].createNestedArray("value");
+          // addTblRow(responseObject["updRow"]["value"], instance);
 
-          web->sendResponseObject();
+          // web->sendResponseObject();
 
-          // print->printJson("updateNode updRow", responseObject);
+          // USER_PRINTF("updateNode updRow[%d] %s\n", instance - instances.begin(), instances[instance - instances.begin()].name);
+
+          JsonObject var = mdl->findVar("insTbl");
+          for (JsonObject childVar: var["n"].as<JsonArray>()) {
+            if (childVar["ro"].as<bool>())
+              ui->callVarFun(childVar, instance - instances.begin(), f_UIFun);
+            else
+              ui->callVarFun(childVar, instance - instances.begin(), f_ValueFun);
+          }
+          //tbd: now done for all rows, should be done only for updated rows!
         }
 
       } //ip
-      rowNr ++;
+      // rowNr++;
     } // for instances
 
     if (!instanceFound) {
       USER_PRINTF("insTbl new instance node %d\n", messageIP[3]);
       
-      ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
-      ui->processUiFun("artInst"); //show the new instance in the dropdown  
+      // ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
+      // ui->processUiFun("artInst"); //show the new instance in the dropdown  
+      ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun);
+      ui->callVarFun("artInst", UINT8_MAX, f_UIFun);
 
-      ui->processUiFun("insTbl");
+      // ui->processUiFun("insTbl");
+      //run though it sorted to find the right rowNr
+      // for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
+      //   if (instance->ip == messageIP) {
+          for (JsonObject childVar: mdl->findVar("insTbl")["n"].as<JsonArray>()) {
+            ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
+          }
+      //   }
+      // }
     }
   }
 
-  std::vector<InstanceInfo>::iterator findNode( IPAddress nodeIP) {
+  std::vector<InstanceInfo>::iterator findNode(IPAddress nodeIP) {
 
     bool instanceFound = false;
     for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
@@ -643,6 +692,7 @@ public:
       InstanceInfo instance;
       instance.ip = nodeIP;
       instances.push_back(instance);
+      std::sort(instances.begin(),instances.end(), [](InstanceInfo &a, InstanceInfo &b){ return a.ip < b.ip; });//Sorting the vector strcmp(a.name,b.name);
     }
 
     std::vector<InstanceInfo>::iterator foundNode;

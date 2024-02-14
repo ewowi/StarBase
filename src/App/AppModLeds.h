@@ -82,7 +82,7 @@ public:
         return true;
       case f_AddRow: {
         rowNr = fixture.ledsList.size();
-        USER_PRINTF("chFun addRow %s[%d]\n", var["id"].as<const char *>(), rowNr);
+        USER_PRINTF("chFun addRow %s[%d]\n", mdl->jsonToChar(var, "id"), rowNr);
 
         web->getResponseObject()["addRow"]["rowNr"] = rowNr;
 
@@ -95,7 +95,7 @@ public:
         return true;
       }
       case f_DelRow: {
-        USER_PRINTF("chFun delrow %s[%d]\n", var["id"].as<const char *>(), rowNr);
+        USER_PRINTF("chFun delrow %s[%d]\n", mdl->jsonToChar(var, "id"), rowNr);
         //tbd: fade to black
         if (rowNr <fixture.ledsList.size()) {
           fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from leds
@@ -107,7 +107,8 @@ public:
 
     currentVar = ui->initSelect(tableVar, "fx", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
-        mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
+        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
+          mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
         return true;
       case f_UIFun: {
         web->addResponse(var["id"], "label", "Effect");
@@ -128,12 +129,13 @@ public:
         }
         return true;
       default: return false;
-    }}, fixture.ledsList.size());
+    }});
     currentVar["stage"] = true;
 
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
-        mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
+        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
+          mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
         return true;
       case f_UIFun: {
         web->addResponse(var["id"], "label", "Projection");
@@ -159,13 +161,14 @@ public:
         }
         return true;
       default: return false;
-    }}, fixture.ledsList.size());
+    }});
     currentVar["stage"] = true;
 
     ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
         USER_PRINTF("fxStart[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
-        mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
+        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
+          mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
         return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Start");
@@ -185,11 +188,12 @@ public:
         doMap = true;
         return true;
       default: return false;
-    }}, fixture.ledsList.size());
+    }});
 
     ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
-        mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
+        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
+          mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
         USER_PRINTF("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
         return true;
       case f_UIFun:
@@ -210,11 +214,19 @@ public:
         doMap = true;
         return true;
       default: return false;
-    }}, fixture.ledsList.size());
+    }});
 
-    ui->initText(tableVar, "fxSize", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Size");
+        //set value for this ro var
+        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
+          Leds leds = fixture.ledsList[rowNr];
+          char message[32];
+          print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds.size.x, leds.size.y, leds.size.z, leds.nrOfLeds);
+          web->addResponse(var["id"], "value", JsonString(message, JsonString::Copied), rowNr);
+        }
+
         return true;
       default: return false;
     }});
@@ -242,7 +254,11 @@ public:
           // e131mod->patchChannel(4, "fixture", 5); //assuming 5!!!
 
           // ui->stageVarChanged = true;
-          ui->processUiFun("e131Tbl"); //rebuild the table
+          // //rebuild the table
+          for (JsonObject childVar: mdl->findVar("e131Tbl")["n"].as<JsonArray>()) {
+            ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
+          }
+
       // }
       // else
       //   USER_PRINTF("Leds e131 not enabled\n");

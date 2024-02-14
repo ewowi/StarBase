@@ -119,7 +119,7 @@ public:
     ui->initCoord3D(parentVar, "fixSize", lds->fixture.size, 0, UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponse(var["id"], "label", "Size");
-        // web->addResponse(var["id"], "value", fixture.size);
+        web->addResponse(var["id"], "value", lds->fixture.size);
         return true;
       default: return false;
     }});
@@ -128,7 +128,7 @@ public:
       case f_UIFun:
         web->addResponse(var["id"], "label", "Count");
         web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Max);
-        // web->addResponse(var["id"], "value", fixture.nrOfLeds);
+        web->addResponse(var["id"], "value", lds->fixture.nrOfLeds);
         return true;
       default: return false;
     }});

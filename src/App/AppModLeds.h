@@ -77,8 +77,8 @@ public:
 
     JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Effects");
-        web->addResponse(var["id"], "comment", "List of effects");
+        ui->setLabel(var, "Effects");
+        ui->setComment(var, "List of effects");
         return true;
       case f_AddRow: {
         rowNr = fixture.ledsList.size();
@@ -111,11 +111,11 @@ public:
           mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
         return true;
       case f_UIFun: {
-        web->addResponse(var["id"], "label", "Effect");
-        web->addResponse(var["id"], "comment", "Effect to show");
-        JsonArray select = web->addResponseA(var["id"], "options");
+        ui->setLabel(var, "Effect");
+        ui->setComment(var, "Effect to show");
+        JsonArray options = ui->setOptions(var);
         for (Effect *effect:effects.effects) {
-          select.add(effect->name());
+          options.add(effect->name());
         }
         return true;
       }
@@ -138,18 +138,18 @@ public:
           mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
         return true;
       case f_UIFun: {
-        web->addResponse(var["id"], "label", "Projection");
-        web->addResponse(var["id"], "comment", "How to project fx");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        select.add("None"); // 0
-        select.add("Random"); // 1
-        select.add("Distance from point"); //2
-        select.add("Distance from center"); //3
-        select.add("Mirror"); //4
-        select.add("Reverse"); //5
-        select.add("Multiply"); //6
-        select.add("Kaleidoscope"); //7
-        select.add("Fun"); //8
+        ui->setLabel(var, "Projection");
+        ui->setComment(var, "How to project fx");
+        JsonArray options = ui->setOptions(var);
+        options.add("None"); // 0
+        options.add("Random"); // 1
+        options.add("Distance from point"); //2
+        options.add("Distance from center"); //3
+        options.add("Mirror"); //4
+        options.add("Reverse"); //5
+        options.add("Multiply"); //6
+        options.add("Kaleidoscope"); //7
+        options.add("Fun"); //8
         return true;
       }
       case f_ChangeFun:
@@ -171,7 +171,7 @@ public:
           mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Start");
+        ui->setLabel(var, "Start");
         return true;
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {
@@ -197,7 +197,7 @@ public:
         USER_PRINTF("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "End");
+        ui->setLabel(var, "End");
         return true;
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {
@@ -226,19 +226,20 @@ public:
         }
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Size");
+        ui->setLabel(var, "Size");
         return true;
       default: return false;
     }});
 
     ui->initSelect(parentVar, "fxLayout", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
-        web->addResponse(var["id"], "label", "Layout");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        select.add("□"); //0
-        select.add("="); //1
-        select.add("||"); //2
-        select.add("+"); //3
+        ui->setLabel(var, "Layout");
+        ui->setComment(var, "WIP");
+        JsonArray options = ui->setOptions(var);
+        options.add("□"); //0
+        options.add("="); //1
+        options.add("||"); //2
+        options.add("+"); //3
         return true;
       }
       default: return false;

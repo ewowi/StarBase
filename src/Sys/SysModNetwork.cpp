@@ -26,8 +26,8 @@ void SysModNetwork::setup() {
   if (parentVar["o"] > -1000) parentVar["o"] = -2500; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { //varFun ro false: create and delete row possible
-  //   web->addResponse(var["id"], "label", "Wifi");
-  //   web->addResponse(var["id"], "comment", "List of defined and available Wifi APs");
+  //   ui->setLabel(var, "Wifi");
+  //   ui->setComment(var, "List of defined and available Wifi APs");
   // });
 
   ui->initText(parentVar, "ssid", "", 32, false);
@@ -38,14 +38,14 @@ void SysModNetwork::setup() {
 
   ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Password");
+      ui->setLabel(var, "Password");
       return true;
     default: return false;
   }});
 
   ui->initButton(parentVar, "connect", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "comment", "Force reconnect (loose current connection)");
+      ui->setComment(var, "Force reconnect (loose current connection)");
       return true;
     case f_ChangeFun:
       // mdl->doWriteModel = true; //saves the model
@@ -56,14 +56,14 @@ void SysModNetwork::setup() {
 
   ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Status");
+      ui->setLabel(var, "Status");
       return true;
     default: return false;
   }});
 
   ui->initText(parentVar, "rssi", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Wifi signal");
+      ui->setLabel(var, "Wifi signal");
       return true;
     default: return false;
   }});

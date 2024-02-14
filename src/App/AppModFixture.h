@@ -23,7 +23,7 @@ public:
 
     JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "label", "On/Off");
+        ui->setLabel(var, "On/Off");
         return true;
       default: return false;
     }});
@@ -31,11 +31,9 @@ public:
 
     //logarithmic slider (10)
     currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Brightness");
+        ui->setLabel(var, "Brightness");
         return true;
-
       case f_ChangeFun: {
         uint8_t bri = var["value"];
 
@@ -53,9 +51,9 @@ public:
 
     ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Preview");
-        web->addResponse(var["id"], "comment", "Shows the fixture");
-        // web->addResponse(var["id"], "comment", "Click to enlarge");
+        ui->setLabel(var, "Preview");
+        ui->setComment(var, "Shows the fixture");
+        // ui->setComment(var, "Click to enlarge");
         return true;
       case f_LoopFun: {
         var["interval"] =  max(lds->fixture.nrOfLeds * web->ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
@@ -85,12 +83,11 @@ public:
     }});
 
     ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, false ,[](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
       case f_UIFun:
       {
-        web->addResponse(var["id"], "comment", "Fixture to display effect on");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        files->dirToJson(select, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
+        ui->setComment(var, "Fixture to display effect on");
+        JsonArray options = ui->setOptions(var);
+        files->dirToJson(options, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
 
         // ui needs to load the file also initially
         char fileName[32] = "";
@@ -99,7 +96,6 @@ public:
         }
         return true;
       }
-
       case f_ChangeFun:
       {
         lds->fixture.fixtureNr = var["value"];
@@ -112,7 +108,6 @@ public:
         }
         return true;
       }
-
       default: return false; 
     }}); //fixture
 
@@ -121,7 +116,7 @@ public:
         mdl->setValue(var, lds->fixture.size);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Size");
+        ui->setLabel(var, "Size");
         return true;
       default: return false;
     }});
@@ -131,7 +126,7 @@ public:
         mdl->setValue(var, lds->fixture.nrOfLeds);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Count");
+        ui->setLabel(var, "Count");
         web->addResponseV(var["id"], "comment", "Max %d", NUM_LEDS_Max);
         return true;
       default: return false;
@@ -139,7 +134,7 @@ public:
 
     ui->initNumber(parentVar, "fps", lds->fps, 1, 999, false , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "comment", "Frames per second");
+        ui->setComment(var, "Frames per second");
         return true;
       case f_ChangeFun:
         lds->fps = var["value"];
@@ -157,8 +152,8 @@ public:
     #ifdef STARMOD_USERMOD_WLEDAUDIO
       ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
         case f_UIFun:
-          web->addResponse(var["id"], "label", "Moving heads");
-          web->addResponse(var["id"], "comment", "Move on GEQ");
+          ui->setLabel(var, "Moving heads");
+          ui->setComment(var, "Move on GEQ");
           return true;
         case f_ChangeFun:
           if (!var["value"])

@@ -30,7 +30,7 @@ public:
 
     ui->initNumber(parentVar, "dun", universe, 0, 7, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "label", "DMX Universe");
+        ui->setLabel(var, "DMX Universe");
         return true;
       case f_ChangeFun:
         universe = var["value"];
@@ -40,12 +40,12 @@ public:
 
     JsonObject currentVar = ui->initNumber(parentVar, "dch", 1, 1, 512, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "label", "DMX Channel");
-        web->addResponse(var["id"], "comment", "First channel");
+        ui->setLabel(var, "DMX Channel");
+        ui->setComment(var, "First channel");
         return true;
       case f_ChangeFun:
         for (JsonObject childVar: mdl->findVar("e131Tbl")["n"].as<JsonArray>()) {
-          ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
+          ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
         }
         return true;
       default: return false;
@@ -54,8 +54,8 @@ public:
 
     JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Vars to watch");
-        web->addResponse(var["id"], "comment", "List of instances");
+        ui->setLabel(var, "Vars to watch");
+        ui->setComment(var, "List of instances");
         return true;
       default: return false;
     }});
@@ -66,7 +66,7 @@ public:
           mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>(), rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Channel");
+        ui->setLabel(var, "Channel");
         return true;
       default: return false;
     }});
@@ -77,7 +77,7 @@ public:
           mdl->setValue(var, varsToWatch[rowNr].id, rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Name");
+        ui->setLabel(var, "Name");
         return true;
       default: return false;
     }});
@@ -88,7 +88,7 @@ public:
           mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Max");
+        ui->setLabel(var, "Max");
         return true;
       default: return false;
     }});
@@ -99,7 +99,7 @@ public:
           mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Value");
+        ui->setLabel(var, "Value");
         return true;
       default: return false;
     }});

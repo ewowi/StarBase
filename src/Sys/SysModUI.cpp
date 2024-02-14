@@ -32,8 +32,8 @@ void SysModUI::setup() {
 
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Variable loops");
-      web->addResponse(var["id"], "comment", "Loops initiated by a variable");
+      ui->setLabel(var, "Variable loops");
+      ui->setComment(var, "Loops initiated by a variable");
       return true;
     default: return false;
   }});
@@ -44,7 +44,7 @@ void SysModUI::setup() {
         mdl->setValue(var, JsonString(loopFunctions[rowNr].var["id"], JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Name");
+      ui->setLabel(var, "Name");
       return true;
     default: return false;
   }});
@@ -55,7 +55,7 @@ void SysModUI::setup() {
         mdl->setValue(var, loopFunctions[rowNr].counter, rowNr);
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Loops p s");
+      ui->setLabel(var, "Loops p s");
       return true;
     default: return false;
   }});

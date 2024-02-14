@@ -60,15 +60,15 @@ void SysModPrint::setup() {
   ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
     {
-      web->addResponse(var["id"], "label", "Output");
-      web->addResponse(var["id"], "comment", "System log to Serial or Net print (WIP)");
+      ui->setLabel(var, "Output");
+      ui->setComment(var, "System log to Serial or Net print (WIP)");
 
-      JsonArray rows = web->addResponseA(var["id"], "options");
-      rows.add("No");
-      rows.add("Serial");
-      rows.add("UI");
+      JsonArray options = ui->setOptions(var);
+      options.add("No");
+      options.add("Serial");
+      options.add("UI");
 
-      web->clientsToJson(rows, true); //ip only
+      web->clientsToJson(options, true); //ip only
       return true;
     }
     default: return false;
@@ -76,7 +76,7 @@ void SysModPrint::setup() {
 
   ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "comment", "Show the printed log");
+      ui->setComment(var, "Show the printed log");
       return true;
     default: return false;
   }});

@@ -229,7 +229,7 @@ public:
     if (funType == f_UIFun && var["ro"].as<bool>()) {
       callVarFun(var, rowNr, f_ValueFun);
     }
-    
+
     return result;
   }
 
@@ -238,6 +238,16 @@ public:
 
   //called to rebuild selects and tables (tbd: also label and comments is done again, that is not needed)
   // void processUiFun(const char * id);
+
+  void setLabel(JsonObject var, const char * text) {
+    web->addResponse(var["id"], "label", text);
+  }
+  void setComment(JsonObject var, const char * text) {
+    web->addResponse(var["id"], "comment", text);
+  }
+  JsonArray setOptions(JsonObject var) {
+    return web->addResponseA(var["id"], "options");
+  }
 
 private:
   static int varCounter; //not static crashes ??? (not called async...?)

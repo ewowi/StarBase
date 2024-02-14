@@ -34,10 +34,10 @@ public:
     ui->initSelect(parentVar, "artInst", UINT16_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     
       case f_UIFun: {
-        web->addResponse(var["id"], "label", "Instance");
-        web->addResponse(var["id"], "comment", "Instance to send data");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        JsonArray instanceObject = select.createNestedArray();
+        ui->setLabel(var, "Instance");
+        ui->setComment(var, "Instance to send data");
+        JsonArray options = ui->setOptions(var);
+        JsonArray instanceObject = options.createNestedArray();
         instanceObject.add(0);
         instanceObject.add("no sync");
         for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
@@ -46,7 +46,7 @@ public:
             strncpy(option, node->ip.toString().c_str(), sizeof(option)-1);
             strncat(option, " ", sizeof(option)-1);
             strncat(option, node->name, sizeof(option)-1);
-            instanceObject = select.createNestedArray();
+            instanceObject = options.createNestedArray();
             instanceObject.add(node->ip[3]);
             instanceObject.add(option);
           }

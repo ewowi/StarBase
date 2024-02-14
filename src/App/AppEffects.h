@@ -82,17 +82,17 @@ public:
     //currentVar["value"][parentRowNr] will be set to value parameter
     JsonObject currentVar = ui->initSelect(parentVar, "pal", value, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
-        web->addResponse(var["id"], "label", "Palette");
-        web->addResponse(var["id"], "comment", "Colors");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        select.add("CloudColors");
-        select.add("LavaColors");
-        select.add("OceanColors");
-        select.add("ForestColors");
-        select.add("RainbowColors");
-        select.add("RainbowStripeColors");
-        select.add("PartyColors");
-        select.add("HeatColors");
+        ui->setLabel(var, "Palette");
+        ui->setComment(var, "Colors");
+        JsonArray options = ui->setOptions(var);
+        options.add("CloudColors");
+        options.add("LavaColors");
+        options.add("OceanColors");
+        options.add("ForestColors");
+        options.add("RainbowColors");
+        options.add("RainbowStripeColors");
+        options.add("PartyColors");
+        options.add("HeatColors");
         return true;
       }
       default: return false;
@@ -197,7 +197,7 @@ public:
   void controls(JsonObject parentVar, Leds &leds) {
     ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "comment", "in BPM!");
+        ui->setComment(var, "in BPM!");
         return true;
       default: return false;
     }});
@@ -705,12 +705,12 @@ public:
     ui->initSlider(parentVar, "Speed", 128);
     ui->initSelect(parentVar, "font", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
-        JsonArray select = web->addResponseA(var["id"], "options");
-        select.add("4x6");
-        select.add("5x8");
-        select.add("5x12");
-        select.add("6x8");
-        select.add("7x9");
+        JsonArray options = ui->setOptions(var);
+        options.add("4x6");
+        options.add("5x8");
+        options.add("5x12");
+        options.add("6x8");
+        options.add("7x9");
         return true;
       }
       default: return false;

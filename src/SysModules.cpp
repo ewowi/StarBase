@@ -33,8 +33,8 @@ void SysModules::setup() {
 
   JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Modules");
-      web->addResponse(var["id"], "comment", "List of modules");
+      ui->setLabel(var, "Modules");
+      ui->setComment(var, "List of modules");
       return true;
     default: return false;
   }});
@@ -45,7 +45,7 @@ void SysModules::setup() {
         mdl->setValue(var, JsonString(modules[rowNr]->name, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Name");
+      ui->setLabel(var, "Name");
       return true;
     default: return false;
   }});
@@ -57,7 +57,7 @@ void SysModules::setup() {
         mdl->setValue(var, modules[rowNr]->success, rowNr);
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Success");
+      ui->setLabel(var, "Success");
       return true;
     default: return false;
   }});
@@ -70,7 +70,7 @@ void SysModules::setup() {
       return true;
     case f_UIFun:
       //initially set to true, but as enabled are table cells, will be updated to an array
-      web->addResponse(var["id"], "label", "Enabled");
+      ui->setLabel(var, "Enabled");
       return true;
     case f_ChangeFun:
       if (rowNr != UINT8_MAX && rowNr < modules.size()) {

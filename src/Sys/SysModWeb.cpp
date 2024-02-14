@@ -63,8 +63,8 @@ void SysModWeb::setup() {
 
   JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Clients");
-      web->addResponse(var["id"], "comment", "List of clients");
+      ui->setLabel(var, "Clients");
+      ui->setComment(var, "List of clients");
       return true;
     default: return false;
   }});
@@ -75,7 +75,7 @@ void SysModWeb::setup() {
         mdl->setValue(var, client->id(), rowNr++);
       return true; }
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Nr");
+      ui->setLabel(var, "Nr");
       return true;
     default: return false;
   }});
@@ -86,7 +86,7 @@ void SysModWeb::setup() {
         mdl->setValue(var, JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr++);
       return true; }
     case f_UIFun:
-      web->addResponse(var["id"], "label", "IP");
+      ui->setLabel(var, "IP");
       return true;
     default: return false;
   }});
@@ -97,7 +97,7 @@ void SysModWeb::setup() {
         mdl->setValue(var, client->queueIsFull(), rowNr++);
       return true; }
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Is full");
+      ui->setLabel(var, "Is full");
       return true;
     default: return false;
   }});
@@ -109,12 +109,12 @@ void SysModWeb::setup() {
       return true; }
     case f_UIFun:
     {
-      web->addResponse(var["id"], "label", "Status");
+      ui->setLabel(var, "Status");
       //tbd: not working yet in ui
-      JsonArray select = web->addResponseA(var["id"], "options");
-      select.add("Disconnected"); //0
-      select.add("Connected"); //1
-      select.add("Disconnecting"); //2
+      JsonArray options = ui->setOptions(var);
+      options.add("Disconnected"); //0
+      options.add("Connected"); //1
+      options.add("Disconnecting"); //2
       return true;
     }
     default: return false;
@@ -126,14 +126,14 @@ void SysModWeb::setup() {
         mdl->setValue(var, client->queueLength(), rowNr++);
       return true; }
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Length");
+      ui->setLabel(var, "Length");
       return true;
     default: return false;
   }});
 
   ui->initText(parentVar, "wsCounter", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "comment", "#web socket calls");
+      ui->setComment(var, "#web socket calls");
       return true;
     default: return false;
   }});

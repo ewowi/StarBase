@@ -28,15 +28,15 @@ void SysModSystem::setup() {
 
   ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Name");
-      web->addResponse(var["id"], "comment", "Instance name");
+      ui->setLabel(var, "Name");
+      ui->setComment(var, "Instance name");
       return true;
     default: return false;
   }});
 
   ui->initText(parentVar, "upTime", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "comment", "Uptime of board");
+      ui->setComment(var, "Uptime of board");
       return true;
     default: return false;
   }});
@@ -99,9 +99,9 @@ void SysModSystem::setup() {
       mdl->setValue(var, rtc_get_reset_reason(0));
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Reset 0");
-      web->addResponse(var["id"], "comment", "Reason Core 0");
-      sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
+      ui->setLabel(var, "Reset 0");
+      ui->setComment(var, "Reason Core 0");
+      sys->addResetReasonsSelect(ui->setOptions(var));
       return true;
     default: return false;
   }});
@@ -112,9 +112,9 @@ void SysModSystem::setup() {
         mdl->setValue(var, rtc_get_reset_reason(1));
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Reset 1");
-        web->addResponse(var["id"], "comment", "Reason Core 1");
-        sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
+        ui->setLabel(var, "Reset 1");
+        ui->setComment(var, "Reason Core 1");
+        sys->addResetReasonsSelect(ui->setOptions(var));
         return true;
       default: return false;
     }});
@@ -124,9 +124,9 @@ void SysModSystem::setup() {
       mdl->setValue(var, esp_reset_reason());
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Restart");
-      web->addResponse(var["id"], "comment", "Reason restart");
-      sys->addRestartReasonsSelect(web->addResponseA(var["id"], "options"));
+      ui->setLabel(var, "Restart");
+      ui->setComment(var, "Reason restart");
+      sys->addRestartReasonsSelect(ui->setOptions(var));
       return true;
     default: return false;
   }});
@@ -191,45 +191,45 @@ void SysModSystem::loop10s() {
 }
 
 //replace code by sentence as soon it occurs, so we know what will happen and what not
-void SysModSystem::addResetReasonsSelect(JsonArray select) {
-  select.add(String("NO_MEAN (0)")); // 0,
-  select.add(sysTools_reset2String( 1)); //POWERON_RESET"); // 1,    /**<1, */
-  select.add(sysTools_reset2String( 2)); // 2,    /**<3, Software reset digital core*/
-  select.add(sysTools_reset2String( 3)); // 3,    /**<3, Software reset digital core*/
-  select.add(sysTools_reset2String( 4)); // 4,    /**<4, Legacy watch dog reset digital core*/
-  select.add(sysTools_reset2String( 5)); // 5,    /**<3, Deep Sleep reset digital core*/
-  select.add(sysTools_reset2String( 6)); // 6,    /**<6, Reset by SLC module, reset digital core*/
-  select.add(sysTools_reset2String( 7)); // 7,    /**<7, Timer Group0 Watch dog reset digital core*/
-  select.add(sysTools_reset2String( 8)); // 8,    /**<8, Timer Group1 Watch dog reset digital core*/
-  select.add(sysTools_reset2String( 9)); // 9,    /**<9, RTC Watch dog Reset digital core*/
-  select.add(sysTools_reset2String(10)); //10,    /**<10, Instrusion tested to reset CPU*/
-  select.add(sysTools_reset2String(11)); //11,    /**<11, Time Group reset CPU*/
-  select.add(sysTools_reset2String(12)); //SW_CPU_RESET"); //12,    /**<12, */
-  select.add(sysTools_reset2String(13)); //13,    /**<13, RTC Watch dog Reset CPU*/
-  select.add(sysTools_reset2String(14)); //EXT_CPU_RESET"); //14,    /**<14, */
-  select.add(sysTools_reset2String(15)); //15,    /**<15, Reset when the vdd voltage is not stable*/
-  select.add(sysTools_reset2String(16)); //16     /**<16, RTC Watch dog reset digital core and rtc module*/
+void SysModSystem::addResetReasonsSelect(JsonArray options) {
+  options.add(String("NO_MEAN (0)")); // 0,
+  options.add(sysTools_reset2String( 1)); //POWERON_RESET"); // 1,    /**<1, */
+  options.add(sysTools_reset2String( 2)); // 2,    /**<3, Software reset digital core*/
+  options.add(sysTools_reset2String( 3)); // 3,    /**<3, Software reset digital core*/
+  options.add(sysTools_reset2String( 4)); // 4,    /**<4, Legacy watch dog reset digital core*/
+  options.add(sysTools_reset2String( 5)); // 5,    /**<3, Deep Sleep reset digital core*/
+  options.add(sysTools_reset2String( 6)); // 6,    /**<6, Reset by SLC module, reset digital core*/
+  options.add(sysTools_reset2String( 7)); // 7,    /**<7, Timer Group0 Watch dog reset digital core*/
+  options.add(sysTools_reset2String( 8)); // 8,    /**<8, Timer Group1 Watch dog reset digital core*/
+  options.add(sysTools_reset2String( 9)); // 9,    /**<9, RTC Watch dog Reset digital core*/
+  options.add(sysTools_reset2String(10)); //10,    /**<10, Instrusion tested to reset CPU*/
+  options.add(sysTools_reset2String(11)); //11,    /**<11, Time Group reset CPU*/
+  options.add(sysTools_reset2String(12)); //SW_CPU_RESET"); //12,    /**<12, */
+  options.add(sysTools_reset2String(13)); //13,    /**<13, RTC Watch dog Reset CPU*/
+  options.add(sysTools_reset2String(14)); //EXT_CPU_RESET"); //14,    /**<14, */
+  options.add(sysTools_reset2String(15)); //15,    /**<15, Reset when the vdd voltage is not stable*/
+  options.add(sysTools_reset2String(16)); //16     /**<16, RTC Watch dog reset digital core and rtc module*/
   // codes below are only used on -S3/-S2/-C3
-  select.add(sysTools_reset2String(17)); //17     /* Time Group1 reset CPU */
-  select.add(sysTools_reset2String(18)); //18     /* super watchdog reset digital core and rtc module */
-  select.add(sysTools_reset2String(19)); //19     /* glitch reset digital core and rtc module */
-  select.add(sysTools_reset2String(20)); //20     /* efuse reset digital core */
-  select.add(sysTools_reset2String(21)); //21     /* usb uart reset digital core */
-  select.add(sysTools_reset2String(22)); //22     /* usb jtag reset digital core */
-  select.add(sysTools_reset2String(23)); //23     /* power glitch reset digital core and rtc module */
+  options.add(sysTools_reset2String(17)); //17     /* Time Group1 reset CPU */
+  options.add(sysTools_reset2String(18)); //18     /* super watchdog reset digital core and rtc module */
+  options.add(sysTools_reset2String(19)); //19     /* glitch reset digital core and rtc module */
+  options.add(sysTools_reset2String(20)); //20     /* efuse reset digital core */
+  options.add(sysTools_reset2String(21)); //21     /* usb uart reset digital core */
+  options.add(sysTools_reset2String(22)); //22     /* usb jtag reset digital core */
+  options.add(sysTools_reset2String(23)); //23     /* power glitch reset digital core and rtc module */
 }
 
 //replace code by sentence as soon it occurs, so we know what will happen and what not
-void SysModSystem::addRestartReasonsSelect(JsonArray select) {
-  select.add(String("(0) ESP_RST_UNKNOWN"));//           //!< Reset reason can not be determined
-  select.add(sysTools_restart2String( 1)); // ESP_RST_POWERON");//  //!< 
-  select.add(sysTools_restart2String( 2)); // !< Reset by external pin (not applicable for ESP32)
-  select.add(sysTools_restart2String( 3)); // ESP_RST_SW");//       //!< Software reset via esp_restart
-  select.add(sysTools_restart2String( 4)); //ESP_RST_PANIC");//    //!< 
-  select.add(sysTools_restart2String( 5)); //  //!< Reset (software or hardware) due to interrupt watchdog
-  select.add(sysTools_restart2String( 6)); // //!< Reset due to task watchdog
-  select.add(sysTools_restart2String( 7)); //      //!< Reset due to other watchdogs
-  select.add(sysTools_restart2String( 8)); ////!< Reset after exiting deep sleep mode
-  select.add(sysTools_restart2String( 9)); // //!< Brownout reset (software or hardware)
-  select.add(sysTools_restart2String(10)); //     //!< Reset over SDIO
+void SysModSystem::addRestartReasonsSelect(JsonArray options) {
+  options.add(String("(0) ESP_RST_UNKNOWN"));//           //!< Reset reason can not be determined
+  options.add(sysTools_restart2String( 1)); // ESP_RST_POWERON");//  //!< 
+  options.add(sysTools_restart2String( 2)); // !< Reset by external pin (not applicable for ESP32)
+  options.add(sysTools_restart2String( 3)); // ESP_RST_SW");//       //!< Software reset via esp_restart
+  options.add(sysTools_restart2String( 4)); //ESP_RST_PANIC");//    //!< 
+  options.add(sysTools_restart2String( 5)); //  //!< Reset (software or hardware) due to interrupt watchdog
+  options.add(sysTools_restart2String( 6)); // //!< Reset due to task watchdog
+  options.add(sysTools_restart2String( 7)); //      //!< Reset due to other watchdogs
+  options.add(sysTools_restart2String( 8)); ////!< Reset after exiting deep sleep mode
+  options.add(sysTools_restart2String( 9)); // //!< Brownout reset (software or hardware)
+  options.add(sysTools_restart2String(10)); //     //!< Reset over SDIO
 }

@@ -38,8 +38,8 @@ void SysModPins::setup() {
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
     {
-      web->addResponse(var["id"], "label", "Pins");
-      web->addResponse(var["id"], "comment", "List of pins");
+      ui->setLabel(var, "Pins");
+      ui->setComment(var, "List of pins");
       return true;
     }
     default: return false;
@@ -51,7 +51,7 @@ void SysModPins::setup() {
         mdl->setValue(var, getPinNr(rowNr), rowNr);
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Pin");
+      ui->setLabel(var, "Pin");
       return true;
     default: return false;
   }});
@@ -62,7 +62,7 @@ void SysModPins::setup() {
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).owner, JsonString::Copied));
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Owner");
+      ui->setLabel(var, "Owner");
       return true;
     default: return false;
   }});
@@ -73,15 +73,15 @@ void SysModPins::setup() {
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied));
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Details");
+      ui->setLabel(var, "Details");
       return true;
     default: return false;
   }});
 
   ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Board layout");
-      web->addResponse(var["id"], "comment", "WIP");
+      ui->setLabel(var, "Board layout");
+      ui->setComment(var, "WIP");
       return true;
     case f_LoopFun:
       var["interval"] = 10*10*10; //every 10 sec from cs to ms

@@ -173,8 +173,8 @@ public:
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
-        web->addResponse(var["id"], "label", "Instances");
-        web->addResponse(var["id"], "comment", "List of instances");
+        ui->setLabel(var, "Instances");
+        ui->setComment(var, "List of instances");
         return true;
       }
       default: return false;
@@ -186,7 +186,7 @@ public:
           mdl->setValue(var, JsonString(instances[rowNr].name, JsonString::Copied), rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Name");
+        ui->setLabel(var, "Name");
         return true;
       default: return false;
     }});
@@ -200,7 +200,7 @@ public:
         }
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Show");
+        ui->setLabel(var, "Show");
         return true;
       default: return false;
     }});
@@ -211,7 +211,7 @@ public:
           mdl->setValue(var, JsonString(instances[rowNr].ip.toString().c_str(), JsonString::Copied), rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "IP");
+        ui->setLabel(var, "IP");
         return true;
       default: return false;
     }});
@@ -222,7 +222,7 @@ public:
           mdl->setValue(var, instances[rowNr].sys.type?"StarMod":"WLED", rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Type");
+        ui->setLabel(var, "Type");
         return true;
       default: return false;
     }});
@@ -233,7 +233,7 @@ public:
           mdl->setValue(var, instances[rowNr].version, rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Version");
+        ui->setLabel(var, "Version");
         return true;
       default: return false;
     }});
@@ -244,7 +244,7 @@ public:
           mdl->setValue(var, instances[rowNr].sys.upTime, rowNr);
         return true;
       case f_UIFun:
-        web->addResponse(var["id"], "label", "Uptime");
+        ui->setLabel(var, "Uptime");
       default: return false;
     }});
 
@@ -253,10 +253,10 @@ public:
     //default is 0 / None
     currentVar = ui->initSelect(parentVar, "sma", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
-        web->addResponse(var["id"], "label", "Sync Master");
-        web->addResponse(var["id"], "comment", "Instance to sync from");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        JsonArray instanceObject = select.createNestedArray();
+        ui->setLabel(var, "Sync Master");
+        ui->setComment(var, "Instance to sync from");
+        JsonArray options = ui->setOptions(var);
+        JsonArray instanceObject = options.createNestedArray();
         instanceObject.add(0);
         instanceObject.add("no sync");
         for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
@@ -264,7 +264,7 @@ public:
           strncpy(option, instance->ip.toString().c_str(), sizeof(option)-1);
           strncat(option, " ", sizeof(option)-1);
           strncat(option, instance->name, sizeof(option)-1);
-          instanceObject = select.createNestedArray();
+          instanceObject = options.createNestedArray();
           instanceObject.add(instance->ip[3]);
           instanceObject.add(option);
         }

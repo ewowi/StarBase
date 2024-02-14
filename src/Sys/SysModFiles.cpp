@@ -36,8 +36,8 @@ void SysModFiles::setup() {
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
     {
-      web->addResponse(var["id"], "label", "Files");
-      web->addResponse(var["id"], "comment", "List of files");
+      ui->setLabel(var, "Files");
+      ui->setComment(var, "List of files");
       JsonArray rows = web->addResponseA(var["id"], "value");  //overwrite the value
       dirToJson(rows);
       return true;
@@ -70,21 +70,21 @@ void SysModFiles::setup() {
 
   ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Name");
+      ui->setLabel(var, "Name");
       return true;
     default: return false;
   }});
 
   ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Size (B)");
+      ui->setLabel(var, "Size (B)");
       return true;
     default: return false;
   }});
 
   ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Show");
+      ui->setLabel(var, "Show");
       return true;
     default: return false;
   }});
@@ -94,7 +94,7 @@ void SysModFiles::setup() {
       mdl->setValue(var, files->usedBytes());
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "FS Size");
+      ui->setLabel(var, "FS Size");
       return true;
     case f_ChangeFun:
       var["max"] = files->totalBytes(); //makes sense?

@@ -538,22 +538,22 @@ public:
     ui->initSelect(parentVar, "fixtureGen", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     
       case f_UIFun: {
-        web->addResponse(var["id"], "label", "Fixture");
-        web->addResponse(var["id"], "comment", "Type of fixture");
-        JsonArray select = web->addResponseA(var["id"], "options");
-        select.add("1DSpiral"); //0
-        select.add("2DMatrix"); //1
-        select.add("2DRing"); //2
-        select.add("2DRings241"); //3
-        select.add("2DCloud"); //4
-        select.add("2DWall"); //5
-        select.add("2DWheel"); //6
-        select.add("2DHexagon"); //7
-        select.add("3DCone"); //8
-        select.add("3DSideCube"); //9
-        select.add("3DCube"); //10
-        select.add("3DGlobe WIP"); //11
-        select.add("3DGeodesicDome WIP"); //12
+        ui->setLabel(var, "Fixture");
+        ui->setComment(var, "Type of fixture");
+        JsonArray options = ui->setOptions(var);
+        options.add("1DSpiral"); //0
+        options.add("2DMatrix"); //1
+        options.add("2DRing"); //2
+        options.add("2DRings241"); //3
+        options.add("2DCloud"); //4
+        options.add("2DWall"); //5
+        options.add("2DWheel"); //6
+        options.add("2DHexagon"); //7
+        options.add("3DCone"); //8
+        options.add("3DSideCube"); //9
+        options.add("3DCube"); //10
+        options.add("3DGlobe WIP"); //11
+        options.add("3DGeodesicDome WIP"); //12
         return true;
       }
       case f_ChangeFun:
@@ -567,7 +567,7 @@ public:
 
     ui->initText(parentVar, "pinList", "16", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponse(var["id"], "comment", "One or more e.g. 12,13,14");
+        ui->setComment(var, "One or more e.g. 12,13,14");
         return true;
       default: return false;
     }});
@@ -638,10 +638,10 @@ public:
 
       ui->initSelect(parentVar, "firstLedX", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
         case f_UIFun: {
-            web->addResponse(var["id"], "comment", "WIP");
-            JsonArray select = web->addResponseA(var["id"], "options");
-            select.add("Left"); //0
-            select.add("Right"); //1
+          ui->setComment(var, "WIP");
+          JsonArray options = ui->setOptions(var);
+          options.add("Left"); //0
+          options.add("Right"); //1
           return true;
         }
         default: return false;
@@ -649,10 +649,10 @@ public:
 
       ui->initSelect(parentVar, "firstLedY", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
         case f_UIFun: {
-            web->addResponse(var["id"], "comment", "WIP");
-            JsonArray select = web->addResponseA(var["id"], "options");
-            select.add("Top"); //0
-            select.add("Bottom"); //1
+          ui->setComment(var, "WIP");
+          JsonArray options = ui->setOptions(var);
+          options.add("Top"); //0
+          options.add("Bottom"); //1
           return true;
         }
         default: return false;

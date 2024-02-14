@@ -43,7 +43,7 @@ void SysModModel::setup() {
       mdl->setValue(var, model->memoryUsage());
       return true;
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Size");
+      ui->setLabel(var, "Size");
       return true;
     case f_ChangeFun:
       var["max"] = model->capacity(); //makes sense?
@@ -54,7 +54,7 @@ void SysModModel::setup() {
 
   ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "comment", "Write to model.json");
+      ui->setComment(var, "Write to model.json");
       return true;
     case f_ChangeFun:
       doWriteModel = true;
@@ -64,7 +64,7 @@ void SysModModel::setup() {
 
   ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "comment", "Show in UI (refresh)");
+      ui->setComment(var, "Show in UI (refresh)");
       return true;
     case f_ChangeFun:
       doShowObsolete = var["value"];
@@ -74,8 +74,8 @@ void SysModModel::setup() {
 
   ui->initButton(parentVar, "deleteObsolete", false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      web->addResponse(var["id"], "label", "Delete obsolete variables");
-      web->addResponse(var["id"], "comment", "WIP");
+      ui->setLabel(var, "Delete obsolete variables");
+      ui->setComment(var, "WIP");
       return true;
     default: return false;
   }});

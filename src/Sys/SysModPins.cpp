@@ -46,29 +46,34 @@ void SysModPins::setup() {
   }});
 
   ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+        mdl->setValue(var, getPinNr(rowNr), rowNr);
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Pin");
-      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++) {
-        web->addResponse(var["id"], "value", getPinNr(rowNr), rowNr);
-      }
       return true;
     default: return false;
   }});
 
   ui->initText(tableVar, "pinOwner", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+        mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).owner, JsonString::Copied));
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Owner");
-      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
-        web->addResponse(var["id"], "value", JsonString(getNthAllocatedPinObject(rowNr).owner, JsonString::Copied), rowNr);
       return true;
     default: return false;
   }});
 
   ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+        mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied));
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Details");
-      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
-        web->addResponse(var["id"], "value", JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
       return true;
     default: return false;
   }});

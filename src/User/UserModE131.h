@@ -61,37 +61,45 @@ public:
     }});
 
     ui->initNumber(tableVar, "e131Channel", UINT16_MAX, 1, 512, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>(), rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Channel");
-        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
-          web->addResponse(var["id"], "value", (varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>()), rowNr);
         return true;
       default: return false;
     }});
 
     ui->initText(tableVar, "e131Name", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          mdl->setValue(var, varsToWatch[rowNr].id, rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Name");
-        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
-          web->addResponse(var["id"], "value", varsToWatch[rowNr].id, rowNr);
         return true;
       default: return false;
     }});
 
     ui->initNumber(tableVar, "e131Max", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Max");
-        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
-          web->addResponse(var["id"], "value", varsToWatch[rowNr].max, rowNr);
         return true;
       default: return false;
     }});
 
     ui->initNumber(tableVar, "e131Value", UINT16_MAX, 0, 255, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Value");
-        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
-          web->addResponse(var["id"], "value", varsToWatch[rowNr].savedValue, rowNr);
         return true;
       default: return false;
     }});

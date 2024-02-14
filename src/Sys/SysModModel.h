@@ -156,14 +156,13 @@ public:
   template <typename Type>
   JsonObject setValue(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
     // print->printJson("setValueB", var);
+    bool changed = false;
     if (var["ro"].as<bool>()) {
-      web->addResponse(var["id"], "value", value, rowNr);
       // print->printJson("setValue ro to ws", web->getResponseObject());
-      web->sendResponseObject();
-      return var;
+      web->addResponse(var["id"], "value", value, rowNr);
+      changed = true;
     }
-
-    if (rowNr == UINT8_MAX) { //normal situation
+    else if (rowNr == UINT8_MAX) { //normal situation
       if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
         JsonString oldValue = JsonString(var["value"], JsonString::Copied);
         var["value"] = value;
@@ -175,7 +174,8 @@ public:
         }
         else {
           USER_PRINTF("setValue changed %s %s -> %s\n", jsonToChar(var, "id"), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
-          callChFunAndWs(var);
+          web->addResponse(var["id"], "value", var["value"], rowNr);
+          changed = true;
         }
       }
     }
@@ -202,13 +202,16 @@ public:
           //   USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
           valueArray[rowNr] = value; //if valueArray[<rowNr] not exists it will be created
           // USER_PRINTF("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
-          callChFunAndWs(var, rowNr);
+          web->addResponse(var["id"], "value", var["value"], rowNr);
+          changed = true;
         }
       }
       else {
         USER_PRINTF("setValue %s could not create value array\n", jsonToChar(var, "id"));
       }
     }
+
+    if (changed) callChangeFun(var, rowNr);
     
     return var;
   }
@@ -275,7 +278,7 @@ public:
   void varToValues(JsonObject var, JsonArray values);
 
   //run the change function and send response to all? websocket clients
-  static void callChFunAndWs(JsonObject var, uint8_t rowNr = UINT8_MAX);
+  static void callChangeFun(JsonObject var, uint8_t rowNr = UINT8_MAX);
 
   const char * jsonToChar(JsonObject var, const char * name) {
     return var[name].as<const char *>();

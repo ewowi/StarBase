@@ -70,36 +70,43 @@ void SysModWeb::setup() {
   }});
 
   ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_UIFun: {
-      web->addResponse(var["id"], "label", "Nr");
+    case f_ValueFun: {
       uint8_t rowNr = 0; for (auto client:ws->getClients())
-        web->addResponse(var["id"], "value", client->id(), rowNr++);
+        mdl->setValue(var, client->id(), rowNr++);
+      return true; }
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Nr");
       return true;
-    }
     default: return false;
   }});
 
   ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_UIFun: {
-      web->addResponse(var["id"], "label", "IP");
+    case f_ValueFun: {
       uint8_t rowNr = 0; for (auto client:ws->getClients())
-        web->addResponse(var["id"], "value", JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr++);
+        mdl->setValue(var, JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr++);
+      return true; }
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "IP");
       return true;
-    }
     default: return false;
   }});
 
   ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_UIFun: {
-      web->addResponse(var["id"], "label", "Is full");
+    case f_ValueFun: {
       uint8_t rowNr = 0; for (auto client:ws->getClients())
-        web->addResponse(var["id"], "value", client->queueIsFull(), rowNr++);
+        mdl->setValue(var, client->queueIsFull(), rowNr++);
+      return true; }
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Is full");
       return true;
-    }
     default: return false;
   }});
 
   ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun: {
+      uint8_t rowNr = 0; for (auto client:ws->getClients())
+        mdl->setValue(var, client->status(), rowNr++);
+      return true; }
     case f_UIFun:
     {
       web->addResponse(var["id"], "label", "Status");
@@ -108,20 +115,19 @@ void SysModWeb::setup() {
       select.add("Disconnected"); //0
       select.add("Connected"); //1
       select.add("Disconnecting"); //2
-      uint8_t rowNr = 0; for (auto client:ws->getClients())
-        web->addResponse(var["id"], "value", client->status(), rowNr++);
       return true;
     }
     default: return false;
   }});
 
   ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_UIFun: {
-      web->addResponse(var["id"], "label", "Length");
+    case f_ValueFun: {
       uint8_t rowNr = 0; for (auto client:ws->getClients())
-        web->addResponse(var["id"], "value", client->queueLength(), rowNr++);
+        mdl->setValue(var, client->queueLength(), rowNr++);
+      return true; }
+    case f_UIFun:
+      web->addResponse(var["id"], "label", "Length");
       return true;
-    }
     default: return false;
   }});
 
@@ -133,8 +139,8 @@ void SysModWeb::setup() {
   }});
 
   ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_UIFun:
-      web->addResponse(var["id"], "value", WS_MAX_QUEUED_MESSAGES);
+    case f_ValueFun:
+      mdl->setValue(var, WS_MAX_QUEUED_MESSAGES);
       return true;
     default: return false;
   }});

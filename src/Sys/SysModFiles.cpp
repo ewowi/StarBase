@@ -90,12 +90,14 @@ void SysModFiles::setup() {
   }});
 
   ui->initProgress(parentVar, "drsize", UINT16_MAX, 0, files->totalBytes(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, files->usedBytes());
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "FS Size");
       return true;
     case f_ChangeFun:
       var["max"] = files->totalBytes(); //makes sense?
-      web->addResponse(var["id"], "value", files->usedBytes());
       web->addResponseV(var["id"], "comment", "%d / %d B", files->usedBytes(), files->totalBytes());
       return true;
     default: return false;

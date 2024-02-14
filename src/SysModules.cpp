@@ -40,20 +40,24 @@ void SysModules::setup() {
   }});
 
   ui->initText(tableVar, "mdlName", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < modules.size(); rowNr++)
+        mdl->setValue(var, JsonString(modules[rowNr]->name, JsonString::Copied), rowNr);
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Name");
-      for (uint8_t rowNr = 0; rowNr < modules.size(); rowNr++)
-        web->addResponse(var["id"], "value", JsonString(modules[rowNr]->name, JsonString::Copied), rowNr);
       return true;
     default: return false;
   }});
 
   //UINT16_MAX: no value set
   ui->initCheckBox(tableVar, "mdlSuccess", UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < modules.size(); rowNr++)
+        mdl->setValue(var, modules[rowNr]->success, rowNr);
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Success");
-      for (uint8_t rowNr = 0; rowNr < modules.size(); rowNr++)
-        web->addResponse(var["id"], "value", modules[rowNr]->success, rowNr);
       return true;
     default: return false;
   }});

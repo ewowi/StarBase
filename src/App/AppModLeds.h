@@ -217,16 +217,16 @@ public:
     }});
 
     ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_UIFun:
-        web->addResponse(var["id"], "label", "Size");
-        //set value for this ro var
+      case f_ValueFun:
         for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
           Leds leds = fixture.ledsList[rowNr];
           char message[32];
           print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds.size.x, leds.size.y, leds.size.z, leds.nrOfLeds);
-          web->addResponse(var["id"], "value", JsonString(message, JsonString::Copied), rowNr);
+          mdl->setValue(var, JsonString(message, JsonString::Copied), rowNr);
         }
-
+        return true;
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Size");
         return true;
       default: return false;
     }});

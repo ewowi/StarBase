@@ -57,7 +57,7 @@ class SysModUI:public SysModule {
 
 public:
   static bool stageVarChanged;// = false; //tbd: move mechanism to UserModInstances as there it will be used
-  static std::vector<VarFun> varFunctions; //static because of static functions callChFunAndWs, processJson...
+  static std::vector<VarFun> varFunctions; //static because of static functions callChangeFun, processJson...
 
   static uint8_t parentRowNr;
 
@@ -203,7 +203,7 @@ public:
     return callVarFun(var, rowNr, funType);
   }
 
-  uint8_t callVarFun(JsonObject var, uint8_t rowNr = UINT8_MAX, uint8_t funType = f_ChangeFun) {
+  uint8_t callVarFun(JsonObject var, uint8_t rowNr = UINT8_MAX, uint8_t funType = f_ValueFun) {
     uint8_t result = false;
 
     if (!var["fun"].isNull()) {//isNull needed here!
@@ -224,6 +224,12 @@ public:
       else    
         USER_PRINTF("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->jsonToChar(var, "id"), funNr, varFunctions.size());
     }
+
+    //for ro variables, call valueFun to add also the value in responseDoc (as it is not stored in the model)
+    if (funType == f_UIFun && var["ro"].as<bool>()) {
+      callVarFun(var, rowNr, f_ValueFun);
+    }
+    
     return result;
   }
 

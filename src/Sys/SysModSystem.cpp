@@ -61,9 +61,11 @@ void SysModSystem::setup() {
   ui->initText(parentVar, "chip", nullptr, 16, true);
 
   ui->initProgress(parentVar, "heap", UINT16_MAX, 0, ESP.getHeapSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, (ESP.getHeapSize()-ESP.getFreeHeap()) / 1000);
+      return true;
     case f_ChangeFun:
       var["max"] = ESP.getHeapSize()/1000; //makes sense?
-      web->addResponse(var["id"], "value", (ESP.getHeapSize()-ESP.getFreeHeap()) / 1000);
       web->addResponseV(var["id"], "comment", "f:%d / t:%d (l:%d) B", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap());
       return true;
     default: return false;
@@ -71,9 +73,11 @@ void SysModSystem::setup() {
 
   if (psramFound()) {
     ui->initProgress(parentVar, "psram", UINT16_MAX, 0, ESP.getPsramSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        mdl->setValue(var, (ESP.getPsramSize()-ESP.getFreePsram()) / 1000);
+        return true;
       case f_ChangeFun:
         var["max"] = ESP.getPsramSize()/1000; //makes sense?
-        web->addResponse(var["id"], "value", (ESP.getPsramSize()-ESP.getFreePsram()) / 1000);
         web->addResponseV(var["id"], "comment", "%d / %d (%d) B", ESP.getFreePsram(), ESP.getPsramSize(), ESP.getMinFreePsram());
         return true;
       default: return false;
@@ -81,40 +85,48 @@ void SysModSystem::setup() {
   }
 
   ui->initProgress(parentVar, "stack", UINT16_MAX, 0, 4096, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, uxTaskGetStackHighWaterMark(NULL));
+      return true;
     case f_ChangeFun:
-      web->addResponse(var["id"], "value", uxTaskGetStackHighWaterMark(NULL));
       web->addResponseV(var["id"], "comment", "%d / 4096 B", uxTaskGetStackHighWaterMark(NULL));
       return true;
     default: return false;
   }});
 
   ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, rtc_get_reset_reason(0));
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Reset 0");
       web->addResponse(var["id"], "comment", "Reason Core 0");
       sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
-      web->addResponse(var["id"], "value", rtc_get_reset_reason(0)); //tmp as ro values not saved
       return true;
     default: return false;
   }});
 
   if (ESP.getChipCores() > 1)
     ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        mdl->setValue(var, rtc_get_reset_reason(1));
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Reset 1");
         web->addResponse(var["id"], "comment", "Reason Core 1");
         sys->addResetReasonsSelect(web->addResponseA(var["id"], "options"));
-        web->addResponse(var["id"], "value", rtc_get_reset_reason(1)); //tmp as ro values not saved
         return true;
       default: return false;
     }});
 
   ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, esp_reset_reason());
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Restart");
       web->addResponse(var["id"], "comment", "Reason restart");
       sys->addRestartReasonsSelect(web->addResponseA(var["id"], "options"));
-      web->addResponse(var["id"], "value", esp_reset_reason()); //tmp as ro values not saved
       return true;
     default: return false;
   }});

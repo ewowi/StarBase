@@ -39,12 +39,14 @@ void SysModModel::setup() {
   if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   ui->initProgress(parentVar, "mSize", UINT16_MAX, 0, model->capacity(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, model->memoryUsage());
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Size");
       return true;
     case f_ChangeFun:
       var["max"] = model->capacity(); //makes sense?
-      web->addResponse(var["id"], "value", model->memoryUsage());
       web->addResponseV(var["id"], "comment", "%d / %d B", model->memoryUsage(), model->capacity());
       return true;
     default: return false;
@@ -210,16 +212,13 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
     }
 }
 
-//run the change function and send response to all websocket clients
-void SysModModel::callChFunAndWs(JsonObject var, uint8_t rowNr) {
-
-  web->addResponse(var["id"], "value", var["value"]);
+void SysModModel::callChangeFun(JsonObject var, uint8_t rowNr) {
 
   //done here as ui cannot be used in SysModModel.h
   if (var["stage"])
     ui->stageVarChanged = true;
 
-  ui->callVarFun(var, rowNr, f_ChangeFun);   //if no rowNr use rowNr 0
+  ui->callVarFun(var, rowNr, f_ChangeFun);
 
-  web->sendResponseObject();
+  // web->sendResponseObject();
 }  

@@ -39,19 +39,23 @@ void SysModUI::setup() {
   }});
 
   initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+        mdl->setValue(var, JsonString(loopFunctions[rowNr].var["id"], JsonString::Copied), rowNr);
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Name");
-      for (uint8_t rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
-        web->addResponse(var["id"], "value", JsonString(loopFunctions[rowNr].var["id"], JsonString::Copied), rowNr);
       return true;
     default: return false;
   }});
 
   initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+        mdl->setValue(var, loopFunctions[rowNr].counter, rowNr);
+      return true;
     case f_UIFun:
       web->addResponse(var["id"], "label", "Loops p s");
-      for (uint8_t rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
-        web->addResponse(var["id"], "value", loopFunctions[rowNr].counter, rowNr);
       return true;
     default: return false;
   }});

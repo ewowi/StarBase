@@ -181,59 +181,70 @@ public:
     }});
     
     ui->initText(tableVar, "insName", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          mdl->setValue(var, JsonString(instances[rowNr].name, JsonString::Copied), rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Name");
-        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
-          web->addResponse(var["id"], "value", JsonString(instances[rowNr].name, JsonString::Copied), rowNr);
         return true;
       default: return false;
     }});
 
     ui->initURL(tableVar, "insLink", nullptr, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_UIFun:
-        web->addResponse(var["id"], "label", "Show");
+      case f_ValueFun:
         for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++) {
           char urlString[32] = "http://";
           strncat(urlString, instances[rowNr].ip.toString().c_str(), sizeof(urlString)-1);
-          web->addResponse(var["id"], "value", JsonString(urlString, JsonString::Copied), rowNr);
+          mdl->setValue(var, JsonString(urlString, JsonString::Copied), rowNr);
         }
+        return true;
+      case f_UIFun:
+        web->addResponse(var["id"], "label", "Show");
         return true;
       default: return false;
     }});
 
     ui->initText(tableVar, "insIp", nullptr, 16, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          mdl->setValue(var, JsonString(instances[rowNr].ip.toString().c_str(), JsonString::Copied), rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "IP");
-        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
-          web->addResponse(var["id"], "value", JsonString(instances[rowNr].ip.toString().c_str(), JsonString::Copied), rowNr);
         return true;
       default: return false;
     }});
 
     ui->initText(tableVar, "insType", nullptr, 16, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          mdl->setValue(var, instances[rowNr].sys.type?"StarMod":"WLED", rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Type");
-        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
-          web->addResponse(var["id"], "value", instances[rowNr].sys.type?"StarMod":"WLED", rowNr);
         return true;
       default: return false;
     }});
 
     ui->initNumber(tableVar, "insVersion", UINT16_MAX, 0, (unsigned long)-1, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          mdl->setValue(var, instances[rowNr].version, rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Version");
-        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
-          web->addResponse(var["id"], "value", instances[rowNr].version, rowNr);
         return true;
       default: return false;
     }});
 
     ui->initNumber(tableVar, "insUp", UINT16_MAX, 0, (unsigned long)-1, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
+          mdl->setValue(var, instances[rowNr].sys.upTime, rowNr);
+        return true;
       case f_UIFun:
         web->addResponse(var["id"], "label", "Uptime");
-        for (uint8_t rowNr = 0; rowNr < instances.size(); rowNr++)
-          web->addResponse(var["id"], "value", instances[rowNr].sys.upTime, rowNr);
-        return true;
       default: return false;
     }});
 
@@ -662,8 +673,6 @@ public:
     if (!instanceFound) {
       USER_PRINTF("insTbl new instance node %d\n", messageIP[3]);
       
-      // ui->processUiFun("ddpInst"); //show the new instance in the dropdown  
-      // ui->processUiFun("artInst"); //show the new instance in the dropdown  
       ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun);
       ui->callVarFun("artInst", UINT8_MAX, f_UIFun);
 

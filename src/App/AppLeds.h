@@ -102,14 +102,14 @@ public:
 
 
   // maps the virtual led to the physical led(s) and assign a color to it
-  void setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount = 0);
-  void setPixelColor(Coord3D pixel, CRGB color, uint8_t blendAmount = 0) {setPixelColor(XYZ(pixel), color, blendAmount);}
+  void setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount = 128);
+  void setPixelColor(Coord3D pixel, CRGB color, uint8_t blendAmount = 128) {setPixelColor(XYZ(pixel), color, blendAmount);}
 
   CRGB getPixelColor(uint16_t indexV);
+  CRGB getPixelColor(Coord3D pixel) {return getPixelColor(XYZ(pixel));}
 
-  void addPixelColor(uint16_t indexV, CRGB color) {
-    setPixelColor(indexV, getPixelColor(indexV) + color);
-  }
+  void addPixelColor(uint16_t indexV, CRGB color) {setPixelColor(indexV, getPixelColor(indexV) + color);}
+  void addPixelColor(Coord3D pixel, CRGB color) {setPixelColor(pixel, getPixelColor(pixel) + color);}
 
   void fadeToBlackBy(uint8_t fadeBy = 255);
   void fill_solid(const struct CRGB& color);

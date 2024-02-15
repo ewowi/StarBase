@@ -719,6 +719,51 @@ public:
 };
 
 
+class Waverly2D: public Effect {
+public:
+  const char * name() {
+    return "Waverly 2D";
+  }
+
+  void loop(Leds &leds) {
+    CRGBPalette16 pal = getPalette(leds.rowNr);
+    uint8_t amplification = mdl->getValue("Amplification", leds.rowNr);
+    uint8_t sensitivity = mdl->getValue("Sensitivity", leds.rowNr);
+    bool noClouds = mdl->getValue("No Clouds", leds.rowNr);
+    // bool soundPressure = mdl->getValue("Sound Pressure", leds.rowNr);
+    // bool agcDebug = mdl->getValue("AGC debug", leds.rowNr);
+
+    leds.fadeToBlackBy(amplification);
+    // if (agcDebug && soundPressure) soundPressure = false;                 // only one of the two at any time
+    // if ((soundPressure) && (wledAudioMod->sync.volumeSmth > 0.5f)) wledAudioMod->sync.volumeSmth = wledAudioMod->sync.soundPressure;    // show sound pressure instead of volume
+    // if (agcDebug) wledAudioMod->sync.volumeSmth = 255.0 - wledAudioMod->sync.agcSensitivity;                    // show AGC level instead of volume
+
+    long t = now / 2; 
+    Coord3D pos;
+    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
+      uint16_t thisVal = wledAudioMod->sync.volumeSmth*sensitivity/64 * inoise8(pos.x * 45 , t , t)/64;      // WLEDMM back to SR code
+      uint16_t thisMax = min(map(thisVal, 0, 512, 0, leds.size.y), (long)leds.size.x);
+
+      for (pos.y = 0; pos.y < thisMax; pos.y++) {
+        if (!noClouds)
+          leds.addPixelColor(pos, ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND));
+        leds.addPixelColor(leds.XY((leds.size.x - 1) - pos.x, (leds.size.y - 1) - pos.y), ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND));
+      }
+    }
+    leds.blur2d(16);
+
+  }
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "Amplification", 128);
+    ui->initSlider(parentVar, "Sensitivity", 128);
+    ui->initCheckBox(parentVar, "No Clouds");
+    // ui->initCheckBox(parentVar, "Sound Pressure");
+    // ui->initCheckBox(parentVar, "AGC debug");
+  }
+};
+
+
 #ifdef STARMOD_USERMOD_WLEDAUDIO
 
 class GEQEffect:public Effect {
@@ -973,6 +1018,7 @@ public:
     effects.push_back(new BouncingBalls1D);
     effects.push_back(new RingRandomFlow);
     effects.push_back(new ScrollingText2D);
+    effects.push_back(new Waverly2D);
     #ifdef STARMOD_USERMOD_WLEDAUDIO
       effects.push_back(new GEQEffect);
       effects.push_back(new AudioRings);

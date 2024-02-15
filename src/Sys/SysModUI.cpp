@@ -238,8 +238,10 @@ void SysModUI::processJson(JsonVariant json) {
           else {
             if (newValue.is<const char *>())
               mdl->setValue(var, JsonString(newValue, JsonString::Copied), rowNr);
+            else if (newValue.is<Coord3D>()) //otherwise it will be treated as JsonObject and toJson / fromJson will not be triggered!!!
+              mdl->setValue(var, newValue.as<Coord3D>(), rowNr);
             else
-              mdl->setValue(var, newValue.as<JsonVariant>(), rowNr);
+              mdl->setValue(var, newValue, rowNr);
           }
           // json.remove(key); //key / var["id"] processed we don't need the key in the response
         }

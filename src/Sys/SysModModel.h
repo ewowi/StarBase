@@ -86,15 +86,17 @@ namespace ArduinoJson {
       dst["x"] = src.x;
       dst["y"] = src.y;
       dst["z"] = src.z;
-      USER_PRINTF("Coord3D toJson %d,%d,%d -> {x:%d,y:%d,z:%d}\n", src.x, src.y, src.z, dst["x"].as<uint8_t>(), dst["y"].as<uint8_t>(), dst["z"].as<uint8_t>());
+      USER_PRINTF("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
       return true;
     }
 
     static Coord3D fromJson(JsonVariantConst src) {
+      USER_PRINTF("Coord3D fromJson %s\n", src.as<String>().c_str());
       return Coord3D{src["x"], src["y"], src["z"]};
     }
 
     static bool checkJson(JsonVariantConst src) {
+      USER_PRINTF("Coord3D checkJson %s\n", src.as<String>().c_str());
       return src["x"].is<uint16_t>() && src["y"].is<uint16_t>() && src["z"].is<uint16_t>();
     }
   };
@@ -174,7 +176,7 @@ public:
         }
         else {
           USER_PRINTF("setValue changed %s %s -> %s\n", jsonToChar(var, "id"), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
-          web->addResponse(var["id"], "value", var["value"], rowNr);
+          web->addResponse(var["id"], "value", var["value"]);
           changed = true;
         }
       }
@@ -197,12 +199,11 @@ public:
           notSame = valueArray[rowNr].isNull() || valueArray[rowNr].as<Type>() != value;
 
         if (notSame) {
-          // setValue(var, value, rowNr);
           // if (rowNr >= valueArray.size())
           //   USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
           valueArray[rowNr] = value; //if valueArray[<rowNr] not exists it will be created
           // USER_PRINTF("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
-          web->addResponse(var["id"], "value", var["value"], rowNr);
+          web->addResponse(var["id"], "value", var["value"]); //send the whole array to UI as response is in format value:<value> !!
           changed = true;
         }
       }

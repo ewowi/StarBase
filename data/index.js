@@ -155,7 +155,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     let  variable = json;
 
     if (Array.isArray(variable.value) && rowNr != UINT8_MAX) {
-      if (rowNr < variable.value.length && variable.value[rowNr] == null) {
+      if (rowNr >= variable.value.length || (rowNr < variable.value.length && variable.value[rowNr] == null)) {
         // console.log("not showing this var as value is null", variable, rowNr);
         return;
       }

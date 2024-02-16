@@ -53,18 +53,9 @@ public:
   Fixture fixture = Fixture();
 
   AppModLeds() :SysModule("Leds") {
-    Leds leds = Leds();
-    leds.rowNr = 0;
-    leds.fixture = &fixture;
-    leds.fx = 13;
-    leds.projectionNr = 2;
-    fixture.ledsList.push_back(leds);
-    leds = Leds();
-    leds.rowNr = 1;
-    leds.fixture = &fixture;
-    leds.projectionNr = 2;
-    leds.fx = 14;
-    fixture.ledsList.push_back(leds);
+    fixture.ledsList.push_back(Leds(fixture.ledsList.size(), fixture));
+    fixture.ledsList.push_back(Leds(fixture.ledsList.size(), fixture));
+    USER_PRINTF("Leds created\n");
   };
 
   void setup() {
@@ -86,12 +77,8 @@ public:
 
         web->getResponseObject()["addRow"]["rowNr"] = rowNr;
 
-        Leds leds = Leds();
-        leds.rowNr = rowNr;
-        leds.fixture = &fixture;
-        leds.projectionNr = 2;
-        leds.fx = 14;
-        fixture.ledsList.push_back(leds);
+        if (rowNr >= fixture.ledsList.size())
+          fixture.ledsList.push_back(Leds(fixture.ledsList.size(), fixture));
         return true;
       }
       case f_DelRow: {

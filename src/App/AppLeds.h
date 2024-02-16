@@ -62,6 +62,22 @@ public:
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=
 
+  Leds(uint8_t rowNr, Fixture &fixture) {
+    USER_PRINTF("Leds[%d] constructor\n", rowNr);
+    this->rowNr = rowNr;
+    this->fixture = &fixture;
+    this->fx = 13;
+    this->projectionNr = 2;
+  }
+
+  ~Leds() {
+    USER_PRINTF("Leds[%d] destructor\n", rowNr);
+    fadeToBlackBy(100);
+    for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap)
+      physMap->clear();
+    mappingTable.clear();
+  }
+
   // indexVLocal stored to be used by other operators
   Leds& operator[](uint16_t indexV) {
     indexVLocal = indexV;

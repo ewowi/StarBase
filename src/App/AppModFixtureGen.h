@@ -608,7 +608,7 @@ public:
 
   //generate dynamic html for fixture controls
   void fixtureGenChFun(JsonObject var) {
-    JsonObject parentVar = mdl->findVar(var["id"]);
+    JsonObject parentVar = mdl->findVar(var["id"]); //local parentVar
     parentVar.remove("n"); //tbd: we should also remove the varFun !!
     uint8_t value = var["value"];
     

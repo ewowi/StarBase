@@ -232,7 +232,7 @@
                     //create new physMaps if needed
                     if (indexV >= leds->mappingTable.size()) {
                       for (int i = leds->mappingTable.size(); i<=indexV;i++) {
-                        // USER_PRINTF("mapping %d,%d,%d add physMap %d %d\n", pixel.y, pixely, pixel.z, indexV, leds->mappingTable.size());
+                        // USER_PRINTF("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
                         std::vector<uint16_t> physMap;
                         leds->mappingTable.push_back(physMap); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                       }
@@ -319,14 +319,16 @@
             // }
           }
 
-          USER_PRINTF("projectAndMap V:%dx%dx%d V:%dx%dx%d and V:%d P:%d\n", leds->size.x, leds->size.y, leds->size.z, size.x, size.y, size.z, leds->nrOfLeds, nrOfLeds);
+          USER_PRINTF("projectAndMap V:%dx%dx%d  = %d\n", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
 
           mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
 
           USER_PRINTF("leds[%d].size = %d + %d\n", leds->rowNr, sizeof(Leds), leds->mappingTable.size()); //44
 
           rowNr++;
-        }
+        } // leds
+
+        USER_PRINTF("projectAndMap P:%dx%dx%d = %d\n", size.x, size.y, size.z, nrOfLeds);
 
         mdl->setValue("fixSize", size);
         mdl->setValue("fixCount", nrOfLeds);

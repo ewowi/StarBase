@@ -344,6 +344,7 @@ public:
     }
     leds.blur2d(mdl->getValue("blur", leds.rowNr));
   }
+
   void controls(JsonObject parentVar, Leds &leds) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "BPM", 60);
@@ -570,16 +571,16 @@ public:
 
 #define maxNumBalls 16
 
+//BouncingBalls1D  inspired by WLED
+//each needs 12 bytes
+typedef struct Ball {
+  unsigned long lastBounceTime;
+  float impactVelocity;
+  float height;
+} ball;
+
 class BouncingBalls1D: public Effect {
 public:
-  //BouncingBalls1D  inspired by WLED
-  //each needs 12 bytes
-  typedef struct Ball {
-    unsigned long lastBounceTime;
-    float impactVelocity;
-    float height;
-  } ball;
-
   const char * name() {
     return "Bouncing Balls 1D";
   }
@@ -762,6 +763,94 @@ public:
     // ui->initCheckBox(parentVar, "AGC debug");
   }
 };
+
+#define maxNumPopcorn 21 // max 21 on 16 segment ESP8266
+#define NUM_COLORS       3 /* number of colors per segment */
+
+//each needs 19 bytes
+//Spark type is used for popcorn, 1D fireworks, and drip
+typedef struct Spark {
+  float pos, posX;
+  float vel, velX;
+  uint16_t col;
+  uint8_t colIndex;
+} spark;
+
+
+class PopCorn1D: public Effect {
+public:
+  const char * name() {
+    return "PopCorn 1D";
+  }
+
+  void loop(Leds &leds) {
+    CRGBPalette16 pal = getPalette(leds.rowNr);
+    uint8_t speed = mdl->getValue("speed", leds.rowNr);
+    uint8_t intensity = mdl->getValue("intensity", leds.rowNr);
+    bool useaudio = mdl->getValue("useaudio", leds.rowNr);
+
+    sharedData.allocate(sizeof(Spark) * maxNumPopcorn);
+    Spark *popcorn = sharedData.bind<Spark>(maxNumPopcorn); //array
+    if (!sharedData.allocated()) return;
+
+    float gravity = -0.0001 - (speed/200000.0); // m/s/s
+    gravity *= leds.nrOfLeds;
+
+    uint8_t numPopcorn = intensity*maxNumPopcorn/255;
+    if (numPopcorn == 0) numPopcorn = 1;
+
+    for(int i = 0; i < numPopcorn; i++) {
+      if (popcorn[i].pos >= 0.0f) { // if kernel is active, update its position
+        popcorn[i].pos += popcorn[i].vel;
+        popcorn[i].vel += gravity;
+      } else { // if kernel is inactive, randomly pop it
+        bool doPopCorn = false;  // WLEDMM allows to inhibit new pops
+        // WLEDMM begin
+        if (useaudio) {
+          if (  (wledAudioMod->sync.volumeSmth > 1.0f)                      // no pops in silence
+              // &&((wledAudioMod->sync.samplePeak > 0) || (wledAudioMod->sync.volumeRaw > 128))  // try to pop at onsets (our peek detector still sucks)
+              &&(random8() < 4) )                        // stay somewhat random
+            doPopCorn = true;
+        } else {         
+          if (random8() < 2) doPopCorn = true; // default POP!!!
+        }
+        // WLEDMM end
+
+        if (doPopCorn) { // POP!!!
+          popcorn[i].pos = 0.01f;
+
+          uint16_t peakHeight = 128 + random8(128); //0-255
+          peakHeight = (peakHeight * (leds.nrOfLeds -1)) >> 8;
+          popcorn[i].vel = sqrtf(-2.0f * gravity * peakHeight);
+
+          // if (SEGMENT.palette)
+          // {
+            popcorn[i].colIndex = random8();
+          // } else {
+          //   byte col = random8(0, NUM_COLORS);
+          //   if (!SEGCOLOR(2) || !SEGCOLOR(col)) col = 0;
+          //   popcorn[i].colIndex = col;
+          // }
+        }
+      }
+      if (popcorn[i].pos >= 0.0f) { // draw now active popcorn (either active before or just popped)
+        // uint32_t col = SEGMENT.color_wheel(popcorn[i].colIndex);
+        // if (!SEGMENT.palette && popcorn[i].colIndex < NUM_COLORS) col = SEGCOLOR(popcorn[i].colIndex);
+        uint16_t ledIndex = popcorn[i].pos;
+        CRGB col = ColorFromPalette(pal, popcorn[i].colIndex*(256/maxNumPopcorn), 255);
+        if (ledIndex < leds.nrOfLeds) leds.setPixelColor(ledIndex, col);
+      }
+    }
+
+  }
+  void controls(JsonObject parentVar, Leds &leds) {
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "speed", 128);
+    ui->initSlider(parentVar, "intensity", 128);
+    ui->initCheckBox(parentVar, "useaudio");
+    ui->initSlider(parentVar, "nrOfPopCorn", 10, 1, 21);
+  }
+}; //PopCorn1D
 
 
 #ifdef STARMOD_USERMOD_WLEDAUDIO
@@ -1019,6 +1108,7 @@ public:
     effects.push_back(new RingRandomFlow);
     effects.push_back(new ScrollingText2D);
     effects.push_back(new Waverly2D);
+    effects.push_back(new PopCorn1D);
     #ifdef STARMOD_USERMOD_WLEDAUDIO
       effects.push_back(new GEQEffect);
       effects.push_back(new AudioRings);
@@ -1120,25 +1210,42 @@ public:
 
       //check if post init added
       bool postInit = false;
-      for (JsonObject var: var["n"].as<JsonArray>()) {
+      for (JsonObject childVar: var["n"].as<JsonArray>()) {
 
-        if (var["o"].as<int>() >= 0) { //post init, just added, 
+        if (childVar["o"].as<int>() >= 0) { //post init, just added, 
           postInit = true;
           break;
         }
       }
       if (postInit) {
-        for (JsonObject var: var["n"].as<JsonArray>()) {
+        for (JsonObject childVar: var["n"].as<JsonArray>()) {
+          if (childVar["value"].is<JsonArray>())
+          {
+            JsonArray valArray = childVar["value"].as<JsonArray>();
 
-          if (var["o"].as<int>() < 0) { //if not updated
-            var["value"][rowNr] = (char*)0; //null
-            // mdl->setValue(var, -99, rowNr); //set value -99
-            var["o"] = -var["o"].as<int>(); //make positive again
-            //if some values in array are not -99
+            if (childVar["o"].as<int>() < 0) { //if not updated
+              valArray[rowNr] = (char*)0; //null
+              // mdl->setValue(var, -99, rowNr); //set value -99
+              childVar["o"] = -childVar["o"].as<int>(); //make positive again
+              //if some values in array are not -99
+            }
+
+            //if all values null, remove value
+            bool allNull = true;
+            for (JsonVariant element: valArray) {
+              if (!element.isNull())
+                allNull = false;
+            }
+            if (allNull) {
+              print->printJson("remove allnulls", childVar);
+              var["n"].as<JsonArray>().remove(childVar);
+            }
           }
-          print->printJson("control", var);
+
         }
       }
+      
+      print->printJson("control", var);
         // if (var["o"].as<int>() >= 0) { //post init
         //   var["o"] = -var["o"].as<int>(); //make positive again
         //set unused vars to inactive 

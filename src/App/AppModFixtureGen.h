@@ -565,10 +565,24 @@ public:
       default: return false; 
     }}); //fixtureGen
 
-    ui->initText(parentVar, "pinList", "16", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+	// gpio2 seems to be a safe choice on all esp32 variants
+    ui->initText(parentVar, "pinList", "2", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setComment(var, "One or more e.g. 12,13,14");
         return true;
+#if 0		// @ewowi did not get this to work
+      case f_ValueFun:
+        #if CONFIG_IDF_TARGET_ESP32 && (defined(BOARD_HAS_PSRAM) || defined(ARDUINO_ESP32_PICO)) // 
+          ui->setValue(var, "2");  // gpio16 is reserved on pico and on esp32 with PSRAM
+        #elif CONFIG_IDF_TARGET_ESP32S3
+          ui->setValue(var, "21");  // gpio21 = builtin neopixel on some -S3 boards
+        #elif CONFIG_IDF_TARGET_ESP32C3
+          ui->setValue(var, "10");  // gpio10 = builtin neopixel on some -C3 boards
+        #else
+          ui->setValue(var, "16");  // default on universal shield (classic esp32, or esp32-S2)
+        #endif
+        return true;
+#endif
       default: return false;
     }});
 

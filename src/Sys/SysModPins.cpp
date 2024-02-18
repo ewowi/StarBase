@@ -18,10 +18,13 @@ PinObject SysModPins::pinObjects[NUM_PINS];
 bool SysModPins::pinsChanged = false;
 
 SysModPins::SysModPins() :SysModule("Pins") {
-  pinMode(2, OUTPUT);
+#if CONFIG_IDF_TARGET_ESP32
+  // softhack007: configuring these pins on S3/C3/S2 may cause major problems (crashes included)
+  // pinMode(2, OUTPUT);  // softhack007 default LED pin on some boards, so don't play around with gpio2
   pinMode(4, OUTPUT);
   pinMode(19, OUTPUT);
   pinMode(33, OUTPUT);
+#endif
 
   //start with no pins allocated
   for (int i=0; i<NUM_PINS; i++) {
@@ -109,7 +112,9 @@ void SysModPins::setup() {
 
   // ui->initCheckBox(parentVar, "pin2", true, UINT8_MAX, false, nullptr, updateGPIO);
   // ui->initCheckBox(parentVar, "pin4");
+#if CONFIG_IDF_TARGET_ESP32
   ui->initCheckBox(parentVar, "pin19", true, false, updateGPIO);
+#endif
   // ui->initCheckBox(parentVar, "pin33", true);
 }
 
@@ -131,10 +136,13 @@ bool SysModPins::updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType) { sw
 
         USER_PRINTF("updateGPIO %s:=%d\n", id.c_str(), pinValue);
 
-        if (id == "pin2") digitalWrite(2, pinValue?HIGH:LOW);
+#if CONFIG_IDF_TARGET_ESP32
+  // softhack007: writing these pins on S3/C3/S2 may cause major problems (crashes included)
+        // if (id == "pin2") digitalWrite(2, pinValue?HIGH:LOW); // softhack007 default LED pin on some boards, so don't play around with gpio2
         if (id == "pin4") digitalWrite(4, pinValue?HIGH:LOW);
         if (id == "pin19") digitalWrite(19, pinValue?HIGH:LOW);
         if (id == "pin33") digitalWrite(33, pinValue?HIGH:LOW);
+#endif
       }
       return true;
     default: return false;
@@ -142,7 +150,7 @@ bool SysModPins::updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType) { sw
 
 void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * details) {
   USER_PRINTF("allocatePin %d %s %s\n", pinNr, owner, details);
-  if (pinNr < NUM_PINS) {
+  if ((pinNr < NUM_PINS) && (digitalPinIsValid(pinNr))) {
     if (strcmp(pinObjects[pinNr].owner, "") != 0 && strcmp(pinObjects[pinNr].owner, owner) != 0)
       USER_PRINTF("allocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
     else {

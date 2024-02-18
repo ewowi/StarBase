@@ -51,23 +51,41 @@ struct Coord3D {
 
   //assignments
   Coord3D operator=(Coord3D rhs) {
-    USER_PRINTF("Coord3D assign %d,%d,%d\n", rhs.x, rhs.y, rhs.z);
-    this->x = rhs.x;
-    this->y = rhs.y;
-    this->z = rhs.z;
+    // USER_PRINTF("Coord3D assign %d,%d,%d\n", rhs.x, rhs.y, rhs.z);
+    x = rhs.x;
+    y = rhs.y;
+    z = rhs.z;
     return *this;
   }
   Coord3D operator-=(Coord3D rhs) {
-    this->x -= rhs.x;
-    this->y -= rhs.y;
-    this->z -= rhs.z;
+    x -= rhs.x;
+    y -= rhs.y;
+    z -= rhs.z;
     return *this;
   }
   Coord3D operator-(Coord3D rhs) {
     return Coord3D{uint16_t(x - rhs.x), uint16_t(y - rhs.y), uint16_t(z - rhs.z)};
   }
+  Coord3D operator+(Coord3D rhs) {
+    return Coord3D{uint16_t(x + rhs.x), uint16_t(y + rhs.y), uint16_t(z + rhs.z)};
+    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
+  }
   Coord3D minimum(Coord3D rhs) {
-    return Coord3D{min(x, rhs.x), min(y, rhs.y), min(this->z, rhs.z)};
+    return Coord3D{min(x, rhs.x), min(y, rhs.y), min(z, rhs.z)};
+  }
+  Coord3D absx() {
+    x = abs(x);
+    y = abs(y);
+    z = abs(z);
+    return *this;
+  }
+  Coord3D operator*(uint8_t rhs) {
+    return Coord3D{uint16_t(x * rhs), uint16_t(y * rhs), uint16_t(z * rhs)};
+    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
+  }
+  Coord3D operator/(uint8_t rhs) {
+    return Coord3D{uint16_t(x / rhs), uint16_t(y / rhs), uint16_t(z / rhs)};
+    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
 };
 

@@ -99,7 +99,12 @@ public:
       case f_ChangeFun:
       {
         lds->fixture.fixtureNr = var["value"];
-        lds->doMap = true;
+        lds->fixture.doMap = true;
+
+        //remap all leds
+        for (std::vector<Leds>::iterator leds=lds->fixture.ledsList.begin(); leds!=lds->fixture.ledsList.end(); ++leds) {
+          leds->doMap = true;
+        }
 
         char fileName[32] = "";
         if (files->seqNrToName(fileName, lds->fixture.fixtureNr)) {

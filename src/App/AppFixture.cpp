@@ -23,7 +23,7 @@
     if (files->seqNrToName(fileName, fixtureNr)) {
       JsonRDWS jrdws(fileName); //open fileName for deserialize
 
-      for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); ++leds) {
+      for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
         //vectors really gone now?
         for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap)
           physMap->clear();
@@ -73,7 +73,7 @@
           // for (Leds leds:ledsList) {
           //vector iterator needed to get the pointer to leds as we need to update leds, also vector iteration on classes is faster!!!
           //search: ^(?=.*\bfor\b)(?=.*\b:\b).*$
-          for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); ++leds) {
+          for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
             Coord3D startPosAdjusted = (leds->startPos).minimum(size - Coord3D{1,1,1}) ;
             Coord3D endPosAdjusted = (leds->endPos).minimum(size - Coord3D{1,1,1}) ;
 
@@ -230,7 +230,7 @@
                 if (indexV != UINT16_MAX) { //can be nulled by inverse mapping 
                   //add physical tables if not present
                   if (indexV >= NUM_LEDS_Max / 2) {
-                    USER_PRINTF("dev mapping add physMap %d>=%d (%d) too big %d\n", indexV, NUM_LEDS_Max, leds->mappingTable.size(), UINT16_MAX);
+                    USER_PRINTF("dev mapping add physMap %d>=%d/2 (V:%d) too big\n", indexV, NUM_LEDS_Max, leds->mappingTable.size());
                   }
                   else {
                     //create new physMaps if needed
@@ -288,14 +288,15 @@
       if (jrdws.deserialize(false)) { //this will call above function parameter for each led
 
         uint8_t rowNr = 0;
-        for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end(); ++leds) {
+        for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
+          USER_PRINTF("leds loop %d %d\n", leds->rowNr, leds->fx);
           if (leds->projectionNr <= p_Random) {
             //defaults
             leds->size = size;
             leds->nrOfLeds = nrOfLeds;
           }
 
-          if (leds->projectionNr > p_Random) {
+          else if (leds->projectionNr > p_Random) {
 
             if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
               USER_PRINTF("mapping add extra physMap %d of %d %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
@@ -326,11 +327,12 @@
 
           USER_PRINTF("projectAndMap V:%dx%dx%d  = %d\n", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
 
-          mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
+          mdl->setValueV("fxSize", leds->rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
 
           USER_PRINTF("leds[%d].size = %d + %d\n", leds->rowNr, sizeof(Leds), leds->mappingTable.size()); //44
 
           rowNr++;
+          leds->doMap = false;
         } // leds
 
         USER_PRINTF("projectAndMap P:%dx%dx%d = %d\n", size.x, size.y, size.z, nrOfLeds);
@@ -342,4 +344,6 @@
     } //if fileName
     else
       USER_PRINTF("projectAndMap: Filename for fixture %d not found\n", fixtureNr);
+
+    doMap = false;
   }

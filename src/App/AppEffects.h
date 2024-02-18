@@ -396,7 +396,7 @@ public:
 
   void loop(Leds &leds) {
 
-    uint8_t speed = mdl->getValue("Speed", leds.rowNr).as<uint8_t>()/32;
+    uint8_t speed = mdl->getValue("speed", leds.rowNr).as<uint8_t>()/32;
     uint8_t scale = mdl->getValue("scale", leds.rowNr).as<uint8_t>()/32;
 
     uint8_t  w = 2;
@@ -438,7 +438,7 @@ public:
     }
   }
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "Speed", 128);
+    ui->initSlider(parentVar, "speed", 128);
     ui->initSlider(parentVar, "scale", 128);
   }
 }; // DistortionWaves2D
@@ -460,7 +460,7 @@ public:
 
     const uint8_t mapp = 180 / max(leds.size.x,leds.size.y);
 
-    uint8_t speed = mdl->getValue("Speed", leds.rowNr);
+    uint8_t speed = mdl->getValue("speed", leds.rowNr);
     uint8_t offsetX = mdl->getValue("Offset X", leds.rowNr);
     uint8_t offsetY = mdl->getValue("Offset Y", leds.rowNr);
     uint8_t legs = mdl->getValue("Legs", leds.rowNr);
@@ -510,7 +510,7 @@ public:
   }
   void controls(JsonObject parentVar, Leds &leds) {
     addPalette(parentVar, 4);
-    ui->initSlider(parentVar, "Speed", 128, 1, 255); //start with speed 1
+    ui->initSlider(parentVar, "speed", 128, 1, 255); //start with speed 1
     ui->initSlider(parentVar, "Offset X", 128);
     ui->initSlider(parentVar, "Offset Y", 128);
     ui->initSlider(parentVar, "Legs", 4, 1, 8);
@@ -528,7 +528,7 @@ public:
 
     uint8_t freqX = mdl->getValue("X frequency", leds.rowNr);
     uint8_t fadeRate = mdl->getValue("Fade rate", leds.rowNr);
-    uint8_t speed = mdl->getValue("Speed", leds.rowNr);
+    uint8_t speed = mdl->getValue("speed", leds.rowNr);
     bool smooth = mdl->getValue("Smooth", leds.rowNr);
     CRGBPalette16 pal = getPalette(leds.rowNr);
 
@@ -563,7 +563,7 @@ public:
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "X frequency", 64);
     ui->initSlider(parentVar, "Fade rate", 128);
-    ui->initSlider(parentVar, "Speed", 128);
+    ui->initSlider(parentVar, "speed", 128);
     ui->initCheckBox(parentVar, "Smooth", false);
   }
 }; // Lissajous2D
@@ -689,7 +689,7 @@ public:
   }
 
   void loop(Leds &leds) {
-    uint8_t speed = mdl->getValue("Speed", leds.rowNr);
+    uint8_t speed = mdl->getValue("speed", leds.rowNr);
     uint8_t font = mdl->getValue("font", leds.rowNr);
     const char * text = mdl->getValue("text", leds.rowNr);
 
@@ -703,7 +703,7 @@ public:
   }
   void controls(JsonObject parentVar, Leds &leds) {
     ui->initText(parentVar, "text", "StarMod");
-    ui->initSlider(parentVar, "Speed", 128);
+    ui->initSlider(parentVar, "speed", 128);
     ui->initSelect(parentVar, "font", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
         JsonArray options = ui->setOptions(var);
@@ -1033,7 +1033,7 @@ public:
     uint8_t *aux0 = sharedData.bind<uint8_t>();
     if (!sharedData.allocated()) return;
 
-    uint8_t speed = mdl->getValue("Speed", leds.rowNr);
+    uint8_t speed = mdl->getValue("speed", leds.rowNr);
     uint8_t fx = mdl->getValue("Sound effect", leds.rowNr);
     uint8_t lowBin = mdl->getValue("Low bin", leds.rowNr);
     uint8_t highBin = mdl->getValue("High bin", leds.rowNr);
@@ -1073,7 +1073,7 @@ public:
   }
 
   void controls(JsonObject parentVar, Leds &leds) {
-    ui->initSlider(parentVar, "Speed", 255);
+    ui->initSlider(parentVar, "speed", 255);
     ui->initSlider(parentVar, "Sound effect", 128);
     ui->initSlider(parentVar, "Low bin", 18);
     ui->initSlider(parentVar, "High bin", 48);
@@ -1163,34 +1163,13 @@ public:
     EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
   }
 
-  bool setEffect(Leds &leds, JsonObject var, uint8_t rowNr) {
-    bool doMap = false;
+  void setEffect(Leds &leds, JsonObject var, uint8_t rowNr) {
 
     leds.fx = mdl->getValue(var, rowNr);
 
     USER_PRINTF("setEffect fx[%d]: %d\n", rowNr, leds.fx);
 
     if (leds.fx < effects.size()) {
-
-      //tbd: make property of effects
-      if (strstr(effects[leds.fx]->name(), "2D")) {
-        if (leds.effectDimension != 2) {
-          leds.effectDimension = 2;
-          doMap = true;
-        }
-      }
-      else if (strstr(effects[leds.fx]->name(), "3D")) {
-        if (leds.effectDimension != 3) {
-          leds.effectDimension = 3;
-          doMap = true;
-        }
-      }
-      else {
-        if (leds.effectDimension != 1) {
-          leds.effectDimension = 1;
-          doMap = true;
-        }
-      }
 
       sharedData.clear(); //make sure all values are 0
 
@@ -1258,9 +1237,31 @@ public:
       // }
       //remove vars with all values -99
 
+      //tbd: make property of effects
+      if (strstr(effects[leds.fx]->name(), "2D")) {
+        if (leds.effectDimension != 2) {
+          leds.effectDimension = 2;
+          leds.doMap = true;
+          leds.fixture->doMap = true;
+        }
+      }
+      else if (strstr(effects[leds.fx]->name(), "3D")) {
+        if (leds.effectDimension != 3) {
+          leds.effectDimension = 3;
+          leds.doMap = true;
+          leds.fixture->doMap = true;
+        }
+      }
+      else {
+        if (leds.effectDimension != 1) {
+          leds.effectDimension = 1;
+          leds.doMap = true;
+          leds.fixture->doMap = true;
+        }
+      }
+
     } // fx < size
 
-    return doMap;
   }
 
 };

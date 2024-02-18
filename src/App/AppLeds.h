@@ -62,6 +62,8 @@ public:
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=
 
+  bool doMap = false;
+
   Leds(uint8_t rowNr, Fixture &fixture) {
     USER_PRINTF("Leds[%d] constructor\n", rowNr);
     this->rowNr = rowNr;

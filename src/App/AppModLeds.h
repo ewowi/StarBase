@@ -47,7 +47,6 @@ public:
 
   uint16_t fps = 60;
   unsigned long lastMappingMillis = 0;
-  bool doMap = false;
   Effects effects;
 
   Fixture fixture = Fixture();
@@ -108,11 +107,10 @@ public:
       }
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {
-          doMap = effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
+          effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
 
           web->addResponse("details", "var", var);
           web->addResponse("details", "rowNr", rowNr);
-
         }
         return true;
       default: return false;
@@ -144,7 +142,8 @@ public:
           fixture.ledsList[rowNr].projectionNr = mdl->getValue(var, rowNr);
           USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, fixture.ledsList[rowNr].projectionNr, fixture.ledsList.size());
 
-          doMap = true;
+          fixture.ledsList[rowNr].doMap = true;
+          fixture.doMap = true;
         }
         return true;
       default: return false;
@@ -167,12 +166,12 @@ public:
           USER_PRINTF("fxStart[%d] chFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
 
           fixture.ledsList[rowNr].fadeToBlackBy();
+          fixture.ledsList[rowNr].doMap = true;
+          fixture.doMap = true;
         }
         else {
           USER_PRINTF("fxStart[%d] chfun rownr not in range > %d\n", rowNr, fixture.ledsList.size());
         }
-
-        doMap = true;
         return true;
       default: return false;
     }});
@@ -193,12 +192,12 @@ public:
           USER_PRINTF("fxEnd[%d] chFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
 
           fixture.ledsList[rowNr].fadeToBlackBy();
+          fixture.ledsList[rowNr].doMap = true;
+          fixture.doMap = true;
         }
         else {
           USER_PRINTF("fxEnd[%d] chfun rownr not in range > %d\n", rowNr, fixture.ledsList.size());
         }
-
-        doMap = true;
         return true;
       default: return false;
     }});
@@ -289,6 +288,8 @@ public:
       const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
       USER_PRINTF("AppModLeds loop canvasData %s\n", canvasData);
 
+      //currently only leds[0] supported
+
       fixture.ledsList[0].fadeToBlackBy();
 
       char * token = strtok((char *)canvasData, ":");
@@ -306,13 +307,13 @@ public:
       mdl->setValue(isStart?"fxStart":"fxEnd", *startOrEndPos, 0); //assuming row 0 for the moment
 
       var.remove("canvasData"); //convasdata has been processed
-      doMap = true; //recalc projection
+      fixture.ledsList[0].doMap = true; //recalc projection
+      fixture.doMap = true;
     }
 
     //update projection
-    if (millis() - lastMappingMillis >= 1000 && doMap) { //not more then once per second (for E131)
+    if (millis() - lastMappingMillis >= 1000 && fixture.doMap) { //not more then once per second (for E131)
       lastMappingMillis = millis();
-      doMap = false;
       fixture.projectAndMap();
 
       //https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples

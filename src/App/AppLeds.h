@@ -120,8 +120,8 @@ public:
 
 
   // maps the virtual led to the physical led(s) and assign a color to it
-  void setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount = 128);
-  void setPixelColor(Coord3D pixel, CRGB color, uint8_t blendAmount = 128) {setPixelColor(XYZ(pixel), color, blendAmount);}
+  void setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount = UINT8_MAX);
+  void setPixelColor(Coord3D pixel, CRGB color, uint8_t blendAmount = UINT8_MAX) {setPixelColor(XYZ(pixel), color, blendAmount);}
 
   CRGB getPixelColor(uint16_t indexV);
   CRGB getPixelColor(Coord3D pixel) {return getPixelColor(XYZ(pixel));}

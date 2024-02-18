@@ -19,7 +19,7 @@ void Leds::setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount) {
     }
     else {
       for (uint16_t indexP:mappingTable[indexV]) {
-        fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], blendAmount);
+        fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], blendAmount==UINT8_MAX?fixture->globalBlend:blendAmount);
       }
     }
   }
@@ -59,7 +59,7 @@ void Leds::fadeToBlackBy(uint8_t fadeBy) {
     for (uint16_t indexP:*physMap) {
       CRGB oldValue = fixture->ledsP[indexP];
       fixture->ledsP[indexP].nscale8(255-fadeBy); //this overrides the old value
-      fixture->ledsP[indexP] = blend(fixture->ledsP[indexP], oldValue, 128); // we want to blend in the old value
+      fixture->ledsP[indexP] = blend(fixture->ledsP[indexP], oldValue, fixture->globalBlend); // we want to blend in the old value
     }
   }
 }
@@ -68,7 +68,7 @@ void Leds::fill_solid(const struct CRGB& color) {
   //fade2black for old start to endpos
   for (std::vector<std::vector<uint16_t>>::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap) {
     for (uint16_t indexP:*physMap) {
-      fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], 128);
+      fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], fixture->globalBlend);
     }
   }
 }
@@ -81,7 +81,7 @@ void Leds::fill_rainbow(uint8_t initialhue, uint8_t deltahue) {
 
   for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap) {
     for (uint16_t indexP:*physMap) {
-      fixture->ledsP[indexP] = blend(hsv, fixture->ledsP[indexP], 128);
+      fixture->ledsP[indexP] = blend(hsv, fixture->ledsP[indexP], fixture->globalBlend);
     }
     hsv.hue += deltahue;
   }

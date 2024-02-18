@@ -233,6 +233,13 @@ public:
       default: return false;
     }}); //fixtureGen
 
+    ui->initSlider(parentVar, "Blending", fixture.globalBlend, 0, 255, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ChangeFun:
+        fixture.globalBlend = var["value"];
+        return true;
+      default: return false;
+    }});
+
     #ifdef STARMOD_USERMOD_E131
       // if (e131mod->isEnabled) {
           e131mod->patchChannel(0, "bri", 255); //should be 256??

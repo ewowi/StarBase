@@ -67,15 +67,18 @@ public:
   //track pins and leds
 
   bool doMap = false;
+
+  uint8_t globalBlend = 128;
   
   //load fixture json file, parse it and depending on the projection, create a mapping for it
   void projectAndMap();
 
   float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16_t y2, uint16_t z2) {
-    return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+    return distance(Coord3D{x1, y1, z1}, Coord3D{x2,y2,z2});
+    // return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
   }
   float distance(Coord3D c1, Coord3D c2) {
-    Coord3D delta = c1-c2;
+    Coord3D delta = (c1-c2).absx();
     return sqrtf((delta.x)*(delta.x) + (delta.y)*(delta.y) + (delta.z)*(delta.z));
   }
 

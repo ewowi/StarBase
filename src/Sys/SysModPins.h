@@ -12,7 +12,7 @@
 #pragma once
 #include "SysModule.h"
 
-#define NUM_PINS 50
+#define NUM_PINS NUM_DIGITAL_PINS // softhack007 NUM_DIGITAL_PINS comes from the arduino framework
 
 //info stored per pin
 struct PinObject {

@@ -30,8 +30,8 @@
 WebServer * SysModWeb::server = nullptr;
 WebSocket * SysModWeb::ws = nullptr;
 
-DynamicJsonDocument * SysModWeb::responseDocLoopTask = nullptr;
-DynamicJsonDocument * SysModWeb::responseDocAsyncTCP = nullptr;
+JsonDocument * SysModWeb::responseDocLoopTask = nullptr;
+JsonDocument * SysModWeb::responseDocAsyncTCP = nullptr;
 bool SysModWeb::clientsChanged = false;
 
 unsigned long SysModWeb::sendDataWsCounter = 0;
@@ -52,8 +52,8 @@ SysModWeb::SysModWeb() :SysModule("Web") {
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Methods"), "*");
   DefaultHeaders::Instance().addHeader(F("Access-Control-Allow-Headers"), "*");
 
-  responseDocLoopTask = new DynamicJsonDocument(2048); responseDocLoopTask->to<JsonObject>();
-  responseDocAsyncTCP = new DynamicJsonDocument(3072); responseDocAsyncTCP->to<JsonObject>();
+  responseDocLoopTask = new JsonDocument; responseDocLoopTask->to<JsonObject>();
+  responseDocAsyncTCP = new JsonDocument; responseDocAsyncTCP->to<JsonObject>();
 };
 
 void SysModWeb::setup() {
@@ -552,7 +552,7 @@ void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filte
       array.add(JsonString(client->remoteIP().toString().c_str(), JsonString::Copied));
     } else {
       // USER_PRINTF("Client %d %d ...%d\n", client->id(), client->queueIsFull(), client->remoteIP()[3]);
-      JsonArray row = array.createNestedArray();
+      JsonArray row = array.add<JsonArray>();
       row.add(client->id());
       array.add(JsonString(client->remoteIP().toString().c_str(), JsonString::Copied));
       row.add(client->queueIsFull());
@@ -590,9 +590,9 @@ void SysModWeb::serveJson(WebRequest *request) {
   // return model.json
   if (request->url().indexOf("mdl") > 0) {
     JsonArray model = mdl->model->as<JsonArray>();
-    USER_PRINTF("serveJson model ...%d, %s %d %d %d %d\n", request->client()->remoteIP()[3], request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), mdl->model->capacity());
+    USER_PRINTF("serveJson model ...%d, %s %d %d\n", request->client()->remoteIP()[3], request->url().c_str(), model.size(),  measureJson(model));
 
-    response = new AsyncJsonResponse(true,  model.memoryUsage()); //array tbd: here copy is mode, see WLED for using reference
+    response = new AsyncJsonResponse(true); //array, removed size as ArduinoJson v7 doesnt care (tbd: here copy is mode, see WLED for using reference)
     JsonArray root = response->getRoot();
 
     // root = model does not work? so add each element individually
@@ -613,12 +613,12 @@ void SysModWeb::serveJson(WebRequest *request) {
   // }
   else { //WLED compatible
     USER_PRINTF("serveJson ...%d, %s\n", request->client()->remoteIP()[3], request->url().c_str());
-    response = new AsyncJsonResponse(false, 5000); //object
+    response = new AsyncJsonResponse(false); //object. removed size as ArduinoJson v7 doesnt care
     JsonObject root = response->getRoot();
 
     //temporary set all WLED variables (as otherwise WLED-native does not show the instance): tbd: clean up (state still needed, info not)
     const char* jsonState = "{\"transition\":7,\"ps\":9,\"pl\":-1,\"nl\":{\"on\":false,\"dur\":60,\"mode\":1,\"tbri\":0,\"rem\":-1},\"udpn\":{\"send\":false,\"recv\":true},\"lor\":0,\"mainseg\":0,\"seg\":[{\"id\":0,\"start\":0,\"stop\":144,\"len\":144,\"grp\":1,\"spc\":0,\"of\":0,\"on\":true,\"frz\":false,\"bri\":255,\"cct\":127,\"col\":[[182,15,98,0],[0,0,0,0],[255,224,160,0]],\"fx\":0,\"sx\":128,\"ix\":128,\"pal\":11,\"c1\":8,\"c2\":20,\"c3\":31,\"sel\":true,\"rev\":false,\"mi\":false,\"o1\":false,\"o2\":false,\"o3\":false,\"ssim\":0,\"mp12\":1}]}";
-    StaticJsonDocument<5000> docState;
+    JsonDocument docState;
     deserializeJson(docState, jsonState);
     root["state"] = docState;
 

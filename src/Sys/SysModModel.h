@@ -102,18 +102,18 @@ namespace ArduinoJson {
   };
 }
 
-// https://arduinojson.org/v6/api/basicjsondocument/
-struct RAM_Allocator {
-  void* allocate(size_t size) {
+// https://arduinojson.org/v7/api/jsondocument/
+struct RAM_Allocator: ArduinoJson::Allocator {
+  void* allocate(size_t size) override {
     if (psramFound()) return ps_malloc(size); // use PSRAM if it exists
     else              return malloc(size);    // fallback
     // return heap_caps_malloc(size, MALLOC_CAP_SPIRAM);
   }
-  void deallocate(void* pointer) {
+  void deallocate(void* pointer) override {
     free(pointer);
     // heap_caps_free(pointer);
   }
-  void* reallocate(void* ptr, size_t new_size) {
+  void* reallocate(void* ptr, size_t new_size) override {
     if (psramFound()) return ps_realloc(ptr, new_size); // use PSRAM if it exists
     else              return realloc(ptr, new_size);    // fallback
     // return heap_caps_realloc(ptr, new_size, MALLOC_CAP_SPIRAM);
@@ -127,8 +127,9 @@ class SysModModel:public SysModule {
 public:
 
   // StaticJsonDocument<24576> model; //not static as that blows up the stack. Use extern??
-  // static BasicJsonDocument<DefaultAllocator> *model; //needs to be static as loopTask and asyncTask is using it...
-  static BasicJsonDocument<RAM_Allocator> *model; //needs to be static as loopTask and asyncTask is using it...
+  // static JsonDocument<DefaultAllocator> *model; //needs to be static as loopTask and asyncTask is using it...
+  RAM_Allocator allocator;
+  static JsonDocument *model; //needs to be static as loopTask and asyncTask is using it...
 
   static JsonObject modelParentVar;
 
@@ -137,8 +138,7 @@ public:
   SysModModel();
   void setup();
   void loop();
-  void loop10s();
-
+  
   //scan all vars in the model and remove vars where var["o"] is negative or positive, if ro then remove ro values
   void cleanUpModel(JsonArray vars, bool oPos = true, bool ro = false);
 
@@ -187,7 +187,7 @@ public:
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
         USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", jsonToChar(var, "id"), rowNr, var["value"].as<String>().c_str());
         // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
-        var.createNestedArray("value");
+        var["value"].to<JsonArray>();
       }
 
       if (var["value"].is<JsonArray>()) {

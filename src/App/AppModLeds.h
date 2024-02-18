@@ -205,11 +205,13 @@ public:
 
     ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
-          Leds leds = fixture.ledsList[rowNr];
+        for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
+        // for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
+          USER_PRINTF("fxSize valueFun %d %d %d\n", fixture.ledsList.size(), rowNr, fixture.ledsList[rowNr].rowNr);
+          // Leds leds = fixture.ledsList[rowNr];
           char message[32];
-          print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds.size.x, leds.size.y, leds.size.z, leds.nrOfLeds);
-          mdl->setValue(var, JsonString(message, JsonString::Copied), rowNr);
+          print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
+          mdl->setValue(var, JsonString(message, JsonString::Copied), leds - fixture.ledsList.begin()); //rowNr
         }
         return true;
       case f_UIFun:

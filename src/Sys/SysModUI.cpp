@@ -99,10 +99,10 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     USER_PRINTF("initVar create new %s var: %s->%s\n", type, parentId, id);
     if (parent.isNull()) {
       JsonArray vars = mdl->model->as<JsonArray>();
-      var = vars.createNestedObject();
+      var = vars.add<JsonObject>();
     } else {
-      if (parent["n"].isNull()) parent.createNestedArray("n"); //if parent exist and no "n" array, create it
-      var = parent["n"].createNestedObject();
+      if (parent["n"].isNull()) parent["n"].to<JsonArray>(); //if parent exist and no "n" array, create it
+      var = parent["n"].add<JsonObject>();
       // serializeJson(model, Serial);Serial.println();
     }
     var["id"] = JsonString(id, JsonString::Copied);

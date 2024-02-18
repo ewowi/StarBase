@@ -179,8 +179,12 @@
                   }
                   break;
               }
+              leds->nrOfLeds = leds->size.x * leds->size.y * leds->size.z;
 
-              if (indexV != UINT16_MAX) {
+              if (indexV > leds->nrOfLeds) {
+                USER_PRINTF("indexV too high %d>=%d (p:%d) p:%d,%d,%d\n", indexV, leds->nrOfLeds, indexP, pixel.x, pixel.y, pixel.z);
+              }
+              else if (indexV != UINT16_MAX) {
                 //post processing: inverse mapping
                 switch(leds->projectionNr) {
                 case p_DistanceFromCenter:
@@ -293,8 +297,9 @@
 
           if (leds->projectionNr > p_Random) {
 
-            for (int i = leds->mappingTable.size(); i<leds->size.x * leds->size.y * leds->size.z;i++) {
-              USER_PRINTF("mapping add extra physMap %d %d\n", i, leds->mappingTable.size());
+            if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
+              USER_PRINTF("mapping add extra physMap %d of %d %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
+            for (int i = leds->mappingTable.size(); i<min(leds->size.x * leds->size.y * leds->size.z, 2048);i++) {
               std::vector<uint16_t> physMap;
               leds->mappingTable.push_back(physMap);
             }

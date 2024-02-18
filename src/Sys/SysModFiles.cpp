@@ -151,7 +151,7 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
         array.add(JsonString(file.name(), JsonString::Copied));
       }
       else {
-        JsonArray row = array.createNestedArray();
+        JsonArray row = array.add<JsonArray>();
         row.add(JsonString(file.name(), JsonString::Copied));
         row.add(file.size());
         char urlString[32] = "file/";

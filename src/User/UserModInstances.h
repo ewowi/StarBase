@@ -256,7 +256,7 @@ public:
         ui->setLabel(var, "Sync Master");
         ui->setComment(var, "Instance to sync from");
         JsonArray options = ui->setOptions(var);
-        JsonArray instanceObject = options.createNestedArray();
+        JsonArray instanceObject = options.add<JsonArray>();
         instanceObject.add(0);
         instanceObject.add("no sync");
         for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
@@ -264,7 +264,7 @@ public:
           strncpy(option, instance->ip.toString().c_str(), sizeof(option)-1);
           strncat(option, " ", sizeof(option)-1);
           strncat(option, instance->name, sizeof(option)-1);
-          instanceObject = options.createNestedArray();
+          instanceObject = options.add<JsonArray>();
           instanceObject.add(instance->ip[3]);
           instanceObject.add(option);
         }
@@ -649,7 +649,7 @@ public:
 
           // responseObject["updRow"]["id"] = "insTbl";
           // responseObject["updRow"]["rowNr"] = rowNr;
-          // responseObject["updRow"].createNestedArray("value");
+          // responseObject["updRow"]["value"].to<JsonArray>();
           // addTblRow(responseObject["updRow"]["value"], instance);
 
           // web->sendResponseObject();

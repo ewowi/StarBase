@@ -36,7 +36,7 @@ public:
 
   size_t fFormat(char * buf, size_t size, const char * format, ...);
 
-  void printJDocInfo(const char * text, DynamicJsonDocument source);
+  void printJDocInfo(const char * text, JsonDocument source);
 
 private:
   bool setupsDone = false;

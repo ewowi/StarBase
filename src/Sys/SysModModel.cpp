@@ -15,11 +15,11 @@
 #include "SysJsonRDWS.h"
 #include "SysModUI.h"
 
-BasicJsonDocument<RAM_Allocator> * SysModModel::model = nullptr;
+JsonDocument * SysModModel::model = nullptr;
 JsonObject SysModModel::modelParentVar;
 
 SysModModel::SysModModel() :SysModule("Model") {
-  model = new BasicJsonDocument<RAM_Allocator>(24576);
+  model = new JsonDocument(&allocator);
 
   JsonArray root = model->to<JsonArray>(); //create
 
@@ -37,20 +37,6 @@ void SysModModel::setup() {
 
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
-
-  ui->initProgress(parentVar, "mSize", UINT16_MAX, 0, model->capacity(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-      mdl->setValue(var, model->memoryUsage());
-      return true;
-    case f_UIFun:
-      ui->setLabel(var, "Size");
-      return true;
-    case f_ChangeFun:
-      var["max"] = model->capacity(); //makes sense?
-      web->addResponseV(var["id"], "comment", "%d / %d B", model->memoryUsage(), model->capacity());
-      return true;
-    default: return false;
-  }});
 
   ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -104,16 +90,6 @@ void SysModModel::setup() {
 
     doWriteModel = false;
   }
-
-  if (model->memoryUsage() / model->capacity() > 0.95) {
-    print->printJDocInfo("model", *model);
-    size_t memBefore = model->memoryUsage();
-    model->garbageCollect();
-    print->printJDocInfo("garbageCollect", *model);
-  }
-}
-void SysModModel::loop10s() {
-  ui->callVarFun(mdl->findVar("mSize"));
 }
 
 void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
@@ -201,13 +177,13 @@ void SysModModel::findVars(const char * property, bool value, FindFun fun, JsonA
 void SysModModel::varToValues(JsonObject var, JsonArray row) {
 
     //add value for each child
-    // JsonArray row = rows.createNestedArray();
+    // JsonArray row = rows.add<JsonArray>();
     for (JsonObject childVar : var["n"].as<JsonArray>()) {
       print->printJson("fxTbl childs", childVar);
       row.add(childVar["value"]);
 
       if (!childVar["n"].isNull()) {
-        varToValues(childVar, row.createNestedArray());
+        varToValues(childVar, row.add<JsonArray>());
       }
     }
 }

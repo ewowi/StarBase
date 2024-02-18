@@ -109,25 +109,25 @@ public:
   template <typename Type>
   void addResponse(const char * id, const char * key, Type value, uint8_t rowNr = UINT8_MAX) {
     JsonObject responseObject = getResponseObject();
-    // if (responseObject[id].isNull()) responseObject.createNestedObject(id);
+    // if (responseObject[id].isNull()) responseObject[id].to<JsonObject>();;
     if (rowNr == UINT8_MAX)
       responseObject[id][key] = value;
     else {
       if (!responseObject[id][key].is<JsonArray>())
-        responseObject[id].createNestedArray(key);
+        responseObject[id][key].to<JsonArray>();
       responseObject[id][key][rowNr] = value;
     }
   }
 
   JsonArray addResponseA(const char * id, const char * key) {
     JsonObject responseObject = getResponseObject();
-    // if (responseObject[id].isNull()) responseObject.createNestedObject(id);
-    return responseObject[id].createNestedArray(key);
+    // if (responseObject[id].isNull()) responseObject[id].to<JsonObject>();;
+    return responseObject[id][key].to<JsonArray>();
   }
 
   void addResponseV(const char * id, const char * key, const char * format, ...) {
     JsonObject responseObject = getResponseObject();
-    // if (responseObject[id].isNull()) responseObject.createNestedObject(id);
+    // if (responseObject[id].isNull()) responseObject[id].to<JsonObject>();;
 
     va_list args;
     va_start(args, format);
@@ -160,8 +160,8 @@ private:
 
   static WebServer *server;
 
-  static DynamicJsonDocument *responseDocLoopTask;
-  static DynamicJsonDocument *responseDocAsyncTCP;
+  static JsonDocument *responseDocLoopTask;
+  static JsonDocument *responseDocAsyncTCP;
 
   static unsigned long sendDataWsCounter;
 };

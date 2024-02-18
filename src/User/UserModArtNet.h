@@ -37,7 +37,7 @@ public:
         ui->setLabel(var, "Instance");
         ui->setComment(var, "Instance to send data");
         JsonArray options = ui->setOptions(var);
-        JsonArray instanceObject = options.createNestedArray();
+        JsonArray instanceObject = options.add<JsonArray>();
         instanceObject.add(0);
         instanceObject.add("no sync");
         for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
@@ -46,7 +46,7 @@ public:
             strncpy(option, node->ip.toString().c_str(), sizeof(option)-1);
             strncat(option, " ", sizeof(option)-1);
             strncat(option, node->name, sizeof(option)-1);
-            instanceObject = options.createNestedArray();
+            instanceObject = options.add<JsonArray>();
             instanceObject.add(node->ip[3]);
             instanceObject.add(option);
           }

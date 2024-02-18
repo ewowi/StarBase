@@ -84,7 +84,7 @@ void setup() {
     wledAudioMod = new UserModWLEDAudio();
   #endif
 
-  //Reorder with care! If changed make sure mdlEnabled.chFun executes var.createNestedArray("value"); and saveModel! 
+  //Reorder with care! If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
   //Default: add below, not in between
   #ifdef STARMOD_APPMOD_LEDS
     mdls->add(fix);

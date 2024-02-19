@@ -161,18 +161,15 @@ void SysModWeb::loop() {
     clientsChanged = false;
 
     USER_PRINTF("SysModWeb clientsChanged\n");
-    for (JsonObject childVar: mdl->findVar("clTbl")["n"].as<JsonArray>()) {
-      ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
-    }
+    for (JsonObject childVar: mdl->varN("clTbl"))
+      ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
   }
-
 
 }
 
 void SysModWeb::loop1s() {
-  for (JsonObject childVar: mdl->findVar("clTbl")["n"].as<JsonArray>()) {
-    ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
-  }
+  for (JsonObject childVar: mdl->varN("clTbl"))
+    ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
 
   mdl->setUIValueV("wsCounter", "%lu /s", sendDataWsCounter);
   sendDataWsCounter = 0;
@@ -595,23 +592,8 @@ void SysModWeb::serveJson(WebRequest *request) {
     response = new AsyncJsonResponse(true); //array, removed size as ArduinoJson v7 doesnt care (tbd: here copy is mode, see WLED for using reference)
     JsonArray root = response->getRoot();
 
-    // root = model does not work? so add each element individually
-    for (JsonObject module: model)
-      root.add(module); //Debug exception reason: Stack canary watchpoint triggered (async_tcp) (jsonarray add copyfrom memorypool)
-  }
-  // instances crashes!
-  // else if (request->url().indexOf("instances") > 0) {
-  //   JsonArray model = mdl->model->as<JsonArray>();
-  //   USER_PRINTF("serveJson model ...%d, %s %d %d %d %d\n", request->client()->remoteIP()[3], request->url().c_str(), model.size(),  measureJson(model), model.memoryUsage(), mdl->model->capacity());
-
-  //   response = new AsyncJsonResponse(true, 5000); //array
-  //   JsonArray root = response->getRoot();
-
-  //   for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
-  //     root.add(node->name);
-  //   }
-  // }
-  else { //WLED compatible
+    root.set(model);
+  } else { //WLED compatible
     USER_PRINTF("serveJson ...%d, %s\n", request->client()->remoteIP()[3], request->url().c_str());
     response = new AsyncJsonResponse(false); //object. removed size as ArduinoJson v7 doesnt care
     JsonObject root = response->getRoot();

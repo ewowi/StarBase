@@ -17,7 +17,7 @@
 
 // #include <FS.h>
 
-bool SysModFiles::filesChanged = false;
+bool SysModFiles::filesChanged = true; //init fileTbl
 
 SysModFiles::SysModFiles() :SysModule("Files") {
   if (!LittleFS.begin(true)) { //true: formatOnFail
@@ -35,54 +35,55 @@ void SysModFiles::setup() {
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-    {
       ui->setLabel(var, "Files");
       ui->setComment(var, "List of files");
-      JsonArray rows = web->addResponseA(var["id"], "value");  //overwrite the value
-      dirToJson(rows);
       return true;
-    }
-    case f_AddRow: {
-      USER_PRINTF("chFun addRow %s[%d] = %s\n", mdl->jsonToChar(var, "id"), rowNr, var["value"].as<String>().c_str());
+    case f_AddRow:
+      USER_PRINTF("chFun addRow %s[%d] = %s\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str());
       web->getResponseObject()["addRow"]["rowNr"] = rowNr;
       //add a row with all defaults
       return true;
-    }
-    case f_DelRow: {
-      USER_PRINTF("chFun delRow %s[%d] = %s\n", mdl->jsonToChar(var, "id"), rowNr, var["value"].as<String>().c_str());
-      if (rowNr != UINT8_MAX) {
-        // call uiFun of tbl to fill responseObject with files
-        ui->varFunctions[var["fun"]](var, UINT8_MAX, f_UIFun);
-        //trick to get the table values tbd: use column values
-        JsonObject responseObject = web->getResponseObject();
-        JsonArray row = responseObject["fileTbl"]["value"][rowNr];
-        if (!row.isNull()) {
-          const char * fileName = row[0]; //first column
-          print->printJson("delete file", row);
-          this->removeFiles(fileName, false);
-        }
+    case f_DelRow:
+      if (rowNr != UINT8_MAX && rowNr < fileList.size()) {
+        const char * fileName = fileList[rowNr].name;
+        USER_PRINTF("chFun delRow %s[%d] = %s %s\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str(), fileName);
+        this->removeFiles(fileName, false);
       }
       print->printJson(" ", var);
       return true;
-    }
     default: return false;
   }});
 
-  ui->initText(tableVar, "flName", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "flName", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < fileList.size(); rowNr++)
+        mdl->setValue(var, JsonString(fileList[rowNr].name, JsonString::Copied), rowNr);
+      return true;
     case f_UIFun:
       ui->setLabel(var, "Name");
       return true;
     default: return false;
   }});
 
-  ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < fileList.size(); rowNr++)
+        mdl->setValue(var, fileList[rowNr].size, rowNr);
+      return true;
     case f_UIFun:
       ui->setLabel(var, "Size (B)");
       return true;
     default: return false;
   }});
 
-  ui->initURL(tableVar, "flLink", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initURL(tableVar, "flLink", nullptr, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      for (uint8_t rowNr = 0; rowNr < fileList.size(); rowNr++) {
+        char urlString[32] = "file/";
+        strncat(urlString, fileList[rowNr].name, sizeof(urlString)-1);
+        mdl->setValue(var, JsonString(urlString, JsonString::Copied), rowNr);
+      }
+      return true;
     case f_UIFun:
       ui->setLabel(var, "Show");
       return true;
@@ -109,11 +110,27 @@ void SysModFiles::loop() {
   // SysModule::loop();
 
   if (filesChanged) {
-    ui->callVarFun(mdl->findVar("drsize"));
     filesChanged = false;
 
-    // ui->processUiFun("fileTbl");
-    ui->callVarFun("fileTbl", UINT8_MAX, f_UIFun);
+    fileList.clear();
+
+    File root = LittleFS.open("/");
+    File file = root.openNextFile();
+
+    while (file) {
+      FileDetails details;
+      strcpy(details.name, file.name());
+      details.size = file.size();
+      fileList.push_back(details);
+      file.close();
+      file = root.openNextFile();
+    }
+    root.close();
+
+    ui->callVarFun(mdl->findVar("drsize"));
+
+    for (JsonObject childVar: mdl->varN("fileTbl"))
+      ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
   }
 }
 

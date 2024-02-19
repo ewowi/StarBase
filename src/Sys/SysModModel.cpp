@@ -72,7 +72,7 @@ void SysModModel::setup() {
 
   if (!cleanUpModelDone) { //do after all setups
     cleanUpModelDone = true;
-    cleanUpModel(model->as<JsonArray>());
+    cleanUpModel();
   }
 
   if (doWriteModel) {
@@ -80,7 +80,7 @@ void SysModModel::setup() {
 
     // files->writeObjectToFile("/model.json", model);
 
-    cleanUpModel(model->as<JsonArray>(), false, true);//remove if var["o"] is negative (not cleanedUp) and remove ro values
+    cleanUpModel(JsonObject(), false, true);//remove if var["o"] is negative (not cleanedUp) and remove ro values
 
     JsonRDWS jrdws("/model.json", "w"); //open fileName for deserialize
     jrdws.addExclusion("fun");
@@ -92,7 +92,14 @@ void SysModModel::setup() {
   }
 }
 
-void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
+void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
+
+  JsonArray vars;
+  if (parent.isNull()) //no parent
+    vars = model->as<JsonArray>();
+  else
+    vars = varN(parent);
+
   for (JsonArray::iterator varV=vars.begin(); varV!=vars.end(); ++varV) {
   // for (JsonVariant varV : vars) {
     if (varV->is<JsonObject>()) {
@@ -101,32 +108,34 @@ void SysModModel::cleanUpModel(JsonArray vars, bool oPos, bool ro) {
       //no cleanup of o in case of ro value removal
       if (!ro) {
         if (oPos) {
-          if (var["o"].isNull() || var["o"].as<int>() >= 0) { //not set negative in initVar
+          if (var["o"].isNull() || varOrder(var) >= 0) { //not set negative in initVar
             if (!doShowObsolete) {
-              USER_PRINTF("cleanUpModel remove var %s (""o"">=0)\n", mdl->jsonToChar(var, "id"));          
+              USER_PRINTF("cleanUpModel remove var %s (""o"">=0)\n", varID(var));          
               vars.remove(varV); //remove the obsolete var (no o or )
             }
           }
           else {
-            var["o"] = -var["o"].as<int>(); //make it possitive
+            varOrder(var, -varOrder(var)); //make it possitive
           }
         } else { //!oPos
-          if (var["o"].isNull() || var["o"].as<int>() < 0) { 
-            USER_PRINTF("cleanUpModel remove var %s (""o""<0)\n", mdl->jsonToChar(var, "id"));          
+          if (var["o"].isNull() || varOrder(var) < 0) { 
+            USER_PRINTF("cleanUpModel remove var %s (""o""<0)\n", varID(var));          
             vars.remove(varV); //remove the obsolete var (no o or o is negative - not cleanedUp)
           }
         }
       }
 
       //remove ro values (ro vars cannot be deleted as SM uses these vars)
-      if (ro && var["ro"].as<bool>()) {// && !var["value"].isNull())
-        USER_PRINTF("remove ro value %s\n", mdl->jsonToChar(var, "id"));          
+      // remove if var is ro or table of var is ro (ro table can have non ro vars e.g. instance table)
+      if (ro && ((parent["type"] == "table" && varRO(parent)) || varRO(var))) {// && !var["value"].isNull())
+      // if (ro && var["ro"].as<bool>()) {// && !var["value"].isNull())
+        USER_PRINTF("remove ro value %s\n", varID(var));          
         var.remove("value");
       }
 
       //recursive call
-      if (!var["n"].isNull() && var["n"].is<JsonArray>())
-        cleanUpModel(var["n"], oPos, ro);
+      if (!varN(var).isNull())
+        cleanUpModel(var, oPos, ro);
     } 
   }
 }
@@ -149,7 +158,7 @@ JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
         JsonObject foundVar = findVar(id, var["n"]);
         if (!foundVar.isNull()) {
           if (modelParentVar.isNull()) modelParentVar = var;  //only recursive lowest assigns parentVar
-          // USER_PRINTF("findvar parent of %s is %s\n", id, modelParentmdl->jsonToChar(var, "id"));
+          // USER_PRINTF("findvar parent of %s is %s\n", id, varID(modelParentVar));
           return foundVar;
         }
       }

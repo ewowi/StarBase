@@ -62,7 +62,7 @@ void SysModPins::setup() {
   ui->initText(tableVar, "pinOwner", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
       for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
-        mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).owner, JsonString::Copied));
+        mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).owner, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
       ui->setLabel(var, "Owner");
@@ -73,7 +73,7 @@ void SysModPins::setup() {
   ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
       for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
-        mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied));
+        mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
       ui->setLabel(var, "Details");
@@ -122,9 +122,8 @@ void SysModPins::loop1s() {
   if (pinsChanged) {
     pinsChanged = false;
 
-    for (JsonObject childVar: mdl->findVar("pinTbl")["n"].as<JsonArray>()) {
-      ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
-    }
+    for (JsonObject childVar: mdl->varN("pinTbl"))
+      ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
   }
 }
 

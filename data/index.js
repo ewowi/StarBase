@@ -155,7 +155,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     let  variable = json;
 
     if (Array.isArray(variable.value) && rowNr != UINT8_MAX) {
-      if (rowNr >= variable.value.length || (rowNr < variable.value.length && variable.value[rowNr] == null)) {
+      if ((rowNr < variable.value.length && variable.value[rowNr] == null)) { //rowNr >= variable.value.length || 
         // console.log("not showing this var as value is null", variable, rowNr);
         return;
       }
@@ -480,6 +480,8 @@ function genTableRowHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     trNode.appendChild(tdNode);
   }
   flushUIFunCommands();
+  if (variable.id == "insTbl")
+    setInstanceTableColumns();
 }
 
 //process json from server, json is assumed to be an object
@@ -576,7 +578,8 @@ function receiveData(json) {
         let variable = findVar(key);
 
         if (variable) {
-          // if (variable.id == "pinNr")
+          // if (variable.id == "vlLoopps" || variable.id == "flName" || variable.id == "insName")
+          // if (Array.isArray(variable.value))
           //   console.log("receiveData ", variable, value);
           variable.fun = -2; // request processed
 
@@ -1239,7 +1242,7 @@ function setInstanceTableColumns() {
     showHideColumn(columnNr, !isStageView);
   }
 
-  gId("sma").parentNode.hidden = isStageView; //hide sync master label field and comment
+  if (gId("sma")) gId("sma").parentNode.hidden = isStageView; //hide sync master label field and comment
 }
 
 function changeHTMLView(value) {

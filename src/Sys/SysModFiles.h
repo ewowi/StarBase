@@ -13,9 +13,17 @@
 #include "SysModule.h"
 #include "LittleFS.h"
 
+struct FileDetails {
+  char name[32];
+  size_t size;
+};
+
 class SysModFiles: public SysModule {
 
 public:
+
+  std::vector<FileDetails> fileList;
+
   SysModFiles();
   void setup();
   void loop();
@@ -52,7 +60,7 @@ public:
   bool readFile(const char * path);
 
 private:
-  static bool filesChanged;// = false;
+  static bool filesChanged;
 
 };
 

@@ -1174,8 +1174,8 @@ public:
       sharedData.clear(); //make sure all values are 0
 
       for (JsonObject var: var["n"].as<JsonArray>()) { //for all controls
-        if (var["o"].as<int>() >= 0) { //post init
-          var["o"] = -var["o"].as<int>(); // set all negative
+        if (mdl->varOrder(var) >= 0) { //post init
+          mdl->varOrder(var, -mdl->varOrder(var)); // set all negative
         }
       }
 
@@ -1189,23 +1189,23 @@ public:
 
       //check if post init added
       bool postInit = false;
-      for (JsonObject childVar: var["n"].as<JsonArray>()) {
+      for (JsonObject childVar: mdl->varN(var)) {
 
-        if (childVar["o"].as<int>() >= 0) { //post init, just added, 
+        if (mdl->varOrder(childVar) >= 0) { //post init, just added, 
           postInit = true;
           break;
         }
       }
       if (postInit) {
-        for (JsonObject childVar: var["n"].as<JsonArray>()) {
+        for (JsonObject childVar: mdl->varN(var)) {
           if (childVar["value"].is<JsonArray>())
           {
-            JsonArray valArray = childVar["value"].as<JsonArray>();
+            JsonArray valArray = childVar["value"];
 
-            if (childVar["o"].as<int>() < 0) { //if not updated
+            if (mdl->varOrder(childVar) < 0) { //if not updated
               valArray[rowNr] = (char*)0; //null
               // mdl->setValue(var, -99, rowNr); //set value -99
-              childVar["o"] = -childVar["o"].as<int>(); //make positive again
+              mdl->varOrder(childVar, -mdl->varOrder(childVar)); //make positive again
               //if some values in array are not -99
             }
 
@@ -1217,7 +1217,7 @@ public:
             }
             if (allNull) {
               print->printJson("remove allnulls", childVar);
-              var["n"].as<JsonArray>().remove(childVar);
+              mdl->varN(var).remove(childVar);
             }
           }
 
@@ -1225,15 +1225,15 @@ public:
       }
       
       print->printJson("control", var);
-        // if (var["o"].as<int>() >= 0) { //post init
-        //   var["o"] = -var["o"].as<int>(); //make positive again
+        // if (mdl->varOrder(var) >= 0) { //post init
+        //   var["o"] = -mdl->varOrder(var); //make positive again
         //set unused vars to inactive 
-        // if (var["o"].as<int>() >=0)
+        // if (mdl->varOrder(var) >=0)
         //   mdl->setValue(var, UINT16_MAX, rowNr);
       // }
       // for (JsonObject var: var["n"].as<JsonArray>()) {
-      //   if (var["o"].as<int>() <0)
-      //     var["o"] = -var["o"].as<int>();
+      //   if (mdl->varOrder(var) <0)
+      //     var["o"] = -mdl->varOrder(var);
       // }
       //remove vars with all values -99
 

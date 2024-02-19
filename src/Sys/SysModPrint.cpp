@@ -181,5 +181,5 @@ size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {
 }
 
 void SysModPrint::printJDocInfo(const char * text, JsonDocument source) {
-  print("%s (%u %u %u)\n", text, source.size(), source.overflowed(), source.nesting());
+  print("%s (s:%u o:%u n:%u)\n", text, source.size(), source.overflowed(), source.nesting());
 }

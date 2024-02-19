@@ -44,9 +44,8 @@ public:
         ui->setComment(var, "First channel");
         return true;
       case f_ChangeFun:
-        for (JsonObject childVar: mdl->findVar("e131Tbl")["n"].as<JsonArray>()) {
+        for (JsonObject childVar: mdl->varN("e131Tbl"))
           ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
-        }
         return true;
       default: return false;
     }});

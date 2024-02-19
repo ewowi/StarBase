@@ -141,7 +141,7 @@ public:
     if (max && max != UINT16_MAX) var["max"] = max;
 
     if (parentRowNr != UINT8_MAX) {
-      USER_PRINTF("parentRowNr %s: %d for %s\n", mdl->jsonToChar(parent, "id"), parentRowNr, mdl->jsonToChar(var, "id"));
+      USER_PRINTF("parentRowNr %s: %d for %s\n", mdl->varID(parent), parentRowNr, mdl->varID(var));
     }
 
     bool valueNeedsUpdate = false;
@@ -189,7 +189,7 @@ public:
         }
 
         if (changeFunExists)
-          USER_PRINTF("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->jsonToChar(var, "id"), var["value"].as<String>().c_str());
+          USER_PRINTF("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->varID(var), var["value"].as<String>().c_str());
       }
     }
 
@@ -213,7 +213,7 @@ public:
         if (result) { //send rowNr = 0 if no rowNr
           //only print vars with a value
           if (!var["value"].isNull() && funType != f_ValueFun) {
-            USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->jsonToChar(var, "id"));
+            USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
             if (rowNr != UINT8_MAX)
               USER_PRINTF("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
             else
@@ -222,7 +222,7 @@ public:
         }
       }
       else    
-        USER_PRINTF("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->jsonToChar(var, "id"), funNr, varFunctions.size());
+        USER_PRINTF("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());
     }
 
     //for ro variables, call valueFun to add also the value in responseDoc (as it is not stored in the model)

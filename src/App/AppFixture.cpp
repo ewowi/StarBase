@@ -227,7 +227,10 @@
                   break;
                 }
 
-                if (indexV != UINT16_MAX) { //can be nulled by inverse mapping 
+                if (indexV > leds->nrOfLeds) {
+                  USER_PRINTF("indexV too high %d>=%d (p:%d) p:%d,%d,%d\n", indexV, leds->nrOfLeds, indexP, pixel.x, pixel.y, pixel.z);
+                }
+                else if (indexV != UINT16_MAX) { //can be nulled by inverse mapping 
                   //add physical tables if not present
                   if (indexV >= NUM_LEDS_Max / 2) {
                     USER_PRINTF("dev mapping add physMap %d>=%d/2 (V:%d) too big\n", indexV, NUM_LEDS_Max, leds->mappingTable.size());
@@ -307,20 +310,14 @@
             leds->nrOfLeds = leds->mappingTable.size();
 
             // uint16_t x=0; //indexV
-            // uint16_t y=0;
-            // // for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap) {
-            // for (std::vector<uint16_t>physMap:leds->mappingTable) {
-            //   if (physMap.size()) {
-            //     USER_PRINTF("ledV %d mapping: firstLedP: %d #ledsP: %d", x, physMap[0], physMap.size());
-            //     for (uint16_t indexP:physMap) {
-            //       USER_PRINTF(" %d", indexP);
-            //       y++;
-            //     }
+            // for (std::vector<std::vector<uint16_t>>::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap) {
+            //   if (physMap->size()) {
+            //     USER_PRINTF("ledV %d mapping: firstLedP: %d #ledsP: %d", x, physMap[0], physMap->size());
+            //     for (uint16_t indexP:*physMap) {USER_PRINTF(" %d", indexP);}
             //     USER_PRINTF("\n");
             //   }
-            //   else
-            //     USER_PRINTF("ledV %d no mapping\n", x);
-
+            //   // else
+            //   //   USER_PRINTF("ledV %d no mapping\n", x);
             //   x++;
             // }
           }

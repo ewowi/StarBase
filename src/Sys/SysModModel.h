@@ -158,7 +158,7 @@ public:
   void loop();
   
   //scan all vars in the model and remove vars where var["o"] is negative or positive, if ro then remove ro values
-  void cleanUpModel(JsonArray vars, bool oPos = true, bool ro = false);
+  void cleanUpModel(JsonObject parent = JsonObject(), bool oPos = true, bool ro = false);
 
   //sets the value of var with id
   template <typename Type>
@@ -190,10 +190,10 @@ public:
         if (var["value"].isNull() || var["value"].as<uint32_t>() == UINT16_MAX) {
           var.remove("value");
           if (oldValue.size()>0)
-            USER_PRINTF("dev setValue value removed %s %s\n", jsonToChar(var, "id"), oldValue.c_str()); //old value
+            USER_PRINTF("dev setValue value removed %s %s\n", varID(var), oldValue.c_str()); //old value
         }
         else {
-          USER_PRINTF("setValue changed %s %s -> %s\n", jsonToChar(var, "id"), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
+          USER_PRINTF("setValue changed %s %s -> %s\n", varID(var), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
           web->addResponse(var["id"], "value", var["value"]);
           changed = true;
         }
@@ -203,7 +203,7 @@ public:
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", jsonToChar(var, "id"), rowNr, var["value"].as<String>().c_str());
+        USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", varID(var), rowNr, var["value"].as<String>().c_str());
         // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
         var["value"].to<JsonArray>();
       }
@@ -226,7 +226,7 @@ public:
         }
       }
       else {
-        USER_PRINTF("setValue %s could not create value array\n", jsonToChar(var, "id"));
+        USER_PRINTF("setValue %s could not create value array\n", varID(var));
       }
     }
 
@@ -281,7 +281,7 @@ public:
       else if (valueArray.size())
         return valueArray[0];
       else {
-        USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", jsonToChar(var, "id"), var["value"].as<String>().c_str(), rowNr);
+        USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", varID(var), var["value"].as<String>().c_str(), rowNr);
         return JsonVariant();
       }
     }
@@ -299,12 +299,13 @@ public:
   //run the change function and send response to all? websocket clients
   static void callChangeFun(JsonObject var, uint8_t rowNr = UINT8_MAX);
 
-  const char * jsonToChar(JsonObject var, const char * name) {
-    return var[name].as<const char *>();
-  }
-  // const char * jsonToStringChar(JsonObject var, const char * name) {
-  //   return var[name].as<String>().c_str(); //var["value"].as<String>().c_str()
-  // }
+  //pseudo VarObject: public JsonObject functions
+  const char * varID(JsonObject var) {return var["id"];}
+  bool varRO(JsonObject var) {return var["ro"];}
+  JsonArray varN(const char * id) {return varN(findVar(id));}
+  JsonArray varN(JsonObject var) {return var["n"];}
+  int varOrder(JsonObject var) {return var["o"];}
+  void varOrder(JsonObject var, int value) {var["o"] = value;}
 
 private:
   bool doShowObsolete = false;

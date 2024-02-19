@@ -60,7 +60,12 @@
         "mutex": "cpp",
         "thread": "cpp",
         "variant": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "csignal": "cpp",
+        "forward_list": "cpp",
+        "valarray": "cpp"
     },
     "cmake.configureOnOpen": false
 }

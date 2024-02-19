@@ -72,7 +72,7 @@ public:
         return true;
       case f_AddRow: {
         rowNr = fixture.ledsList.size();
-        USER_PRINTF("chFun addRow %s[%d]\n", mdl->jsonToChar(var, "id"), rowNr);
+        USER_PRINTF("chFun addRow %s[%d]\n", mdl->varID(var), rowNr);
 
         web->getResponseObject()["addRow"]["rowNr"] = rowNr;
 
@@ -81,7 +81,7 @@ public:
         return true;
       }
       case f_DelRow: {
-        USER_PRINTF("chFun delrow %s[%d]\n", mdl->jsonToChar(var, "id"), rowNr);
+        USER_PRINTF("chFun delrow %s[%d]\n", mdl->varID(var), rowNr);
         //tbd: fade to black
         if (rowNr <fixture.ledsList.size()) {
           fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from leds
@@ -251,9 +251,8 @@ public:
 
           // ui->stageVarChanged = true;
           // //rebuild the table
-          for (JsonObject childVar: mdl->findVar("e131Tbl")["n"].as<JsonArray>()) {
-            ui->callVarFun(childVar, UINT8_MAX, f_UIFun);
-          }
+          for (JsonObject childVar: mdl->varN("e131Tbl"))
+            ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
 
       // }
       // else

@@ -71,14 +71,14 @@ void SysModUI::loop() {
       varLoop->loopFun(varLoop->var, 1, f_LoopFun); //rowNr..
 
       varLoop->counter++;
-      // USER_PRINTF("%s %u %u %d %d\n", varLoop->mdl->jsonToChar(var, "id"), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
+      // USER_PRINTF("%s %u %u %d %d\n", varLoop->mdl->varID(var), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
     }
   }
 }
 
 void SysModUI::loop1s() {
   //if something changed in vloops
-  ui->callVarFun("vlLoopps", UINT8_MAX, f_UIFun);
+  ui->callVarFun("vlLoopps", UINT8_MAX, f_ValueFun);
   for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop)
     varLoop->counter = 0;
 }
@@ -121,12 +121,12 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
     //set order. make order negative to check if not obsolete, see cleanUpModel
     if (var["o"] >= 1000) //predefined! (modules)
-      var["o"] = -var["o"].as<int>(); //leave the order as is
+      mdl->varOrder(var, -mdl->varOrder(var)); //leave the order as is
     else {
-      if (parent["o"].as<int>() >= 0) // if checks on the parent already done so vars added later, e.g. controls, will be autochecked
-        var["o"] = varCounter++; //redefine order
+      if (mdl->varOrder(parent) >= 0) // if checks on the parent already done so vars added later, e.g. controls, will be autochecked
+        mdl->varOrder(var, varCounter++); //redefine order
       else
-        var["o"] = -varCounter++; //redefine order
+        mdl->varOrder(var, -varCounter++); //redefine order
     }
 
 
@@ -152,7 +152,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
         loopFunctions.push_back(loop);
         var["loopFun"] = loopFunctions.size()-1;
-        // USER_PRINTF("iObject loopFun %s %u %u %d %d\n", mdl->jsonToChar(var, "id"));
+        // USER_PRINTF("iObject loopFun %s %u %u %d %d\n", mdl->varID(var));
       }
     }
   }
@@ -178,7 +178,7 @@ void SysModUI::processJson(JsonVariant json) {
       // commands
       if (pair.key() == "view" || pair.key() == "canvasData" || pair.key() == "theme") { //save the chosen view in System (see index.js)
         JsonObject var = mdl->findVar("System");
-        USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>().c_str(), var.isNull(), mdl->jsonToChar(var, "id"));
+        USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>().c_str(), var.isNull(), mdl->varID(var));
         var[JsonString(key, JsonString::Copied)] = JsonString(value, JsonString::Copied);
         // json.remove(key); //key should stay as all clients use this to perform the changeHTML action
       }

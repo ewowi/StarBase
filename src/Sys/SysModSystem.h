@@ -17,6 +17,7 @@ class SysModSystem:public SysModule {
 
 public:
   char version[16] = "";
+  char chipInfo[64] = "";
 
   SysModSystem();
   void setup();

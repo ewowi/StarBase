@@ -26,7 +26,7 @@ SysModModel::SysModModel() :SysModule("Model") {
   USER_PRINTF("Reading model from /model.json... (deserializeConfigFromFS)\n");
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     // print->printJson("Read model", *model);
-    web->sendDataWs(*model);
+    // web->sendDataWs(*model);
   } else {
     root = model->to<JsonArray>(); //re create the model as it is corrupted by readFromFile
   }
@@ -62,6 +62,11 @@ void SysModModel::setup() {
     case f_UIFun:
       ui->setLabel(var, "Delete obsolete variables");
       ui->setComment(var, "WIP");
+      return true;
+    case f_ChangeFun:
+      model->to<JsonArray>(); //create
+      if (files->readObjectFromFile("/model.json", model)) {//not part of success...
+      }
       return true;
     default: return false;
   }});
@@ -128,7 +133,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
       //remove ro values (ro vars cannot be deleted as SM uses these vars)
       // remove if var is ro or table of var is ro (ro table can have non ro vars e.g. instance table)
       if (ro && ((parent["type"] == "table" && varRO(parent)) || varRO(var))) {// && !var["value"].isNull())
-      // if (ro && var["ro"].as<bool>()) {// && !var["value"].isNull())
+      // if (ro && varRO(var)) {// && !var["value"].isNull())
         USER_PRINTF("remove ro value %s\n", varID(var));          
         var.remove("value");
       }

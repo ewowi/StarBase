@@ -20,53 +20,6 @@ uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 unsigned long call = 0; //not used at the moment (don't use in effect calculations)
 unsigned long now = millis();
 
-//StarMod implementation of segment.data
-class SharedData {
-  private:
-    byte *data;
-    uint16_t index = 0;
-    uint16_t bytesAllocated = 0;
-
-  public:
-  SharedData() {
-    bytesAllocated = 1024;
-    data = (byte*) malloc(bytesAllocated); //start with 100 bytes
-  }
-
-  void clear() {
-    memset(data, 0, bytesAllocated);
-  }
-
-  void allocate(size_t size) {
-    index = 0;
-    if (size > bytesAllocated) {
-      USER_PRINTF("realloc %d %d %d\n", index, size, bytesAllocated);
-      data = (byte*)realloc(data, size);
-      bytesAllocated = size;
-    }
-  }
-
-  template <typename Type>
-  Type* bind(int length = 1) {
-    Type* returnValue = reinterpret_cast<Type*>(data + index);
-    index += length * sizeof(Type); //add consumed amount of bytes, index is next byte which will be pointed to
-    if (index > bytesAllocated) {
-      USER_PRINTF("bind too big %d %d\n", index, bytesAllocated);
-      return nullptr;
-    }
-    return returnValue;
-  }
-
-  bool allocated() {
-    if (index>bytesAllocated) {
-      USER_PRINTF("not all variables bound %d %d\n", index, bytesAllocated);
-      return false;
-    }
-    return true;
-  }
-
-} sharedData;
-
 //should not contain variables/bytes to keep mem as small as possible!!
 class Effect {
 public:
@@ -466,14 +419,14 @@ public:
     uint8_t legs = mdl->getValue("Legs", leds.rowNr);
     CRGBPalette16 pal = getPalette(leds.rowNr);
 
-    sharedData.allocate(sizeof(map_t) * leds.size.x * leds.size.y + 2 * sizeof(uint8_t) + 2 * sizeof(uint16_t) + sizeof(uint32_t));
-    map_t *rMap = sharedData.bind<map_t>(leds.size.x * leds.size.y); //array
-    uint8_t *offsX = sharedData.bind<uint8_t>();
-    uint8_t *offsY = sharedData.bind<uint8_t>();
-    uint16_t *aux0 = sharedData.bind<uint16_t>();
-    uint16_t *aux1 = sharedData.bind<uint16_t>();
-    uint32_t *step = sharedData.bind<uint32_t>();
-    if (!sharedData.allocated()) return;
+    leds.sharedData.allocate(sizeof(map_t) * leds.size.x * leds.size.y + 2 * sizeof(uint8_t) + 2 * sizeof(uint16_t) + sizeof(uint32_t));
+    map_t *rMap = leds.sharedData.bind<map_t>(leds.size.x * leds.size.y); //array
+    uint8_t *offsX = leds.sharedData.bind<uint8_t>();
+    uint8_t *offsY = leds.sharedData.bind<uint8_t>();
+    uint16_t *aux0 = leds.sharedData.bind<uint16_t>();
+    uint16_t *aux1 = leds.sharedData.bind<uint16_t>();
+    uint32_t *step = leds.sharedData.bind<uint32_t>();
+    if (!leds.sharedData.allocated()) return;
 
     Coord3D pos = {0,0,0};
 
@@ -590,9 +543,9 @@ public:
     uint8_t numBalls = mdl->getValue("balls", leds.rowNr);
     CRGBPalette16 pal = getPalette(leds.rowNr);
 
-    sharedData.allocate(sizeof(Ball) * maxNumBalls);
-    Ball *balls = sharedData.bind<Ball>(maxNumBalls); //array
-    if (!sharedData.allocated()) return;
+    leds.sharedData.allocate(sizeof(Ball) * maxNumBalls);
+    Ball *balls = leds.sharedData.bind<Ball>(maxNumBalls); //array
+    if (!leds.sharedData.allocated()) return;
 
     leds.fill_solid(CRGB::Black);
 
@@ -667,9 +620,9 @@ public:
   }
 
   void loop(Leds &leds) {
-    sharedData.allocate(sizeof(uint8_t) * leds.nrOfLeds);
-    uint8_t *hue = sharedData.bind<uint8_t>(leds.nrOfLeds); //array
-    if (!sharedData.allocated()) return;
+    leds.sharedData.allocate(sizeof(uint8_t) * leds.nrOfLeds);
+    uint8_t *hue = leds.sharedData.bind<uint8_t>(leds.nrOfLeds); //array
+    if (!leds.sharedData.allocated()) return;
 
     hue[0] = random(0, 255);
     for (int r = 0; r < leds.nrOfLeds; r++) {
@@ -789,9 +742,9 @@ public:
     uint8_t intensity = mdl->getValue("intensity", leds.rowNr);
     bool useaudio = mdl->getValue("useaudio", leds.rowNr);
 
-    sharedData.allocate(sizeof(Spark) * maxNumPopcorn);
-    Spark *popcorn = sharedData.bind<Spark>(maxNumPopcorn); //array
-    if (!sharedData.allocated()) return;
+    leds.sharedData.allocate(sizeof(Spark) * maxNumPopcorn);
+    Spark *popcorn = leds.sharedData.bind<Spark>(maxNumPopcorn); //array
+    if (!leds.sharedData.allocated()) return;
 
     float gravity = -0.0001 - (speed/200000.0); // m/s/s
     gravity *= leds.nrOfLeds;
@@ -866,10 +819,10 @@ public:
   }
 
   void loop(Leds &leds) {
-    sharedData.allocate(sizeof(uint16_t) * leds.size.x + sizeof(uint32_t));
-    uint16_t *previousBarHeight = sharedData.bind<uint16_t>(leds.size.x); //array
-    uint32_t *step = sharedData.bind<uint32_t>();
-    if (!sharedData.allocated()) return;
+    leds.sharedData.allocate(sizeof(uint16_t) * leds.size.x + sizeof(uint32_t));
+    uint16_t *previousBarHeight = leds.sharedData.bind<uint16_t>(leds.size.x); //array
+    uint32_t *step = leds.sharedData.bind<uint32_t>();
+    if (!leds.sharedData.allocated()) return;
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
 
@@ -1029,9 +982,9 @@ public:
   }
 
   void loop(Leds &leds) {
-    sharedData.allocate(sizeof(uint8_t));
-    uint8_t *aux0 = sharedData.bind<uint8_t>();
-    if (!sharedData.allocated()) return;
+    leds.sharedData.allocate(sizeof(uint8_t));
+    uint8_t *aux0 = leds.sharedData.bind<uint8_t>();
+    if (!leds.sharedData.allocated()) return;
 
     uint8_t speed = mdl->getValue("speed", leds.rowNr);
     uint8_t fx = mdl->getValue("Sound effect", leds.rowNr);
@@ -1171,7 +1124,7 @@ public:
 
     if (leds.fx < effects.size()) {
 
-      sharedData.clear(); //make sure all values are 0
+      leds.sharedData.clear(); //make sure all values are 0
 
       for (JsonObject var: var["n"].as<JsonArray>()) { //for all controls
         if (mdl->varOrder(var) >= 0) { //post init

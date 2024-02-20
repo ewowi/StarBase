@@ -13,6 +13,7 @@
 #include "SysModule.h"
 #include "SysModPrint.h"
 #include "SysModWeb.h"
+#include "SysModules.h" //isConnected
 
 typedef std::function<void(JsonObject)> FindFun;
 typedef std::function<void(JsonObject, size_t)> ChangeFun;
@@ -175,14 +176,22 @@ public:
 
   template <typename Type>
   JsonObject setValue(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
-    // print->printJson("setValueB", var);
-    bool changed = false;
-    if (var["ro"].as<bool>()) {
+    if (varRO(var)) {
       // print->printJson("setValue ro to ws", web->getResponseObject());
       web->addResponse(var["id"], "value", value, rowNr);
-      changed = true;
+      callChangeFun(var, rowNr); //always call change fun, if present
+      return var;
     }
-    else if (rowNr == UINT8_MAX) { //normal situation
+    else
+      return setValueNoROCheck(var, value, rowNr);
+  }
+
+  template <typename Type>
+  JsonObject setValueNoROCheck(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
+
+    bool changed = false;
+
+    if (rowNr == UINT8_MAX) { //normal situation
       if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
         JsonString oldValue = JsonString(var["value"], JsonString::Copied);
         var["value"] = value;
@@ -259,8 +268,6 @@ public:
     va_end(args);
 
     web->addResponse(id, "value", JsonString(value, JsonString::Copied));
-
-    web->sendResponseObject();
   }
 
   JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {

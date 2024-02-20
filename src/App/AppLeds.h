@@ -31,6 +31,56 @@
 
 class Fixture; //forward
 
+
+//StarMod implementation of segment.data
+class SharedData {
+  private:
+    byte *data;
+    uint16_t index = 0;
+    uint16_t bytesAllocated = 0;
+
+  public:
+  SharedData() {
+    bytesAllocated = 1024;
+    data = (byte*) malloc(bytesAllocated); //start with 100 bytes
+  }
+
+  void clear() {
+    memset(data, 0, bytesAllocated);
+  }
+
+  void allocate(size_t size) {
+    index = 0;
+    if (size > bytesAllocated) {
+      USER_PRINTF("realloc %d %d %d\n", index, size, bytesAllocated);
+      data = (byte*)realloc(data, size);
+      bytesAllocated = size;
+    }
+  }
+
+  template <typename Type>
+  Type* bind(int length = 1) {
+    Type* returnValue = reinterpret_cast<Type*>(data + index);
+    index += length * sizeof(Type); //add consumed amount of bytes, index is next byte which will be pointed to
+    if (index > bytesAllocated) {
+      USER_PRINTF("bind too big %d %d\n", index, bytesAllocated);
+      return nullptr;
+    }
+    return returnValue;
+  }
+
+  bool allocated() {
+    if (index>bytesAllocated) {
+      USER_PRINTF("not all variables bound %d %d\n", index, bytesAllocated);
+      return false;
+    }
+    return true;
+  }
+
+};
+
+
+
 class Leds {
 
 public:
@@ -47,6 +97,8 @@ public:
   uint8_t projectionNr = -1;
   uint8_t effectDimension = -1;
   Coord3D startPos = {0,0,0}, endPos = {7,7,0}; //default
+
+  SharedData sharedData;
 
   std::vector<std::vector<uint16_t>> mappingTable;
 

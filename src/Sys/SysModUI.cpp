@@ -101,26 +101,26 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       JsonArray vars = mdl->model->as<JsonArray>();
       var = vars.add<JsonObject>();
     } else {
-      if (parent["n"].isNull()) parent["n"].to<JsonArray>(); //if parent exist and no "n" array, create it
+      if (parent["n"].isNull()) parent["n"].to<JsonArray>(); //TO!!! if parent exist and no "n" array, create it
       var = parent["n"].add<JsonObject>();
       // serializeJson(model, Serial);Serial.println();
     }
-    var["id"] = JsonString(id, JsonString::Copied);
+    var["id"] = (char *)id; //JsonString(id, JsonString::Copied);
   }
   // else {
   //   USER_PRINTF("initVar Var %s->%s already defined\n", modelParentId, id);
   // }
 
   if (!var.isNull()) {
-    if (var["type"].isNull() || strcmp(var["type"].as<const char *>(),  type) != 0 ) {
-      var["type"] = JsonString(type, JsonString::Copied);
+    if (var["type"].isNull() || var["type"] != type) {
+      var["type"] = (char *)type;//JsonString(type, JsonString::Copied);
       print->printJson("initVar set type", var);
     }
 
     if (var["ro"] != readOnly) var["ro"] = readOnly;
 
     //set order. make order negative to check if not obsolete, see cleanUpModel
-    if (var["o"] >= 1000) //predefined! (modules)
+    if (mdl->varOrder(var) >= 1000) //predefined! (modules)
       mdl->varOrder(var, -mdl->varOrder(var)); //leave the order as is
     else {
       if (mdl->varOrder(parent) >= 0) // if checks on the parent already done so vars added later, e.g. controls, will be autochecked
@@ -189,7 +189,7 @@ void SysModUI::processJson(JsonVariant json) {
           USER_PRINTF("processJson %s - %s\n", key, value.as<String>().c_str());
 
           if (callVarFun(var, command["rowNr"], pair.key() == "addRow"?f_AddRow:f_DelRow))
-            web->sendResponseObject();
+            web->sendResponseObject(); //async response
         }
         json.remove(key); //key processed we don't need the key in the response
       }

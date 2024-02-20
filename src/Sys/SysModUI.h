@@ -13,6 +13,7 @@
 #include "SysModule.h"
 #include "SysModPrint.h"
 #include "SysModModel.h"
+#include "SysModules.h" //isConnected
 
 enum FunIDs
 {
@@ -165,14 +166,12 @@ public:
       if (varFun) {
         valueFunExists = varFun(var, parentRowNr, f_ValueFun);
       }
-      if (!valueFunExists) {
-        if (var["ro"].as<bool>())
-          USER_PRINTF("initVarAndUpdate %s is ro, no setValue\n", id);
-        else
-          mdl->setValue(var, value, parentRowNr); //does changefun if needed, if var in table, update the table row, tbd: check ro vars...
+      if (!valueFunExists) { //setValue provided (if not null)
+        if (mdl->varRO(var) && !mdls->isConnected) {
+          mdl->setValueNoROCheck(var, value, parentRowNr); //does changefun if needed, if var in table, update the table row
+        } else
+          mdl->setValue(var, value, parentRowNr); //does changefun if needed, if var in table, update the table row
       }
-      else
-        USER_PRINTF("initVarAndUpdate %s valueFun prn:%d of %d\n", id, parentRowNr);
     }
     else { //do changeFun on existing value
       //no call of chFun for buttons otherwise all buttons will be fired which is highly undesirable
@@ -193,6 +192,9 @@ public:
       }
     }
 
+    if (parentRowNr != UINT8_MAX)
+      print->printJson("gravity var", web->getResponseObject());
+
     return var;
   }
 
@@ -210,23 +212,23 @@ public:
       size_t funNr = var["fun"];
       if (funNr < varFunctions.size()) {
         result = varFunctions[funNr](var, rowNr, funType);
-        if (result) { //send rowNr = 0 if no rowNr
-          //only print vars with a value
-          if (!var["value"].isNull() && funType != f_ValueFun) {
-            USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
-            if (rowNr != UINT8_MAX)
-              USER_PRINTF("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
-            else
-              USER_PRINTF(" = %s\n", var["value"].as<String>().c_str());
-          }
-        }
+        // if (result) { //send rowNr = 0 if no rowNr
+        //   //only print vars with a value
+        //   if (!var["value"].isNull() && funType != f_ValueFun) {
+        //     USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
+        //     if (rowNr != UINT8_MAX)
+        //       USER_PRINTF("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
+        //     else
+        //       USER_PRINTF(" = %s\n", var["value"].as<String>().c_str());
+        //   }
+        // }
       }
       else    
         USER_PRINTF("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());
     }
 
     //for ro variables, call valueFun to add also the value in responseDoc (as it is not stored in the model)
-    if (funType == f_UIFun && var["ro"].as<bool>()) {
+    if (funType == f_UIFun && mdl->varRO(var)) {
       callVarFun(var, rowNr, f_ValueFun);
     }
 

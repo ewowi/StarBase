@@ -58,7 +58,8 @@ void SysModSystem::setup() {
 
   ui->initText(parentVar, "loops", nullptr, 16, true);
 
-  ui->initText(parentVar, "chip", nullptr, 16, true);
+  print->fFormat(chipInfo, sizeof(chipInfo)-1, "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
+  ui->initText(parentVar, "chip", chipInfo, 16, true);
 
   ui->initProgress(parentVar, "heap", UINT16_MAX, 0, ESP.getHeapSize()/1000, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
@@ -95,9 +96,6 @@ void SysModSystem::setup() {
   }});
 
   ui->initSelect(parentVar, "reset0", (int)rtc_get_reset_reason(0), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-      mdl->setValue(var, rtc_get_reset_reason(0));
-      return true;
     case f_UIFun:
       ui->setLabel(var, "Reset 0");
       ui->setComment(var, "Reason Core 0");
@@ -108,9 +106,6 @@ void SysModSystem::setup() {
 
   if (ESP.getChipCores() > 1)
     ui->initSelect(parentVar, "reset1", (int)rtc_get_reset_reason(1), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_ValueFun:
-        mdl->setValue(var, rtc_get_reset_reason(1));
-        return true;
       case f_UIFun:
         ui->setLabel(var, "Reset 1");
         ui->setComment(var, "Reason Core 1");
@@ -120,9 +115,6 @@ void SysModSystem::setup() {
     }});
 
   ui->initSelect(parentVar, "restartReason", (int)esp_reset_reason(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-      mdl->setValue(var, esp_reset_reason());
-      return true;
     case f_UIFun:
       ui->setLabel(var, "Restart");
       ui->setComment(var, "Reason restart");
@@ -142,7 +134,7 @@ void SysModSystem::setup() {
 
   USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
-  ui->initText(parentVar, "version", nullptr, 16, true);
+  ui->initText(parentVar, "version", version, 16, true);
   // ui->initText(parentVar, "date", __DATE__, 16, true);
   // ui->initText(parentVar, "time", __TIME__, 16, true);
 
@@ -177,10 +169,6 @@ void SysModSystem::loop1s() {
   loopCounter = 0;
 }
 void SysModSystem::loop10s() {
-  mdl->setValue("version", JsonString(version)); //make sure ui shows the right version !!!never do this in uiFun as it interupts with uiFun sendDataWS!!
-
-  mdl->setUIValueV("chip", "%s %s c#:%d %d mHz f:%d KB %d mHz %d", ESP.getChipModel(), ESP.getSdkVersion(), ESP.getChipCores(), ESP.getCpuFreqMHz(), ESP.getFlashChipSize()/1024, ESP.getFlashChipSpeed()/1000000, ESP.getFlashChipMode());
-
   ui->callVarFun(mdl->findVar("heap"));
   ui->callVarFun(mdl->findVar("stack"));
 

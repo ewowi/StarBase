@@ -290,7 +290,9 @@ public:
           // USER_PRINTF("initVar stage %s[%d]\n", mdl->varID(insVar), rowNr);
           for (uint8_t rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++) {
             //do what setValue is doing except calling changeFun
-            insVar["value"][rowNrL] = instances[rowNrL].app.getVar(mdl->varID(var)); //only int values...
+            // insVar["value"][rowNrL] = instances[rowNrL].app.getVar(mdl->varID(var)); //only int values...
+            web->addResponse(insVar["id"], "value", instances[rowNrL].app.getVar(mdl->varID(var)), rowNrL); //only int values...);
+
             // mdl->setValue(insVar, instances[rowNr].app.getVar(var["id"]), rowNr);
           //send to ws?
           }
@@ -444,7 +446,7 @@ public:
 
         USER_PRINTF("insTbl handleNotifications %d\n", remoteIp[3]);
         for (JsonObject childVar: mdl->varN("insTbl"))
-          ui->callVarFun(childVar, instance - instances.begin(), f_ValueFun); //rowNr
+          ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //rowNr //instance - instances.begin()
 
         return;
       }
@@ -656,7 +658,7 @@ public:
           // USER_PRINTF("updateNode updRow[%d] %s\n", instance - instances.begin(), instances[instance - instances.begin()].name);
 
           for (JsonObject childVar: mdl->varN("insTbl"))
-            ui->callVarFun(childVar, instance - instances.begin(), f_ValueFun); //rowNr
+            ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //rowNr instance - instances.begin()
 
           //tbd: now done for all rows, should be done only for updated rows!
         }

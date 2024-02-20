@@ -138,12 +138,7 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_ValueFun:
-      mdl->setValue(var, WS_MAX_QUEUED_MESSAGES);
-      return true;
-    default: return false;
-  }});
+  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
 }
 
 void SysModWeb::loop() {
@@ -173,6 +168,8 @@ void SysModWeb::loop1s() {
 
   mdl->setUIValueV("wsCounter", "%lu /s", sendDataWsCounter);
   sendDataWsCounter = 0;
+
+  sendResponseObject(); //this sends all the loopTask responses once per second !!!
 }
 
 void SysModWeb::reboot() {
@@ -283,10 +280,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
             ui->processJson(responseObject); //adds to responseDoc / responseObject
 
             if (responseObject.size()) {
-              print->printJson("WS_EVT_DATA json", responseObject);
-              print->printJDocInfo("WS_EVT_DATA info", *responseDoc);
-
-              web->sendResponseObject(isUiFun?client:nullptr); //uiFun only send to requesting client
+              web->sendResponseObject(isUiFun?client:nullptr); //uiFun only send to requesting client async response
             }
             else {
               USER_PRINT_Async("WS_EVT_DATA no responseDoc\n");
@@ -572,11 +566,12 @@ JsonObject SysModWeb::getResponseObject() {
 void SysModWeb::sendResponseObject(WebClient * client) {
   JsonObject responseObject = getResponseObject();
   if (responseObject.size()) {
+    if (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0) {
+      print->printJson("sendResponseObject", responseObject);
+      print->printJDocInfo("  info", responseObject);
+    }
     web->sendDataWs(responseObject, client);
-    getResponseDoc()->clear();
     getResponseDoc()->to<JsonObject>(); //recreate!
-    // print->printJson("sendResponseObject cleared", responseObject);
-    // print->printJDocInfo("sendResponseObject info", responseObject);
   }
 }
 

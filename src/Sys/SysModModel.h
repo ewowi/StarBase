@@ -88,6 +88,13 @@ struct Coord3D {
     return Coord3D{uint16_t(x / rhs), uint16_t(y / rhs), uint16_t(z / rhs)};
     // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
+  //move the coordinate one step closer to the goal, if difference in coordinates (used in GenFix)
+  Coord3D advance(Coord3D goal) {
+    if (x != goal.x) x += (x<goal.x)?1:-1;
+    if (y != goal.y) y += (y<goal.y)?1:-1;
+    if (z != goal.z) z += (z<goal.z)?1:-1;
+    return *this;
+  }
 };
 
 //used to sort keys of jsonobjects
@@ -115,7 +122,6 @@ namespace ArduinoJson {
     }
 
     static bool checkJson(JsonVariantConst src) {
-      USER_PRINTF("Coord3D checkJson %s\n", src.as<String>().c_str());
       return src["x"].is<uint16_t>() && src["y"].is<uint16_t>() && src["z"].is<uint16_t>();
     }
   };

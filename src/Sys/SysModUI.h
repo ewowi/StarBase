@@ -215,6 +215,7 @@ public:
         // if (result) { //send rowNr = 0 if no rowNr
         //   //only print vars with a value
         //   if (!var["value"].isNull() && funType != f_ValueFun) {
+          // if (var["id"] == "fixFirst") {
         //     USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
         //     if (rowNr != UINT8_MAX)
         //       USER_PRINTF("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
@@ -249,6 +250,14 @@ public:
   }
   JsonArray setOptions(JsonObject var) {
     return web->addResponseA(var["id"], "options");
+  }
+  //return the options from valueFun (don't forget to clear responseObject)
+  JsonArray getOptions(JsonObject var) {
+    callVarFun(var, UINT8_MAX, f_UIFun); //tricky: fills the options table
+    return web->getResponseObject()[mdl->varID(var)]["options"];
+  }
+  void clearOptions(JsonObject var) {
+    web->getResponseObject().remove(mdl->varID(var));
   }
 
 private:

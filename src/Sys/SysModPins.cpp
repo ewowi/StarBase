@@ -39,12 +39,9 @@ void SysModPins::setup() {
 
   //show table of allocated pins
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    case f_UIFun:
-    {
-      ui->setLabel(var, "Pins");
-      ui->setComment(var, "List of pins");
-      return true;
-    }
+    case f_UIFun: {
+      ui->setLabel(var, "Allocated Pins");
+      return true; }
     default: return false;
   }});
 

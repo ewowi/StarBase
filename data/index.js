@@ -194,7 +194,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       if (variable.type != "button" && !["appmod","usermod", "sysmod"].includes(variable.type)) divNode.appendChild(labelNode); //add label (tbd:must be done by childs n table cell)
     }
 
-    if (["appmod","usermod", "sysmod"].includes(variable.type)) { //if module
+    if (["appmod", "usermod", "sysmod"].includes(variable.type)) { //if module
       ndivNeeded = false;
 
       varNode = cE("div");
@@ -334,11 +334,8 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       rangeValueNode = cE("span");
       rangeValueNode.id = rvNode; //rangeValue
     } else if (variable.type == "coord3D") {
-      if (variable.ro) { //e.g. for reset/restart reason: do not show a select but only show the selected option
-        varNode = cE("span");
-      }
-      else {
-        varNode = cE("div");
+      varNode = cE("span");
+      if (!variable.ro) { //e.g. for reset/restart reason: do not show a select but only show the selected option
         let xNode = cE("input");
         xNode.type = "number";
         xNode.min = variable.min?variable.min:0; //if not specified then unsigned value (min=0)
@@ -346,7 +343,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
         xNode.placeholder = "x";
         xNode.min = variable.min?variable.min:0; //if not specified then unsigned value (min=0)
         if (variable.max) xNode.max = variable.max;
-       xNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
+        xNode.addEventListener('change', (event) => {console.log(variable.type + " change", event.target.parentNode);sendValue(event.target.parentNode);});
         varNode.appendChild(xNode);
 
         let yNode = xNode.cloneNode();
@@ -405,7 +402,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     // if (buttonCancelNode) divNode.appendChild(buttonCancelNode);
     
     //disable drag of parent module
-    if (["appmod","usermod", "sysmod"].includes(variable.type)) {
+    if (["appmod", "usermod", "sysmod"].includes(variable.type)) {
       varNode.draggable = true;
       varNode.addEventListener('dragstart', (event) => {event.preventDefault(); event.stopPropagation();});
     }
@@ -449,7 +446,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
 function genTableRowHTML(json, parentNode = null, rowNr = UINT8_MAX) {
   let variable = json;
   let tbodyNode = parentNode.querySelector("tbody");
-  // console.log("genTableRowHTML", parentNode.id, rowNr, tbodyNode.querySelectorAll("tr").length);
+  // console.log("genTableRowHTML", variable, parentNode.id, rowNr, tbodyNode.querySelectorAll("tr").length);
 
   //create a new row on the table
   let trNode = cE("tr");
@@ -517,13 +514,16 @@ function receiveData(json) {
         console.log("receiveData details", key, variable, nodeId, rowNr);
         if (gId(nodeId + "_n")) gId(nodeId + "_n").remove(); //remove old ndiv
 
+        let modelVar = findVar(variable.id);
+        modelVar.n = variable.n;
+
         //create new ndiv
-        if (variable.n) {
+        if (modelVar.n) {
           let ndivNode = cE("div");
           ndivNode.id = nodeId + "_n";
           ndivNode.className = "ndiv";
           gId(nodeId).parentNode.appendChild(ndivNode);
-          createHTML(variable.n, ndivNode, rowNr);
+          createHTML(modelVar.n, ndivNode, rowNr);
         }
         flushUIFunCommands(); //make sure uiFuns of new elements are called
       }
@@ -578,8 +578,7 @@ function receiveData(json) {
         let variable = findVar(key);
 
         if (variable) {
-          // if (variable.id == "vlLoopps" || variable.id == "flName" || variable.id == "insName")
-          // if (Array.isArray(variable.value))
+          // if (variable.id == "fixFirst" || variable.id == "fixRowEnd" || variable.id == "fixColEnd")
           //   console.log("receiveData ", variable, value);
           variable.fun = -2; // request processed
 
@@ -796,38 +795,6 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
       }
       // node.checked = commandJson.value;
     } 
-    else if (nodeType == "span") { //read only vars
-      if (node.className == "select") {
-        var index = 0;
-        if (variable.options && commandJson.value != null) { // not always the case e.g. data / table / uiFun. Then value set if uiFun returns
-          for (var value of variable.options) {
-            if (parseInt(commandJson.value) == index) {
-              // console.log("changeHTML select1", value, node, node.textContent, index);
-              node.textContent = value; //replace the id by its value
-              // console.log("changeHTML select2", value, node, node.textContent, index);
-            }
-            index++;
-          }
-        } else
-          node.textContent = commandJson.value;
-      }
-      else if (node.className == "coord3D") {
-        if (commandJson.value && Object.keys(commandJson.value)) { //tbd: support arrays (now only objects)
-          let sep = "";
-          node.textContent = "";
-          for (let key of Object.keys(commandJson.value)) {
-            node.textContent += sep + commandJson.value[key];
-            sep = ",";
-          }
-        }
-        else 
-          console.log("   value coord3D value not object[x,y,z]", commandJson.value);
-      }
-      else { //text and numbers read only
-        // console.log("changeHTML value span not select", variable, node, commandJson, rowNr);
-        node.textContent = commandJson.value;
-      }
-    }
     else if (node.className == "url") { //url links
       node.innerText = "🔍";
       node.setAttribute('href', commandJson.value);
@@ -845,22 +812,59 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
       // console.log("chHTML value coord3D", node, commandJson.value, rowNr);
 
       if (commandJson.value && Object.keys(commandJson.value)) { //tbd: support arrays (now only objects)
-        let index = 0;
-        for (let key of Object.keys(commandJson.value)) {
-          let childNode = node.childNodes[index++];
-          childNode.value = commandJson.value[key];
-          childNode.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
+        if (variable.ro) {
+          let sep = "";
+          node.textContent = "";
+          for (let key of Object.keys(commandJson.value)) {
+            node.textContent += sep + commandJson.value[key];
+            sep = ",";
+          }
+        }
+        else {
+          let index = 0;
+          for (let key of Object.keys(commandJson.value)) {
+            let childNode = node.childNodes[index++];
+            childNode.value = commandJson.value[key];
+            childNode.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
+          }
         }
       }
       else 
-        console.log("   value coord3D value not object[x,y,z]", commandJson.value);
+        console.log("   value coord3D value not object[x,y,z]", variable.id, node.id, commandJson.value);
     }
-    else {//inputs or select
-      if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX)
-        node.value = commandJson.value[rowNr];
-      else
-        node.value = commandJson.value;
-      node.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
+    else if (node.className == "select") {
+      if (variable.ro) {
+        var index = 0;
+        if (variable.options && commandJson.value != null) { // not always the case e.g. data / table / uiFun. Then value set if uiFun returns
+          for (var value of variable.options) {
+            if (parseInt(commandJson.value) == index) {
+              // console.log("changeHTML select1", value, node, node.textContent, index);
+              node.textContent = value; //replace the id by its value
+              // console.log("changeHTML select2", value, node, node.textContent, index);
+            }
+            index++;
+          }
+        } else
+          node.textContent = commandJson.value;
+      }
+      else {
+        if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX)
+          node.value = commandJson.value[rowNr];
+        else
+          node.value = commandJson.value;
+      }
+    }
+    else {//inputs and progress type
+      if (variable.ro && nodeType == "span") { //text and numbers read only
+        // console.log("changeHTML value span not select", variable, node, commandJson, rowNr);
+        node.textContent = commandJson.value;
+      } else {
+        if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX)
+          node.value = commandJson.value[rowNr];
+        else
+          node.value = commandJson.value;
+        node.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
+      }
 
       //'hack' show the serverName on top of the page
       if (variable.id == "serverName") {
@@ -892,15 +896,24 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
     else if ((variable.value == null || Array.isArray(variable.value)) && !Array.isArray(commandJson.value)) {
       //after changeHTML value array
       if (variable.value == null) variable.value = [];
-      if (variable.value[rowNr] != commandJson.value) {
-        variable.value[rowNr] = commandJson.value;
+      if (rowNr == UINT8_MAX) {
+        if (variable.value != commandJson.value) {
+          variable.value = commandJson.value;
+        }
+      } else {
+        if (variable.value[rowNr] != commandJson.value) {
+          variable.value[rowNr] = commandJson.value;
+        }
       }
     }
     else if (!Array.isArray(variable.value) && !Array.isArray(commandJson.value) && rowNr != UINT8_MAX) {
       if (variable.value != commandJson.value) {
         console.log("chHTML column with one value for all rows", variable.id, node.id, variable.value, commandJson.value, rowNr);
-        variable.value = commandJson.value;
+        variable.value = commandJson.value; //turn variable into array
       }
+    }
+    else if (!Array.isArray(variable.value) && Array.isArray(commandJson.value) && rowNr == UINT8_MAX) {
+      variable.value = commandJson.value; //the value turns into an array (e.g. fixtureGen parameters will become columns in panel mode)
     }
     else
       console.log("chHTML value unknown", variable.id, node.id, variable.value, commandJson.value, rowNr);
@@ -1013,8 +1026,6 @@ function sendValue(varNode) {
   command[varId] = {};
   if (varNode.className == "checkbox")
     command[varId].value = varNode.querySelector("input").checked;
-  else if (varNode.nodeName.toLocaleLowerCase() == "span")
-    command[varId].value = varNode.innerText;
   else if (varNode.className == "button") {
     // don't send the value as that is just the label
   }
@@ -1026,6 +1037,8 @@ function sendValue(varNode) {
     console.log("coord", coord);
     command[varId].value = coord;
   }
+  else if (varNode.nodeName.toLocaleLowerCase() == "span")
+    command[varId].value = varNode.innerText;
   else //number etc
     //https://stackoverflow.com/questions/175739/how-can-i-check-if-a-string-is-a-valid-number
     command[varId].value = isNaN(varNode.value)?varNode.value:parseFloat(varNode.value); //type number is default but html converts numbers in <option> to string, float to remove the quotes from all type of numbers

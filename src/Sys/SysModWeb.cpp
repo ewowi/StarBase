@@ -515,21 +515,24 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
 
   print->printJson("jsonHandler", json);
 
+  JsonObject responseObject = web->getResponseObject();
+
+  ui->processJson(json);
+
   //WLED compatibility
   if (json["v"]) { //WLED compatibility: verbose response
-    serveJson (request);
+    serveJson (request); //includes values just updated by processJson e.g. Bri
   }
   else {
-    JsonObject responseObject = web->getResponseObject();
   
-    ui->processJson(json);
-
     if (responseObject.size()) { //responseObject set by processJson e.g. uiFun
 
       char resStr[200];
       serializeJson(responseObject, resStr, 200);
       USER_PRINT_Async("processJsonUrl response %s\n", resStr);
       request->send(200, "application/json", resStr);
+
+      web->sendResponseObject();
     }
     else
       // request->send(200, "text/plain", "OK");

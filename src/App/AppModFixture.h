@@ -30,7 +30,7 @@ public:
     currentVar["stage"] = true;
 
     //logarithmic slider (10)
-    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "Brightness");
         return true;
@@ -42,11 +42,10 @@ public:
         FastLED.setBrightness(result);
 
         USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
-        return true;
-      }
+        return true; }
       default: return false; 
     }});
-    currentVar["log"] = true; //logarithmic: not needed when using FastLED setCorrection
+    currentVar["log"] = true; //logarithmic
     currentVar["stage"] = true; //these values override model.json???
 
     ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
@@ -87,7 +86,7 @@ public:
       {
         ui->setComment(var, "Fixture to display effect on");
         JsonArray options = ui->setOptions(var);
-        files->dirToJson(options, true, "D"); //only files containing D (1D,2D,3D), alphabetically, only looking for D not very destinctive though
+        files->dirToJson(options, true, "F_"); //only files containing F(ixture), alphabetically
 
         // ui needs to load the file also initially
         char fileName[32] = "";

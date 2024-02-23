@@ -11,53 +11,42 @@
 
 #include "SysModule.h"
 
+//GenFix: class to provide fixture write functions and save to json file
+// {
+//   "name": "F_Hexagon",
+//   "nrOfLeds": 216,
+//   "width": 6554,
+//   "height": 6554,
+//   "depth": 1,
+//   "outputs": [{"pin": 2,"leds": [[720,360,0],[1073,1066,0]]}], {"pin": 3,"leds": [[720,360,0],[1073,1066,0]]}]
+// }
 class GenFix {
 
 public:
   char name[32] = "";
 
-  uint16_t distance = 1; //cm, not used yet (to display multiple fixture, also from other devices)
-
-  uint8_t pinNr = 0;
-  uint8_t pinList[9] = {255,255,255,255,255,255,255,255,255};
-  uint8_t nrOfPins = 0;
+  // uint16_t distance = 1; //cm, not used yet (to display multiple fixture, also from other devices)
 
   char pinSep[2]="";
   char pixelSep[2]="";
 
-  uint16_t width=0, height=0, depth=0, nrOfLeds=0;
-
+  Coord3D fixSize = {0,0,0};
+  uint16_t nrOfLeds=0;
+  
   File f;
 
   GenFix() {
-    USER_PRINTF("GenFix construct\n");
-    if (!mdl->getValue("pinList").isNull()) {
-      USER_PRINTF( "pinlist %s\n", mdl->getValue("pinList").as<const char *>());
-      char str[32];
-      strncpy(str, mdl->getValue("pinList").as<const char *>(), sizeof(str)-1);
-      const char s[2] = ","; //delimiter
-      char *token;
-      /* get the first token */
-      token = strtok(str, s);
-      /* walk through other tokens */
-      while( token != NULL ) 
-      {
-        USER_PRINTF( " %s(%d) %d\n", token, atoi(token), nrOfPins );
-        pinList[nrOfPins++] = atoi(token);
-        token = strtok(NULL, s);
-      }
-    }
+    USER_PRINTF("GenFix constructor\n");
   }
 
   ~GenFix() {
-    USER_PRINTF("GenFix destruct\n");
+    USER_PRINTF("GenFix destructor\n");
   }
 
   void openHeader(const char * format, ...) {
     va_list args;
     va_start(args, format);
 
-    // size_t len = vprintf(format, args);
     vsnprintf(name, sizeof(name)-1, format, args);
 
     va_end(args);
@@ -73,7 +62,7 @@ public:
   void closeHeader() {
     f.print("]"); //outputs
 
-    USER_PRINTF("closeHeader %d-%d-%d %d\n", width, height, depth, nrOfLeds);
+    USER_PRINTF("closeHeader %d-%d-%d %d\n", fixSize.x, fixSize.y, fixSize.z, nrOfLeds);
     f.close();
     f = files->open("/temp.json", "r");
 
@@ -90,9 +79,9 @@ public:
     g.print("{");
     g.printf("\"name\":\"%s\"", name);
     g.printf(",\"nrOfLeds\":%d", nrOfLeds);
-    g.printf(",\"width\":%d", width/10+1); //effects run on 1 led is 1 cm mode.
-    g.printf(",\"height\":%d", height/10+1);
-    g.printf(",\"depth\":%d", depth/10+1);
+    g.printf(",\"width\":%d", fixSize.x/10+1); //effects run on 1 led is 1 cm mode.
+    g.printf(",\"height\":%d", fixSize.y/10+1);
+    g.printf(",\"depth\":%d", fixSize.z/10+1);
 
     byte character;
     f.read(&character, sizeof(byte));
@@ -109,13 +98,8 @@ public:
     files->remove("/temp.json");
   }
 
-  void openPin() {
-    uint8_t nextPin;
-    if (pinNr < nrOfPins)
-      nextPin = pinNr++;
-    else
-      nextPin = nrOfPins-1;
-    f.printf("%s{\"pin\":%d,\"leds\":[", pinSep, pinList[nextPin]);
+  void openPin(uint8_t pin) {
+    f.printf("%s{\"pin\":%d,\"leds\":[", pinSep, pin);
     strcpy(pinSep, ",");
     strcpy(pixelSep, "");
   }
@@ -123,121 +107,86 @@ public:
     f.printf("]}");
   }
 
-  void write2D(uint16_t x, uint16_t y) {
-    if (x>UINT16_MAX/2 || y>UINT16_MAX/2) USER_PRINTF("write2D coord too high %d,%d\n",x, y);
-
-    f.printf("%s[%d,%d]", pixelSep, x, y);
-    width = max(width, x);
-    height = max(height, y);
-    nrOfLeds++;
-    strcpy(pixelSep, ",");
-  }
   void write3D(uint16_t x, uint16_t y, uint16_t z) {
+    if (x>UINT16_MAX/2 || y>UINT16_MAX/2 || z>UINT16_MAX/2) USER_PRINTF("write3D coord too high %d,%d,%d\n", x, y, z);
+
     f.printf("%s[%d,%d,%d]", pixelSep, x, y, z);
-    width = max(width, x);
-    height = max(height, y);
-    depth = max(depth, z);
-    nrOfLeds++;
     strcpy(pixelSep, ",");
+    fixSize.x = max(fixSize.x, x);
+    fixSize.y = max(fixSize.y, y);
+    fixSize.z = max(fixSize.z, z);
+    nrOfLeds++;
   }
 
-  void writef(const char * format, ...) {
-    va_list args;
-    va_start(args, format);
+  void matrix (Coord3D first, Coord3D rowEnd, Coord3D colEnd, uint8_t ip, uint8_t pin) {
 
-    // size_t len = vprintf(format, args);
-    char name[32];
-    vsnprintf(name, sizeof(name)-1, format, args);
+    openPin(pin);
 
-    va_end(args);
+    //advance from pixel to rowEnd
+    //if rowEnd: is it serpentine or not?
+    //  no: set advancing dimension back to first
+    //  yes: set non advancing dimension 1 step closer to colEnd
+    //determine new rowEnd
+    //if rowEnd > colEnd
+    //  yes: done
+    //  no: go back to first step
 
-    f.print(name);          
-    // USER_PRINTF("GenFix printf %s\n", format);
-  }
+    // Coord3D pixel = first;
 
-  void spiral1D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t ledCount) {
+    uint8_t rowDimension; //in what dimension the row will advance (x=0, y=1, z=2)
+    if (first.x != rowEnd.x) rowDimension = 0;
+    if (first.y != rowEnd.y) rowDimension = 1;
+    if (first.z != rowEnd.z) rowDimension = 2;
 
-    float width = 10;
-    // float height = ledCount/12;
-    float depth = 10;
-    
-    openPin();
+    uint8_t colDimension; //in what dimension the col will advance, cannot be the rowDimension
+    if (first.x != colEnd.x && rowDimension != 0) colDimension = 0;
+    if (first.y != colEnd.y && rowDimension != 1) colDimension = 1;
+    if (first.z != colEnd.z && rowDimension != 2) colDimension = 2;
 
-    for (int i=0; i<ledCount; i++) {
-      float radians = i*360/48 * (M_PI / 180); //48 leds per round
-      uint16_t x = 10 * width/2 * (1 + sinf(radians));
-      uint16_t y = 10 * i/12; //
-      uint16_t z = 10 * depth/2 * (1+ cosf(radians));
-      write3D(x + startX, y + startY, z + startZ);
+    Coord3D colPixel = Coord3D{(rowDimension==0)?colEnd.x:first.x, (rowDimension==1)?colEnd.y:first.y, (rowDimension==2)?colEnd.z:first.z};
+    while (true) {
+      // colPixel is not advancing over the dimension of the row but advances over it's own dimension towards the colEnd
+
+      Coord3D cRowStart = Coord3D{(colDimension==0)?colPixel.x:first.x, (colDimension==1)?colPixel.y:first.y, (colDimension==2)?colPixel.z:first.z};
+      Coord3D cRowEnd = Coord3D{(colDimension==0)?colPixel.x:rowEnd.x, (colDimension==1)?colPixel.y:rowEnd.y, (colDimension==2)?colPixel.z:rowEnd.z};
+
+      Coord3D rowPixel = cRowStart;
+      while (true) {
+        USER_PRINTF(" %d,%d,%d", rowPixel.x, rowPixel.y, rowPixel.z);
+        write3D( rowPixel.x * 10, rowPixel.y * 10, rowPixel.z * 10);
+        
+        if (rowPixel == cRowEnd) break; //end condition row
+        rowPixel.advance(cRowEnd);
+        // bool serpentine = true;
+        // if (serpentine)
+        //   rowPixel.x = 10;
+      }
+
+      USER_PRINTF("\n");
+
+      if (colPixel == colEnd) break; //end condition columns
+      colPixel.advance(colEnd);
     }
 
     closePin();
   }
 
-  void matrix2D (uint16_t startX, uint16_t startY, uint8_t panels, uint16_t width, uint16_t height) {
-
-    openPin();
-
-    //qad setup of serpentine, should be done better!
-    bool serpentine = mdl->getValue("serpentine");
-
-    for (uint8_t panel=0; panel < panels; panel++) {
-      if (serpentine) {
-        for (uint8_t y = 0; y<height; y++) { //1cm distance between leds
-          if (y%2==0)
-            for (uint16_t x = 0; x<width ; x++) {
-              write2D(x*10+startX,y*10+startY);
-            }
-          else
-            for (int x = width-1; x>=0 ; x--) {
-              write2D(x*10+startX,y*10+startY);
-            }
-        }
-      }
-      else {
-        for (uint8_t y = 0; y<height; y++) //1cm distance between leds
-          for (uint16_t x = 0; x<width ; x++) {
-            write2D(x*10+startX,y*10+startY);
-          }
-      }
-    }
-
-    closePin();
-  }
-
-  void ring2D (uint16_t startX, uint16_t startY, uint16_t nrOfLeds) {
+  void ring (Coord3D first, uint16_t ledCount, uint8_t ip, uint8_t pin) {
 
     // float size = nrOfLeds / 2 / M_PI;
-    openPin();
+    openPin(pin);
 
-    float ringDiam = 10 * nrOfLeds / 2 / M_PI; //in mm
-    for (int i=0; i<nrOfLeds; i++) {
-      float radians = i*360/nrOfLeds * (M_PI / 180);
+    float ringDiam = 10 * ledCount / 2 / M_PI; //in mm
+    for (int i=0; i<ledCount; i++) {
+      float radians = i*360/ledCount * (M_PI / 180);
       uint16_t x = ringDiam + ringDiam * sinf(radians);
       uint16_t y = ringDiam + ringDiam * cosf(radians);
-      write2D(x+startX,y+startY);
+      write3D( x + first.x * 10, y + first.y * 10, first.z * 10);
     }
     closePin();
   }
 
-  void wheel2D (uint16_t startX, uint16_t startY, uint16_t nrOfSpokes, uint16_t ledsPerSpoke) {
-
-    float size = 50 + 10 * ledsPerSpoke;
-    openPin();
-
-    for (int i=0; i<nrOfSpokes; i++) {
-      float radians = i*360/nrOfSpokes * (M_PI / 180);
-      for (int j=0;j<ledsPerSpoke;j++) {
-        float ringDiam = 50 + 10 * j; //in mm
-        uint16_t x = size + ringDiam * sinf(radians);
-        uint16_t y = size + ringDiam * cosf(radians);
-        write2D(x+startX,y+startY);
-      }
-    }
-    closePin();
-  }
-
-  void rings241 (uint16_t startX, uint16_t startY) {
+  void rings241 (Coord3D first, bool in2out, uint8_t ip, uint8_t pin) {
     float ringDiam;
     uint8_t ringsNrOfLeds[9] = {1, 8, 12, 16, 24, 32, 40, 48, 60};
     uint8_t ringDiams[9] = {0, 13, 23, 33, 43, 53, 63, 73, 83}; //in mm
@@ -251,11 +200,7 @@ public:
     //   {133, 180}, //7 -> 48
     //   {181, 240}, //8 Outer Ring -> 60   -> 241
 
-    bool in2out;
-
-    openPin();
-
-    in2out = mdl->getValue("in2out");
+    openPin(pin);
 
     // in2out or out2in
     uint16_t size = 60 / M_PI;
@@ -266,81 +211,88 @@ public:
         float radians = i*360/ringNrOfLeds * (M_PI / 180);
         uint16_t x = 10 * size / 2 + ringDiam * sinf(radians);
         uint16_t y = 10 * size / 2 + ringDiam * cosf(radians);
-        write2D(x + startX, y + startY);
+        write3D(x + first.x*10, y + first.y*10, first.z*10);
       }
     }
     closePin();
   }
 
-  void cloud (uint16_t startX, uint16_t startY) {
-    //Small RL Alt Test
+  void spiral (Coord3D first, uint16_t ledCount, uint8_t ip, uint8_t pin) {
 
-    uint8_t y;
+    float width = 10;
+    // float height = ledCount/12;
+    float depth = 10;
+    
+    openPin(pin);
 
-    //first pin (red)
-    openPin();
-    y = 150; for (int x = 530; x >= 0; x-=10) write2D(x+startX,y+startY);
-    y = 110; for (int x = 90; x <= 510; x+=10) write2D(x+startX,y+startY);
-    y = 70; for (int x = 400; x >= 110; x-=10) write2D(x+startX,y+startY);
+    for (int i=0; i<ledCount; i++) {
+      float radians = i*360/48 * (M_PI / 180); //48 leds per round
+      uint16_t x = 10 * width/2 * (1 + sinf(radians));
+      uint16_t y = 10 * i/12; //
+      uint16_t z = 10 * depth/2 * (1+ cosf(radians));
+      write3D(x + first.x*10, y + first.y*10, z + first.z*10);
+    }
+
     closePin();
-    //second pin (green)
-    openPin();
-    y = 140; for (int x = 530; x >= 0; x-=10) write2D(x+startX,y+startY);
-    y = 100; for (int x = 90; x <= 510; x+=10) write2D(x+startX,y+startY);
-    y = 60; for (int x = 390; x >= 120; x-=10) write2D(x+startX,y+startY);
-    closePin();
-    //third pin (blue)
-    openPin();
-    y = 130; for (int x = 520; x >= 10; x-=10) write2D(x+startX,y+startY);
-    y = 90; for (int x = 100; x <= 500; x+=10) write2D(x+startX,y+startY);
-    y = 50; for (int x = 390; x >= 140; x-=10) write2D(x+startX,y+startY);
-    closePin();
-    //fourth pin (yellow)
-    openPin();
-    y = 120; for (int x = 520; x >= 30; x-=10) write2D(x+startX,y+startY);
-    y = 80; for (int x = 100; x <= 480; x+=10) write2D(x+startX,y+startY);
-    y = 40; for (int x = 380; x >= 240; x-=10) write2D(x+startX,y+startY);
-    y = 30; for (int x = 250; x <= 370; x+=10) write2D(x+startX,y+startY);
-    y = 20; for (int x = 360; x >= 260; x-=10) write2D(x+startX,y+startY);
-    y = 10; for (int x = 270; x <= 350; x+=10) write2D(x+startX,y+startY);
-    y = 00; for (int x = 330; x >= 290; x-=10) write2D(x+startX,y+startY);
+  }
+
+  void wheel (Coord3D first, uint16_t nrOfSpokes, uint16_t ledsPerSpoke, uint8_t ip, uint8_t pin) {
+
+    float size = 50 + 10 * ledsPerSpoke;
+    openPin(pin);
+
+    for (int i=0; i<nrOfSpokes; i++) {
+      float radians = i*360/nrOfSpokes * (M_PI / 180);
+      for (int j=0;j<ledsPerSpoke;j++) {
+        float ringDiam = 50 + 10 * j; //in mm
+        uint16_t x = size + ringDiam * sinf(radians);
+        uint16_t y = size + ringDiam * cosf(radians);
+        write3D(x+first.x*10,y+first.y*10, first.z*10);
+      }
+    }
     closePin();
   }
 
   //https://stackoverflow.com/questions/71816702/coordinates-of-dot-on-an-hexagon-path
-  void hexagon2D (uint16_t startX, uint16_t startY, uint16_t amountOfDots, float radius) {
+  void hexagon (Coord3D first, uint16_t ledsPerSide, uint8_t ip, uint8_t pin) {
 
-    startX*=1.3;
-    startY*=1.3;
+    openPin(pin);
 
-    const float y = sqrtf(3)/2;
+    float radius = ledsPerSide; //or float if it needs to be tuned
+
+    Coord3D center = (first + Coord3D{(uint16_t)radius, (uint16_t)radius, 0}) * 10; //in mm
+
+    const float y = sqrtf(3)/2; // = sin(60°)
     float hexaX[7] = {1.0, 0.5, -0.5, -1.0, -0.5, 0.5, 1.0};
     float hexaY[7] = {0.0, y, y, 0, -y, -y, 0.0};
 
-    for (uint16_t i = 0; i < amountOfDots; i++) {
-      float offset = 6.0 * (float)i / (float)amountOfDots;
-      uint8_t edgenum = floor(offset);
-      offset = offset - (float)edgenum;
+    for (uint16_t i = 0; i < ledsPerSide * 6; i++) {
+      float offset = 6.0 * (float)i / (float)(ledsPerSide*6);
+      uint8_t edgenum = floor(offset);  // On which edge is this dot?
+      offset = offset - (float)edgenum; // Retain fractional part only: offset on that edge
 
-      float x = (float)startX + radius * (hexaX[edgenum] + offset * (hexaX[edgenum + 1] - hexaX[edgenum]));
-      float y = (float)startY + radius * (hexaY[edgenum] + offset * (hexaY[edgenum + 1] - hexaY[edgenum]));
-      USER_PRINTF(" %d %f: %f,%f", edgenum, offset, x, y);
+      // Use interpolation to get coordinates of that point on that edge
+      float x = (float)center.x + radius*10 * (hexaX[edgenum] + offset * (hexaX[edgenum + 1] - hexaX[edgenum]));
+      float y = (float)center.y + radius*10 * (hexaY[edgenum] + offset * (hexaY[edgenum + 1] - hexaY[edgenum]));
+      // USER_PRINTF(" %d %f: %f,%f", edgenum, offset, x, y);
 
-      write2D(x,y);
+      write3D(x,y, first.z*10);
 
     }
+
+    closePin();
   }
 
-  void cone3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint8_t nrOfRings) {
+  void cone (Coord3D first, uint8_t nrOfRings, uint8_t ip, uint8_t pin) {
 
-    openPin();
+    openPin(pin);
 
     float width = nrOfRings*3/M_PI;
     float height = nrOfRings;
     // float depth = nrOfRings*3/M_PI;
     // , nrOfLeds
 
-    bool in2out = mdl->getValue("in2out");
+    // bool in2out = mdl->getValue("in2out");
 
     for (int j=0; j<nrOfRings; j++) {
       uint8_t ringNrOfLeds = (j+1) * 3;
@@ -350,150 +302,53 @@ public:
         uint16_t x = 10* width / 2 + ringDiam * sinf(radians);
         uint16_t z = 10 * height / 2 + ringDiam * cosf(radians);
         uint16_t y = j*10;
-        write3D(x + startX, y + startY, z + startZ);
+        write3D(x + first.x*10, y + first.y*10, z + first.z*10);
       }
     }
 
     closePin();
   }
 
-  void plane3DFindNextPoint(Coord3D *point, Coord3D first, Coord3D last, uint8_t axis, bool clockWise) {
-    if (axis == 0) {
-      if (point->x != last.x) {
-        point->x += point->x<=last.x?1:-1;
-      }
-      else { //cr
-        point->x = first.x;
-        if (clockWise) plane3DFindNextPoint(point, first, last, 1, clockWise);
-        else plane3DFindNextPoint(point, first, last, 2, clockWise);
-      }
-    }
-    if (axis == 1) {
-      if (point->y != last.y) {
-        point->y += point->y<=last.y?1:-1;
-      }
-      else { //cr
-        point->y = first.y;
-        if (clockWise) plane3DFindNextPoint(point, first, last, 2, clockWise);
-        else plane3DFindNextPoint(point, first, last, 0, clockWise);
-      }
-    }
-    if (axis == 2) {
-      if (point->z != last.z) {
-        point->z += point->z<=last.z?1:-1;
-      }
-      else { //cr
-        point->z = first.z;
-        if (clockWise) plane3DFindNextPoint(point, first, last, 0, clockWise);
-        else plane3DFindNextPoint(point, first, last, 1, clockWise);
-      }
-    }
+  void cloud (Coord3D first, uint8_t ip, uint8_t pin) {
+    //Small RL Alt Test
 
-    // USER_PRINTF("plane3DFindNextPoint %d %d %d %d \n", axis, point->x, point->y, point->z);
-  }
+    uint8_t y;
 
-  void plane3D (Coord3D first, Coord3D last, bool clockWise) {
-    openPin();
-    bool cont = true;
-    Coord3D point = first;
+    //tbd: different pins for each section!!!
 
-    write3D(point.x*10, point.y*10, point.z*10);
-
-    while (cont) {
-
-      plane3DFindNextPoint(&point, first, last, 0, clockWise);
-
-      write3D(point.x*10, point.y*10, point.z*10);
-
-      //check if next point is end point
-      cont = (point.x != last.x || point.y != last.y || point.z != last.z);
-      // USER_PRINTF("plane3DFindNextPoint p:%d %d %d %d l:%d %d %d \n", cont, point.x, point.y, point.z, last.x, last.y, last.z);
-    }
-
+    //first pin (red)
+    openPin(pin);
+    y = 150; for (int x = 530; x >= 0; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 110; for (int x = 90; x <= 510; x+=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 70; for (int x = 400; x >= 110; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    closePin();
+    //second pin (green)
+    openPin(pin);
+    y = 140; for (int x = 530; x >= 0; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 100; for (int x = 90; x <= 510; x+=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 60; for (int x = 390; x >= 120; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    closePin();
+    //third pin (blue)
+    openPin(pin);
+    y = 130; for (int x = 520; x >= 10; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 90; for (int x = 100; x <= 500; x+=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 50; for (int x = 390; x >= 140; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    closePin();
+    //fourth pin (yellow)
+    openPin(pin);
+    y = 120; for (int x = 520; x >= 30; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 80; for (int x = 100; x <= 480; x+=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 40; for (int x = 380; x >= 240; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 30; for (int x = 250; x <= 370; x+=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 20; for (int x = 360; x >= 260; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 10; for (int x = 270; x <= 350; x+=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
+    y = 00; for (int x = 330; x >= 290; x-=10) write3D(x+first.x*10, y+first.y*10, first.z*10);
     closePin();
   }
 
-  //deprecated (use plane3D)
-  void sideCube3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t length, uint8_t sides) {
-    //front
-    { //for (uint8_t z = 0; z<length; z+=length-1) 
-      int z = 0;
-      openPin();
-      for (int y = 0; y<length; y++)
-        for (int x = 0; x<length ; x++) {
-          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-        }
-      closePin();
-    }
-    //right
-    { //for (uint16_t x = 0; x<length ; x+=length-1) 
-      int x = length-1;
-      openPin();
-      for (int y = 0; y<length; y++) {
-        for (int z = 0; z<length; z++)
-          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-        }
-      closePin();
-    }
-    //back
-    { //for (uint8_t z = 0; z<length; z+=length-1) 
-      int z = length-1;
-      openPin();
-      for (int y = 0; y<length; y++)
-        for (int x = length-1; x>=0 ; x--) {
-          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-        }
-      closePin();
-    }
-    //bottom
-    { //for (uint8_t y = length-1; y<length; y+=length-1) 
-      uint16_t y = length -1;
-      openPin();
-      for (int z = length-1; z>=0; z--)
-        for (int x = length-1; x>=0 ; x--) {
-          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-        }
-      closePin();
-    }
-    //left
-    { //for (uint16_t x = 0; x<length ; x+=length-1) 
-      int x = 0;
-      openPin();
-      for (int y = length-1; y>=0; y--) {
-        for (int z = length-1; z>=0; z--) {
-          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-        }
-      }
-      closePin();
-    }
-    //top
-    { //for (uint16_t x = 0; x<length ; x+=length-1) 
-      int y = 0;
-      openPin();
-      for (int z = length-1; z>=0; z--) {
-        for (int x = 0; x<length; x++) {
-          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-        }
-      }
-      closePin();
-    }
+  void globe (Coord3D first, uint8_t width, uint8_t ip, uint8_t pin) {
 
-  }
-
-  void cube3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t width, uint16_t height, uint16_t depth) {
-    openPin();
-
-    for (uint8_t z = 0; z<depth; z++)
-      for (uint8_t y = 0; y<height; y++)
-        for (uint16_t x = 0; x<width ; x++) {
-          write3D(x*10 + startX, y*10 + startY, z*10 + startZ);
-        }
-      
-    closePin();
-  }
-
-  void globe3D (uint16_t startX, uint16_t startY, uint16_t startZ, uint16_t width) {
-    openPin();
+    openPin(pin);
 
     float ringDiam = 10 * width / 2 / M_PI; //in mm
     for (int i=0; i<width; i++) {
@@ -501,7 +356,7 @@ public:
       uint16_t x = 10 * width/M_PI / 2 + ringDiam * sinf(radians);
       uint16_t y = 10 * width / 2 + ringDiam * cosf(radians);
       uint16_t z = 10 * width / 2 + ringDiam * cosf(radians);
-      write3D(x + startX, y + startY, z + startZ);
+      write3D(x + first.x*10, y + first.y*10, z + first.z*10);
     }
 
     closePin();
@@ -509,18 +364,35 @@ public:
 
   // https://stackoverflow.com/questions/17705621/algorithm-for-a-geodesic-sphere
   //https://opengl.org.ru/docs/pg/0208.html
-  void geodesicDome3D (uint16_t startX, uint16_t startY, uint16_t startZ) {
+  void geodesicDome (Coord3D first, uint8_t width, uint8_t ip, uint8_t pin) {
  
     uint8_t tindices[20][3] = {    {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},       {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},       {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6},    {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} };
 
-    openPin();
+    openPin(pin);
 
     for (int i=0; i<20; i++) {
-      write3D(tindices[i][0]*10 + startX, tindices[i][1]*10 + startY, tindices[i][2]*10 + startZ);
+      write3D(tindices[i][0]*10 + first.x*10, tindices[i][1]*10 + first.y*10, tindices[i][2]*10 + first.z*10);
     }
+
     closePin();
   }
 
+};
+
+enum Fixtures
+{
+  f_Matrix,
+  f_Ring,
+  f_Rings241,
+  f_Spiral,
+  f_Wheel,
+  f_Hexagon,
+  f_Cone,
+  f_Cloud,
+  f_Wall,
+  f_Globe,
+  f_GeodesicDome,
+  fixtureCount
 };
 
 class AppModFixtureGen:public SysModule {
@@ -536,318 +408,518 @@ public:
     if (parentVar["o"] > -1000) parentVar["o"] = -1200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     ui->initSelect(parentVar, "fixtureGen", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-    
       case f_UIFun: {
         ui->setLabel(var, "Fixture");
         ui->setComment(var, "Type of fixture");
-        JsonArray options = ui->setOptions(var);
-        options.add("1DSpiral"); //0
-        options.add("2DMatrix"); //1
-        options.add("2DRing"); //2
-        options.add("2DRings241"); //3
-        options.add("2DCloud"); //4
-        options.add("2DWall"); //5
-        options.add("2DWheel"); //6
-        options.add("2DHexagon"); //7
-        options.add("3DCone"); //8
-        options.add("3DSideCube"); //9
-        options.add("3DCube"); //10
-        options.add("3DGlobe WIP"); //11
-        options.add("3DGeodesicDome WIP"); //12
+        JsonArray options = ui->setOptions(var); //See enum Fixtures for order of options
+        options.add("Matrix");
+        options.add("Ring");
+        options.add("Rings241");
+        options.add("Spiral");
+        options.add("Wheel");
+        options.add("Hexagon");
+        options.add("Cone");
+        options.add("Cloud");
+        options.add("Wall");
+        options.add("Globe WIP");
+        options.add("GeodesicDome WIP");
         return true;
       }
       case f_ChangeFun:
-        fixtureGenChFun(var);
-
-        web->addResponse("details", "var", var);
+        this->fixtureGenChFun();
         return true;
-
       default: return false; 
     }}); //fixtureGen
 
-	// gpio2 seems to be a safe choice on all esp32 variants
-    ui->initText(parentVar, "pinList", "2", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCheckBox(parentVar, "panels", false, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        ui->setComment(var, "One or more e.g. 12,13,14");
+        ui->setComment(var, "Show panels");
         return true;
-#if 0		// @ewowi did not get this to work
-      case f_ValueFun:
-        #if CONFIG_IDF_TARGET_ESP32 && (defined(BOARD_HAS_PSRAM) || defined(ARDUINO_ESP32_PICO)) // 
-          ui->setValue(var, "2");  // gpio16 is reserved on pico and on esp32 with PSRAM
-        #elif CONFIG_IDF_TARGET_ESP32S3
-          ui->setValue(var, "21");  // gpio21 = builtin neopixel on some -S3 boards
-        #elif CONFIG_IDF_TARGET_ESP32C3
-          ui->setValue(var, "10");  // gpio10 = builtin neopixel on some -C3 boards
-        #else
-          ui->setValue(var, "16");  // default on universal shield (classic esp32, or esp32-S2)
-        #endif
-        return true;
-#endif
+      case f_ChangeFun: {
+        this->fixtureGenChFun();
+        return true; }
       default: return false;
     }});
+
+	// gpio2 seems to be a safe choice on all esp32 variants
+//     ui->initText(parentVar, "pinList", "2", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+//       case f_UIFun:
+//         ui->setComment(var, "One or more e.g. 12,13,14");
+//         return true;
+// #if 0		// @ewowi did not get this to work
+//       case f_ValueFun:
+//         #if CONFIG_IDF_TARGET_ESP32 && (defined(BOARD_HAS_PSRAM) || defined(ARDUINO_ESP32_PICO)) // 
+//           ui->setValue(var, "2");  // gpio16 is reserved on pico and on esp32 with PSRAM
+//         #elif CONFIG_IDF_TARGET_ESP32S3
+//           ui->setValue(var, "21");  // gpio21 = builtin neopixel on some -S3 boards
+//         #elif CONFIG_IDF_TARGET_ESP32C3
+//           ui->setValue(var, "10");  // gpio10 = builtin neopixel on some -C3 boards
+//         #else
+//           ui->setValue(var, "16");  // default on universal shield (classic esp32, or esp32-S2)
+//         #endif
+//         return true;
+// #endif
+//       default: return false;
+//     }});
 
     ui->initButton(parentVar, "generate", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ChangeFun:
         generateChFun(var);
-
         //reload fixture select
         ui->callVarFun("fixture", UINT8_MAX, f_UIFun);
         return true;
       default: return false;
     }});
 
-  }
+  } //setup
 
   void loop() {
     // SysModule::loop();
   }
 
-  enum Fixtures
-  {
-    f_1DSpiral,
-    f_2DMatrix,
-    f_2DRing,
-    f_2DRings241,
-    f_2DCloud,
-    f_2DWall,
-    f_2DWheel,
-    f_2DHexagon,
-    f_3DCone,
-    f_3DSideCube,
-    f_3DCube,
-    f_3DGlobe,
-    f_3DGeodesicDome,
-    count
-  };
-
   //generate dynamic html for fixture controls
-  void fixtureGenChFun(JsonObject var) {
-    JsonObject parentVar = mdl->findVar(var["id"]); //local parentVar
-    parentVar.remove("n"); //tbd: we should also remove the varFun !!
-    uint8_t value = var["value"];
-    
-    if (value == f_1DSpiral) {
-      ui->initNumber(parentVar, "ledCount", 64, 1, NUM_LEDS_Max);
+  void fixtureGenChFun() {
+
+    JsonObject fixtureGenVar = mdl->findVar("fixtureGen");
+    JsonObject panelVar = mdl->findVar("panels");
+
+    // JsonObject parentVar = mdl->findVar(var["id"]); //local parentVar
+    uint8_t fgValue = fixtureGenVar["value"];
+
+    fixtureGenVar.remove("n"); //tbd: we should also remove the varFun !!
+
+    JsonObject parentVar = fixtureGenVar;
+    if (panelVar["value"].as<bool>()) {
+
+      parentVar = ui->initTable(fixtureGenVar, "pnlTbl", nullptr, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_UIFun:
+          ui->setLabel(var, "Panels");
+          ui->setComment(var, "List of fixtures");
+          return true;
+        case f_AddRow:
+          web->getResponseObject()["addRow"]["rowNr"] = rowNr;
+          return true;
+        case f_DelRow:
+          // web->getResponseObject()["addRow"]["rowNr"] = rowNr;
+          return true;
+        default: return false;
+      }});
+
+      ui->initCoord3D(parentVar, "pnlFirst", {0,0,0}, 0, NUM_LEDS_Max, false, [fgValue](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_UIFun:
+          //show Top Left for all fixture except Matrix as it has its own
+          if (fgValue == f_Matrix)
+            ui->setLabel(var, "First LED");
+          else 
+            ui->setLabel(var, "Top left");
+          return true;
+        default: return false;
+      }});
+
+    } //if panels
+
+
+    if (fgValue == f_Matrix) {
+
+      ui->initCoord3D(parentVar, "mrxRowEnd", {7,0,0}, 0, NUM_LEDS_Max, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_UIFun:
+          ui->setLabel(var, "Row end");
+          ui->setComment(var, "-> Orientation");
+          return true;
+        default: return false;
+      }});
+
+      ui->initCoord3D(parentVar, "mrxColEnd", {7,7,0}, 0, NUM_LEDS_Max, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_UIFun:
+          ui->setLabel(var, "Column end");
+          ui->setComment(var, "Last LED -> nrOfLeds, Serpentine");
+          return true;
+        default: return false;
+      }});
+
+      if (panelVar["value"].as<bool>()) {
+
+        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+          case f_UIFun: {
+            ui->setLabel(var, "Preset");
+            JsonArray options = ui->setOptions(var);
+            options.add("None");
+            options.add("16x16");
+            options.add("4x16x16");
+            options.add("4x32x8");
+            options.add("Human Sized Cube");
+            options.add("CubeBox");
+            options.add("Cube3D");
+            options.add("Sticks");
+            options.add("Great Plains");
+            return true; }
+          case f_ChangeFun: {
+            uint8_t optionNr = 1; // 0 is none, maintain the same order here as the options
+            uint8_t panel = 0;
+            if (var["value"] == optionNr++) { //16x16
+              uint8_t lengthMinOne = 15;
+              panel = 0; mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); 
+              panel = 0; mdl->setValue("mrxRowEnd", Coord3D{0,lengthMinOne,0}, panel++);
+              panel = 0; mdl->setValue("mrxColEnd", Coord3D{lengthMinOne,lengthMinOne,0}, panel++);
+              panel = 0; mdl->setValue("fixPin", 2, panel++); // default per board...
+            }
+            if (var["value"] == optionNr++) { //4x16x16
+              uint8_t lengthMinOne = 15; uint8_t size = lengthMinOne + 1;
+              panel = 0; mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{16,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{0,16,0}, panel++); mdl->setValue("pnlFirst", Coord3D{16,16,0}, panel++); 
+              panel = 0; mdl->setValue("mrxRowEnd", Coord3D{0,lengthMinOne,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{16,lengthMinOne,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{0,31,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{16,31,0}, panel++); 
+              panel = 0; mdl->setValue("mrxColEnd", Coord3D{lengthMinOne,lengthMinOne,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{31,lengthMinOne,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{lengthMinOne,31,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{31,31,0}, panel++); 
+              panel = 0; mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); 
+            }
+            if (var["value"] == optionNr++) { //4x32x8
+              uint8_t lengthMinOne = 31;
+              panel = 0; mdl->setValue("pnlFirst", Coord3D{lengthMinOne,24,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,16,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,8,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,0,0}, panel++);
+              panel = 0; mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,lengthMinOne,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,23,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,15,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,7,0}, panel++);
+              panel = 0; mdl->setValue("mrxColEnd", Coord3D{0,lengthMinOne,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,23,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,15,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,7,0}, panel++);
+              panel = 0; mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); 
+            }
+            else if (var["value"] == optionNr++) { //Human Sized Cube
+              uint8_t length = 20; uint8_t size = length + 1;
+              panel = 0; mdl->setValue("pnlFirst", Coord3D{1,1,size}, panel++); mdl->setValue("pnlFirst", Coord3D{0,1,1}, panel++); mdl->setValue("pnlFirst", Coord3D{1,1,0}, panel++); mdl->setValue("pnlFirst", Coord3D{size,1,1}, panel++); mdl->setValue("pnlFirst", Coord3D{1,0,1}, panel++);
+              panel = 0; mdl->setValue("mrxRowEnd", Coord3D{1,length,size}, panel++); mdl->setValue("mrxRowEnd", Coord3D{0,length,1}, panel++); mdl->setValue("mrxRowEnd", Coord3D{1,length,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{size,length,1}, panel++); mdl->setValue("mrxRowEnd", Coord3D{1,0,length}, panel++);
+              panel = 0; mdl->setValue("mrxColEnd", Coord3D{length,length,size}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,length,length}, panel++); mdl->setValue("mrxColEnd", Coord3D{length,length,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{size,length,length}, panel++); mdl->setValue("mrxColEnd", Coord3D{length,0,length}, panel++);
+              panel = 0; mdl->setValue("fixPin", 16, panel++); mdl->setValue("fixPin", 14, panel++); mdl->setValue("fixPin", 32, panel++); mdl->setValue("fixPin", 3, panel++); mdl->setValue("fixPin", 15, panel++);
+            }
+            else if (var["value"] == optionNr++) { //Cube 6 x 8 x 8
+              uint8_t length = 8; uint8_t size = length + 1;
+              panel = 0; mdl->setValue("pnlFirst", Coord3D{1,1,0}, panel++); mdl->setValue("pnlFirst", Coord3D{length, size, length}, panel++); mdl->setValue("pnlFirst", Coord3D{size, 1, 1}, panel++); mdl->setValue("pnlFirst", Coord3D{0, length, length}, panel++); mdl->setValue("pnlFirst", Coord3D{length, 1, size}, panel++); mdl->setValue("pnlFirst", Coord3D{1, 0, length}, panel++);
+              panel = 0; mdl->setValue("mrxRowEnd", Coord3D{1,length,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{1, size, length}, panel++); mdl->setValue("mrxRowEnd", Coord3D{size, 1, length}, panel++); mdl->setValue("mrxRowEnd", Coord3D{0, 1, length}, panel++); mdl->setValue("mrxRowEnd", Coord3D{1, 1, size}, panel++); mdl->setValue("mrxRowEnd", Coord3D{length, 0, length}, panel++);
+              panel = 0; mdl->setValue("mrxColEnd", Coord3D{length,length,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{1, size, 1}, panel++); mdl->setValue("mrxColEnd", Coord3D{size, length, length}, panel++); mdl->setValue("mrxColEnd", Coord3D{0, 1, 1}, panel++); mdl->setValue("mrxColEnd", Coord3D{1, length, size}, panel++); mdl->setValue("mrxColEnd", Coord3D{length, 0, 1}, panel++);
+              panel = 0; mdl->setValue("fixPin", 12, panel++); mdl->setValue("fixPin", 12, panel++); mdl->setValue("fixPin", 13, panel++); mdl->setValue("fixPin", 13, panel++); mdl->setValue("fixPin", 14, panel++); mdl->setValue("fixPin", 14, panel++);
+            }
+            else if (var["value"] == optionNr++) { //Cube 3D
+              uint8_t length = 8;
+              for (uint8_t panel=0; panel < length; panel++) {
+                mdl->setValue("pnlFirst", Coord3D{1,1,panel}, panel);
+                mdl->setValue("mrxRowEnd", Coord3D{1,length,panel}, panel);
+                mdl->setValue("mrxColEnd", Coord3D{length,length,panel}, panel);
+                mdl->setValue("fixPin", 12, panel);
+              }
+            }
+            else if (var["value"] == optionNr++) { //Sticks
+              uint8_t length = 16;
+              uint8_t height = 54;
+              for (uint8_t panel=0; panel < length; panel++) {
+                mdl->setValue("pnlFirst", Coord3D{(uint16_t)(panel*5), height, 0}, panel);
+                mdl->setValue("mrxRowEnd", Coord3D{(uint16_t)(panel*5), height, 0}, panel);
+                mdl->setValue("mrxColEnd", Coord3D{(uint16_t)(panel*5), 0, 0}, panel);
+                mdl->setValue("fixPin", 12, panel);
+              }
+            }
+            else if (var["value"] == optionNr++) { //Great plains
+              //tbd
+            }
+            return true; }
+          default: return false; 
+        }});
+      }
     }
-    else if (value == f_2DRing) {
-      ui->initNumber(parentVar, "ledCount", 24, 1, NUM_LEDS_Max);
+    else if (fgValue == f_Ring) {
+      ui->initNumber(parentVar, "fixLeds", 24, 1, NUM_LEDS_Max);
+
+      if (panelVar["value"].as<bool>()) {
+
+        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+          case f_UIFun: {
+            ui->setLabel(var, "Preset");
+            JsonArray options = ui->setOptions(var);
+            options.add("None");
+            options.add("Olympic");
+            options.add("Audi");
+            return true; }
+          case f_ChangeFun: {
+            uint8_t optionNr = 1; // 0 is none, maintain the same order here as the options
+            uint8_t panel = 0;
+            if (var["value"] == optionNr++) { //Olympic
+              panel = 0; mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{10,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{20,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{5,3,0}, panel++); mdl->setValue("pnlFirst", Coord3D{15,3,0}, panel++); 
+              panel = 0; mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); 
+              panel = 0; mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); // default per board...
+            }
+            if (var["value"] == optionNr++) { //Audi
+              panel = 0; mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{6,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{12,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{18  ,0,0}, panel++);
+              panel = 0; mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); 
+              panel = 0; mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); // default per board...
+            }
+            return true; }
+          default: return false; 
+        }});
+      }
     }
-    else if (value == f_2DRings241) {
+    else if (fgValue == f_Rings241) {
       ui->initCheckBox(parentVar, "in2out", true);
     }
-    else if (value == f_2DWheel) {
+    else if (fgValue == f_Spiral) {
+      ui->initNumber(parentVar, "fixLeds", 64, 1, NUM_LEDS_Max);
+    }
+    else if (fgValue == f_Wheel) {
       ui->initNumber(parentVar, "nrOfSpokes", 36, 1, 360);
       ui->initNumber(parentVar, "ledsPerSpoke", 24, 1, 360);
     }
-    else if (value == f_3DCone) {
-      ui->initCheckBox(parentVar, "in2out", true);
+    else if (fgValue == f_Hexagon) {
+      ui->initNumber(parentVar, "ledsPerSide", 36, 1, 255);
+
+      if (panelVar["value"].as<bool>()) {
+
+        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+          case f_UIFun: {
+            ui->setLabel(var, "Preset");
+            JsonArray options = ui->setOptions(var);
+            options.add("None");
+            options.add("SörensHexaWall");
+            return true; }
+          case f_ChangeFun: {
+            uint8_t optionNr = 1; // 0 is none, maintain the same order here as the options
+            uint8_t panel = 0;
+            if (var["value"] == optionNr++) { //SörensHexaWall
+              panel = 0; 
+              mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); 
+              mdl->setValue("pnlFirst", Coord3D{10,6,0}, panel++); 
+              mdl->setValue("pnlFirst", Coord3D{10,18,0}, panel++); 
+              mdl->setValue("pnlFirst", Coord3D{20,0,0}, panel++); 
+              mdl->setValue("pnlFirst", Coord3D{30,6,0}, panel++); 
+              mdl->setValue("pnlFirst", Coord3D{40,12,0}, panel++); 
+              mdl->setValue("pnlFirst", Coord3D{40,24,0}, panel++); 
+              mdl->setValue("pnlFirst", Coord3D{50,6,0}, panel++); 
+              mdl->setValue("pnlFirst", Coord3D{60,0,0}, panel++); 
+
+              for (uint8_t panel = 0; panel < 9; panel++) {
+                mdl->setValue("ledsPerSide", 6, panel);
+                mdl->setValue("fixPin", 2, panel);
+              }
+            }
+            return true; }
+          default: return false; 
+        }});
+      }
+
+    }
+    else if (fgValue == f_Cone) {
       ui->initNumber(parentVar, "nrOfRings", 24, 1, 360);
     }
-    else if (value == f_2DMatrix) {
-      ui->initNumber(parentVar, "panels", 1, 1, 255);
-
-      ui->initNumber(parentVar, "width", 8, 1, 255);
-
-      ui->initNumber(parentVar, "height", 8, 1, 255);
-
-      ui->initSelect(parentVar, "firstLedX", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-        case f_UIFun: {
-          ui->setComment(var, "WIP");
-          JsonArray options = ui->setOptions(var);
-          options.add("Left"); //0
-          options.add("Right"); //1
-          return true;
-        }
-        default: return false;
-      }});
-
-      ui->initSelect(parentVar, "firstLedY", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-        case f_UIFun: {
-          ui->setComment(var, "WIP");
-          JsonArray options = ui->setOptions(var);
-          options.add("Top"); //0
-          options.add("Bottom"); //1
-          return true;
-        }
-        default: return false;
-      }});
-
-      ui->initCheckBox(parentVar, "serpentine");
-    }
-    else if (value == f_3DCube) {
-      ui->initNumber(parentVar, "width", 8, 1, 16);
-      ui->initNumber(parentVar, "height", 8, 1, 16);
-      ui->initNumber(parentVar, "depth", 8, 1, 16);
-    }
-    else if (value == f_3DSideCube) {
-      ui->initNumber(parentVar, "length", 8, 1, 32);
-      ui->initNumber(parentVar, "sides", 5, 1, 6);
-    }
-    else if (value == f_3DGlobe) {
+    else if (fgValue == f_Globe) {
       ui->initNumber(parentVar, "width", 24, 1, 16);
     }
 
+
+
+    ui->initNumber(parentVar, "fixIP", WiFi.localIP()[3], 1, 256, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        ui->setLabel(var, "IP");
+        ui->setComment(var, "Super-Sync WIP");
+        return true;
+      default: return false; 
+    }});
+
+    ui->initSelect(parentVar, "fixPin", 2, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun: {
+        ui->setLabel(var, "Pin");
+
+        //tbd: move logic to pinMgr and create initPin
+        JsonArray options = ui->setOptions(var);
+        #if defined(CONFIG_IDF_TARGET_ESP32S2)
+          uint8_t nrOfPins = 46;
+        #elif defined(CONFIG_IDF_TARGET_ESP32S3)
+          uint8_t nrOfPins = 48;
+        #elif defined(CONFIG_IDF_TARGET_ESP32C3)
+          uint8_t nrOfPins = 21;
+        #elif defined(ESP32)
+          uint8_t nrOfPins = 46;
+        #else //???
+          uint8_t nrOfPins = 40;
+        #endif
+        
+        for (uint8_t pinNr = 0; pinNr <= nrOfPins; pinNr++) {
+          char text[32];
+          itoa(pinNr, text, 10);
+          if (digitalPinIsValid(pinNr)) {
+
+            #if defined(CONFIG_IDF_TARGET_ESP32S2)
+              if ((pinNr > 18 && pinNr < 21) || (pinNr > 21 && pinNr < 33)) strcat(text, " 🟣"); else 
+            #elif defined(CONFIG_IDF_TARGET_ESP32S3)
+              if ((pinNr > 18 && pinNr < 21) || (pinNr > 21 && pinNr < 33)) strcat(text, " 🟣"); else 
+            #elif defined(CONFIG_IDF_TARGET_ESP32C3)
+              if ((pinNr > 11 && pinNr < 18) || (pinNr > 17 && pinNr < 20)) strcat(text, " 🟣"); else 
+            #elif defined(ESP32)
+              if (pinNr > 5 && pinNr < 12) strcat(text, " 🟣"); else 
+            #else //???
+            #endif
+
+            if (!digitalPinCanOutput(pinNr)) 
+              strcat(text, " 🟠"); //read only
+            else
+              strcat(text, " 🟢"); //io
+
+            //results in crashes
+            // if (digitalPinToRtcPin(pinNr)) strcat(text, " 🟢"); else strcat(text, " 🔴"); //error: 'RTC_GPIO_IS_VALID_GPIO' was not declared in this scope
+            // if (digitalPinToDacChannel(pinNr)) strcat(text, " 🟢"); else strcat(text, " 🔴"); //error: 'DAC_CHANNEL_1_GPIO_NUM' was not declared in this scope
+
+            //not so relevant
+            // if (digitalPinToAnalogChannel(pinNr)) strcat(text, " 🟣");
+            // if (digitalPinToTouchChannel(pinNr)) strcat(text, " 🟤");
+          }
+          else 
+            strcat(text, " 🔴"); //not valid
+          options.add(JsonString(text, JsonString::Copied));
+        }
+        return true; }
+      default: return false; 
+    }});
+
+    web->addResponse("details", "var", fixtureGenVar);
+
   }
 
+  //tbd: move to utility functions
+  char *removeSpaces(char *str) 
+  { 
+      int i = 0, j = 0; 
+      while (str[i]) 
+      { 
+          if (str[i] != ' ') 
+          str[j++] = str[i]; 
+          i++; 
+      } 
+      str[j] = '\0'; 
+      return str; 
+  } 
+
+  void getPanels(const char * fileName, std::function<void(GenFix *, uint8_t)> genFun) {
+    GenFix genFix;
+
+    JsonObject presetsVar = mdl->findVar("fixPreset");
+    uint8_t presets = mdl->getValue(presetsVar);
+
+    //set header and file name
+    if (presets != 0) {
+      JsonArray options = ui->getOptions(presetsVar);
+
+      char text[32] = "F_";
+      strncat(text, options[presets], 31);
+      removeSpaces(text);
+
+      genFix.openHeader(text);
+
+      ui->clearOptions(presetsVar);
+    }
+    else {
+      uint16_t ledCount = mdl->getValue("fixLeds");
+      genFix.openHeader(fileName);
+    }
+
+    JsonVariant pnlFirstValue = mdl->findVar("pnlFirst")["value"];
+
+    if (pnlFirstValue.is<JsonArray>()) {
+      uint8_t rowNr = 0;
+      for (JsonVariant firstValueRow: pnlFirstValue.as<JsonArray>()) {
+        genFun(&genFix, rowNr);
+        rowNr++;
+      }
+    } else {
+      genFun(&genFix, UINT8_MAX);
+    }
+
+    genFix.closeHeader();
+  }
+ 
   void generateChFun(JsonObject var) {
 
-    uint8_t fix = mdl->getValue("fixtureGen");
+    uint8_t fgValue = mdl->getValue("fixtureGen");
 
     GenFix genFix;
 
-    if (fix == f_1DSpiral) {
+    if (fgValue == f_Matrix) {
 
-      uint16_t ledCount = mdl->getValue("ledCount");
+      Coord3D size = (mdl->getValue("mrxColEnd").as<Coord3D>() - mdl->getValue("pnlFirst").as<Coord3D>()).absx() + Coord3D{1,1,1};
+      char fileName[32]; print->fFormat(fileName, 31, "F_Matrix%d%d%d", size.x, size.y, size.z);
 
-      genFix.openHeader("1DSpiral%d", ledCount);
+      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+        genFix->matrix(mdl->getValue("pnlFirst", rowNr), mdl->getValue("mrxRowEnd", rowNr), mdl->getValue("mrxColEnd", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
 
-      genFix.spiral1D(0, 0, 0, ledCount);
+    } else if (fgValue == f_Ring) {
 
-      genFix.closeHeader();
+      char fileName[32]; print->fFormat(fileName, 31, "F_Ring%d", mdl->getValue("fixLeds").as<uint8_t>());
+
+      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+        genFix->ring(mdl->getValue("pnlFirst", rowNr), mdl->getValue("fixLeds", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
+
+    } else if (fgValue == f_Rings241) {
+
+      getPanels("F_Rings241", [](GenFix * genFix, uint8_t rowNr) {
+        genFix->rings241(mdl->getValue("pnlFirst", rowNr), mdl->getValue("inOut", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
+
+    } else if (fgValue == f_Spiral) {
+
+      char fileName[32]; print->fFormat(fileName, 31, "F_Spiral%d", mdl->getValue("fixLeds").as<uint8_t>());
+
+      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+        genFix->spiral(mdl->getValue("pnlFirst", rowNr), mdl->getValue("fixLeds", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
+
+    } else if (fgValue == f_Wheel) {
+
+      char fileName[32]; print->fFormat(fileName, 31, "F_Wheel%d%d", mdl->getValue("nrOfSpokes").as<uint8_t>(), mdl->getValue("ledsPerSpoke").as<uint8_t>());
       
-    } else if (fix == f_2DMatrix) {
-      uint16_t panels = mdl->getValue("panels");
-      uint16_t width = mdl->getValue("width");
-      uint16_t height = mdl->getValue("height");
+      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+        genFix->wheel(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfSpokes", rowNr), mdl->getValue("ledsPerSpoke", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
 
-      genFix.openHeader("2DMatrix%dx%d%d", panels, width, height);
+    } else if (fgValue == f_Hexagon) {
 
-      genFix.matrix2D(0, 0, panels, width, height);
+      getPanels("F_Hexagon", [](GenFix * genFix, uint8_t rowNr) {
+        genFix->hexagon(mdl->getValue("pnlFirst", rowNr), mdl->getValue("ledsPerSide", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
+
+    } else if (fgValue == f_Cone) {
+
+      char fileName[32]; print->fFormat(fileName, 31, "F_Cone%d", mdl->getValue("nrOfRings").as<uint8_t>());
+
+      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+        genFix->cone(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfRings", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
+
+    } else if (fgValue == f_Cloud) {
+
+      getPanels("F_Cloud5416", [](GenFix * genFix, uint8_t rowNr) {
+        genFix->cloud(mdl->getValue("pnlFirst", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
+
+    } else if (fgValue == f_Wall) {
+
+      genFix.openHeader("F_Wall");
+
+      genFix.rings241(Coord3D{0,0,0}, true, UINT8_MAX, 2);
+
+      genFix.matrix(Coord3D{19,0,0}, Coord3D{19,8,0}, Coord3D{27,0,0}, UINT8_MAX, 2);
+      genFix.matrix(Coord3D{0,19,0}, Coord3D{0,25,0}, Coord3D{50,19,0}, UINT8_MAX, 2);
+
+      genFix.ring(Coord3D{19,8,0}, 48, UINT8_MAX, 2);
+
+      // genFix.spiral(240, 0, 0, 48);
 
       genFix.closeHeader();
+    } else if (fgValue == f_Globe) {
 
-    } else if (fix == f_2DRing) {
-      uint16_t ledCount = mdl->getValue("ledCount");
+      char fileName[32]; print->fFormat(fileName, 31, "F_Globe%d", mdl->getValue("width").as<uint8_t>());
 
-      genFix.openHeader("2DRing%d", ledCount);
+      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+        genFix->globe(mdl->getValue("pnlFirst", rowNr), mdl->getValue("width", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
 
-      genFix.ring2D(0, 0, ledCount);
+    } else if (fgValue == f_GeodesicDome) {
 
-      genFix.closeHeader();
-    } else if (fix == f_2DRings241) {
+      getPanels("F_GeodesicDome", [](GenFix * genFix, uint8_t rowNr) {
+        genFix->geodesicDome(mdl->getValue("pnlFirst", rowNr), mdl->getValue("width", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      });
 
-      genFix.openHeader("2DRing241");
-
-      genFix.rings241(0, 0);
-
-      genFix.closeHeader();
-
-    } else if (fix == f_2DCloud) {
-
-      genFix.openHeader("2DCloud5416");
-
-      genFix.cloud(0, 0);
-
-      genFix.closeHeader();
     }
-    else if (fix == f_2DWall) {
-
-      genFix.openHeader("2DWall");
-
-      genFix.rings241(0, 0);
-
-      genFix.matrix2D(190, 0, 1, 8, 8);
-
-      genFix.matrix2D(0, 190, 1, 50, 6);
-
-      genFix.ring2D(190, 85, 48);
-
-      // genFix.spiral1D(240, 0, 0, 48);
-
-      genFix.closeHeader();
-    }
-    else if (fix == f_2DWheel) {
-      uint16_t nrOfSpokes = mdl->getValue("nrOfSpokes");
-      uint16_t ledsPerSpoke = mdl->getValue("ledsPerSpoke");
-
-      genFix.openHeader("2DWheel%d_%d", nrOfSpokes, ledsPerSpoke);
-
-      genFix.wheel2D(0, 0, nrOfSpokes, ledsPerSpoke);
-
-      genFix.closeHeader();
-    }
-    else if (fix == f_2DHexagon) {
-
-      genFix.openHeader("2DHexagon");
-
-      genFix.openPin();
-
-      genFix.hexagon2D(50, 50, 36, 40);
-      genFix.hexagon2D(100, 75, 36, 40);
-      genFix.hexagon2D(150, 50, 36, 40);
-      genFix.hexagon2D(200, 75, 36, 40);
-      genFix.hexagon2D(250, 100, 36, 40);
-      genFix.hexagon2D(300, 75, 36, 40);
-      genFix.hexagon2D(350, 50, 36, 40);
-      genFix.hexagon2D(100, 125, 36, 40);
-      genFix.hexagon2D(250, 150, 36, 40);
-
-      genFix.closePin();
-
-      genFix.closeHeader();
-
-    } else if (fix == f_3DCone) {
-
-      //calculate nrOfLeds
-      uint8_t nrOfRings = mdl->getValue("nrOfRings");
-      // uint16_t nrOfLeds = 0;
-      // for (int j=0; j<nrOfRings; j++) {
-      //   nrOfLeds += (j+1) * 3;
-      // }
-
-      genFix.openHeader("3DCone%d", nrOfRings);
-
-      genFix.cone3D(0,0,0, nrOfRings);
-
-      genFix.closeHeader();
-    }
-    else if (fix == f_3DSideCube) {
-      uint16_t length = mdl->getValue("length");
-      uint8_t sides = mdl->getValue("sides");
-      
-      genFix.openHeader("3DSideCube%d%d", length, sides);
-
-      //use (uint16_t)(length+1) to surpress warning warning: narrowing conversion of '(((int)length) + 1)' from 'int' to 'uint16_t' {aka 'short unsigned int'} inside { } [-Wnarrowing]
-      genFix.plane3D({1, 1, 0},   {length, length, 0}, true); // front (z=0, first x then y)
-      genFix.plane3D({length, (uint16_t)(length+1), length}, {1, (uint16_t)(length+1), 1}, false); // bottom (y=length+1, first x, then z)
-      genFix.plane3D({(uint16_t)(length+1), 1, 1}, {(uint16_t)(length+1), length, length}, false); // right (x=length + 1, first z, then y)
-      genFix.plane3D({0, length, length}, {0, 1, 1}, true); // left (x=0, first y, then z)
-      genFix.plane3D({length, 1, (uint16_t)(length+1)}, {1, length, (uint16_t)(length+1)}, true); // back (z = length+1, first x, then y)
-      genFix.plane3D({1, 0, length}, {length, 0, 1}, true); // top (y=0, first x, then z)
-
-      // genFix.sideCube3D (0, 0, 0, length, sides);  
-
-      genFix.closeHeader();
-    } else if (fix == f_3DCube) {
-      uint16_t width = mdl->getValue("width");
-      uint16_t height =  mdl->getValue("height");
-      uint16_t depth = mdl->getValue("depth");
-
-      genFix.openHeader("3DCube%d%d%d", width, height, depth);
-
-      genFix.cube3D(0, 0, 0, width, height, depth);
-
-      genFix.closeHeader();
-
-    } else if (fix == f_3DGlobe) {
-
-      uint16_t width = mdl->getValue("width");
-
-      genFix.openHeader("3DGlobe%d", width);
-
-      genFix.globe3D(0, 0, 0, width);
-
-      genFix.closeHeader();
-    } else if (fix == f_3DGeodesicDome) {
-// 
-      uint16_t width = mdl->getValue("width");
-
-      genFix.openHeader("3DGeodesicDome");
-
-      genFix.geodesicDome3D(0, 0, 0);
-
-      genFix.closeHeader();
-    }
+    
 
     files->filesChange();
   }

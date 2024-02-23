@@ -176,7 +176,11 @@ void SysModUI::processJson(JsonVariant json) {
       JsonVariant value = pair.value();
 
       // commands
-      if (pair.key() == "view" || pair.key() == "canvasData" || pair.key() == "theme") { //save the chosen view in System (see index.js)
+      if (pair.key() == "v") { //when called from jsonHandler
+        // do nothing as it is no real var but the verbose command of WLED
+        USER_PRINTF("processJson v type %s\n", pair.value().as<String>().c_str());
+      }
+      else if (pair.key() == "view" || pair.key() == "canvasData" || pair.key() == "theme") { //save the chosen view in System (see index.js)
         JsonObject var = mdl->findVar("System");
         USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>().c_str(), var.isNull(), mdl->varID(var));
         var[JsonString(key, JsonString::Copied)] = JsonString(value, JsonString::Copied);

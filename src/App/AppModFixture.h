@@ -23,7 +23,7 @@ public:
 
     JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
-        ui->setLabel(var, "On/Off");
+        ui->setLabel(var, "On");
         return true;
       default: return false;
     }});

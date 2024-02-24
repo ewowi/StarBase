@@ -26,6 +26,14 @@
 		--border-color: rgb(255, 160, 0);
 		--select-color: rgb(255, 160, 0);
 	}
+	:root.grayeen {
+		--bg-color: linear-gradient(to bottom, #979294 0%, #474542 100%);
+		--text-color: #fbf4f4;
+		--th-color: #21482b;
+		--h-color: #21482b;
+		--border-color: #21482b;
+		--select-color: #21482b; /*used for view buttons*/
+	}
 	:root.light {
 		--bg-color: #fff;
 		--text-color: #123;
@@ -45,20 +53,21 @@
 		--select-color: #b60f6281;
     }
     :root.pink {
-    --bg-color: #ffcad4;
-    --text-color: #e75480;
-    }
+		--bg-color: #ffcad4;
+		--text-color: #e75480;
+		--select-color: #e75480; /*used for view buttons*/
+	}
     :root.space {
-    --bg-color: #000;
-    --text-color: #f2bd16;
-    --bg-url: url(//space);
-    --font-family: 'Press Start 2P', cursive;
+		--bg-color: #000;
+		--text-color: #f2bd16;
+		--bg-url: url(//space);
+		--font-family: 'Press Start 2P', cursive;
     }
     :root.nyan {
-    --bg-color: #013367;
-    --text-color: #fff;
-    --bg-url: url(//nyan);
-    --font-family: 'Comic Neue', cursive;
+		--bg-color: #013367;
+		--text-color: #fff;
+		--bg-url: url(//nyan);
+		--font-family: 'Comic Neue', cursive;
     }
 
 /* inspired by WLED / MoonModules - temporary */

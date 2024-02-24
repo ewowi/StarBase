@@ -532,12 +532,13 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
       USER_PRINT_Async("processJsonUrl response %s\n", resStr);
       request->send(200, "application/json", resStr);
 
-      web->sendResponseObject();
     }
     else
       // request->send(200, "text/plain", "OK");
       request->send(200, "application/json", F("{\"success\":true}"));
   }
+  
+  web->sendResponseObject();
 }
 
 void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {

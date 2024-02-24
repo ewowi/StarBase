@@ -25,6 +25,9 @@ public:
       case f_UIFun:
         ui->setLabel(var, "On");
         return true;
+      case f_ChangeFun:
+        ui->callVarFun("bri", UINT8_MAX, f_ChangeFun); //set FastLed brightness
+        return true;
       default: return false;
     }});
     currentVar["stage"] = true;
@@ -37,7 +40,7 @@ public:
       case f_ChangeFun: {
         uint8_t bri = var["value"];
 
-        uint8_t result = linearToLogarithm(var, bri);
+        uint8_t result = mdl->getValue("on").as<bool>()?linearToLogarithm(var, bri):0;
 
         FastLED.setBrightness(result);
 

@@ -186,7 +186,7 @@ public:
     closePin();
   }
 
-  void rings241 (Coord3D first, bool in2out, uint8_t ip, uint8_t pin) {
+  void rings241 (Coord3D first, uint8_t nrOfRings, bool in2out, uint8_t ip, uint8_t pin) {
     float ringDiam;
     uint8_t ringsNrOfLeds[9] = {1, 8, 12, 16, 24, 32, 40, 48, 60};
     uint8_t ringDiams[9] = {0, 13, 23, 33, 43, 53, 63, 73, 83}; //in mm
@@ -203,14 +203,14 @@ public:
     openPin(pin);
 
     // in2out or out2in
-    uint16_t size = 60 / M_PI;
-    for (int j=0; j<9; j++) {
-      uint8_t ringNrOfLeds = in2out?ringsNrOfLeds[j]:ringsNrOfLeds[9 - 1 - j];
-      ringDiam = in2out?ringDiams[j]:ringDiams[9 - 1 - j]; //in mm
+    uint16_t size = ringDiams[nrOfRings-1]; //size if the biggest ring
+    for (int j=0; j<nrOfRings; j++) {
+      uint8_t ringNrOfLeds = in2out?ringsNrOfLeds[j]:ringsNrOfLeds[nrOfRings - 1 - j];
+      ringDiam = in2out?ringDiams[j]:ringDiams[nrOfRings - 1 - j]; //in mm
       for (int i=0; i<ringNrOfLeds; i++) {
         float radians = i*360/ringNrOfLeds * (M_PI / 180);
-        uint16_t x = 10 * size / 2 + ringDiam * sinf(radians);
-        uint16_t y = 10 * size / 2 + ringDiam * cosf(radians);
+        uint16_t x = size + ringDiam * sinf(radians);
+        uint16_t y = size + ringDiam * cosf(radians);
         write3D(x + first.x*10, y + first.y*10, first.z*10);
       }
     }
@@ -650,6 +650,7 @@ public:
       }
     }
     else if (fgValue == f_Rings241) {
+      ui->initNumber(parentVar, "nrOfRings", 9, 1, 9);
       ui->initCheckBox(parentVar, "in2out", true);
     }
     else if (fgValue == f_Spiral) {
@@ -669,12 +670,12 @@ public:
             ui->setLabel(var, "Preset");
             JsonArray options = ui->setOptions(var);
             options.add("None");
-            options.add("SörensHexaWall");
+            options.add("HexaWall");
             return true; }
           case f_ChangeFun: {
             uint8_t optionNr = 1; // 0 is none, maintain the same order here as the options
             uint8_t panel = 0;
-            if (var["value"] == optionNr++) { //SörensHexaWall
+            if (var["value"] == optionNr++) { //HexaWall
               panel = 0; 
               mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); 
               mdl->setValue("pnlFirst", Coord3D{10,6,0}, panel++); 
@@ -829,8 +830,6 @@ public:
 
     uint8_t fgValue = mdl->getValue("fixtureGen");
 
-    GenFix genFix;
-
     if (fgValue == f_Matrix) {
 
       Coord3D size = (mdl->getValue("mrxColEnd").as<Coord3D>() - mdl->getValue("pnlFirst").as<Coord3D>()).absx() + Coord3D{1,1,1};
@@ -850,8 +849,10 @@ public:
 
     } else if (fgValue == f_Rings241) {
 
-      getPanels("F_Rings241", [](GenFix * genFix, uint8_t rowNr) {
-        genFix->rings241(mdl->getValue("pnlFirst", rowNr), mdl->getValue("inOut", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+      char fileName[32]; print->fFormat(fileName, 31, "F_Ring241-%d", mdl->getValue("nrOfRings").as<uint8_t>());
+
+      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+        genFix->rings241(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfRings", rowNr), mdl->getValue("inOut", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Spiral) {
@@ -892,18 +893,17 @@ public:
 
     } else if (fgValue == f_Wall) {
 
-      genFix.openHeader("F_Wall");
+      getPanels("F_Wall", [](GenFix * genFix, uint8_t rowNr) {
+        genFix->rings241(Coord3D{0,0,0}, 9, true, UINT8_MAX, 2);
 
-      genFix.rings241(Coord3D{0,0,0}, true, UINT8_MAX, 2);
+        genFix->matrix(Coord3D{19,0,0}, Coord3D{19,8,0}, Coord3D{27,0,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+        genFix->matrix(Coord3D{0,19,0}, Coord3D{0,25,0}, Coord3D{50,19,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
 
-      genFix.matrix(Coord3D{19,0,0}, Coord3D{19,8,0}, Coord3D{27,0,0}, UINT8_MAX, 2);
-      genFix.matrix(Coord3D{0,19,0}, Coord3D{0,25,0}, Coord3D{50,19,0}, UINT8_MAX, 2);
+        genFix->ring(Coord3D{19,8,0}, 48, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
 
-      genFix.ring(Coord3D{19,8,0}, 48, UINT8_MAX, 2);
+        // genFix.spiral(240, 0, 0, 48);
+      });
 
-      // genFix.spiral(240, 0, 0, 48);
-
-      genFix.closeHeader();
     } else if (fgValue == f_Globe) {
 
       char fileName[32]; print->fFormat(fileName, 31, "F_Globe%d", mdl->getValue("width").as<uint8_t>());
@@ -919,7 +919,7 @@ public:
       });
 
     }
-    
+
 
     files->filesChange();
   }

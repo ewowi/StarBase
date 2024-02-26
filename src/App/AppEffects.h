@@ -418,14 +418,12 @@ public:
     uint8_t legs = mdl->getValue("Legs", leds.rowNr);
     CRGBPalette16 pal = getPalette(leds.rowNr);
 
-    leds.sharedData.allocate(sizeof(map_t) * leds.size.x * leds.size.y + 2 * sizeof(uint8_t) + 2 * sizeof(uint16_t) + sizeof(uint32_t));
-    map_t *rMap = leds.sharedData.bind<map_t>(leds.size.x * leds.size.y); //array
-    uint8_t *offsX = leds.sharedData.bind<uint8_t>();
-    uint8_t *offsY = leds.sharedData.bind<uint8_t>();
-    uint16_t *aux0 = leds.sharedData.bind<uint16_t>();
-    uint16_t *aux1 = leds.sharedData.bind<uint16_t>();
-    uint32_t *step = leds.sharedData.bind<uint32_t>();
-    if (!leds.sharedData.allocated()) return;
+    map_t    *rMap = leds.sharedData.bind(rMap, leds.size.x * leds.size.y); //array
+    uint8_t *offsX = leds.sharedData.bind(offsX);
+    uint8_t *offsY = leds.sharedData.bind(offsY);
+    uint16_t *aux0 = leds.sharedData.bind(aux0);
+    uint16_t *aux1 = leds.sharedData.bind(aux1);
+    uint32_t *step = leds.sharedData.bind(step);
 
     Coord3D pos = {0,0,0};
 
@@ -542,9 +540,7 @@ public:
     uint8_t numBalls = mdl->getValue("balls", leds.rowNr);
     CRGBPalette16 pal = getPalette(leds.rowNr);
 
-    leds.sharedData.allocate(sizeof(Ball) * maxNumBalls);
-    Ball *balls = leds.sharedData.bind<Ball>(maxNumBalls); //array
-    if (!leds.sharedData.allocated()) return;
+    Ball *balls = leds.sharedData.bind(balls, maxNumBalls); //array
 
     leds.fill_solid(CRGB::Black);
 
@@ -619,9 +615,7 @@ public:
   }
 
   void loop(Leds &leds) {
-    leds.sharedData.allocate(sizeof(uint8_t) * leds.nrOfLeds);
-    uint8_t *hue = leds.sharedData.bind<uint8_t>(leds.nrOfLeds); //array
-    if (!leds.sharedData.allocated()) return;
+    uint8_t *hue = leds.sharedData.bind(hue, leds.nrOfLeds); //array
 
     hue[0] = random(0, 255);
     for (int r = 0; r < leds.nrOfLeds; r++) {
@@ -741,9 +735,7 @@ public:
     uint8_t intensity = mdl->getValue("intensity", leds.rowNr);
     bool useaudio = mdl->getValue("useaudio", leds.rowNr);
 
-    leds.sharedData.allocate(sizeof(Spark) * maxNumPopcorn);
-    Spark *popcorn = leds.sharedData.bind<Spark>(maxNumPopcorn); //array
-    if (!leds.sharedData.allocated()) return;
+    Spark *popcorn = leds.sharedData.bind(popcorn, maxNumPopcorn); //array
 
     float gravity = -0.0001 - (speed/200000.0); // m/s/s
     gravity *= leds.nrOfLeds;
@@ -818,10 +810,9 @@ public:
   }
 
   void loop(Leds &leds) {
-    leds.sharedData.allocate(sizeof(uint16_t) * leds.size.x + sizeof(uint32_t));
-    uint16_t *previousBarHeight = leds.sharedData.bind<uint16_t>(leds.size.x); //array
-    uint32_t *step = leds.sharedData.bind<uint32_t>();
-    if (!leds.sharedData.allocated()) return;
+
+    uint16_t *previousBarHeight = leds.sharedData.bind(previousBarHeight, leds.size.x); //array
+    uint32_t *step = leds.sharedData.bind(step);
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
 
@@ -981,9 +972,8 @@ public:
   }
 
   void loop(Leds &leds) {
-    leds.sharedData.allocate(sizeof(uint8_t));
-    uint8_t *aux0 = leds.sharedData.bind<uint8_t>();
-    if (!leds.sharedData.allocated()) return;
+
+    uint8_t *aux0 = leds.sharedData.bind(aux0);
 
     uint8_t speed = mdl->getValue("speed", leds.rowNr);
     uint8_t fx = mdl->getValue("Sound effect", leds.rowNr);
@@ -1098,6 +1088,7 @@ public:
   void loop(Leds &leds) {
     now = millis(); //tbd timebase
 
+    leds.sharedData.loop(); //sets the sharedData pointer back to 0 so loop effect can go through it
     effects[leds.fx%effects.size()]->loop(leds);
 
     #ifdef STARMOD_USERMOD_WLEDAUDIO

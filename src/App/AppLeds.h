@@ -41,8 +41,6 @@ class SharedData {
 
   public:
   SharedData() {
-    bytesAllocated = 1024; //initial size
-    data = (byte*) malloc(bytesAllocated); //start with 100 bytes
     USER_PRINTF("SharedData constructor %d %d\n", index, bytesAllocated);
   }
   ~SharedData() {
@@ -54,32 +52,26 @@ class SharedData {
     memset(data, 0, bytesAllocated);
   }
 
-  void allocate(size_t size) {
+  void loop() {
     index = 0;
-    if (size > bytesAllocated) {
-      USER_PRINTF("realloc %d %d %d\n", index, size, bytesAllocated);
-      data = (byte*)realloc(data, size);
-      bytesAllocated = size;
-    }
   }
 
   template <typename Type>
-  Type* bind(int length = 1) {
-    Type* returnValue = reinterpret_cast<Type*>(data + index);
-    index += length * sizeof(Type); //add consumed amount of bytes, index is next byte which will be pointed to
-    if (index > bytesAllocated) {
-      USER_PRINTF("bind too big %d %d\n", index, bytesAllocated);
-      return nullptr;
+  Type * bind(Type * returnValue, int length = 1) {
+    size_t newIndex = index + length * sizeof(Type);
+    if (newIndex > bytesAllocated) {
+      size_t newSize = bytesAllocated + (1 + ( newIndex - bytesAllocated)/1024) * 1024; // add a multitude of 1024 bytes
+      USER_PRINTF("bind add more %d->%d %d->%d\n", index, newIndex, bytesAllocated, newSize);
+      if (bytesAllocated == 0)
+        data = (byte*) malloc(newSize); //start bytesAllocated 100 bytes
+      else
+        data = (byte*)realloc(data, newSize);
+      bytesAllocated = newSize;
     }
+    // USER_PRINTF("bind %d->%d %d\n", index, newIndex, bytesAllocated);
+    returnValue = reinterpret_cast<Type *>(data + index);
+    index = newIndex; //add consumed amount of bytes, index is next byte which will be pointed to
     return returnValue;
-  }
-
-  bool allocated() {
-    if (index>bytesAllocated) {
-      USER_PRINTF("not all variables bound %d %d\n", index, bytesAllocated);
-      return false;
-    }
-    return true;
   }
 
 };

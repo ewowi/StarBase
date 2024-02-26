@@ -1,10 +1,10 @@
 <!-- 
   @title     StarMod
   @file      index.htm
-  @date      20240114
+  @date      20240226
   @repo      https://github.com/ewowi/StarMod
   @Authors   https://github.com/ewowi/StarMod/commits/main
-  @Copyright (c) 2024 Github StarMod Commit Authors
+  @Copyright © 2024 Github StarMod Commit Authors
   @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -13,8 +13,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>StarMod by MoonModules</title>
   <meta charset="utf-8">
+  <title>StarMod💫 LEDs 🎨 by MoonModules 🌔</title>
   <link rel="stylesheet" href="index.css">
   <script src="app.js"></script>
   <script src="index.js"></script>
@@ -34,7 +34,7 @@
 </head>
 <body onload="onLoad()">
   <div class="module">
-    <h1>StarMod by MoonModules 💫</h1>
+    <h1>StarMod💫 LEDs 🎨 by MoonModules 🌔</h1>
     <h2><div id="instanceName"></div></h2>
     <input type="button" value="App" id="vApp" onclick="setView(this)">
     <input type="button" value="Stage" id="vStage" onclick="setView(this)">
@@ -44,10 +44,11 @@
     <span> | </span>
     <input type="button" value="Save" id="bSave" onclick="saveModel(this)">
     <span> | </span>
-    Theme <select name="theme-select" id="theme-select" onchange="setTheme(this)">
+    <label>Theme</label> <select name="theme-select" id="theme-select" onchange="setTheme(this)">
       <option value="starmod">StarMod</option>
       <option value="wled">WLED</option>
       <option value="grayeen">Grayeen</option>
+      <option value="dev">Dev</option>
       <option value="light">Light</option>
       <option value="dark">Dark</option>
       <option value="blue">Blue</option>
@@ -69,7 +70,7 @@
   </div>
   <div id="connind">&#9790;</div>
   <div id="modalView" class="modal"></div>
-  <p style="color:grey;"> (c) 2024 MoonModules Licensed under GPL-v3</p>
+  <p style="color:grey;"> © 2024 MoonModules ☾ - Licensed under GPL-v3</p>
   <div id="canvasMenu" style="position:absolute;display:none"> <!--;background-color:#b60f62-->
     <p><button id="canvasButton1"></button></p>
     <p><button id="canvasButton2"></button></p>

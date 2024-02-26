@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      AppEffects.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -36,7 +36,6 @@ public:
     JsonObject currentVar = ui->initSelect(parentVar, "pal", value, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
         ui->setLabel(var, "Palette");
-        ui->setComment(var, "Colors");
         JsonArray options = ui->setOptions(var);
         options.add("CloudColors");
         options.add("LavaColors");
@@ -1126,11 +1125,7 @@ public:
 
       leds.sharedData.clear(); //make sure all values are 0
 
-      for (JsonObject var: var["n"].as<JsonArray>()) { //for all controls
-        if (mdl->varOrder(var) >= 0) { //post init
-          mdl->varOrder(var, -mdl->varOrder(var)); // set all negative
-        }
-      }
+      mdl->preUpdateDetails(var);
 
       Effect* effect = effects[leds.fx];
 
@@ -1140,42 +1135,7 @@ public:
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 
-      //check if post init added
-      bool postInit = false;
-      for (JsonObject childVar: mdl->varN(var)) {
-
-        if (mdl->varOrder(childVar) >= 0) { //post init, just added, 
-          postInit = true;
-          break;
-        }
-      }
-      if (postInit) {
-        for (JsonObject childVar: mdl->varN(var)) {
-          if (childVar["value"].is<JsonArray>())
-          {
-            JsonArray valArray = childVar["value"];
-
-            if (mdl->varOrder(childVar) < 0) { //if not updated
-              valArray[rowNr] = (char*)0; //null
-              // mdl->setValue(var, -99, rowNr); //set value -99
-              mdl->varOrder(childVar, -mdl->varOrder(childVar)); //make positive again
-              //if some values in array are not -99
-            }
-
-            //if all values null, remove value
-            bool allNull = true;
-            for (JsonVariant element: valArray) {
-              if (!element.isNull())
-                allNull = false;
-            }
-            if (allNull) {
-              print->printJson("remove allnulls", childVar);
-              mdl->varN(var).remove(childVar);
-            }
-          }
-
-        }
-      }
+      mdl->postUpdateDetails(var, rowNr);
       
       print->printJson("control", var);
         // if (mdl->varOrder(var) >= 0) { //post init

@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      AppModFixtureGen.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -488,6 +488,8 @@ public:
 
     fixtureGenVar.remove("n"); //tbd: we should also remove the varFun !!
 
+    // mdl->preUpdateDetails(fixtureGenVar);
+
     JsonObject parentVar = fixtureGenVar;
     if (panelVar["value"].as<bool>()) {
 
@@ -619,7 +621,12 @@ public:
       }
     }
     else if (fgValue == f_Ring) {
-      ui->initNumber(parentVar, "fixLeds", 24, 1, NUM_LEDS_Max);
+      ui->initNumber(parentVar, "fixLeds", 24, 1, NUM_LEDS_Max, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_UIFun:
+          ui->setLabel(var, "Leds");
+          return true;
+        default: return false; 
+      }});
 
       if (panelVar["value"].as<bool>()) {
 
@@ -654,7 +661,12 @@ public:
       ui->initCheckBox(parentVar, "in2out", true);
     }
     else if (fgValue == f_Spiral) {
-      ui->initNumber(parentVar, "fixLeds", 64, 1, NUM_LEDS_Max);
+      ui->initNumber(parentVar, "fixLeds", 64, 1, NUM_LEDS_Max, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        case f_UIFun:
+          ui->setLabel(var, "Leds");
+          return true;
+        default: return false; 
+      }});
     }
     else if (fgValue == f_Wheel) {
       ui->initNumber(parentVar, "nrOfSpokes", 36, 1, 360);
@@ -715,25 +727,14 @@ public:
       default: return false; 
     }});
 
-    ui->initSelect(parentVar, "fixPin", 2, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initPin(parentVar, "fixPin", 2, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
         ui->setLabel(var, "Pin");
 
         //tbd: move logic to pinMgr and create initPin
         JsonArray options = ui->setOptions(var);
-        #if defined(CONFIG_IDF_TARGET_ESP32S2)
-          uint8_t nrOfPins = 46;
-        #elif defined(CONFIG_IDF_TARGET_ESP32S3)
-          uint8_t nrOfPins = 48;
-        #elif defined(CONFIG_IDF_TARGET_ESP32C3)
-          uint8_t nrOfPins = 21;
-        #elif defined(ESP32)
-          uint8_t nrOfPins = 46;
-        #else //???
-          uint8_t nrOfPins = 40;
-        #endif
         
-        for (uint8_t pinNr = 0; pinNr <= nrOfPins; pinNr++) {
+        for (uint8_t pinNr = 0; pinNr < NUM_DIGITAL_PINS; pinNr++) {
           char text[32];
           itoa(pinNr, text, 10);
           if (digitalPinIsValid(pinNr)) {
@@ -770,7 +771,7 @@ public:
       default: return false; 
     }});
 
-    web->addResponse("details", "var", fixtureGenVar);
+    mdl->postUpdateDetails(fixtureGenVar, UINT8_MAX);
 
   }
 

@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      SysModModel.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -112,12 +112,12 @@ namespace ArduinoJson {
       dst["x"] = src.x;
       dst["y"] = src.y;
       dst["z"] = src.z;
-      USER_PRINTF("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
+      // USER_PRINTF("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
       return true;
     }
 
     static Coord3D fromJson(JsonVariantConst src) {
-      USER_PRINTF("Coord3D fromJson %s\n", src.as<String>().c_str());
+      // USER_PRINTF("Coord3D fromJson %s\n", src.as<String>().c_str());
       return Coord3D{src["x"], src["y"], src["z"]};
     }
 
@@ -260,7 +260,7 @@ public:
 
     va_end(args);
 
-    USER_PRINTF("%s\n", value);
+    USER_PRINTF("setValueV %s[%d] = %s\n", id, rowNr, value);
     return setValue(id, JsonString(value, JsonString::Copied), rowNr);
   }
 
@@ -273,7 +273,8 @@ public:
 
     va_end(args);
 
-    web->addResponse(id, "value", JsonString(value, JsonString::Copied));
+    //no print
+    web->addResponse(id, "value", JsonString(value, JsonString::Copied)); //setValue not necessary
   }
 
   JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {
@@ -319,6 +320,59 @@ public:
   JsonArray varN(JsonObject var) {return var["n"];}
   int varOrder(JsonObject var) {return var["o"];}
   void varOrder(JsonObject var, int value) {var["o"] = value;}
+
+  void preUpdateDetails(JsonObject var) {
+    for (JsonObject var: varN(var)) { //for all controls
+      if (varOrder(var) >= 0) { //post init
+        varOrder(var, -varOrder(var)); // set all negative
+      }
+    }
+  }
+
+  void postUpdateDetails(JsonObject var, uint8_t rowNr) {
+
+    if (rowNr != UINT8_MAX) {
+
+      print->printJson("postUpdateDetails pre", var);
+
+      //check if post init added: parent is already >=0
+      if (varOrder(var) >= 0) {
+        for (JsonObject childVar: varN(var)) {
+          if (childVar["value"].is<JsonArray>())
+          {
+            JsonArray valArray = childVar["value"];
+
+            if (varOrder(childVar) < 0) { //if not updated
+              valArray[rowNr] = (char*)0; // set element in valArray to 0
+
+              USER_PRINTF("postUpdateDetails %s[%d] to null\n", varID(var), rowNr);
+              // setValue(var, -99, rowNr); //set value -99
+              varOrder(childVar, -varOrder(childVar)); //make positive again
+              //if some values in array are not -99
+            }
+
+            //if all values null, remove value
+            bool allNull = true;
+            for (JsonVariant element: valArray) {
+              if (!element.isNull())
+                allNull = false;
+            }
+            if (allNull) {
+              print->printJson("remove allnulls", childVar);
+              varN(var).remove(childVar);
+            }
+          }
+
+        }
+      } //if new added
+      print->printJson("postUpdateDetails post", var);
+
+      web->addResponse("details", "rowNr", rowNr);
+    }
+
+    //post update details
+    web->addResponse("details", "var", var);
+  }
 
 private:
   bool doShowObsolete = false;

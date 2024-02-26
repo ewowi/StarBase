@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      SysModUI.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -94,6 +94,10 @@ public:
 
   JsonObject initNumber(JsonObject parent, const char * id, int value = UINT16_MAX, int min = 0, int max = UINT16_MAX, bool readOnly = false, VarFun varFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "number", value, min, max, readOnly, varFun);
+  }
+
+  JsonObject initPin(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, VarFun varFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "pin", value, 0, NUM_DIGITAL_PINS, readOnly, varFun);
   }
 
   JsonObject initProgress(JsonObject parent, const char * id, int value = UINT16_MAX, int min = 0, int max = 255, bool readOnly = false, VarFun varFun = nullptr) {

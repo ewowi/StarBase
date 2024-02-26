@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      SysModPins.cpp
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -14,7 +14,7 @@
 #include "SysModUI.h"
 #include "SysModWeb.h"
 
-PinObject SysModPins::pinObjects[NUM_PINS];
+PinObject SysModPins::pinObjects[NUM_DIGITAL_PINS];
 bool SysModPins::pinsChanged = false;
 
 SysModPins::SysModPins() :SysModule("Pins") {
@@ -27,7 +27,7 @@ SysModPins::SysModPins() :SysModule("Pins") {
 #endif
 
   //start with no pins allocated
-  for (int i=0; i<NUM_PINS; i++) {
+  for (int i=0; i<NUM_DIGITAL_PINS; i++) {
     deallocatePin(i, pinObjects[i].owner);
   }
 };
@@ -45,7 +45,7 @@ void SysModPins::setup() {
     default: return false;
   }});
 
-  ui->initNumber(tableVar, "pinNr", UINT16_MAX, 0, NUM_PINS, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initPin(tableVar, "pinNr", UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_ValueFun:
       for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
         mdl->setValue(var, getPinNr(rowNr), rowNr);
@@ -146,7 +146,7 @@ bool SysModPins::updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType) { sw
 
 void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * details) {
   USER_PRINTF("allocatePin %d %s %s\n", pinNr, owner, details);
-  if ((pinNr < NUM_PINS) && (digitalPinIsValid(pinNr))) {
+  if ((pinNr < NUM_DIGITAL_PINS) && (digitalPinIsValid(pinNr))) {
     if (strcmp(pinObjects[pinNr].owner, "") != 0 && strcmp(pinObjects[pinNr].owner, owner) != 0)
       USER_PRINTF("allocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
     else {
@@ -159,7 +159,7 @@ void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * det
 
 void SysModPins::deallocatePin(uint8_t pinNr, const char * owner) {
   // USER_PRINTF("deallocatePin %d %s\n", pinNr, owner);
-  if (pinNr < NUM_PINS) {
+  if (pinNr < NUM_DIGITAL_PINS) {
     if (strcmp(pinObjects[pinNr].owner, owner) != 0)
       USER_PRINTF("deallocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
     else {

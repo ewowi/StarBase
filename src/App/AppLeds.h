@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      AppLeds.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -41,8 +41,13 @@ class SharedData {
 
   public:
   SharedData() {
-    bytesAllocated = 1024;
+    bytesAllocated = 1024; //initial size
     data = (byte*) malloc(bytesAllocated); //start with 100 bytes
+    USER_PRINTF("SharedData constructor %d %d\n", index, bytesAllocated);
+  }
+  ~SharedData() {
+    USER_PRINTF("SharedData destructor WIP %d %d\n", index, bytesAllocated);
+    // free(data);
   }
 
   void clear() {
@@ -96,7 +101,7 @@ public:
   uint8_t fx = -1;
   uint8_t projectionNr = -1;
   uint8_t effectDimension = -1;
-  Coord3D startPos = {0,0,0}, endPos = {7,7,0}; //default
+  Coord3D startPos = {0,0,0}, endPos = {UINT16_MAX,UINT16_MAX,UINT16_MAX}; //default
 
   SharedData sharedData;
 

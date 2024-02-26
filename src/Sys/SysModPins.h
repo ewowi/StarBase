@@ -1,18 +1,16 @@
 /*
    @title     StarMod
    @file      SysModPins.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #pragma once
 #include "SysModule.h"
-
-#define NUM_PINS NUM_DIGITAL_PINS // softhack007 NUM_DIGITAL_PINS comes from the arduino framework
 
 //info stored per pin
 struct PinObject {
@@ -24,7 +22,7 @@ class SysModPins:public SysModule {
 
 public:
 
-  static PinObject pinObjects[NUM_PINS]; //all pins
+  static PinObject pinObjects[NUM_DIGITAL_PINS]; //all pins
 
   SysModPins();
   void setup();

@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      AppModFixture.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -87,7 +87,7 @@ public:
     ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, false ,[](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
       {
-        ui->setComment(var, "Fixture to display effect on");
+        // ui->setComment(var, "Fixture to display effect on");
         JsonArray options = ui->setOptions(var);
         files->dirToJson(options, true, "F_"); //only files containing F(ixture), alphabetically
 
@@ -118,7 +118,7 @@ public:
       default: return false; 
     }}); //fixture
 
-    ui->initCoord3D(parentVar, "fixSize", lds->fixture.size, 0, UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCoord3D(parentVar, "fixSize", lds->fixture.size, 0, NUM_LEDS_Max, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
         mdl->setValue(var, lds->fixture.size);
         return true;

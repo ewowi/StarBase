@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      index.css
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -33,6 +33,16 @@
 		--h-color: #21482b;
 		--border-color: #21482b;
 		--select-color: #21482b; /*used for view buttons*/
+	}
+	:root.dev {
+		--bg-color: #121212;
+		--text-color: #cfd096;
+		--th-color: #c27e66;
+		--h-color:#c27e66;
+		--border-color: #cdad6a;
+		--select-color: #1a8aff; /*used for view buttons*/
+		--label-color: #83c5eb;
+		--comment-color: #598a43;
 	}
 	:root.light {
 		--bg-color: #fff;
@@ -107,12 +117,14 @@
 /* default nodes */
 label {
   margin-right: 6px; /*space after*/
+  color: var(--label-color);
 }
 
 comment {
   font-size: 10px;
   font-style: italic;
   margin-left: 6px; /*space before*/
+  color: var(--comment-color);
 }
 
 text { /*currently only for buttonSaveNode and buttonCancelNode*/
@@ -240,7 +252,7 @@ div {
   padding-bottom: 12px; */
   text-align: left;
   background-color: var(--th-color);
-  color: white;
+  color: var(--label-color);
 }
 
 /* drag and drop style */
@@ -307,8 +319,9 @@ div {
   .tooltip .tooltiptext {
 	visibility: hidden;
 	width: 120px;
-	background-color: #555;
-	color: #fff;
+	background-color: var(--bg-color);
+	font-style: italic;
+	color: var(--comment-color);
 	text-align: center;
 	padding: 5px 0;
 	border-radius: 6px;

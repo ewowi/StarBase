@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      AppModLeds.cpp
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -23,7 +23,7 @@ void Leds::setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount) {
       }
     }
   }
-  else if (indexV<NUM_LEDS_Max)//no projection
+  else if (indexV < NUM_LEDS_Max)//no projection
     fixture->ledsP[projectionNr==p_Random?random(fixture->nrOfLeds):indexV] = color;
   else
     USER_PRINTF(" dev sPC V:%d >= %d", indexV, NUM_LEDS_Max);
@@ -32,7 +32,7 @@ void Leds::setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount) {
 CRGB Leds::getPixelColor(uint16_t indexV) {
   if (mappingTable.size()) {
     if (indexV >= mappingTable.size()) {
-      USER_PRINTF(" dev gPC V %d >= %d", indexV, mappingTable.size());
+      // USER_PRINTF(" dev gPC V %d >= %d", indexV, mappingTable.size());
       return CRGB::Black;
     }
     else if (!mappingTable[indexV].size()) //if no physMap // Core  1 panic'ed (LoadProhibited). Exception was unhandled. - std::vector<unsigned short, std::allocator<unsigned short> >::size() 

@@ -1,16 +1,15 @@
 /*
    @title     StarMod
    @file      AppFixture.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #pragma once
-
 
 #include "../Sys/SysModModel.h" //for Coord3D
 
@@ -26,8 +25,8 @@ enum Projections
 {
   p_None,
   p_Random,
+  p_Default,
   p_DistanceFromPoint,
-  p_DistanceFromCenter,
   p_Reverse,
   p_Mirror,
   p_Multiply,
@@ -61,10 +60,6 @@ public:
   std::vector<Leds> ledsList; //virtual leds
 
   Coord3D head = {0,0,0};
-
-  //variables for json Scan
-  // uint16_t prevIndexP;
-  //track pins and leds
 
   bool doMap = false;
 

@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      AppModLeds.h
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -52,9 +52,6 @@ public:
   Fixture fixture = Fixture();
 
   AppModLeds() :SysModule("Leds") {
-    fixture.ledsList.push_back(Leds(fixture.ledsList.size(), fixture));
-    fixture.ledsList.push_back(Leds(fixture.ledsList.size(), fixture));
-    USER_PRINTF("Leds created\n");
   };
 
   void setup() {
@@ -106,12 +103,14 @@ public:
         return true;
       }
       case f_ChangeFun:
-        if (rowNr < fixture.ledsList.size()) {
-          effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
 
-          web->addResponse("details", "var", var);
-          web->addResponse("details", "rowNr", rowNr);
+        //create a new leds instance if a new row is created
+        if (rowNr >= fixture.ledsList.size()) {
+          USER_PRINTF("ledslist fx changeFun %d %s", fixture.ledsList.size(), mdl->findVar("fx")["value"].as<String>().c_str());
+          fixture.ledsList.push_back(Leds(fixture.ledsList.size(), fixture));
         }
+
+        effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
         return true;
       default: return false;
     }});
@@ -125,11 +124,11 @@ public:
       case f_UIFun: {
         ui->setLabel(var, "Projection");
         ui->setComment(var, "How to project fx");
-        JsonArray options = ui->setOptions(var);
+        JsonArray options = ui->setOptions(var); // see enum Projections in AppFixture.h and keep the same order !
         options.add("None"); // 0
         options.add("Random"); // 1
-        options.add("Distance from point"); //2
-        options.add("Distance from center"); //3
+        options.add("Default"); //2
+        options.add("Distance from point"); //3
         options.add("Mirror"); //4
         options.add("Reverse"); //5
         options.add("Multiply"); //6
@@ -139,8 +138,27 @@ public:
       }
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {
-          fixture.ledsList[rowNr].projectionNr = mdl->getValue(var, rowNr);
-          USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, fixture.ledsList[rowNr].projectionNr, fixture.ledsList.size());
+          uint8_t proValue = mdl->getValue(var, rowNr);
+          fixture.ledsList[rowNr].projectionNr = proValue;
+
+          mdl->preUpdateDetails(var); //set all positive var N orders to negative
+
+          if (proValue == p_DistanceFromPoint) {
+            ui->initCoord3D(var, "point", Coord3D{0,0,0}, 0, NUM_LEDS_Max, false);
+            // , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+            //   case f_ValueFun:
+            //     mdl->setValue(var, lds->fixture.size);
+            //     return true;
+            //   case f_UIFun:
+            //     ui->setLabel(var, "Size");
+            //     return true;
+            //   default: return false;
+            // }});
+          }
+
+          mdl->postUpdateDetails(var, rowNr);
+
+          USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, proValue, fixture.ledsList.size());
 
           fixture.ledsList[rowNr].doMap = true;
           fixture.doMap = true;
@@ -158,6 +176,7 @@ public:
         return true;
       case f_UIFun:
         ui->setLabel(var, "Start");
+        ui->setComment(var, "In pixels");
         return true;
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {
@@ -184,6 +203,7 @@ public:
         return true;
       case f_UIFun:
         ui->setLabel(var, "End");
+        ui->setComment(var, "In pixels");
         return true;
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {

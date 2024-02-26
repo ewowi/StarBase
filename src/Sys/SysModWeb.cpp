@@ -1,10 +1,10 @@
 /*
    @title     StarMod
    @file      SysModWeb.cpp
-   @date      20240114
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2024 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
@@ -537,7 +537,7 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
       // request->send(200, "text/plain", "OK");
       request->send(200, "application/json", F("{\"success\":true}"));
   }
-  
+
   web->sendResponseObject();
 }
 

@@ -1,9 +1,9 @@
 // @title     StarMod
 // @file      index.css
-// @date      20240114
+// @date      20240226
 // @repo      https://github.com/ewowi/StarMod
 // @Authors   https://github.com/ewowi/StarMod/commits/main
-// @Copyright (c) 2024 Github StarMod Commit Authors
+// @Copyright © 2024 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
 // @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 
@@ -155,8 +155,12 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     let  variable = json;
 
     if (Array.isArray(variable.value) && rowNr != UINT8_MAX) {
-      if ((rowNr < variable.value.length && variable.value[rowNr] == null)) { //rowNr >= variable.value.length || 
+      if ((rowNr < variable.value.length && variable.value[rowNr] == null)) { //rowNr >= variable.value.length || needed if row is created but value not yet
         // console.log("not showing this var as value is null", variable, rowNr);
+        return;
+      }
+      if (parentNode.className == "ndiv" && rowNr >= variable.value.length) {
+        console.log("createHTML ndiv parent no create", parentNode, variable, rowNr, variable.value.length);
         return;
       }
     }
@@ -250,8 +254,8 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       }
 
       //variable.n will add the columns
-    }
-    else if (parentNodeType == "table") { 
+    } else if (parentNodeType == "table") { 
+
       // console.log("tableChild", parentNode, variable);
 
       varNode = cE("th");
@@ -266,8 +270,19 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
         varNode = cE("select");
         varNode.addEventListener('change', (event) => {console.log("select change", event);sendValue(event.target);});
       }
-    }
-    else if (variable.type == "canvas") {
+
+    } else if (variable.type == "pin") {
+
+      if (variable.ro) { //e.g. for reset/restart reason: do not show a select but only show the selected option
+        varNode = cE("span");
+      }
+      else {
+        varNode = cE("select");
+        varNode.addEventListener('change', (event) => {console.log("select change", event);sendValue(event.target);});
+      }
+
+    } else if (variable.type == "canvas") {
+
       //3 lines of code to only add 🔍
       let spanNode = cE("span");
       spanNode.innerText= "🔍";
@@ -276,8 +291,8 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
 
       varNode = cE("canvas");
       varNode.addEventListener('dblclick', (event) => {toggleModal(event.target);});
-    }
-    else if (variable.type == "textarea") {
+
+    } else if (variable.type == "textarea") {
 
       //3 lines of code to only add 🔍
       let spanNode = cE("span");
@@ -505,8 +520,7 @@ function receiveData(json) {
       }
       else if (key == "canvasData") {
         console.log("receiveData no action", key, value);
-      }
-      else if (key == "details") {
+      } else if (key == "details") {
         let variable = value.var;
         let rowNr = value.rowNr == null?UINT8_MAX:value.rowNr;
         let nodeId = variable.id + ((rowNr != UINT8_MAX)?"#" + rowNr:"");
@@ -543,8 +557,9 @@ function receiveData(json) {
         let newRowNr = tbodyNode.querySelectorAll("tr").length;
 
         genTableRowHTML(tableVar, tableNode, newRowNr);
-      }
-      else if (key == "delRow") { //update the row of a table
+
+      } else if (key == "delRow") { //update the row of a table
+
         console.log("receiveData", key, value);
         let tableId = value.id;
         let tableVar = findVar(tableId);
@@ -556,8 +571,8 @@ function receiveData(json) {
 
         console.log("delRow ", tableVar, tableNode, rowNr);
 
-      }
-      else if (key == "updRow") { //update the row of a table
+      } else if (key == "updRow") { //update the row of a table
+
         let tableId = value.id;
         let tableVar = findVar(tableId);
         let rowNr = value.rowNr;
@@ -573,8 +588,9 @@ function receiveData(json) {
           changeHTML(colVar, {"value":colValue, "chk":"updRow"}, rowNr);
           colNr++;
         }
-      }
-      else { //{variable:{label:value:options:comment:}}
+
+      } else { //{variable:{label:value:options:comment:}}
+
         let variable = findVar(key);
 
         if (variable) {

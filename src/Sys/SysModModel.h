@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModModel.h
-   @date      20240226
+   @date      20240227
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -160,6 +160,8 @@ public:
 
   bool doWriteModel = false;
 
+  static uint8_t contextRowNr;
+
   SysModModel();
   void setup();
   void loop();
@@ -290,6 +292,7 @@ public:
   JsonVariant getValue(JsonObject var, uint8_t rowNr = UINT8_MAX) {
     if (var["value"].is<JsonArray>()) {
       JsonArray valueArray = var["value"].as<JsonArray>();
+      if (rowNr == UINT8_MAX) rowNr = contextRowNr;
       if (rowNr != UINT8_MAX && rowNr < valueArray.size())
         return valueArray[rowNr];
       else if (valueArray.size())

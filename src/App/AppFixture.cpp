@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppFixture.cpp
-   @date      20240226
+   @date      20240227
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -12,7 +12,7 @@
 #include "AppFixture.h"
 
 #include "../Sys/SysModFiles.h"
-#include "../Sys/SysJsonRDWS.h"
+#include "../Sys/SysStarModJson.h"
 #include "../Sys/SysModPins.h"
 
 Coord3D map1Dto2D(Coord3D in) {
@@ -36,7 +36,7 @@ Coord3D map2Dto2D(Coord3D in) {
     char fileName[32] = "";
 
     if (files->seqNrToName(fileName, fixtureNr)) {
-      JsonRDWS jrdws(fileName); //open fileName for deserialize
+      StarModJson starModJson(fileName); //open fileName for deserialize
 
       for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
         //vectors really gone now?
@@ -59,14 +59,14 @@ Coord3D map2Dto2D(Coord3D in) {
       bool first = true;
 
       //what to deserialize
-      jrdws.lookFor("width", &size.x);
-      jrdws.lookFor("height", &size.y);
-      jrdws.lookFor("depth", &size.z);
-      jrdws.lookFor("nrOfLeds", &nrOfLeds);
-      jrdws.lookFor("pin", &currPin);
+      starModJson.lookFor("width", &size.x);
+      starModJson.lookFor("height", &size.y);
+      starModJson.lookFor("depth", &size.z);
+      starModJson.lookFor("nrOfLeds", &nrOfLeds);
+      starModJson.lookFor("pin", &currPin);
 
       //lookFor leds array and for each item in array call lambdo to make a projection
-      jrdws.lookFor("leds", [this, &prevIndexP, &indexP, &currPin, &first](std::vector<uint16_t> uint16CollectList) { //this will be called for each tuple of coordinates!
+      starModJson.lookFor("leds", [this, &prevIndexP, &indexP, &currPin, &first](std::vector<uint16_t> uint16CollectList) { //this will be called for each tuple of coordinates!
         // USER_PRINTF("funList ");
         // for (uint16_t num:uint16CollectList)
         //   USER_PRINTF(" %d", num);
@@ -354,13 +354,13 @@ Coord3D map2Dto2D(Coord3D in) {
 
           prevIndexP = indexP;
         }
-      }); //jrdws.lookFor("leds" (create the right type, otherwise crash)
+      }); //starModJson.lookFor("leds" (create the right type, otherwise crash)
 
-      if (jrdws.deserialize(false)) { //this will call above function parameter for each led
+      if (starModJson.deserialize(false)) { //this will call above function parameter for each led
 
         uint8_t rowNr = 0;
         for (std::vector<Leds>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
-          USER_PRINTF("leds loop %d %d\n", leds->rowNr, leds->fx);
+          USER_PRINTF("leds loop %d %d\n", leds - ledsList.begin(), leds->fx);
 
           uint16_t nrOfMappings = 0;
           uint16_t nrOfPixels = 0;
@@ -404,9 +404,9 @@ Coord3D map2Dto2D(Coord3D in) {
 
           USER_PRINTF("projectAndMap [%d] V:%d x %d x %d = %d (%d-%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
 
-          mdl->setValueV("fxSize", leds->rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
+          mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
 
-          USER_PRINTF("leds[%d].size = %d + %d\n", leds->rowNr, sizeof(Leds), leds->mappingTable.size()); //44
+          USER_PRINTF("leds[%d].size = %d + %d\n", rowNr, sizeof(Leds), leds->mappingTable.size()); //44
 
           rowNr++;
           leds->doMap = false;

@@ -12,11 +12,12 @@
 #include "SysModModel.h"
 #include "SysModule.h"
 #include "SysModFiles.h"
-#include "SysJsonRDWS.h"
+#include "SysStarModJson.h"
 #include "SysModUI.h"
 
 JsonDocument * SysModModel::model = nullptr;
 JsonObject SysModModel::modelParentVar;
+uint8_t SysModModel::contextRowNr = UINT8_MAX;
 
 SysModModel::SysModModel() :SysModule("Model") {
   model = new JsonDocument(&allocator);
@@ -87,9 +88,9 @@ void SysModModel::setup() {
 
     cleanUpModel(JsonObject(), false, true);//remove if var["o"] is negative (not cleanedUp) and remove ro values
 
-    JsonRDWS jrdws("/model.json", "w"); //open fileName for deserialize
-    jrdws.addExclusion("fun");
-    jrdws.writeJsonDocToFile(model);
+    StarModJson starModJson("/model.json", "w"); //open fileName for deserialize
+    starModJson.addExclusion("fun");
+    starModJson.writeJsonDocToFile(model);
 
     // print->printJson("Write model", *model); //this shows the model before exclusion
 

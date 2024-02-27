@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      SysJsonRDWS.h
+   @file      SysStarModJson.h
    @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -12,19 +12,19 @@
 //Lazy Json Read Deserialize Write Serialize (write / serialize not implemented yet)
 //ArduinoJson won't work on very large fixture.json, this does
 //only support what is currently needed: read / deserialize uint8/16/char var elements (arrays not yet)
-class JsonRDWS {
+class StarModJson {
 
   public:
 
-  JsonRDWS(const char * path, const char * mode = "r") {
-    USER_PRINTF("JsonRDWS constructing %s %s\n", path, mode);
+  StarModJson(const char * path, const char * mode = "r") {
+    USER_PRINTF("StarModJson constructing %s %s\n", path, mode);
     f = files->open(path, mode);
     if (!f)
-      USER_PRINTF("JsonRDWS open %s for %s failed", path, mode);
+      USER_PRINTF("StarModJson open %s for %s failed", path, mode);
   }
 
-  ~JsonRDWS() {
-    USER_PRINTF("JsonRDWS destructing\n");
+  ~StarModJson() {
+    USER_PRINTF("StarModJson destructing\n");
     f.close();
   }
 
@@ -71,9 +71,9 @@ class JsonRDWS {
     while (f.available() && (!foundAll || !lazy))
       next();
     if (foundAll)
-      USER_PRINTF("JsonRDWS found all what it was looking for %d >= %d\n", foundCounter, varDetails.size());
+      USER_PRINTF("StarModJson found all what it was looking for %d >= %d\n", foundCounter, varDetails.size());
     else
-      USER_PRINTF("JsonRDWS Not all vars looked for where found %d < %d\n", foundCounter, varDetails.size());
+      USER_PRINTF("StarModJson Not all vars looked for where found %d < %d\n", foundCounter, varDetails.size());
     f.close();
     return foundAll;
   }
@@ -221,7 +221,7 @@ private:
     for (std::vector<VarDetails>::iterator vd=varDetails.begin(); vd!=varDetails.end(); ++vd) {
       // USER_PRINTF("check %s %s %s\n", vd->id, varId, value);
       if (strcmp(vd->id, varId)==0) {
-        // USER_PRINTF("JsonRDWS found %s:%s %d %s %d %d\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size(), funList.size());
+        // USER_PRINTF("StarModJson found %s:%s %d %s %d %d\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size(), funList.size());
         if (strcmp(vd->type, "uint8") ==0 && value) *uint8List[vd->index] = atoi(value);
         if (strcmp(vd->type, "uint16") ==0 && value) *uint16List[vd->index] = atoi(value);
         if (strcmp(vd->type, "char") ==0 && value) strncpy(charList[vd->index], value, 31); //assuming size 32-1 here
@@ -278,7 +278,7 @@ private:
       f.print("null");      
     }
     else
-      USER_PRINTF("dev JsonRDWS write %s not supported\n", variant.as<String>().c_str());
+      USER_PRINTF("dev StarModJson write %s not supported\n", variant.as<String>().c_str());
   }
 
 };

@@ -133,10 +133,10 @@ initVarAndUpdate valueFun mdlSuccess count:17
 setValue var mdlSuccess[0] value null not array, creating
 initVarAndUpdate chFun init mdlEnabled v:[true,true,true,true,true,true,true,true,true,false,false,true,true,true,true,true,true]
 seqNrToName: 2DMatrix3232.json 9640
-JsonRDWS constructing /2DMatrix3232.json r
+StarModJson constructing /2DMatrix3232.json r
 pins 16: 0-1023
 allocatePin 16 Leds 0-1023
-JsonRDWS found all what it was looking for 1030 >= 6
+StarModJson found all what it was looking for 1030 >= 6
 projectAndMap P:32x32x1 V:15x15x1 and P:1024 V:225
 Coord3D toJson 15,15,1 -> {"x":15,"y":15,"z":1}
 setValue changed fxSize ->{"x":15,"y":15,"z":1}
@@ -146,7 +146,7 @@ Coord3D toJson 32,32,1 -> {"x":32,"y":32,"z":1}
 setValue changed fixSize ->{"x":32,"y":32,"z":1}
 callChangeFun fixSize unknown type for {"x":32,"y":32,"z":1}
 setValue changed fixCount ->1024
-JsonRDWS destructing
+StarModJson destructing
 FastLED.addLeds new 16: 0-1024
 lastReconnectAttempt == 0
 Access point disabled (init).

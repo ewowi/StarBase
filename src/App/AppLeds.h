@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppLeds.h
-   @date      20240226
+   @date      20240227
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -34,12 +34,14 @@ class Fixture; //forward
 
 //StarMod implementation of segment.data
 class SharedData {
+
   private:
     byte *data;
     uint16_t index = 0;
     uint16_t bytesAllocated = 0;
 
   public:
+
   SharedData() {
     USER_PRINTF("SharedData constructor %d %d\n", index, bytesAllocated);
   }
@@ -50,6 +52,7 @@ class SharedData {
 
   void clear() {
     memset(data, 0, bytesAllocated);
+    index = 0;
   }
 
   void loop() {
@@ -63,7 +66,7 @@ class SharedData {
       size_t newSize = bytesAllocated + (1 + ( newIndex - bytesAllocated)/1024) * 1024; // add a multitude of 1024 bytes
       USER_PRINTF("bind add more %d->%d %d->%d\n", index, newIndex, bytesAllocated, newSize);
       if (bytesAllocated == 0)
-        data = (byte*) malloc(newSize); //start bytesAllocated 100 bytes
+        data = (byte*) malloc(newSize);
       else
         data = (byte*)realloc(data, newSize);
       bytesAllocated = newSize;
@@ -81,8 +84,6 @@ class SharedData {
 class Leds {
 
 public:
-
-  uint8_t rowNr = 0;
 
   Fixture *fixture;
 
@@ -113,16 +114,16 @@ public:
 
   bool doMap = false;
 
-  Leds(uint8_t rowNr, Fixture &fixture) {
-    USER_PRINTF("Leds[%d] constructor\n", rowNr);
-    this->rowNr = rowNr;
+  Leds(Fixture &fixture) {
+    USER_PRINTF("Leds[%d] constructor\n", UINT8_MAX);
+    // this->rowNr = rowNr;
     this->fixture = &fixture;
-    this->fx = 13;
-    this->projectionNr = 2;
+    // this->fx = 13;
+    // this->projectionNr = 2;
   }
 
   ~Leds() {
-    USER_PRINTF("Leds[%d] destructor\n", rowNr);
+    USER_PRINTF("Leds[%d] destructor\n", UINT8_MAX);
     fadeToBlackBy(100);
     for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap)
       physMap->clear();

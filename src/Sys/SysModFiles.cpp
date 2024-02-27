@@ -236,7 +236,7 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
   }
 }
 
-//candidate for deletion as taken over by JsonRDWS
+//candidate for deletion as taken over by StarModJson
 // bool SysModFiles::writeObjectToFile(const char* path, JsonDocument* dest) {
 //   File f = open(path, "w");
 //   if (f) {

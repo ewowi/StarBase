@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModUI.h
-   @date      20240226
+   @date      20240227
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -59,8 +59,6 @@ class SysModUI:public SysModule {
 public:
   static bool stageVarChanged;// = false; //tbd: move mechanism to UserModInstances as there it will be used
   static std::vector<VarFun> varFunctions; //static because of static functions callChangeFun, processJson...
-
-  static uint8_t parentRowNr;
 
   SysModUI();
 
@@ -127,8 +125,14 @@ public:
     return initVarAndUpdate<bool>(parent, id, "button", false, 0, 0, readOnly, varFun);
   }
 
+  //int value ?
   JsonObject initSelect(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, VarFun varFun = nullptr) {
     return initVarAndUpdate<int>(parent, id, "select", value, 0, 0, readOnly, varFun);
+  }
+
+  //WIP
+  JsonObject initSelect(JsonObject parent, const char * id, uint8_t * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
+    return initVarAndUpdate<uint8_t>(parent, id, "select", value, 0, 0, readOnly, varFun);
   }
 
   JsonObject initTextArea(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
@@ -139,15 +143,20 @@ public:
     return initVarAndUpdate<const char *>(parent, id, "url", value, 0, 0, readOnly, varFun);
   }
 
+  //WIP
+  template <typename Type>
+  JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type * value, int min = 0, int max = 255, bool readOnly = true, VarFun varFun = nullptr) {
+    // JsonObject var = initVar(parent, id, type, readOnly, varFun);
+    JsonObject var = initVarAndUpdate(parent, id, type, *value, min, max, readOnly, varFun);
+    // var["p"] = (const char *)value; //store pointer!
+    return var;
+  }
+
   template <typename Type>
   JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type value, int min = 0, int max = 255, bool readOnly = true, VarFun varFun = nullptr) {
     JsonObject var = initVar(parent, id, type, readOnly, varFun);
     if (min) var["min"] = min;
     if (max && max != UINT16_MAX) var["max"] = max;
-
-    if (parentRowNr != UINT8_MAX) {
-      USER_PRINTF("parentRowNr %s: %d for %s\n", mdl->varID(parent), parentRowNr, mdl->varID(var));
-    }
 
     bool valueNeedsUpdate = false;
     if (strcmp(type, "button") != 0) { //button never gets a value
@@ -156,10 +165,10 @@ public:
         // print->printJson("initVarAndUpdate varFun value is null", var);
       } else if (var["value"].is<JsonArray>()) {
         JsonArray valueArray = var["value"].as<JsonArray>();
-        if (parentRowNr != UINT8_MAX) { // if var in table
-          if (parentRowNr >= valueArray.size())
+        if (mdl->contextRowNr != UINT8_MAX) { // if var in table
+          if (mdl->contextRowNr >= valueArray.size())
             valueNeedsUpdate = true;
-          else if (valueArray[parentRowNr].isNull())
+          else if (valueArray[mdl->contextRowNr].isNull())
             valueNeedsUpdate = true;
         }
       }
@@ -168,13 +177,13 @@ public:
     if (valueNeedsUpdate) {
       bool valueFunExists = false;
       if (varFun) {
-        valueFunExists = varFun(var, parentRowNr, f_ValueFun);
+        valueFunExists = varFun(var, mdl->contextRowNr, f_ValueFun);
       }
       if (!valueFunExists) { //setValue provided (if not null)
         if (mdl->varRO(var) && !mdls->isConnected) {
-          mdl->setValueNoROCheck(var, value, parentRowNr); //does changefun if needed, if var in table, update the table row
+          mdl->setValueNoROCheck(var, value, mdl->contextRowNr); //does changefun if needed, if var in table, update the table row
         } else
-          mdl->setValue(var, value, parentRowNr); //does changefun if needed, if var in table, update the table row
+          mdl->setValue(var, value, mdl->contextRowNr); //does changefun if needed, if var in table, update the table row
       }
     }
     else { //do changeFun on existing value
@@ -195,9 +204,6 @@ public:
           USER_PRINTF("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->varID(var), var["value"].as<String>().c_str());
       }
     }
-
-    if (parentRowNr != UINT8_MAX)
-      print->printJson("gravity var", web->getResponseObject());
 
     return var;
   }

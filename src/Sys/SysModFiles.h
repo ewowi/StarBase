@@ -51,7 +51,7 @@ public:
 
   //write json into file
   //name is copied from WLED but better to call it readJsonFrom file
-  //candidate for deletion as taken over by JsonRDWS
+  //candidate for deletion as taken over by StarModJson
   // bool writeObjectToFile(const char* path, JsonDocument* dest);
 
   //remove files meeting filter condition, if no filter, all, if reverse then all but filter

@@ -18,7 +18,6 @@ std::vector<VarFun> SysModUI::varFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
 int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::stageVarChanged = false;
-uint8_t SysModUI::parentRowNr = UINT8_MAX;
 
 SysModUI::SysModUI() :SysModule("UI") {
 };

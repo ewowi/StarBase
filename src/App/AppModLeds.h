@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModLeds.h
-   @date      20240226
+   @date      20240227
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -74,7 +74,7 @@ public:
         web->getResponseObject()["addRow"]["rowNr"] = rowNr;
 
         if (rowNr >= fixture.ledsList.size())
-          fixture.ledsList.push_back(Leds(fixture.ledsList.size(), fixture));
+          fixture.ledsList.push_back(Leds(fixture));
         return true;
       }
       case f_DelRow: {
@@ -107,7 +107,7 @@ public:
         //create a new leds instance if a new row is created
         if (rowNr >= fixture.ledsList.size()) {
           USER_PRINTF("ledslist fx changeFun %d %s", fixture.ledsList.size(), mdl->findVar("fx")["value"].as<String>().c_str());
-          fixture.ledsList.push_back(Leds(fixture.ledsList.size(), fixture));
+          fixture.ledsList.push_back(Leds(fixture));
         }
 
         effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
@@ -227,7 +227,7 @@ public:
         for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
           char message[32];
           print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
-          USER_PRINTF("valueFun fxSize[%d]([%d 0f %d]) = %s\n", leds - fixture.ledsList.begin(), fixture.ledsList[leds - fixture.ledsList.begin()].rowNr, fixture.ledsList.size(), message);
+          USER_PRINTF("valueFun fxSize[%d]([%d 0f %d]) = %s\n", leds - fixture.ledsList.begin(), leds - fixture.ledsList.begin(), fixture.ledsList.size(), message);
           mdl->setValue(var, JsonString(message, JsonString::Copied), leds - fixture.ledsList.begin()); //rowNr
         }
         return true;
@@ -296,7 +296,9 @@ public:
       // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
       for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
         // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
+        mdl->contextRowNr = leds - fixture.ledsList.begin();// rowNr;
         effects.loop(*leds);
+        mdl->contextRowNr = UINT8_MAX;
       }
 
       FastLED.show();  

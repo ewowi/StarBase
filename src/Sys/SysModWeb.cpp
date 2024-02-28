@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModWeb.cpp
-   @date      20240226
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -236,7 +236,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
     for (JsonObject moduleVar: model) {
       ArrayIndexSortValue aisv;
       aisv.index = index++;
-      aisv.value = moduleVar["o"].as<uint32_t>();
+      aisv.value = mdl->varOrder(moduleVar);
       aisvs.push_back(aisv);
     }
     //sort the vector by the order
@@ -471,7 +471,7 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
         request->send(200, "text/plain", F("File Uploaded!"));
     // }
     // cacheInvalidate++;
-    files->filesChange();
+    files->filesChanged = true;
   }
 }
 

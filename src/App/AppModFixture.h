@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModFixture.h
-   @date      20240226
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -19,7 +19,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initAppMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -1000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    if (parentVar["o"] > -1000) parentVar["o"] = -1100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
@@ -104,7 +104,8 @@ public:
         lds->fixture.doMap = true;
 
         //remap all leds
-        for (std::vector<Leds>::iterator leds=lds->fixture.ledsList.begin(); leds!=lds->fixture.ledsList.end(); ++leds) {
+        // for (std::vector<Leds *>::iterator leds=lds->fixture.ledsList.begin(); leds!=lds->fixture.ledsList.end(); ++leds) {
+        for (Leds *leds: lds->fixture.ledsList) {
           leds->doMap = true;
         }
 

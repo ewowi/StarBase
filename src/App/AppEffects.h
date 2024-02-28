@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppEffects.h
-   @date      20240227
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -983,6 +983,7 @@ public:
 
 class FreqMatrix:public Effect {
 public:
+  char tesst[77];
   const char * name() {
     return "FreqMatrix 1D";
   }
@@ -1136,20 +1137,16 @@ public:
 
       leds.sharedData.clear(); //make sure all values are 0
 
-      mdl->preUpdateDetails(var);
-
       Effect* effect = effects[leds.fx];
 
-      mdl->contextRowNr = rowNr;
       // effect->loop(leds); //do a loop to set sharedData right
       // leds.sharedData.loop();
+      mdl->varPreDetails(var, rowNr);
       effect->controls(var, leds); //new controls have positive order (var["o"])
-      mdl->contextRowNr = UINT8_MAX;
+      mdl->varPostDetails(var, rowNr);
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 
-      mdl->postUpdateDetails(var, rowNr);
-      
       print->printJson("control", var);
         // if (mdl->varOrder(var) >= 0) { //post init
         //   var["o"] = -mdl->varOrder(var); //make positive again

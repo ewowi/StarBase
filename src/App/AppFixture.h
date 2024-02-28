@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppFixture.h
-   @date      20240226
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -57,7 +57,7 @@ public:
   uint8_t fixtureNr = -1;
   Coord3D size = {8,8,1};
 
-  std::vector<Leds> ledsList; //virtual leds
+  std::vector<Leds *> ledsList; //virtual leds
 
   Coord3D head = {0,0,0};
 

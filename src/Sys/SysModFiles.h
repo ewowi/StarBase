@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModFiles.h
-   @date      20240114
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -23,6 +23,7 @@ class SysModFiles: public SysModule {
 public:
 
   std::vector<FileDetails> fileList;
+  static bool filesChanged;
 
   SysModFiles();
   void setup();
@@ -36,8 +37,6 @@ public:
   size_t totalBytes();
 
   File open(const char * path, const char * mode, const bool create = false);
-
-  void filesChange();
 
   //get the file names and size in an array
   void dirToJson(JsonArray array, bool nameOnly = false, const char * filter = nullptr);
@@ -58,9 +57,6 @@ public:
   void removeFiles(const char * filter = nullptr, bool reverse = false);
 
   bool readFile(const char * path);
-
-private:
-  static bool filesChanged;
 
 };
 

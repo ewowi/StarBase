@@ -1,6 +1,6 @@
 // @title     StarMod
 // @file      index.css
-// @date      20240226
+// @date      20240228
 // @repo      https://github.com/ewowi/StarMod
 // @Authors   https://github.com/ewowi/StarMod/commits/main
 // @Copyright © 2024 Github StarMod Commit Authors
@@ -496,6 +496,17 @@ function genTableRowHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     setInstanceTableColumns();
 }
 
+function varRemoveValuesForRow(variable, rowNr) {
+  if (variable.n) {
+    for (let childVar of variable.n) {
+      if (Array.isArray(childVar.value)) {
+        childVar.value.splice(rowNr);
+      }
+      varRemoveValuesForRow(childVar, rowNr);
+    }
+  }
+}
+
 //process json from server, json is assumed to be an object
 function receiveData(json) {
   // console.log("receiveData", json);
@@ -509,6 +520,9 @@ function receiveData(json) {
       //special commands
       if (key == "uiFun") {
         console.log("receiveData no action", key, value); //should not happen anymore
+      }
+      else if (key == "aiButton") {
+        console.log("receiveData", key, value);
       }
       else if (key == "view") {
         console.log("receiveData", key, value);
@@ -565,9 +579,13 @@ function receiveData(json) {
         let tableVar = findVar(tableId);
         let rowNr = value.rowNr;
 
+        //delete the row here as well...
+
         let tableNode = gId(tableId);
 
         tableNode.deleteRow(rowNr + 1); //header counts as 0
+
+        varRemoveValuesForRow(tableVar, rowNr);
 
         console.log("delRow ", tableVar, tableNode, rowNr);
 
@@ -594,12 +612,13 @@ function receiveData(json) {
         let variable = findVar(key);
 
         if (variable) {
-          // if (variable.id == "fixFirst" || variable.id == "fixRowEnd" || variable.id == "fixColEnd")
+          let rowNr = value.rowNr == null?UINT8_MAX:value.rowNr;
+          // if (variable.id == "fxEnd" || variable.id == "fxSize" || variable.id == "point")
           //   console.log("receiveData ", variable, value);
           variable.fun = -2; // request processed
 
           value.chk = "uiFun";
-          changeHTML(variable, value); //changeHTML will find the rownumbers if needed
+          changeHTML(variable, value, rowNr); //changeHTML will find the rownumbers if needed
         }
         else
           console.log("receiveData key is no variable", key, value);
@@ -825,28 +844,35 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
       if (commandJson.value) node.value = commandJson.value; //else the id / label is used as button label
     }
     else if (node.className == "coord3D") {
-      // console.log("chHTML value coord3D", node, commandJson.value, rowNr);
+      console.log("chHTML value coord3D", node, commandJson.value, rowNr);
 
-      if (commandJson.value && Object.keys(commandJson.value)) { //tbd: support arrays (now only objects)
-        if (variable.ro) {
-          let sep = "";
-          node.textContent = "";
-          for (let key of Object.keys(commandJson.value)) {
-            node.textContent += sep + commandJson.value[key];
-            sep = ",";
+      if (commandJson.value) {
+        //tbd: support Coord3D as array (now only objects work)
+        let value = commandJson.value;
+        if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX)
+          value = commandJson.value[rowNr];
+
+        if (Object.keys(value)) { 
+          if (variable.ro) {
+            let sep = "";
+            node.textContent = "";
+            for (let key of Object.keys(value)) {
+              node.textContent += sep + value[key];
+              sep = ",";
+            }
+          }
+          else {
+            let index = 0;
+            for (let key of Object.keys(value)) {
+              let childNode = node.childNodes[index++];
+              childNode.value = value[key];
+              childNode.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
+            }
           }
         }
-        else {
-          let index = 0;
-          for (let key of Object.keys(commandJson.value)) {
-            let childNode = node.childNodes[index++];
-            childNode.value = commandJson.value[key];
-            childNode.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
-          }
-        }
+        else 
+          console.log("   dev value coord3D value not object[x,y,z]", variable.id, node.id, commandJson.value);
       }
-      else 
-        console.log("   value coord3D value not object[x,y,z]", variable.id, node.id, commandJson.value);
     }
     else if (node.className == "select") {
       if (variable.ro) {
@@ -1278,6 +1304,7 @@ function changeHTMLView(value) {
 
   // console.log("changeHTMLView", node, node.value, node.id, mdlContainerNode, mdlContainerNode.childNodes);
   
+  gId("vAI").classList.remove("selected");
   gId("vApp").classList.remove("selected");
   gId("vStage").classList.remove("selected");
   gId("vUser").classList.remove("selected");
@@ -1297,9 +1324,11 @@ function changeHTMLView(value) {
       else {
         for (let moduleNode of divNode.childNodes) {
           if (moduleNode.className) {
+            if (value=="vAI" && moduleNode.id == "AI")
+              found = true;
             if (value=="vApp" && moduleNode.className == "appmod")
               found = true;
-              if (value=="vSys" && moduleNode.className == "sysmod")
+            if (value=="vSys" && moduleNode.className == "sysmod")
               found = true;
             if (value=="vUser" && moduleNode.className == "usermod")
               found = true;

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModFiles.cpp
-   @date      20240114
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -14,6 +14,7 @@
 #include "SysModWeb.h"
 #include "SysModPrint.h"
 #include "SysModModel.h"
+#include "SysModAI.h"
 
 // #include <FS.h>
 
@@ -112,11 +113,11 @@ void SysModFiles::loop() {
   if (filesChanged) {
     filesChanged = false;
 
-    fileList.clear();
-
     File root = LittleFS.open("/");
     File file = root.openNextFile();
 
+    //repopulate file list
+    fileList.clear();
     while (file) {
       FileDetails details;
       strcpy(details.name, file.name());
@@ -127,7 +128,10 @@ void SysModFiles::loop() {
     }
     root.close();
 
-    ui->callVarFun(mdl->findVar("drsize"));
+    // ai->addIntelligence("No fixture found", "FixtureGen");
+    // ai->addIntelligence("No model found", "Model");
+
+    ui->callVarFun(mdl->findVar("drsize")); //valueFun
 
     for (JsonObject childVar: mdl->varN("fileTbl"))
       ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
@@ -139,9 +143,9 @@ void SysModFiles::loop10s() {
 }
 
 bool SysModFiles::remove(const char * path) {
-  filesChange();
   USER_PRINTF("File remove %s\n", path);
   return LittleFS.remove(path);
+  filesChanged = true;
 }
 
 size_t SysModFiles::usedBytes() {
@@ -183,10 +187,6 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
   }
 
   root.close();
-}
-
-void SysModFiles::filesChange() {
-  filesChanged = true;
 }
 
 bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
@@ -243,7 +243,7 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
 //     print->println("  success");
 //     serializeJson(*dest, f);
 //     f.close();
-//     filesChange();
+//     filesChanged = true;
 //     return true;
 //   } else {
 //     print->println("  fail");

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModUI.cpp
-   @date      20240114
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -116,7 +116,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       print->printJson("initVar set type", var);
     }
 
-    if (var["ro"] != readOnly) var["ro"] = readOnly;
+    if (mdl->varRO(var) != readOnly) mdl->varRO(var, readOnly);
 
     //set order. make order negative to check if not obsolete, see cleanUpModel
     if (mdl->varOrder(var) >= 1000) //predefined! (modules)
@@ -127,7 +127,6 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       else
         mdl->varOrder(var, -varCounter++); //redefine order
     }
-
 
     //if varFun, add it to the list
     if (varFun) {
@@ -182,17 +181,26 @@ void SysModUI::processJson(JsonVariant json) {
       else if (pair.key() == "view" || pair.key() == "canvasData" || pair.key() == "theme") { //save the chosen view in System (see index.js)
         JsonObject var = mdl->findVar("System");
         USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>().c_str(), var.isNull(), mdl->varID(var));
-        var[JsonString(key, JsonString::Copied)] = JsonString(value, JsonString::Copied);
+        var[JsonString(key, JsonString::Copied)] = JsonString(value, JsonString::Copied); //this is needed as key can become a dangling pointer
         // json.remove(key); //key should stay as all clients use this to perform the changeHTML action
       }
       else if (pair.key() == "addRow" || pair.key() == "delRow") {
         if (value.is<JsonObject>()) {
           JsonObject command = value;
           JsonObject var = mdl->findVar(command["id"]);
-          USER_PRINTF("processJson %s - %s\n", key, value.as<String>().c_str());
+          uint8_t rowNr = command["rowNr"];
+          USER_PRINTF("processJson %s - %s [%d]\n", key, value.as<String>().c_str(), rowNr);
 
-          if (callVarFun(var, command["rowNr"], pair.key() == "addRow"?f_AddRow:f_DelRow))
+          //first remove the deleted row both on server and on client(s)
+          if (pair.key() == "delRow") {
+            mdl->varRemoveValuesForRow(var, rowNr);
+            print->printJson("deleted rows", var);
+          }
+          web->sendResponseObject(); //async response
+
+          if (callVarFun(var, rowNr, pair.key() == "addRow"?f_AddRow:f_DelRow)) {
             web->sendResponseObject(); //async response
+          }
         }
         json.remove(key); //key processed we don't need the key in the response
       }
@@ -237,6 +245,7 @@ void SysModUI::processJson(JsonVariant json) {
           //a button never sets the value
           if (var["type"] == "button") { //button always
             ui->callVarFun(var, rowNr, f_ChangeFun);
+            if (rowNr != UINT8_MAX) web->getResponseObject()[mdl->varID(var)]["rowNr"] = rowNr;
           }
           else {
             if (newValue.is<const char *>())

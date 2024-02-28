@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModModel.h
-   @date      20240227
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -319,24 +319,41 @@ public:
   //pseudo VarObject: public JsonObject functions
   const char * varID(JsonObject var) {return var["id"];}
   bool varRO(JsonObject var) {return var["ro"];}
+  void varRO(JsonObject var, bool value) {var["ro"] = value;}
   JsonArray varN(const char * id) {return varN(findVar(id));}
   JsonArray varN(JsonObject var) {return var["n"];}
+  JsonArray varValArray(JsonObject var) {if (var["value"].is<JsonArray>()) return var["value"]; else return JsonArray(); }
   int varOrder(JsonObject var) {return var["o"];}
   void varOrder(JsonObject var, int value) {var["o"] = value;}
 
-  void preUpdateDetails(JsonObject var) {
+  //recursively remove all value[rowNr] from children of var
+  void varRemoveValuesForRow(JsonObject var, uint8_t rowNr) {
+    for (JsonObject childVar: varN(var)) {
+      JsonArray valArray = varValArray(childVar);
+      if (!valArray.isNull()) {
+        valArray.remove(rowNr);
+        //recursive
+        varRemoveValuesForRow(childVar, rowNr);
+      }
+    }
+  }
+
+  void varPreDetails(JsonObject var, uint8_t rowNr = UINT8_MAX) {
     for (JsonObject var: varN(var)) { //for all controls
       if (varOrder(var) >= 0) { //post init
         varOrder(var, -varOrder(var)); // set all negative
       }
     }
+    contextRowNr = rowNr;
+    print->printJson("varPreDetails post", var);
   }
 
-  void postUpdateDetails(JsonObject var, uint8_t rowNr) {
+  void varPostDetails(JsonObject var, uint8_t rowNr) {
 
+    contextRowNr = UINT8_MAX;
     if (rowNr != UINT8_MAX) {
 
-      print->printJson("postUpdateDetails pre", var);
+      print->printJson("varPostDetails pre", var);
 
       //check if post init added: parent is already >=0
       if (varOrder(var) >= 0) {
@@ -348,7 +365,7 @@ public:
             if (varOrder(childVar) < 0) { //if not updated
               valArray[rowNr] = (char*)0; // set element in valArray to 0
 
-              USER_PRINTF("postUpdateDetails %s[%d] to null\n", varID(var), rowNr);
+              USER_PRINTF("varPostDetails %s[%d] to null\n", varID(var), rowNr);
               // setValue(var, -99, rowNr); //set value -99
               varOrder(childVar, -varOrder(childVar)); //make positive again
               //if some values in array are not -99
@@ -368,7 +385,7 @@ public:
 
         }
       } //if new added
-      print->printJson("postUpdateDetails post", var);
+      print->printJson("varPostDetails post", var);
 
       web->addResponse("details", "rowNr", rowNr);
     }

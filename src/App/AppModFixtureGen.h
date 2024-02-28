@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModFixtureGen.h
-   @date      20240226
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -405,7 +405,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initUserMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -1200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    if (parentVar["o"] > -1000) parentVar["o"] = -1300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     ui->initSelect(parentVar, "fixtureGen", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
@@ -488,7 +488,7 @@ public:
 
     fixtureGenVar.remove("n"); //tbd: we should also remove the varFun !!
 
-    // mdl->preUpdateDetails(fixtureGenVar);
+    // mdl->varPreDetails(fixtureGenVar);
 
     JsonObject parentVar = fixtureGenVar;
     if (panelVar["value"].as<bool>()) {
@@ -771,7 +771,7 @@ public:
       default: return false; 
     }});
 
-    mdl->postUpdateDetails(fixtureGenVar, UINT8_MAX);
+    mdl->varPostDetails(fixtureGenVar, UINT8_MAX);
 
   }
 
@@ -921,8 +921,7 @@ public:
 
     }
 
-
-    files->filesChange();
+    files->filesChanged = true;
   }
 
   // File openFile(const char * name) {

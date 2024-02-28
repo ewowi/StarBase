@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysStarModJson.h
-   @date      20240114
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -36,7 +36,7 @@ class StarModJson {
   void writeJsonDocToFile(JsonDocument* dest) {
     writeJsonVariantToFile(dest->as<JsonVariant>());
     f.close();
-    files->filesChange();
+    files->filesChanged = true;
   }
 
   //look for uint8 var

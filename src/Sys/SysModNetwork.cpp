@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModNetwork.cpp
-   @date      20240114
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -15,6 +15,7 @@
 #include "SysModWeb.h"
 #include "SysModUI.h"
 #include "SysModModel.h"
+#include "SysModAI.h"
 
 SysModNetwork::SysModNetwork() :SysModule("Network") {};
 
@@ -67,6 +68,8 @@ void SysModNetwork::setup() {
       return true;
     default: return false;
   }});
+
+  // ai->addIntelligence("Enter credentials", "Network");
 }
 
 void SysModNetwork::loop() {

@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      SysModModel.cpp
-   @date      20240114
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -64,11 +64,11 @@ void SysModModel::setup() {
       ui->setLabel(var, "Delete obsolete variables");
       ui->setComment(var, "WIP");
       return true;
-    case f_ChangeFun:
-      model->to<JsonArray>(); //create
-      if (files->readObjectFromFile("/model.json", model)) {//not part of success...
-      }
-      return true;
+    // case f_ChangeFun:
+    //   model->to<JsonArray>(); //create
+    //   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
+    //   }
+    //   return true;
     default: return false;
   }});
 }

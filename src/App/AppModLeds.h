@@ -1,7 +1,7 @@
 /*
    @title     StarMod
    @file      AppModLeds.h
-   @date      20240227
+   @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
@@ -58,7 +58,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initAppMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -1100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    if (parentVar["o"] > -1000) parentVar["o"] = -1200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
     JsonObject currentVar;
 
@@ -74,14 +74,16 @@ public:
         web->getResponseObject()["addRow"]["rowNr"] = rowNr;
 
         if (rowNr >= fixture.ledsList.size())
-          fixture.ledsList.push_back(Leds(fixture));
+          fixture.ledsList.push_back(new Leds(fixture));
         return true;
       }
       case f_DelRow: {
         USER_PRINTF("chFun delrow %s[%d]\n", mdl->varID(var), rowNr);
         //tbd: fade to black
         if (rowNr <fixture.ledsList.size()) {
-          fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from leds
+          Leds *leds = fixture.ledsList[rowNr];
+          fixture.ledsList.erase(fixture.ledsList.begin() + rowNr); //remove from vector
+          delete leds; //remove leds itself
         }
         return true;
       }
@@ -91,7 +93,7 @@ public:
     currentVar = ui->initSelect(tableVar, "fx", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
         for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
-          mdl->setValue(var, fixture.ledsList[rowNr].fx, rowNr);
+          mdl->setValue(var, fixture.ledsList[rowNr]->fx, rowNr);
         return true;
       case f_UIFun: {
         ui->setLabel(var, "Effect");
@@ -106,11 +108,11 @@ public:
 
         //create a new leds instance if a new row is created
         if (rowNr >= fixture.ledsList.size()) {
-          USER_PRINTF("ledslist fx changeFun %d %s", fixture.ledsList.size(), mdl->findVar("fx")["value"].as<String>().c_str());
-          fixture.ledsList.push_back(Leds(fixture));
+          USER_PRINTF("ledslist fx changeFun %d %s\n", fixture.ledsList.size(), mdl->findVar("fx")["value"].as<String>().c_str());
+          fixture.ledsList.push_back(new Leds(fixture));
         }
 
-        effects.setEffect(fixture.ledsList[rowNr], var, rowNr);
+        effects.setEffect(*fixture.ledsList[rowNr], var, rowNr);
         return true;
       default: return false;
     }});
@@ -119,7 +121,7 @@ public:
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
         for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
-          mdl->setValue(var, fixture.ledsList[rowNr].projectionNr, rowNr);
+          mdl->setValue(var, fixture.ledsList[rowNr]->projectionNr, rowNr);
         return true;
       case f_UIFun: {
         ui->setLabel(var, "Projection");
@@ -139,12 +141,12 @@ public:
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {
           uint8_t proValue = mdl->getValue(var, rowNr);
-          fixture.ledsList[rowNr].projectionNr = proValue;
+          fixture.ledsList[rowNr]->projectionNr = proValue;
 
-          mdl->preUpdateDetails(var); //set all positive var N orders to negative
 
+          mdl->varPreDetails(var, rowNr); //set all positive var N orders to negative
           if (proValue == p_DistanceFromPoint) {
-            ui->initCoord3D(var, "point", Coord3D{0,0,0}, 0, NUM_LEDS_Max, false);
+            ui->initCoord3D(var, "point", Coord3D{8,8,8}, 0, NUM_LEDS_Max, false);
             // , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
             //   case f_ValueFun:
             //     mdl->setValue(var, lds->fixture.size);
@@ -155,12 +157,11 @@ public:
             //   default: return false;
             // }});
           }
-
-          mdl->postUpdateDetails(var, rowNr);
+          mdl->varPostDetails(var, rowNr);
 
           USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, proValue, fixture.ledsList.size());
 
-          fixture.ledsList[rowNr].doMap = true;
+          fixture.ledsList[rowNr]->doMap = true;
           fixture.doMap = true;
         }
         return true;
@@ -168,11 +169,12 @@ public:
     }});
     currentVar["stage"] = true;
 
-    ui->initCoord3D(tableVar, "fxStart", fixture.ledsList[0].startPos, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCoord3D(tableVar, "fxStart", {0,0,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
-        USER_PRINTF("fxStart[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
-        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
-          mdl->setValue(var, fixture.ledsList[rowNr].startPos, rowNr);
+        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
+          USER_PRINTF("fxStart[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr]->startPos.x, fixture.ledsList[rowNr]->startPos.y, fixture.ledsList[rowNr]->startPos.z);
+          mdl->setValue(var, fixture.ledsList[rowNr]->startPos, rowNr);
+        }
         return true;
       case f_UIFun:
         ui->setLabel(var, "Start");
@@ -180,12 +182,12 @@ public:
         return true;
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {
-          fixture.ledsList[rowNr].startPos = mdl->getValue(var, rowNr).as<Coord3D>();
+          fixture.ledsList[rowNr]->startPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-          USER_PRINTF("fxStart[%d] chFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].startPos.x, fixture.ledsList[rowNr].startPos.y, fixture.ledsList[rowNr].startPos.z);
+          USER_PRINTF("fxStart[%d] chFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr]->startPos.x, fixture.ledsList[rowNr]->startPos.y, fixture.ledsList[rowNr]->startPos.z);
 
-          fixture.ledsList[rowNr].fadeToBlackBy();
-          fixture.ledsList[rowNr].doMap = true;
+          fixture.ledsList[rowNr]->fadeToBlackBy();
+          fixture.ledsList[rowNr]->doMap = true;
           fixture.doMap = true;
         }
         else {
@@ -195,11 +197,12 @@ public:
       default: return false;
     }});
 
-    ui->initCoord3D(tableVar, "fxEnd", fixture.ledsList[0].endPos, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCoord3D(tableVar, "fxEnd", {8,8,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
-          mdl->setValue(var, fixture.ledsList[rowNr].endPos, rowNr);
-        USER_PRINTF("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
+        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
+          USER_PRINTF("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr]->endPos.x, fixture.ledsList[rowNr]->endPos.y, fixture.ledsList[rowNr]->endPos.z);
+          mdl->setValue(var, fixture.ledsList[rowNr]->endPos, rowNr);
+        }
         return true;
       case f_UIFun:
         ui->setLabel(var, "End");
@@ -207,12 +210,12 @@ public:
         return true;
       case f_ChangeFun:
         if (rowNr < fixture.ledsList.size()) {
-          fixture.ledsList[rowNr].endPos = mdl->getValue(var, rowNr).as<Coord3D>();
+          fixture.ledsList[rowNr]->endPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-          USER_PRINTF("fxEnd[%d] chFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr].endPos.x, fixture.ledsList[rowNr].endPos.y, fixture.ledsList[rowNr].endPos.z);
+          USER_PRINTF("fxEnd[%d] chFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr]->endPos.x, fixture.ledsList[rowNr]->endPos.y, fixture.ledsList[rowNr]->endPos.z);
 
-          fixture.ledsList[rowNr].fadeToBlackBy();
-          fixture.ledsList[rowNr].doMap = true;
+          fixture.ledsList[rowNr]->fadeToBlackBy();
+          fixture.ledsList[rowNr]->doMap = true;
           fixture.doMap = true;
         }
         else {
@@ -223,14 +226,17 @@ public:
     }});
 
     ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_ValueFun:
-        for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
+      case f_ValueFun: {
+        // for (std::vector<Leds *>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
+        uint8_t rowNr = 0;
+        for (Leds *leds: fixture.ledsList) {
           char message[32];
           print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
-          USER_PRINTF("valueFun fxSize[%d]([%d 0f %d]) = %s\n", leds - fixture.ledsList.begin(), leds - fixture.ledsList.begin(), fixture.ledsList.size(), message);
-          mdl->setValue(var, JsonString(message, JsonString::Copied), leds - fixture.ledsList.begin()); //rowNr
+          USER_PRINTF("valueFun fxSize[%d](of %d) = %s\n", rowNr, fixture.ledsList.size(), message);
+          mdl->setValue(var, JsonString(message, JsonString::Copied), rowNr); //rowNr
+          rowNr++;
         }
-        return true;
+        return true; }
       case f_UIFun:
         ui->setLabel(var, "Size");
         return true;
@@ -294,9 +300,11 @@ public:
       //for each programmed effect
       //  run the next frame of the effect
       // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
-      for (std::vector<Leds>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
+      // for (std::vector<Leds *>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
+      uint8_t rowNr = 0;
+      for (Leds *leds: fixture.ledsList) {
         // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
-        mdl->contextRowNr = leds - fixture.ledsList.begin();// rowNr;
+        mdl->contextRowNr = rowNr++;
         effects.loop(*leds);
         mdl->contextRowNr = UINT8_MAX;
       }
@@ -315,26 +323,27 @@ public:
       USER_PRINTF("AppModLeds loop canvasData %s\n", canvasData);
 
       //currently only leds[0] supported
+      if (fixture.ledsList.size()) {
+        fixture.ledsList[0]->fadeToBlackBy();
 
-      fixture.ledsList[0].fadeToBlackBy();
+        char * token = strtok((char *)canvasData, ":");
+        bool isStart = strcmp(token, "start") == 0;
 
-      char * token = strtok((char *)canvasData, ":");
-      bool isStart = strcmp(token, "start") == 0;
+        Coord3D *startOrEndPos = isStart? &fixture.ledsList[0]->startPos: &fixture.ledsList[0]->endPos;
 
-      Coord3D *startOrEndPos = isStart? &fixture.ledsList[0].startPos: &fixture.ledsList[0].endPos;
+        token = strtok(NULL, ",");
+        if (token != NULL) startOrEndPos->x = atoi(token) / 10; else startOrEndPos->x = 0; //should never happen
+        token = strtok(NULL, ",");
+        if (token != NULL) startOrEndPos->y = atoi(token) / 10; else startOrEndPos->y = 0;
+        token = strtok(NULL, ",");
+        if (token != NULL) startOrEndPos->z = atoi(token) / 10; else startOrEndPos->z = 0;
 
-      token = strtok(NULL, ",");
-      if (token != NULL) startOrEndPos->x = atoi(token) / 10; else startOrEndPos->x = 0; //should never happen
-      token = strtok(NULL, ",");
-      if (token != NULL) startOrEndPos->y = atoi(token) / 10; else startOrEndPos->y = 0;
-      token = strtok(NULL, ",");
-      if (token != NULL) startOrEndPos->z = atoi(token) / 10; else startOrEndPos->z = 0;
+        mdl->setValue(isStart?"fxStart":"fxEnd", *startOrEndPos, 0); //assuming row 0 for the moment
 
-      mdl->setValue(isStart?"fxStart":"fxEnd", *startOrEndPos, 0); //assuming row 0 for the moment
-
-      var.remove("canvasData"); //convasdata has been processed
-      fixture.ledsList[0].doMap = true; //recalc projection
-      fixture.doMap = true;
+        var.remove("canvasData"); //convasdata has been processed
+        fixture.ledsList[0]->doMap = true; //recalc projection
+        fixture.doMap = true;
+      }
     }
 
     //update projection

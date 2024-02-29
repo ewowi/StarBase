@@ -100,14 +100,14 @@ public:
 
   std::vector<std::vector<uint16_t>> mappingTable;
 
-  uint16_t XY( uint8_t x, uint8_t y) {
-    return x + y * size.x;
-  }
-  uint16_t XYZ( uint8_t x, uint8_t y, uint8_t z) {
-    return x + y * size.x + z * size.x * size.y;
+  uint16_t XY(uint16_t x, uint16_t y) {
+    return XYZ(x, y, 0);
   }
   uint16_t XYZ(Coord3D coord) {
-    return coord.x + coord.y * size.x + coord.z * size.x * size.y;
+    return XYZ(coord.x, coord.y, coord.z);
+  }
+  uint16_t XYZ(uint16_t x, uint16_t y, uint16_t z) {
+    return x + y * size.x + z * size.x * size.y;
   }
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=
@@ -125,6 +125,7 @@ public:
   ~Leds() {
     USER_PRINTF("Leds[%d] destructor\n", UINT8_MAX);
     fadeToBlackBy(100);
+    doMap = true; // so loop is not running while deleting
     for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap)
       physMap->clear();
     mappingTable.clear();

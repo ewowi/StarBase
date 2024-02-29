@@ -163,7 +163,11 @@ private:
   static JsonDocument *responseDocLoopTask;
   static JsonDocument *responseDocAsyncTCP;
 
-  static unsigned long sendDataWsCounter;
+  static uint8_t sendDataWsCounter;
+  static uint16_t sendDataWsTBytes;
+  static uint16_t sendDataWsBBytes;
+  static uint8_t recvDataWsCounter;
+  static uint16_t recvDataWsBytes;
 };
 
 static SysModWeb *web;

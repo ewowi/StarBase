@@ -13,7 +13,6 @@
 #include "SysModule.h"
 #include "SysModPrint.h"
 #include "SysModModel.h"
-#include "SysModules.h" //isConnected
 
 enum FunIDs
 {
@@ -130,7 +129,11 @@ public:
     return initVarAndUpdate<int>(parent, id, "select", value, 0, 0, readOnly, varFun);
   }
 
-  //WIP
+  JsonObject initIP(JsonObject parent, const char * id, int value = UINT16_MAX, bool readOnly = false, VarFun varFun = nullptr) {
+    return initVarAndUpdate<int>(parent, id, "ip", value, 0, 255, readOnly, varFun);
+  }
+
+  //WIP pointer values
   JsonObject initSelect(JsonObject parent, const char * id, uint8_t * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
     return initVarAndUpdate<uint8_t>(parent, id, "select", value, 0, 0, readOnly, varFun);
   }
@@ -143,7 +146,7 @@ public:
     return initVarAndUpdate<const char *>(parent, id, "url", value, 0, 0, readOnly, varFun);
   }
 
-  //WIP
+  //WIP pointer values
   template <typename Type>
   JsonObject initVarAndUpdate(JsonObject parent, const char * id, const char * type, Type * value, int min = 0, int max = 255, bool readOnly = true, VarFun varFun = nullptr) {
     // JsonObject var = initVar(parent, id, type, readOnly, varFun);
@@ -180,10 +183,7 @@ public:
         valueFunExists = varFun(var, mdl->contextRowNr, f_ValueFun);
       }
       if (!valueFunExists) { //setValue provided (if not null)
-        if (mdl->varRO(var) && !mdls->isConnected) {
-          mdl->setValueNoROCheck(var, value, mdl->contextRowNr); //does changefun if needed, if var in table, update the table row
-        } else
-          mdl->setValue(var, value, mdl->contextRowNr); //does changefun if needed, if var in table, update the table row
+        mdl->setValue(var, value, mdl->contextRowNr); //does changefun if needed, if var in table, update the table row
       }
     }
     else { //do changeFun on existing value

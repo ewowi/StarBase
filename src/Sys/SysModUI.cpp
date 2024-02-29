@@ -104,7 +104,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
       var = parent["n"].add<JsonObject>();
       // serializeJson(model, Serial);Serial.println();
     }
-    var["id"] = (char *)id; //JsonString(id, JsonString::Copied);
+    var["id"] = JsonString(id, JsonString::Copied);
   }
   // else {
   //   USER_PRINTF("initVar Var %s->%s already defined\n", modelParentId, id);
@@ -112,11 +112,11 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
   if (!var.isNull()) {
     if (var["type"].isNull() || var["type"] != type) {
-      var["type"] = (char *)type;//JsonString(type, JsonString::Copied);
+      var["type"] = JsonString(type, JsonString::Copied);
       print->printJson("initVar set type", var);
     }
 
-    if (mdl->varRO(var) != readOnly) mdl->varRO(var, readOnly);
+    if (var["ro"].isNull() || mdl->varRO(var) != readOnly) mdl->varRO(var, readOnly);
 
     //set order. make order negative to check if not obsolete, see cleanUpModel
     if (mdl->varOrder(var) >= 1000) //predefined! (modules)

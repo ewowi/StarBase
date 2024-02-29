@@ -251,7 +251,7 @@ public:
     JsonObject currentVar;
 
     //default is 0 / None
-    currentVar = ui->initSelect(parentVar, "sma", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    currentVar = ui->initIP(parentVar, "sma", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun: {
         ui->setLabel(var, "Sync Master");
         ui->setComment(var, "Instance to sync from");
@@ -501,6 +501,7 @@ public:
 
         ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun);
         ui->callVarFun("artInst", UINT8_MAX, f_UIFun);
+        ui->callVarFun("sma", UINT8_MAX, f_UIFun);
       }
       else
         ++instance;
@@ -672,6 +673,7 @@ public:
       
       ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun); //UiFun as select changes
       ui->callVarFun("artInst", UINT8_MAX, f_UIFun);
+      ui->callVarFun("sma", UINT8_MAX, f_UIFun);
 
       // ui->processUiFun("insTbl");
       //run though it sorted to find the right rowNr

@@ -184,18 +184,6 @@ public:
 
   template <typename Type>
   JsonObject setValue(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
-    if (varRO(var)) {
-      // print->printJson("setValue ro to ws", web->getResponseObject());
-      web->addResponse(var["id"], "value", value, rowNr);
-      callChangeFun(var, rowNr); //always call change fun, if present
-      return var;
-    }
-    else
-      return setValueNoROCheck(var, value, rowNr);
-  }
-
-  template <typename Type>
-  JsonObject setValueNoROCheck(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
 
     bool changed = false;
 

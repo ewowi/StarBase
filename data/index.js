@@ -261,17 +261,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       varNode = cE("th");
       varNode.innerText = initCap(variable.id); //label uiFun response can change it
 
-    } else if (variable.type == "select") {
-
-      if (variable.ro) { //e.g. for reset/restart reason: do not show a select but only show the selected option
-        varNode = cE("span");
-      }
-      else {
-        varNode = cE("select");
-        varNode.addEventListener('change', (event) => {console.log("select change", event);sendValue(event.target);});
-      }
-
-    } else if (variable.type == "pin") {
+    } else if (variable.type == "select" || variable.type == "pin" || variable.type == "ip") {
 
       if (variable.ro) { //e.g. for reset/restart reason: do not show a select but only show the selected option
         varNode = cE("span");
@@ -558,19 +548,21 @@ function receiveData(json) {
       else if (key == "addRow") { //update the row of a table
         console.log("receiveData", key, value);
 
-        let tableId = value.id;
-        let tableVar = findVar(tableId);
-        let rowNr = value.rowNr;
+        if (value.id && value.rowNr) {
+          let tableId = value.id;
+          let rowNr = value.rowNr;
 
-        let tableNode = gId(tableId);
+          let tableVar = findVar(tableId);
+          let tableNode = gId(tableId);
+          let tbodyNode = tableNode.querySelector("tbody");
 
-        let tbodyNode = tableNode.querySelector("tbody");
+          console.log("addRow ", tableVar, tableNode, rowNr);
 
-        console.log("addRow ", tableVar, tableNode, rowNr);
+          let newRowNr = tbodyNode.querySelectorAll("tr").length;
 
-        let newRowNr = tbodyNode.querySelectorAll("tr").length;
-
-        genTableRowHTML(tableVar, tableNode, newRowNr);
+          genTableRowHTML(tableVar, tableNode, newRowNr);
+        }
+          else console.log("dev receiveData addRow no id and/or rowNr specified", key, value);
 
       } else if (key == "delRow") { //update the row of a table
 
@@ -844,7 +836,7 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
       if (commandJson.value) node.value = commandJson.value; //else the id / label is used as button label
     }
     else if (node.className == "coord3D") {
-      console.log("chHTML value coord3D", node, commandJson.value, rowNr);
+      // console.log("chHTML value coord3D", node, commandJson.value, rowNr);
 
       if (commandJson.value) {
         //tbd: support Coord3D as array (now only objects work)
@@ -874,7 +866,7 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
           console.log("   dev value coord3D value not object[x,y,z]", variable.id, node.id, commandJson.value);
       }
     }
-    else if (node.className == "select") {
+    else if (node.className == "select" || node.className == "pin" || node.className == "ip") {
       if (variable.ro) {
         var index = 0;
         if (variable.options && commandJson.value != null) { // not always the case e.g. data / table / uiFun. Then value set if uiFun returns
@@ -1283,9 +1275,11 @@ function setInstanceTableColumns() {
 
   function showHideColumn(colNr, doHide) {
     // console.log("showHideColumn", thead.parentNode.parentNode, colNr, doHide);
-    thead.querySelector("tr").childNodes[colNr].hidden = doHide;
+    if (colNr < thead.querySelector("tr").childNodes.length)
+      thead.querySelector("tr").childNodes[colNr].hidden = doHide;
     for (let trNode of tbody.querySelectorAll("tr"))
-      trNode.childNodes[colNr].hidden = doHide;
+      if (colNr < trNode.childNodes.length)
+        trNode.childNodes[colNr].hidden = doHide;
   }
 
   // console.log("setInstanceTableColumns", tbl, thead, tbody);

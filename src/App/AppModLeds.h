@@ -303,10 +303,12 @@ public:
       // for (std::vector<Leds *>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
       uint8_t rowNr = 0;
       for (Leds *leds: fixture.ledsList) {
-        // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
-        mdl->contextRowNr = rowNr++;
-        effects.loop(*leds);
-        mdl->contextRowNr = UINT8_MAX;
+        if (!leds->doMap) { // don't run effect while remapping
+          // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
+          mdl->contextRowNr = rowNr++;
+          effects.loop(*leds);
+          mdl->contextRowNr = UINT8_MAX;
+        }
       }
 
       FastLED.show();  

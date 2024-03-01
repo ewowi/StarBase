@@ -21,20 +21,6 @@
 #define _2D 2
 #define _3D 3
 
-enum Projections
-{
-  p_None,
-  p_Random,
-  p_Default,
-  p_DistanceFromPoint,
-  p_Reverse,
-  p_Mirror,
-  p_Multiply,
-  p_Kaleidoscope,
-  p_Fun,
-  p_count
-};
-
 
 class Leds; //forward
 

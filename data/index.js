@@ -747,9 +747,9 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
     //hasOwnProperty needed to catch also boolean commandJson.value when it is false !!!!
     
     // if (node.id=="insName#0" || node.id=="fx")// || node.id=="mdlEnabled" || node.id=="clIsFull" || node.id=="pin2")
-    //   console.log("changeHTML value", variable, node, commandJson, rowNr);
     if (nodeType == "table") {
       if (Array.isArray(commandJson.value)) {
+        console.log("changeHTML value table", variable, node, commandJson, rowNr);
         //remove table rows
         let tbodyNode = cE('tbody'); //the tbody of node will be replaced
         //replace the table body

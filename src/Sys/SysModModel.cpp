@@ -90,6 +90,7 @@ void SysModModel::setup() {
 
     StarModJson starModJson("/model.json", "w"); //open fileName for deserialize
     starModJson.addExclusion("fun");
+    starModJson.addExclusion("stage");
     starModJson.writeJsonDocToFile(model);
 
     // print->printJson("Write model", *model); //this shows the model before exclusion

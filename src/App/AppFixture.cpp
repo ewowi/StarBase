@@ -39,14 +39,16 @@ void Fixture::projectAndMap() {
     StarModJson starModJson(fileName); //open fileName for deserialize
 
     // for (std::vector<Leds *>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
+    uint8_t rowNr = 0;
     for (Leds *leds: ledsList) {
       if (leds->doMap) {
-        USER_PRINTF("Leds %d %d\n", leds->fx, ledsList.size());
+        USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
         //vectors really gone now?
         for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap)
           physMap->clear();
         leds->mappingTable.clear();
       }
+      rowNr++;
     }
 
     //deallocate all led pins
@@ -75,7 +77,7 @@ void Fixture::projectAndMap() {
       //   USER_PRINTF(" %d", num);
       // USER_PRINTF("\n");
 
-      if (uint16CollectList.size()>=1) {
+      if (uint16CollectList.size()>=1) { // a pixel
 
         Coord3D pixel; //in mm !
         pixel.x = uint16CollectList[0];
@@ -84,89 +86,99 @@ void Fixture::projectAndMap() {
 
         // USER_PRINTF("led %d,%d,%d start %d,%d,%d end %d,%d,%d\n",x,y,z, startPos.x, startPos.y, startPos.z, endPos.x, endPos.y, endPos.z);
 
-        // for (Leds leds:ledsList) {
         //vector iterator needed to get the pointer to leds as we need to update leds, also vector iteration on classes is faster!!!
         //search: ^(?=.*\bfor\b)(?=.*\b:\b).*$
-        // for (std::vector<Leds *>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
         uint8_t rowNr = 0;
         for (Leds *leds: ledsList) {
           if (leds->doMap) {
+
             //set start and endPos between bounderies of fixture
             Coord3D startPosAdjusted = (leds->startPos).minimum(size - Coord3D{1,1,1}) * 10;
             Coord3D endPosAdjusted = (leds->endPos).minimum(size - Coord3D{1,1,1}) * 10;
+            Coord3D projSize = (endPosAdjusted - startPosAdjusted).absx()/10 + Coord3D{1,1,1};
 
-            mdl->setValue("fxStart", startPosAdjusted/10, rowNr); //rowNr
-            mdl->setValue("fxEnd", endPosAdjusted/10, rowNr); //rowNr
+            // 0 to 3D depending on start and endpos (e.g. to display ScrollingText on one side of a cube)
+            uint8_t projectionDimension = 0;
+            if (projSize.x > 1) projectionDimension++;
+            if (projSize.y > 1) projectionDimension++;
+            if (projSize.z > 1) projectionDimension++;
+
+            // mdl->setValue("fxStart", startPosAdjusted/10, rowNr); //rowNr
+            // mdl->setValue("fxEnd", endPosAdjusted/10, rowNr); //rowNr
+
+            //only needed one time
+            //does not work for some reason...
+
+            Coord3D split = mdl->getValue("proSplit", rowNr);
+
+            // if (indexP == 0) //first
+            {
+              uint16_t maxDistance = distance(endPosAdjusted, startPosAdjusted) / 10;
+              // USER_PRINTF("maxDistance %d %d,%d,%d %d,%d,%d %d,%d,%d\n", maxDistance, pixel.x, pixel.y, pixel.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z);
+
+              float scale = 1;
+              switch (leds->effectDimension) {
+                case _1D:
+                  leds->size.x = maxDistance;
+                  leds->size.y = 1;
+                  leds->size.z = 1;
+                  break;
+                case _2D:
+                  switch(projectionDimension) {
+                    case _1D:
+                      leds->size = map1Dto2D(projSize);
+                      // leds->size.x = sqrt(projSize.x * projSize.y * projSize.z); //only one is > 1, square root
+                      // leds->size.y = leds->size.x;
+                      break;
+                    case _2D:
+                      if (leds->projectionNr == p_Multiply) {
+                        leds->size = map2Dto2D(projSize) / split;
+                        // USER_PRINTF("Multiply %d,%d,%d\n", leds->size.x, leds->size.y, leds->size.z);
+                      }
+                      else 
+                        leds->size = map2Dto2D(projSize);
+                      break;
+                    case _3D:
+                      leds->size.x = projSize.x + projSize.y;
+                      leds->size.y = projSize.z;
+                      leds->size.z = 1;
+                      break;
+                  }
+                  break;
+                case _3D:
+                  switch(projectionDimension) {
+                    case _1D:
+                      leds->size.x = std::pow(projSize.x * projSize.y * projSize.z, 1/3.); //only one is > 1, cube root
+                      leds->size.y = leds->size.x;
+                      leds->size.z = leds->size.x;
+                      break;
+                    case _2D:
+                      leds->size.x = projSize.x; //2 of the 3 sizes are > 1, so one dimension of the effect is 1
+                      leds->size.y = projSize.y;
+                      leds->size.z = projSize.z;
+                      break;
+                    case _3D:
+                      leds->size.x = projSize.x;
+                      leds->size.y = projSize.y;
+                      leds->size.z = projSize.z;
+                      break;
+                  }
+                  
+                  break;
+                  //scaling (check rounding errors)
+                  //1024 crash in makebuffer...
+                  // if (leds->size.x * leds->size.y > 256)
+                  //   scale = (sqrt((float)256.0 / (leds->size.x * leds->size.y))); //avoid high virtual resolutions
+                  // leds->size.x *= scale;
+                  // leds->size.y *= scale;
+              }
+              leds->nrOfLeds = leds->size.x * leds->size.y * leds->size.z;
+            } //only one time
+
+            if (indexP == 0)
+              USER_PRINTF("first [%d] s:%d,%d,%d e:%d,%d,%d s:%d,%d,%d mt:%d\n", rowNr, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z, leds->size.x, leds->size.y, leds->size.z, leds->mappingTable.size());
 
             if (pixel >= startPosAdjusted && pixel <= endPosAdjusted ) { //if pixel between start and end pos
-
-              Coord3D projSize = (endPosAdjusted - startPosAdjusted).absx()/10 + Coord3D{1,1,1};
-
-              // 0 to 3D depending on start and endpos (e.g. to display ScrollingText on one side of a cube)
-              uint8_t projectionDimension = 0;
-              if (projSize.x > 1) projectionDimension++;
-              if (projSize.y > 1) projectionDimension++;
-              if (projSize.z > 1) projectionDimension++;
-
-              //only needed one time
-
-              // if (indexP == 0) { //first
-              {
-                uint16_t maxDistance = distance(endPosAdjusted, startPosAdjusted) / 10;
-                // USER_PRINTF("maxDistance %d %d,%d,%d %d,%d,%d %d,%d,%d\n", maxDistance, pixel.x, pixel.y, pixel.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z);
-
-                float scale = 1;
-                switch (leds->effectDimension) {
-                  case _1D:
-                    leds->size.x = maxDistance;
-                    leds->size.y = 1;
-                    leds->size.z = 1;
-                    break;
-                  case _2D:
-                    switch(projectionDimension) {
-                      case _1D:
-                        leds->size = map1Dto2D(projSize);
-                        // leds->size.x = sqrt(projSize.x * projSize.y * projSize.z); //only one is > 1, square root
-                        // leds->size.y = leds->size.x;
-                        break;
-                      case _2D:
-                        leds->size = map2Dto2D(projSize);
-                        break;
-                      case _3D:
-                        leds->size.x = projSize.x + projSize.y;
-                        leds->size.y = projSize.z;
-                        leds->size.z = 1;
-                        break;
-                    }
-                  case _3D:
-                    switch(projectionDimension) {
-                      case _1D:
-                        leds->size.x = std::pow(projSize.x * projSize.y * projSize.z, 1/3.); //only one is > 1, cube root
-                        leds->size.y = leds->size.x;
-                        leds->size.z = leds->size.x;
-                        break;
-                      case _2D:
-                        leds->size.x = projSize.x; //2 of the 3 sizes are > 1, so one dimension of the effect is 1
-                        leds->size.y = projSize.y;
-                        leds->size.z = projSize.z;
-                        break;
-                      case _3D:
-                        leds->size.x = projSize.x;
-                        leds->size.y = projSize.y;
-                        leds->size.z = projSize.z;
-                        break;
-                    }
-                    
-                    //scaling (check rounding errors)
-                    //1024 crash in makebuffer...
-                    // if (leds->size.x * leds->size.y > 256)
-                    //   scale = (sqrt((float)256.0 / (leds->size.x * leds->size.y))); //avoid high virtual resolutions
-                    // leds->size.x *= scale;
-                    // leds->size.y *= scale;
-                }
-                leds->nrOfLeds = leds->size.x * leds->size.y * leds->size.z;
-                // USER_PRINTF("first [%d] s:%d,%d,%d e:%d,%d,%d s:%d,%d,%d\n", rowNr, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z, leds->size.x, leds->size.y, leds->size.z);
-              } //only one time
 
               // if (leds->fx == 11) { //lines2D
               //   // USER_PRINTF(" XXX %d %d %d %d, %d, %d", leds->projectionNr, leds->effectDimension, projectionDimension, pixel.x, pixel.y, pixel.z);
@@ -185,6 +197,8 @@ void Fixture::projectAndMap() {
                 case p_Random:
                   break;
                 case p_Default:
+                case p_Multiply:
+                case p_Rotate:
                 case p_DistanceFromPoint:
                   if (leds->effectDimension == _1D) {
                     indexV = distance(pixel, startPosAdjusted) / 10;
@@ -205,6 +219,11 @@ void Fixture::projectAndMap() {
                       indexV = leds->XYZ(map1Dto2D((pixel - startPosAdjusted)/10));
                     else if (projectionDimension == _2D) {
                       Coord3D mapped = map2Dto2D(pixel - startPosAdjusted);
+                      if (leds->projectionNr == p_Multiply) {
+                        mapped.x = mapped.x % (leds->size.x*10);
+                        mapped.y = mapped.y % (leds->size.y*10);
+                        mapped.z = mapped.y % (leds->size.z*10);
+                      }
                       indexV = leds->XYZ(mapped/10);
                       // USER_PRINTF("map2Dto2D %d-%d p:%d,%d,%d m:%d,%d,%d\n", indexV, indexP, pixel.x, pixel.y, pixel.z, mapped.x, mapped.y, mapped.z);
 
@@ -232,8 +251,6 @@ void Fixture::projectAndMap() {
                   break;
                 case p_Mirror:
                   break;
-                case p_Multiply:
-                  break;
                 case p_Fun: //first attempt for distance from Circle 2D
                   if (leds->effectDimension == _2D) {
                     if (projectionDimension == _2D) {
@@ -256,7 +273,7 @@ void Fixture::projectAndMap() {
 
               if (indexV != UINT16_MAX) {
                 if (indexV >= leds->nrOfLeds || indexV >= NUM_LEDS_Max) {
-                  USER_PRINTF("dev pre [%d] indexV too high %d>=%d or %d (m:%d p:%d) p:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
+                  USER_PRINTF("dev pre [%d] indexV too high %d>=%d or %d (m:%d p:%d) p:%d,%d,%d s:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z, leds->size.x, leds->size.y, leds->size.z);
                 }
                 else {
                   //post processing: inverse mapping
@@ -368,18 +385,18 @@ void Fixture::projectAndMap() {
       // for (std::vector<Leds *>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
       for (Leds *leds: ledsList) {
         if (leds->doMap) {
-          USER_PRINTF("leds loop %d %d\n", rowNr, leds->fx);
+          USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
 
           uint16_t nrOfMappings = 0;
           uint16_t nrOfPixels = 0;
 
-          if (leds->projectionNr <= p_Random) {
+          if (leds->projectionNr == p_Random || leds->projectionNr == p_None) {
 
             //defaults
             leds->size = size;
             leds->nrOfLeds = nrOfLeds;
 
-          } else if (leds->projectionNr > p_Random) {
+          } else {
 
             // if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
             //   USER_PRINTF("mapping add extra physMap %d of %d %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
@@ -402,8 +419,8 @@ void Fixture::projectAndMap() {
                 }
 
                 // USER_PRINTF("\n");
-                nrOfMappings++;
               }
+              nrOfMappings++;
               // else
               //   USER_PRINTF("ledV %d no mapping\n", x);
               indexV++;

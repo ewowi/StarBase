@@ -133,22 +133,43 @@ public:
 
     // Coord3D pixel = first;
 
-    uint8_t rowDimension; //in what dimension the row will advance (x=0, y=1, z=2)
+    uint8_t rowDimension; //in what dimension the row will advance (x=0, y=1, z=2), now only one should differ
     if (first.x != rowEnd.x) rowDimension = 0;
-    if (first.y != rowEnd.y) rowDimension = 1;
+    if (first.y != rowEnd.y) rowDimension = 1; //
     if (first.z != rowEnd.z) rowDimension = 2;
 
-    uint8_t colDimension; //in what dimension the col will advance, cannot be the rowDimension
-    if (first.x != colEnd.x && rowDimension != 0) colDimension = 0;
+    uint8_t colDimension; //in what dimension the col will advance, not the rowDimension
+    if (first.x != colEnd.x && rowDimension != 0) colDimension = 0; //
     if (first.y != colEnd.y && rowDimension != 1) colDimension = 1;
     if (first.z != colEnd.z && rowDimension != 2) colDimension = 2;
 
+    bool rowValueSame = (rowDimension == 0)? first.x == colEnd.x : (rowDimension == 1)? first.y == colEnd.y : first.z == colEnd.z; 
+    bool serpentine = rowValueSame;
+    
+    uint16_t nrOfColumns = (colDimension == 0)? abs(colEnd.x - first.x) + 1 : (colDimension == 1)? abs(colEnd.y - first.y) + 1 : abs(colEnd.z - first.z) + 1;
+    if (nrOfColumns % 2 == 1 && rowValueSame) //if odd nrOfCols and rowValueSame then adjust the endpoint col value to the rowEnd col value
+    {
+      if (rowDimension == 0)
+        colEnd.x = rowEnd.x;
+      else if (rowDimension == 1)
+        colEnd.y = rowEnd.y;
+      else if (rowDimension == 2)
+        colEnd.z = rowEnd.z;
+    }
+
     Coord3D colPixel = Coord3D{(rowDimension==0)?colEnd.x:first.x, (rowDimension==1)?colEnd.y:first.y, (rowDimension==2)?colEnd.z:first.z};
+    uint8_t colNr = 0;
     while (true) {
       // colPixel is not advancing over the dimension of the row but advances over it's own dimension towards the colEnd
 
       Coord3D cRowStart = Coord3D{(colDimension==0)?colPixel.x:first.x, (colDimension==1)?colPixel.y:first.y, (colDimension==2)?colPixel.z:first.z};
       Coord3D cRowEnd = Coord3D{(colDimension==0)?colPixel.x:rowEnd.x, (colDimension==1)?colPixel.y:rowEnd.y, (colDimension==2)?colPixel.z:rowEnd.z};
+
+      if (serpentine && colNr%2 != 0) {
+        Coord3D temp = cRowStart;
+        cRowStart = cRowEnd;
+        cRowEnd = temp;
+      }
 
       Coord3D rowPixel = cRowStart;
       while (true) {
@@ -157,15 +178,13 @@ public:
         
         if (rowPixel == cRowEnd) break; //end condition row
         rowPixel.advance(cRowEnd);
-        // bool serpentine = true;
-        // if (serpentine)
-        //   rowPixel.x = 10;
       }
 
       USER_PRINTF("\n");
 
       if (colPixel == colEnd) break; //end condition columns
       colPixel.advance(colEnd);
+      colNr++;
     }
 
     closePin();
@@ -574,8 +593,8 @@ public:
             }
             if (var["value"] == optionNr++) { //4x32x8
               uint8_t lengthMinOne = 31;
-              panel = 0; mdl->setValue("pnlFirst", Coord3D{lengthMinOne,24,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,16,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,8,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,0,0}, panel++);
-              panel = 0; mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,lengthMinOne,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,23,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,15,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,7,0}, panel++);
+              panel = 0; mdl->setValue("pnlFirst", Coord3D{lengthMinOne,lengthMinOne,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,23,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,15,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,7,0}, panel++);
+              panel = 0; mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,24,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,16,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,8,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,0,0}, panel++);
               panel = 0; mdl->setValue("mrxColEnd", Coord3D{0,lengthMinOne,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,23,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,15,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,7,0}, panel++);
               panel = 0; mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); 
             }
@@ -768,6 +787,18 @@ public:
           options.add(JsonString(text, JsonString::Copied));
         }
         return true; }
+      case f_ChangeFun: {
+        //set remaining rows to same pin
+        JsonArray valArray = mdl->varValArray(var);
+
+        uint8_t thisVal = var["value"];
+        uint8_t rowNrL = 0;
+        for (JsonVariant val: valArray) {
+          if (rowNrL > rowNr)
+            mdl->setValue(var, valArray[rowNr].as<uint8_t>(), rowNrL);
+          rowNrL++;
+        }
+        return true; }
       default: return false; 
     }});
 
@@ -853,7 +884,7 @@ public:
       char fileName[32]; print->fFormat(fileName, 31, "F_Ring241-%d", mdl->getValue("nrOfRings").as<uint8_t>());
 
       getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
-        genFix->rings241(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfRings", rowNr), mdl->getValue("inOut", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+        genFix->rings241(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfRings", rowNr), mdl->getValue("in2out", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Spiral) {
@@ -897,8 +928,8 @@ public:
       getPanels("F_Wall", [](GenFix * genFix, uint8_t rowNr) {
         genFix->rings241(Coord3D{0,0,0}, 9, true, UINT8_MAX, 2);
 
-        genFix->matrix(Coord3D{19,0,0}, Coord3D{19,8,0}, Coord3D{27,0,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
-        genFix->matrix(Coord3D{0,19,0}, Coord3D{0,25,0}, Coord3D{50,19,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+        genFix->matrix (Coord3D{19,0,0}, Coord3D{19,8,0}, Coord3D{27,0,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+        genFix->matrix (Coord3D{0,19,0}, Coord3D{0,25,0}, Coord3D{50,19,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
 
         genFix->ring(Coord3D{19,8,0}, 48, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
 

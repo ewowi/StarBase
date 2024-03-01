@@ -106,13 +106,15 @@ public:
       }
       case f_ChangeFun:
 
+        if (rowNr == UINT8_MAX) rowNr = 0; // in case fx without a rowNr
+
         //create a new leds instance if a new row is created
         if (rowNr >= fixture.ledsList.size()) {
-          USER_PRINTF("ledslist fx changeFun %d %s\n", fixture.ledsList.size(), mdl->findVar("fx")["value"].as<String>().c_str());
+          USER_PRINTF("ledslist fx[%d] changeFun %d %s\n", rowNr, fixture.ledsList.size(), mdl->findVar("fx")["value"].as<String>().c_str());
           fixture.ledsList.push_back(new Leds(fixture));
         }
-
-        effects.setEffect(*fixture.ledsList[rowNr], var, rowNr);
+        if (rowNr < fixture.ledsList.size())
+          effects.setEffect(*fixture.ledsList[rowNr], var, rowNr);
         return true;
       default: return false;
     }});
@@ -127,26 +129,31 @@ public:
         ui->setLabel(var, "Projection");
         ui->setComment(var, "How to project fx");
         JsonArray options = ui->setOptions(var); // see enum Projections in AppFixture.h and keep the same order !
-        options.add("None"); // 0
-        options.add("Random"); // 1
-        options.add("Default"); //2
-        options.add("Distance from point"); //3
-        options.add("Mirror"); //4
-        options.add("Reverse"); //5
-        options.add("Multiply"); //6
-        options.add("Kaleidoscope"); //7
-        options.add("Fun"); //8
+        options.add("Default");
+        options.add("Multiply");
+        options.add("Rotate");
+        options.add("Distance from point");
+        options.add("None");
+        options.add("Random");
+        options.add("Fun");
+        options.add("Mirror WIP");
+        options.add("Reverse WIP");
+        options.add("Kaleidoscope WIP");
         return true;
       }
       case f_ChangeFun:
+
+        if (rowNr == UINT8_MAX) rowNr = 0; // in case fx without a rowNr
+
         if (rowNr < fixture.ledsList.size()) {
+          fixture.ledsList[rowNr]->doMap = true;
+
           uint8_t proValue = mdl->getValue(var, rowNr);
           fixture.ledsList[rowNr]->projectionNr = proValue;
 
-
           mdl->varPreDetails(var, rowNr); //set all positive var N orders to negative
           if (proValue == p_DistanceFromPoint) {
-            ui->initCoord3D(var, "point", Coord3D{8,8,8}, 0, NUM_LEDS_Max, false);
+            ui->initCoord3D(var, "proPoint", Coord3D{8,8,8}, 0, NUM_LEDS_Max);
             // , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
             //   case f_ValueFun:
             //     mdl->setValue(var, lds->fixture.size);
@@ -157,11 +164,23 @@ public:
             //   default: return false;
             // }});
           }
+          if (proValue == p_Multiply) {
+            ui->initCoord3D(var, "proSplit", Coord3D{2,2,1}, 0, 10, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+              case f_ChangeFun:
+                fixture.ledsList[rowNr]->doMap = true;
+                fixture.doMap = true;
+                return true;
+              default: return false;
+            }});
+          }
+          if (proValue == p_Rotate) {
+            ui->initCoord3D(var, "proCenter", Coord3D{8,8,8}, 0, NUM_LEDS_Max);
+            ui->initSlider(var, "proSpeed", 1, 0, 60);
+          }
           mdl->varPostDetails(var, rowNr);
 
           USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, proValue, fixture.ledsList.size());
 
-          fixture.ledsList[rowNr]->doMap = true;
           fixture.doMap = true;
         }
         return true;
@@ -243,19 +262,19 @@ public:
       default: return false;
     }});
 
-    ui->initSelect(parentVar, "fxLayout", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
-      case f_UIFun: {
-        ui->setLabel(var, "Layout");
-        ui->setComment(var, "WIP");
-        JsonArray options = ui->setOptions(var);
-        options.add("□"); //0
-        options.add("="); //1
-        options.add("||"); //2
-        options.add("+"); //3
-        return true;
-      }
-      default: return false;
-    }}); //fixtureGen
+    // ui->initSelect(parentVar, "fxLayout", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    //   case f_UIFun: {
+    //     ui->setLabel(var, "Layout");
+    //     ui->setComment(var, "WIP");
+    //     JsonArray options = ui->setOptions(var);
+    //     options.add("□"); //0
+    //     options.add("="); //1
+    //     options.add("||"); //2
+    //     options.add("+"); //3
+    //     return true;
+    //   }
+    //   default: return false;
+    // }}); //fxLayout
 
     ui->initSlider(parentVar, "Blending", fixture.globalBlend, 0, 255, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_ChangeFun:

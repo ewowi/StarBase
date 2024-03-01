@@ -34,11 +34,15 @@ JsonDocument * SysModWeb::responseDocLoopTask = nullptr;
 JsonDocument * SysModWeb::responseDocAsyncTCP = nullptr;
 bool SysModWeb::clientsChanged = false;
 
-uint8_t SysModWeb::sendDataWsCounter = 0;
-uint16_t SysModWeb::sendDataWsTBytes = 0;
-uint16_t SysModWeb::sendDataWsBBytes = 0;
-uint8_t SysModWeb::recvDataWsCounter = 0;
-uint16_t SysModWeb::recvDataWsBytes = 0;
+uint8_t SysModWeb::sendWsCounter = 0;
+uint16_t SysModWeb::sendWsTBytes = 0;
+uint16_t SysModWeb::sendWsBBytes = 0;
+uint8_t SysModWeb::recvWsCounter = 0;
+uint16_t SysModWeb::recvWsBytes = 0;
+uint8_t SysModWeb::sendUDPCounter = 0;
+uint16_t SysModWeb::sendUDPBytes = 0;
+uint8_t SysModWeb::recvUDPCounter = 0;
+uint16_t SysModWeb::recvUDPBytes = 0;
 
 SemaphoreHandle_t SysModWeb::wsMutex = xSemaphoreCreateMutex();
 
@@ -68,7 +72,6 @@ void SysModWeb::setup() {
   JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Clients");
-      ui->setComment(var, "List of clients");
       return true;
     default: return false;
   }});
@@ -135,9 +138,11 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
+  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
+
   ui->initText(parentVar, "wsSend", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      ui->setLabel(var, "WS Send Info");
+      ui->setLabel(var, "WS Send");
       // ui->setComment(var, "web socket calls");
       return true;
     default: return false;
@@ -145,13 +150,26 @@ void SysModWeb::setup() {
 
   ui->initText(parentVar, "wsRecv", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      ui->setLabel(var, "WS Recv Info");
+      ui->setLabel(var, "WS Recv");
       // ui->setComment(var, "web socket calls");
       return true;
     default: return false;
   }});
 
-  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
+  ui->initText(parentVar, "udpSend", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      ui->setLabel(var, "UDP Send");
+      return true;
+    default: return false;
+  }});
+
+  ui->initText(parentVar, "udpRecv", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      ui->setLabel(var, "UDP Recv");
+      return true;
+    default: return false;
+  }});
+
 }
 
 void SysModWeb::loop() {
@@ -179,13 +197,20 @@ void SysModWeb::loop1s() {
   for (JsonObject childVar: mdl->varN("clTbl"))
     ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
 
-  mdl->setUIValueV("wsSend", "#: %d /s T: %d /Bs B:%d /Bs", sendDataWsCounter, sendDataWsTBytes, sendDataWsBBytes);
-  sendDataWsCounter = 0;
-  sendDataWsTBytes = 0;
-  sendDataWsBBytes = 0;
-  mdl->setUIValueV("wsRecv", "#: %d /s %d /Bs", recvDataWsCounter, recvDataWsBytes);
-  recvDataWsCounter = 0;
-  recvDataWsBytes = 0;
+  mdl->setUIValueV("wsSend", "#: %d /s T: %d /Bs B:%d /Bs", sendWsCounter, sendWsTBytes, sendWsBBytes);
+  sendWsCounter = 0;
+  sendWsTBytes = 0;
+  sendWsBBytes = 0;
+  mdl->setUIValueV("wsRecv", "#: %d /s %d /Bs", recvWsCounter, recvWsBytes);
+  recvWsCounter = 0;
+  recvWsBytes = 0;
+
+  mdl->setUIValueV("udpSend", "#: %d /s %d /Bs", sendUDPCounter, sendUDPBytes);
+  sendUDPCounter = 0;
+  sendUDPBytes = 0;
+  mdl->setUIValueV("udpRecv", "#: %d /s %d /Bs", recvUDPCounter, recvUDPBytes);
+  recvUDPCounter = 0;
+  recvUDPBytes = 0;
 
   sendResponseObject(); //this sends all the loopTask responses once per second !!!
 }
@@ -274,8 +299,8 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
     String msg = "";
     // USER_PRINT_Async("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
     if (info->final && info->index == 0 && info->len == len) { //not multipart
-      recvDataWsCounter++;
-      recvDataWsBytes+=len;
+      recvWsCounter++;
+      recvWsBytes+=len;
       printClient("WS event data", client);
       // the whole message is in a single frame and we got all of its data (max. 1450 bytes)
       if (info->opcode == WS_TEXT)
@@ -416,11 +441,11 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
           if (loopClient->status() == WS_CONNECTED && !loopClient->queueIsFull()) { //WS_MAX_QUEUED_MESSAGES / ws->count() / 2)) { //binary is lossy
             if ((!isBinary || loopClient->queueLength() <= 3)) {
               isBinary?loopClient->binary(wsBuf): loopClient->text(wsBuf);
-              sendDataWsCounter++;
+              sendWsCounter++;
               if (isBinary)
-                sendDataWsBBytes+=len;
+                sendWsBBytes+=len;
               else 
-                sendDataWsTBytes+=len;
+                sendWsTBytes+=len;
             }
           }
           else {

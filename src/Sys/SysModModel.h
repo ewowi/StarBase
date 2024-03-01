@@ -64,11 +64,21 @@ struct Coord3D {
     z -= rhs.z;
     return *this;
   }
+  Coord3D operator/=(Coord3D rhs) {
+    x /= rhs.x;
+    y /= rhs.y;
+    z /= rhs.z;
+    return *this;
+  }
   Coord3D operator-(Coord3D rhs) {
     return Coord3D{uint16_t(x - rhs.x), uint16_t(y - rhs.y), uint16_t(z - rhs.z)};
   }
   Coord3D operator+(Coord3D rhs) {
     return Coord3D{uint16_t(x + rhs.x), uint16_t(y + rhs.y), uint16_t(z + rhs.z)};
+    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
+  }
+  Coord3D operator/(Coord3D rhs) {
+    return Coord3D{uint16_t(x / rhs.x), uint16_t(y / rhs.y), uint16_t(z / rhs.z)};
     // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   Coord3D minimum(Coord3D rhs) {
@@ -345,17 +355,17 @@ public:
 
       //check if post init added: parent is already >=0
       if (varOrder(var) >= 0) {
-        for (JsonObject childVar: varN(var)) {
-          if (childVar["value"].is<JsonArray>())
+        for (JsonArray::iterator childVar=varN(var).begin(); childVar!=varN(var).end(); ++childVar) { //use iterator to make .remove work!!!
+          JsonArray valArray = varValArray(*childVar);
+          if (!valArray.isNull())
           {
-            JsonArray valArray = childVar["value"];
 
-            if (varOrder(childVar) < 0) { //if not updated
+            if (varOrder(*childVar) < 0) { //if not updated
               valArray[rowNr] = (char*)0; // set element in valArray to 0
 
               USER_PRINTF("varPostDetails %s[%d] to null\n", varID(var), rowNr);
               // setValue(var, -99, rowNr); //set value -99
-              varOrder(childVar, -varOrder(childVar)); //make positive again
+              varOrder(*childVar, -varOrder(*childVar)); //make positive again
               //if some values in array are not -99
             }
 
@@ -366,7 +376,7 @@ public:
                 allNull = false;
             }
             if (allNull) {
-              print->printJson("remove allnulls", childVar);
+              print->printJson("remove allnulls", *childVar);
               varN(var).remove(childVar);
             }
           }

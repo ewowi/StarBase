@@ -40,6 +40,7 @@ void SysModFiles::setup() {
       ui->setComment(var, "List of files");
       return true;
     case f_AddRow:
+      rowNr = fileList.size();
       USER_PRINTF("chFun addRow %s[%d] = %s\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str());
       web->getResponseObject()["addRow"]["rowNr"] = rowNr;
       //add a row with all defaults

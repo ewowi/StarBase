@@ -40,6 +40,16 @@ public:
   static WebSocket *ws;
   static SemaphoreHandle_t wsMutex;
 
+  static uint8_t sendWsCounter;
+  static uint16_t sendWsTBytes;
+  static uint16_t sendWsBBytes;
+  static uint8_t recvWsCounter;
+  static uint16_t recvWsBytes;
+  static uint8_t sendUDPCounter;
+  static uint16_t sendUDPBytes;
+  static uint8_t recvUDPCounter;
+  static uint16_t recvUDPBytes;
+
   SysModWeb();
 
   void setup();
@@ -163,11 +173,6 @@ private:
   static JsonDocument *responseDocLoopTask;
   static JsonDocument *responseDocAsyncTCP;
 
-  static uint8_t sendDataWsCounter;
-  static uint16_t sendDataWsTBytes;
-  static uint16_t sendDataWsBBytes;
-  static uint8_t recvDataWsCounter;
-  static uint16_t recvDataWsBytes;
 };
 
 static SysModWeb *web;

@@ -41,7 +41,7 @@ struct AppData {
   VarData vars[nrOfAppVars]; //total 80
 
   int getVar(const char * varID) { //int to support -1
-    for (int i=0; i< nrOfAppVars; i++) {
+    for (int i=0; i < nrOfAppVars; i++) {
       if (strncmp(vars[i].id, "", 3) != 0 && strncmp(vars[i].id, varID, 3) == 0) {
         return vars[i].value;
       }
@@ -143,26 +143,26 @@ public:
   UserModInstances() :SysModule("Instances") {
   };
 
-  void addTblRow(JsonArray row, std::vector<InstanceInfo>::iterator instance) {
-    row.add(JsonString(instance->name, JsonString::Copied));
-    char urlString[32] = "http://";
-    strncat(urlString, instance->ip.toString().c_str(), sizeof(urlString)-1);
-    row.add(JsonString(urlString, JsonString::Copied));
-    row.add(JsonString(instance->ip.toString().c_str(), JsonString::Copied));
-    // row.add(instance->timeStamp / 1000);
+  // void addTblRow(JsonArray row, std::vector<InstanceInfo>::iterator instance) {
+  //   row.add(JsonString(instance->name, JsonString::Copied));
+  //   char urlString[32] = "http://";
+  //   strncat(urlString, instance->ip.toString().c_str(), sizeof(urlString)-1);
+  //   row.add(JsonString(urlString, JsonString::Copied));
+  //   row.add(JsonString(instance->ip.toString().c_str(), JsonString::Copied));
+  //   // row.add(instance->timeStamp / 1000);
 
-    row.add(instance->sys.type?"StarMod":"WLED");
+  //   row.add(instance->sys.type?"StarMod":"WLED");
 
-    row.add(instance->version);
-    row.add(instance->sys.upTime);
+  //   row.add(instance->version);
+  //   row.add(instance->sys.upTime);
 
-    mdl->findVars("stage", true, [instance, row](JsonObject var) { //findFun
-      //look for value in instance
-      int value = instance->app.getVar(var["id"]);
-      // USER_PRINTF("insTbl %s %s: %d\n", instance->name, varID, value);
-      row.add(value);
-    });
-  }
+  //   mdl->findVars("stage", true, [instance, row](JsonObject var) { //findFun
+  //     //look for value in instance
+  //     int value = instance->app.getVar(var["id"]);
+  //     // USER_PRINTF("insTbl %s %s: %d\n", instance->name, varID, value);
+  //     row.add(value);
+  //   });
+  // }
 
   //setup filesystem
   void setup() {
@@ -287,8 +287,8 @@ public:
       insVar = ui->initVar(tableVar, columnVarID, var["type"], false, [this, var](JsonObject insVar, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
         case f_ValueFun:
           //should not trigger chFun
-          // USER_PRINTF("initVar stage %s[%d]\n", mdl->varID(insVar), rowNr);
           for (uint8_t rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++) {
+            // USER_PRINTF("initVar stage %s[%d]\n", mdl->varID(insVar), rowNrL);
             //do what setValue is doing except calling changeFun
             // insVar["value"][rowNrL] = instances[rowNrL].app.getVar(mdl->varID(var)); //only int values...
             web->addResponse(insVar["id"], "value", instances[rowNrL].app.getVar(mdl->varID(var)), rowNrL); //only int values...);
@@ -448,6 +448,9 @@ public:
         for (JsonObject childVar: mdl->varN("insTbl"))
           ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //rowNr //instance - instances.begin()
 
+        web->recvUDPCounter++;
+        web->recvUDPBytes+=packetSize;
+
         return;
       }
     }
@@ -484,6 +487,8 @@ public:
 
           USER_PRINTF("packetSize %d not equal to %d or %d\n", packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
         }
+        web->recvUDPCounter++;
+        web->recvUDPBytes+=packetSize;
 
       } //packetSize
       else {
@@ -547,7 +552,12 @@ public:
 
     //send stage values
     mdl->findVars("stage", true, [&starModMessage](JsonObject var) { //varFun
-      starModMessage.app.setVar(var["id"], var["value"]);
+      // print->printJson("setVar", var);
+      JsonArray valArray = mdl->varValArray(var);
+      if (valArray.isNull())
+        starModMessage.app.setVar(var["id"], var["value"]);
+      else if (valArray.size())
+        starModMessage.app.setVar(var["id"], valArray[0].as<uint8_t>()); //set the first value (tbd: add multiple)
     });
 
     updateNode(starModMessage); //temp? to show own instance in list as instance is not catching it's own udp message...
@@ -561,6 +571,8 @@ public:
       // }
 
       instanceUDP.write((uint8_t*)&starModMessage, sizeof(UDPStarModMessage));
+      web->sendUDPCounter++;
+      web->sendUDPBytes+=sizeof(UDPStarModMessage);
       instanceUDP.endPacket();
     }
     else {

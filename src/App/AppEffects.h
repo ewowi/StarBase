@@ -49,7 +49,7 @@ public:
       default: return false;
     }});
     //tbd: check if memory is freed!
-    currentVar["stage"] = true;
+    // currentVar["stage"] = true;
   }
 
   CRGBPalette16 getPalette() {

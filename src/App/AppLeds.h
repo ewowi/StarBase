@@ -28,8 +28,23 @@
 #include "../data/font/console_font_6x8.h"
 #include "../data/font/console_font_7x9.h"
 
+enum Projections
+{
+  p_Default,
+  p_Multiply,
+  p_Rotate,
+  p_DistanceFromPoint,
+  p_None,
+  p_Random,
+  p_Fun,
+  p_Reverse,
+  p_Mirror,
+  p_Kaleidoscope,
+  p_count
+};
 
 class Fixture; //forward
+
 
 
 //StarMod implementation of segment.data
@@ -79,6 +94,46 @@ class SharedData {
 
 };
 
+static float sinrot = 0.0f;
+static float cosrot = 1.0f;
+static unsigned long last_millis = UINT_MAX;
+
+constexpr float projScaleMax = 1.0f;   // full size
+constexpr float projScaleMin = 0.701f; // 1/sqrt(2)
+static float projScale = projScaleMax;
+
+static Coord3D spinXY(uint_fast16_t x, uint_fast16_t y, uint_fast16_t width, uint_fast16_t height) {
+  if ((millis()/12) !=  last_millis) {
+    // update sin / cos for rotation - once each 12ms
+    float now = float(millis()/12) / 160.0f;  // this sets the rotation speed
+    //float now = float(strip.now) / 2000.0f;  // error: 'strip' was not declared in this scope
+    sinrot = sinf(now);
+    cosrot = cosf(now);
+    last_millis = millis()/12;
+    // scale to fit - comment out the next lines to disable
+    float maxProj = max(abs(width/2 * sinrot), abs(height/2 * cosrot));
+    int maxdim = max(width/2, height/2);
+    float newScaling = maxProj / float(maxdim);
+    projScale = max(min(newScaling, projScaleMax), projScaleMin);
+  }
+  // center
+  int x1 = int(x) - width/2;
+  int y1 = int(y) - height/2;
+  // matrix mult for rotation
+  float x2 = float(x1) * cosrot - float(y1) * sinrot;
+  float y2 = float(x1) * sinrot + float(y1) * cosrot;
+  // un-center
+  int x3 = lround(x2 * projScale) + width/2;  // projScale adds some down-scaling,
+  int y3 = lround(y2 * projScale) + height/2; //     so everything fits fully into the original matrix. Note to self: this is still sub-optimal.
+  // check bounds
+
+  if ((x3 <0) || (x3 >= width) || (y3 <0) || (y3 >= height)) return Coord3D{0, 0, 0}; // outside of matrix
+  // deliver fish
+  else return Coord3D{x3, y3, 0};
+}
+
+
+
 
 
 class Leds {
@@ -107,7 +162,13 @@ public:
     return XYZ(coord.x, coord.y, coord.z);
   }
   uint16_t XYZ(uint16_t x, uint16_t y, uint16_t z) {
-    return x + y * size.x + z * size.x * size.y;
+
+    if (projectionNr == p_Rotate) {
+      Coord3D result = spinXY(x,y, size.x, size.y);
+      return result.x + result.y * size.x + result.z * size.x * size.y;
+    }
+    else
+      return x + y * size.x + z * size.x * size.y;
   }
 
   uint16_t indexVLocal = 0; //set in operator[], used by operator=

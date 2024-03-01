@@ -195,8 +195,8 @@ void SysModUI::processJson(JsonVariant json) {
           if (pair.key() == "delRow") {
             mdl->varRemoveValuesForRow(var, rowNr);
             print->printJson("deleted rows", var);
+            web->sendResponseObject(); //async response //trigger receiveData->delRow
           }
-          web->sendResponseObject(); //async response
 
           if (callVarFun(var, rowNr, pair.key() == "addRow"?f_AddRow:f_DelRow)) {
             web->sendResponseObject(); //async response

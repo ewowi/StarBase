@@ -1,252 +1,260 @@
-Modules::ModuleSysModPrint::SysModPrint() Print success
-SysModFiles::SysModFiles() Files
-SysModFiles::SysModFiles() Files success
-SysModModel::SysModModel() Model
 Reading model from /model.json... (deserializeConfigFromFS)
-File /model.json open to read, size 4509 bytes
-Read model [{"id":"Leds","type":"module","ro":true,"o":1,"n":[{"id":"bri","type":"range","ro":false,"o":2,"value":69},{"id":"fx","type":"select","ro":false,"o":3,"value":"2","n":[{"id":"ipsum","type":"text","ro":false,"o":-86,"value":""},{"id":"amet","type":"number","ro":false,"o":-88,"value":false},{"id":"consectetur","type":"text","ro":false,"o":-89,"value":""},{"id":"dolor","type":"select","ro":false,"o":-90,"value":1}]},{"id":"projection","type":"select","ro":false,"o":9,"value":"0"},{"id":"pview","type":"canvas","ro":false,"o":10,"loopFun":0,"value":-1},{"id":"ledFix","type":"select","ro":false,"o":11,"value":"5"},{"id":"dimensions","type":"text","ro":true,"o":12},{"id":"nrOfLeds","type":"text","ro":true,"o":13},{"id":"fps","type":"number","ro":false,"o":14,"value":40},{"id":"realFps","type":"text","ro":true,"o":15},{"id":"dataPin","type":"number","ro":false,"o":16,"value":16}]},{"id":"Files","type":"module","ro":true,"o":17,"n":[{"id":"flist","type":"table","ro":false,"o":18,"n":[{"id":"flName","type":"text","ro":true,"o":19},{"id":"flSize","type":"text","ro":true,"o":20},{"id":"flLink","type":"url","ro":true,"o":21}]},{"id":"drsize","type":"text","ro":true,"o":22},{"id":"deleteFiles","type":"button","ro":false,"o":23}]},{"id":"System","type":"module","ro":true,"o":24,"n":[{"id":"upTime","type":"text","ro":true,"o":25},{"id":"loops","type":"text","ro":true,"o":26},{"id":"heap","type":"text","ro":true,"o":27},{"id":"stack","type":"text","ro":true,"o":28},{"id":"restart","type":"button","ro":false,"o":29},{"id":"reset0","type":"select","ro":true,"o":30,"value":1},{"id":"reset1","type":"select","ro":true,"o":31,"value":14},{"id":"restartReason","type":"select","ro":true,"o":32,"value":1}]},{"id":"Pins","type":"module","ro":true,"o":33,"n":[{"id":"board","type":"canvas","ro":true,"o":34,"loopFun":1,"value":-1},{"id":"pin2","type":"checkbox","ro":false,"o":39,"value":true},{"id":"pin4","type":"checkbox","ro":false,"o":40,"value":false},{"id":"pin33","type":"checkbox","ro":false,"o":41,"value":true},{"id":"pins","type":"table","ro":false,"o":35,"n":[{"id":"pinNr","type":"number","ro":true,"o":36,"value":-1},{"id":"pinOwner","type":"text","ro":true,"o":37},{"id":"pinDetails","type":"text","ro":true,"o":38}]}]},{"id":"Print","type":"module","ro":true,"o":42,"n":[{"id":"pOut","type":"select","ro":false,"o":43,"value":1},{"id":"log","type":"textarea","ro":true,"o":44,"value":"WIP"}]},{"id":"LedFixGen","type":"module","ro":true,"o":45,"n":[{"id":"ledFixGen","type":"select","ro":false,"o":46,"value":"1","n":[{"id":"width","type":"number","ro":false,"o":47,"value":8},{"id":"height","type":"number","ro":false,"o":48,"value":8},{"id":"firstLedX","type":"select","ro":false,"o":49,"value":0},{"id":"firstLedY","type":"select","ro":false,"o":50,"value":0},{"id":"serpentine","type":"checkbox","ro":false,"o":51,"value":false}]},{"id":"generate","type":"button","ro":false,"o":52,"value":"Generate"}]},{"id":"UI","type":"module","ro":true,"o":53,"n":[{"id":"vloops","type":"table","ro":false,"o":54,"n":[{"id":"ulVar","type":"text","ro":true,"o":55},{"id":"ulLoopps","type":"number","ro":true,"o":56,"value":-1}]}]},{"id":"Web","type":"module","ro":true,"o":57,"n":[{"id":"clist","type":"table","ro":false,"o":58,"n":[{"id":"clNr","type":"text","ro":true,"o":59},{"id":"clIp","type":"text","ro":true,"o":60},{"id":"clIsFull","type":"checkbox","ro":true,"o":61,"value":false},{"id":"clStatus","type":"select","ro":true,"o":62,"value":1}]},{"id":"wsSendBytes","type":"text","ro":true,"o":63},{"id":"wsSendJson","type":"text","ro":true,"o":64}]},{"id":"Network","type":"module","ro":true,"o":65,"n":[{"id":"ssid","type":"text","ro":false,"o":66,"value":"ewtr"},{"id":"pw","type":"password","ro":false,"o":67,"value":"zonledmod"},{"id":"connect","type":"button","ro":false,"o":68},{"id":"nwstatus","type":"text","ro":true,"o":69}]},{"id":"Model","type":"module","ro":true,"o":70,"n":[{"id":"mSize","type":"text","ro":true,"o":71},{"id":"saveModel","type":"button","ro":false,"o":72,"value":"SaveModel"},{"id":"showObsolete","type":"checkbox","ro":false,"o":73,"value":false},{"id":"deleteObsolete","type":"button","ro":false,"o":74},{"id":"deleteModel","type":"button","ro":false,"o":75}]},{"id":"Modules","type":"module","ro":true,"o":76,"n":[{"id":"modules","type":"table","ro":false,"o":77,"n":[{"id":"mdlName","type":"text","ro":true,"o":78},{"id":"mdlSucces","type":"checkbox","ro":true,"o":79,"value":false},{"id":"mdlEnabled","type":"checkbox","ro":false,"o":80,"value":false}]}]}]
+File /model.json open to read, size 6847 bytes
+Read model [{"id":"Preview","type":"appmod","ro":false,"o":1,"n":[{"id":"pview","type":"canvas","ro":false,"o":2,"loopFun":0,"interval":160}]},{"id":"Leds","type":"appmod","ro":false,"o":3,"n":[{"id":"on","type":"checkbox","ro":false,"o":4,"value":1,"stage":true},{"id":"bri","type":"range","ro":false,"o":5,"value":10,"max":255,"log":true,"stage":true},{"id":"fxTbl","type":"table","ro":false,"o":6,"n":[{"id":"pro","type":"select","ro":false,"o":13,"value":2,"stage":true},{"id":"fxStart","type":"coord3D","ro":false,"o":14,"value":[{"x":0,"y":0,"z":0}],"max":127},{"id":"fxEnd","type":"coord3D","ro":false,"o":15,"value":[{"x":32,"y":32,"z":0}],"max":127},{"id":"fxSize","type":"coord3D","ro":true,"o":16,"max":127},{"id":"fxCount","type":"number","ro":true,"o":17,"max":255}]},{"id":"fx","type":"select","ro":false,"o":7,"value":13,"stage":true,"n":[{"id":"pal","type":"select","ro":false,"o":8,"value":4,"stage":true},{"id":"speed","type":"range","ro":false,"o":9,"min":1,"max":255,"value":128},{"id":"Offset X","type":"range","ro":false,"o":10,"max":255,"value":128},{"id":"Offset Y","type":"range","ro":false,"o":11,"max":255,"value":128},{"id":"Legs","type":"range","ro":false,"o":12,"min":1,"max":8,"value":4}]},{"id":"fixture","type":"select","ro":false,"o":18,"value":0},{"id":"fixSize","type":"coord3D","ro":true,"o":19,"max":127},{"id":"fixCount","type":"number","ro":true,"o":20,"max":255},{"id":"fps","type":"number","ro":false,"o":21,"value":60,"min":1,"max":999},{"id":"realFps","type":"text","ro":true,"o":22,"max":10}]},{"id":"Fixture Generator","type":"usermod","ro":false,"o":23,"n":[{"id":"fixtureGen","type":"select","ro":false,"o":24,"value":0,"n":[{"id":"ledCount","type":"number","ro":false,"o":25,"min":1,"max":4096,"value":64}]},{"id":"pinList","type":"text","ro":false,"o":26,"value":"16","max":32},{"id":"generate","type":"button","ro":false,"o":27}]},{"id":"Files","type":"sysmod","ro":false,"o":28,"n":[{"id":"fileTbl","type":"table","ro":false,"o":29,"n":[{"id":"flName","type":"text","ro":true,"o":30,"max":32},{"id":"flSize","type":"number","ro":true,"o":31},{"id":"flLink","type":"url","ro":true,"o":32}]},{"id":"drsize","type":"text","ro":true,"o":33,"max":32}]},{"id":"System","type":"sysmod","ro":false,"o":34,"n":[{"id":"serverName","type":"text","ro":false,"o":35,"value":"StarMod16MB","max":32},{"id":"upTime","type":"text","ro":true,"o":36,"max":16},{"id":"loops","type":"text","ro":true,"o":37,"max":16},{"id":"chip","type":"text","ro":true,"o":38,"max":16},{"id":"heap","type":"text","ro":true,"o":39,"max":32},{"id":"stack","type":"text","ro":true,"o":40,"max":16},{"id":"reboot","type":"button","ro":false,"o":41},{"id":"reset0","type":"select","ro":true,"o":42},{"id":"reset1","type":"select","ro":true,"o":43},{"id":"restartReason","type":"select","ro":true,"o":44},{"id":"version","type":"text","ro":true,"o":45,"max":16}],"view":"vAll"},{"id":"Pins","type":"sysmod","ro":false,"o":46,"n":[{"id":"pinTbl","type":"table","ro":true,"o":47,"n":[{"id":"pinNr","type":"number","ro":true,"o":48,"max":50},{"id":"pinOwner","type":"text","ro":true,"o":49,"max":32},{"id":"pinDetails","type":"text","ro":true,"o":50,"max":256}]},{"id":"board","type":"canvas","ro":true,"o":51,"loopFun":1,"interval":1000},{"id":"pin19","type":"checkbox","ro":false,"o":52,"value":1}]},{"id":"Print","type":"sysmod","ro":false,"o":53,"n":[{"id":"pOut","type":"select","ro":false,"o":54,"value":1},{"id":"log","type":"textarea","ro":true,"o":55}]},{"id":"Web","type":"sysmod","ro":false,"o":56,"n":[{"id":"clTbl","type":"table","ro":true,"o":57,"n":[{"id":"clNr","type":"number","ro":true,"o":58,"max":999},{"id":"clIp","type":"text","ro":true,"o":59,"max":16},{"id":"clIsFull","type":"checkbox","ro":true,"o":60},{"id":"clStatus","type":"select","ro":true,"o":61},{"id":"clLength","type":"number","ro":true,"o":62,"max":64}]},{"id":"wsCounter","type":"text","ro":true,"o":63,"max":16},{"id":"queueLength","type":"number","ro":true,"o":64,"max":64}]},{"id":"Network","type":"sysmod","ro":false,"o":65,"n":[{"id":"ssid","type":"text","ro":false,"o":66,"value":"ewtr","max":32},{"id":"pw","type":"password","ro":false,"o":67,"value":"zonledmod"},{"id":"connect","type":"button","ro":false,"o":68},{"id":"nwstatus","type":"text","ro":true,"o":69,"max":32},{"id":"rssi","type":"text","ro":true,"o":70,"max":32}]},{"id":"DDP","type":"usermod","ro":false,"o":71,"n":[{"id":"ddpInst","type":"select","ro":false,"o":72}]},{"id":"ArtNet","type":"usermod","ro":false,"o":73,"n":[{"id":"artInst","type":"select","ro":false,"o":74}]},{"id":"e131-sACN","type":"usermod","ro":false,"o":75,"n":[{"id":"dun","type":"number","ro":false,"o":76,"value":1,"max":7},{"id":"dch","type":"number","ro":false,"o":77,"value":1,"min":1,"max":512,"stage":true},{"id":"e131Tbl","type":"table","ro":true,"o":78,"n":[{"id":"e131Channel","type":"number","ro":true,"o":79,"min":1,"max":512},{"id":"e131Name","type":"text","ro":true,"o":80,"max":32},{"id":"e131Max","type":"number","ro":true,"o":81},{"id":"e131Value","type":"number","ro":true,"o":82,"max":255}]}]},{"id":"Model","type":"sysmod","ro":false,"o":83,"n":[{"id":"mSize","type":"text","ro":true,"o":84,"max":32},{"id":"saveModel","type":"button","ro":false,"o":85},{"id":"showObsolete","type":"checkbox","ro":false,"o":86,"value":0},{"id":"deleteObsolete","type":"button","ro":false,"o":87}]},{"id":"UI","type":"sysmod","ro":false,"o":88,"n":[{"id":"vlTbl","type":"table","ro":true,"o":89,"n":[{"id":"vlVar","type":"text","ro":true,"o":90,"max":32},{"id":"vlLoopps","type":"number","ro":true,"o":91,"max":999}]}]},{"id":"Instances","type":"sysmod","ro":false,"o":92,"n":[{"id":"insTbl","type":"table","ro":true,"o":93,"n":[{"id":"insName","type":"text","ro":true,"o":94,"max":32},{"id":"insLink","type":"url","ro":true,"o":95},{"id":"insIp","type":"text","ro":true,"o":96,"max":16},{"id":"insType","type":"text","ro":true,"o":97,"max":16},{"id":"insVersion","type":"number","ro":true,"o":98,"max":-1},{"id":"insUp","type":"number","ro":true,"o":99,"max":-1},{"id":"inson","type":"checkbox","ro":false,"o":101},{"id":"insbri","type":"range","ro":false,"o":102,"max":255,"log":true},{"id":"inspro","type":"select","ro":false,"o":103},{"id":"insfx","type":"select","ro":false,"o":104},{"id":"insdch","type":"number","ro":false,"o":106,"min":1,"max":512},{"id":"inssma","type":"select","ro":false,"o":107},{"id":"inspal","type":"select","ro":false,"o":105}]},{"id":"sma","type":"select","ro":false,"o":100,"value":0,"stage":true}]},{"id":"Modules","type":"sysmod","ro":false,"o":108,"n":[{"id":"mdlTbl","type":"table","ro":true,"o":109,"n":[{"id":"mdlName","type":"text","ro":true,"o":110,"max":32},{"id":"mdlSuccess","type":"checkbox","ro":true,"o":111},{"id":"mdlEnabled","type":"checkbox","ro":false,"o":112,"value":[true,true,true,true,true,true,true,true,true,false,false,true,true,true,true,true,true]}]}]}]
 sendDataWs no ws
-SysModModel::SysModModel() Model success
-SysModUI::SysModUI() UI
-SysModUI::SysModUI() UI success
-SysModPins::SysModPins() Pins
-SysModPins::SysModPins() Pins success
-UserModE131::UserModE131() e131/sACN support
-UserModE131::UserModE131() e131/sACN support success
-virtual void AppModLeds::setup() Leds
-Object Leds already defined
-Object bri already defined
-Set Brightness to 69 -> 69
-Object fx already defined
-initSelect chFun Change fx to 2
-ledFixProjectAndMap: Filename for ledfix 255 not found
-initVar create new range: ipsum
-initVar create new text: consectetur
-Object ipsum already defined
-initVar create new text: lorum
-Object consectetur already defined
-parentVar {"id":"fx","type":"select","ro":false,"o":-3,"value":"2","uiFun":2,"chFun":3,"n":[{"id":"ipsum","type":"number","ro":false,"o":-6,"value":36},{"id":"consectetur","type":"select","ro":false,"o":-8,"value":"consectetur","uiFun":4},{"id":"lorum","type":"text","ro":false,"o":-7,"value":"conse"}]}
-Object projection already defined
-initSelect chFun Change projection to 0
-ledFixProjectAndMap: Filename for ledfix 255 not found
-Object pview already defined
-Object ledFix already defined
-initSelect chFun Change ledFix to 5
-seqNrToName: 2DRing241.json 2246
-JsonRDWS constructing /2DRing241.json r
-JsonRDWS found all what it was looking for 6 >= 6
-jrdws whd P:19x19x1 V:19x19x1 and P:241 V:241
-pins 255: Leds 65535--1
-allocatePin 255 Leds Leds 65535--1
-JsonRDWS destructing
-seqNrToName: 2DRing241.json 2246
-ledfix chFun send ws done {"pview":{"file":"/2DRing241.json"}}
-Object dimensions already defined
-Object nrOfLeds already defined
-post whd P:19x19x1 V:19x19x1 and P:241 V:241
-Object fps already defined
-fps changed 40
-Object realFps already defined
-Object dataPin already defined
-Set data pin to 16
-virtual void AppModLeds::setup() Leds success
-Object Files already defined
-Object flist already defined
-Object flName already defined
-Object flSize already defined
-Object flLink already defined
-Object drsize already defined
-Object deleteFiles already defined
-virtual void SysModSystem::setup() System
-Object System already defined
-Object upTime already defined
-Object loops already defined
-Object heap already defined
-Object stack already defined
-Object restart already defined
-Object reset0 already defined
-Object reset1 already defined
-Object restartReason already defined
-virtual void SysModSystem::setup() System success
-virtual void SysModPins::setup() Pins
-Object Pins already defined
-Object board already defined
-Object pins already defined
-Object pinNr already defined
-Object pinOwner already defined
-Object pinDetails already defined
-Object pin2 already defined
-updateGPIO pin2:=1
-Object pin4 already defined
-Object pin33 already defined
-virtual void SysModPins::setup() Pins success
-virtual void SysModPrint::setup() Print
-Object Print already defined
-Object pOut already defined
-Object log already defined
-virtual void SysModPrint::setup() Print success
-virtual void AppModLedFixGen::setup() LedFixGen
-Object LedFixGen already defined
-Object ledFixGen already defined
-initVar create new number: width
-initVar create new number: height
-initVar create new select: firstLedX
-initVar create new select: firstLedY
-initVar create new checkbox: serpentine
-Object generate already defined
-virtual void AppModLedFixGen::setup() LedFixGen success
-virtual void SysModUI::setup() UI
-Object UI already defined
-Object vloops already defined
-Object ulVar already defined
-Object ulLoopps already defined
-virtual void SysModUI::setup() UI success
-virtual void SysModWeb::setup() Web
-Object Web already defined
-Object clist already defined
-Object clNr already defined
-Object clIp already defined
-Object clIsFull already defined
-Object clStatus already defined
-Object wsSendBytes already defined
-Object wsSendJson already defined
-virtual void SysModWeb::setup() Web success
-virtual void SysModNetwork::setup() Network
-Object Network already defined
-Object ssid already defined
-Object pw already defined
-Object connect already defined
-Object nwstatus already defined
-virtual void SysModNetwork::setup() Network success
-virtual void SysModModel::setup() Model
-Object Model already defined
-Object mSize already defined
-Object saveModel already defined
-Object showObsolete already defined
-Object deleteObsolete already defined
-Object deleteModel already defined
-virtual void SysModModel::setup() Model success
-virtual void UserModE131::setup() e131/sACN support
-Object Modules already defined
-Object modules already defined
-Object mdlName already defined
-Object mdlSucces already defined
-Object mdlEnabled already defined
+setValue value removed Preview 
+setValue value removed pview 
+setValue value removed Leds 
+initVarAndUpdate chFun init bri v:10
+Set Brightness to 10 -> b:10 r:1
+setValue value removed fxTbl 
+initVarAndUpdate chFun init fx v:13
+setEffect 13
+initVar create new select var: fx->pal
+setValue changed pal ->4
+chFun pal <- 4
+initVar create new range var: fx->speed
+setValue changed speed ->128
+initVar create new range var: fx->Offset X
+setValue changed Offset X ->128
+initVar create new range var: fx->Offset Y
+setValue changed Offset Y ->128
+initVar create new range var: fx->Legs
+setValue changed Legs ->4
+parentVar {"details":{"id":"fx","type":"select","ro":false,"o":-7,"value":13,"stage":true,"fun":4,"chFun":1,"n":[{"id":"pal","type":"select","ro":false,"o":-8,"fun":5,"chFun":2,"value":4,"stage":true},{"id":"speed","type":"range","ro":false,"o":-9,"min":1,"max":255,"value":128},{"id":"Offset X","type":"range","ro":false,"o":-10,"max":255,"value":128},{"id":"Offset Y","type":"range","ro":false,"o":-11,"max":255,"value":128},{"id":"Legs","type":"range","ro":false,"o":-12,"min":1,"max":8,"value":4}]}}
+initVarAndUpdate chFun init pro v:2
+initVarAndUpdate chFun init fxStart v:[{"x":0,"y":0,"z":0}]
+Coord3D assign 0 0 0
+fxStart 0 0 0 - 7 7 0
+initVarAndUpdate chFun init fxEnd v:[{"x":32,"y":32,"z":0}]
+Coord3D assign 32 32 0
+fxEnd chFun 0 0 0 - 32 32 0
+Coord3D toJson 8,8,1 -> {"x":8,"y":8,"z":1}
+setValue changed fxSize ->{"x":8,"y":8,"z":1}
+callChangeFun fxSize unknown type for {"x":8,"y":8,"z":1}
+setValue changed fxCount ->64
+initVarAndUpdate chFun init fixture v:0
+seqNrToName: 2DMatrix3232.json 9640
+fixture chFun send ws done {"pview":{"file":"/2DMatrix3232.json"}}
+Coord3D toJson 8,8,1 -> {"x":8,"y":8,"z":1}
+setValue changed fixSize ->{"x":8,"y":8,"z":1}
+callChangeFun fixSize unknown type for {"x":8,"y":8,"z":1}
+setValue changed fixCount ->64
+initVarAndUpdate chFun init fps v:60
+setValue value removed realFps 
+setValue value removed Fixture Generator 
+initVarAndUpdate chFun init fixtureGen v:0
+initVar create new number var: fixtureGen->ledCount
+setValue changed ledCount ->64
+parentVar {"details":{"id":"fixtureGen","type":"select","ro":false,"o":-24,"value":0,"fun":16,"chFun":8,"n":[{"id":"ledCount","type":"number","ro":false,"o":-25,"min":1,"max":4096,"value":64}]}}
+setValue value removed generate 
+setValue value removed Files 
+setValue value removed fileTbl 
+setValue value removed flName 
+setValue value removed flSize 
+setValue value removed flLink 
+setValue value removed drsize 
+setValue value removed System 
+setValue value removed upTime 
+setValue value removed loops 
+setValue value removed chip 
+setValue value removed heap 
+setValue value removed stack 
+setValue value removed reboot 
+setValue changed reset0 ->12
+setValue changed reset1 ->12
+setValue changed restartReason ->3
+version 24012822 Jan 28 2024 22:33:18 22:33:18
+setValue value removed version 
+setValue value removed Pins 
+setValue value removed pinTbl 
+setValue value removed pinNr 
+setValue value removed pinOwner 
+setValue value removed pinDetails 
+setValue value removed board 
+initVarAndUpdate chFun init pin19 v:1
+setValue value removed Print 
+setValue changed log ->WIP
+setValue value removed Web 
+setValue value removed clTbl 
+setValue value removed clNr 
+setValue value removed clIp 
+setValue value removed clIsFull 
+setValue value removed clStatus 
+setValue value removed clLength 
+setValue value removed wsCounter 
+setValue changed queueLength ->64
+setValue value removed Network 
+setValue value removed connect 
+setValue value removed nwstatus 
+setValue value removed rssi 
+setValue value removed DDP 
+setValue value removed ddpInst 
+setValue value removed ArtNet 
+setValue value removed artInst 
+setValue value removed e131-sACN 
+initVarAndUpdate chFun init dun v:1
+initVarAndUpdate chFun init dch v:1
+setValue value removed e131Tbl 
+setValue value removed e131Channel 
+setValue value removed e131Name 
+setValue value removed e131Max 
+setValue value removed e131Value 
+setValue value removed Model 
+setValue value removed mSize 
+setValue value removed saveModel 
+initVarAndUpdate chFun init showObsolete v:0
+setValue value removed deleteObsolete 
+setValue value removed UI 
+setValue value removed vlTbl 
+setValue value removed vlVar 
+setValue value removed vlLoopps 
+setValue value removed Instances 
+setValue value removed insTbl 
+setValue value removed insName 
+setValue value removed insLink 
+setValue value removed insIp 
+setValue value removed insType 
+setValue value removed insVersion 
+setValue value removed insUp 
+stage on 1 found
+stage bri 10 found
+stage pro 2 found
+stage fx 13 found
+stage pal 4 found
+stage dch 1 found
+stage sma 0 found
+UDPWLEDSyncMessage 44 1460 1193
+setValue value removed Modules 
+setValue value removed mdlTbl 
+initVarAndUpdate valueFun mdlName count:17
+setValue var mdlName[0] value null not array, creating
+initVarAndUpdate valueFun mdlSuccess count:17
+setValue var mdlSuccess[0] value null not array, creating
+initVarAndUpdate chFun init mdlEnabled v:[true,true,true,true,true,true,true,true,true,false,false,true,true,true,true,true,true]
+seqNrToName: 2DMatrix3232.json 9640
+StarModJson constructing /2DMatrix3232.json r
+pins 16: 0-1023
+allocatePin 16 Leds 0-1023
+StarModJson found all what it was looking for 1030 >= 6
+projectAndMap P:32x32x1 V:15x15x1 and P:1024 V:225
+Coord3D toJson 15,15,1 -> {"x":15,"y":15,"z":1}
+setValue changed fxSize ->{"x":15,"y":15,"z":1}
+callChangeFun fxSize unknown type for {"x":15,"y":15,"z":1}
+setValue changed fxCount ->225
+Coord3D toJson 32,32,1 -> {"x":32,"y":32,"z":1}
+setValue changed fixSize ->{"x":32,"y":32,"z":1}
+callChangeFun fixSize unknown type for {"x":32,"y":32,"z":1}
+setValue changed fixCount ->1024
+StarModJson destructing
+FastLED.addLeds new 16: 0-1024
 lastReconnectAttempt == 0
 Access point disabled (init).
 Connecting to WiFi ewtr / *********
-Connected 192.168.8.213
+setValue var vlLoopps[0] value null not array, creating
 server (re)started
-UserModE131::connected
+UserModE131::connected && enabled
 UserModE131 - Create ESPAsyncE131
 Network exists, begin e131.begin ok
-virtual void UserModE131::connected() e131/sACN support success
-Webserver: client request / /index.htm text/html!
-WS client connected client: 1 192.168.8.126 q:0 s:1 (w:1)
-ws[/ws][1] error(1002): Invalid UTF-8 in text frame
-WS Client disconnected client: 1 0.0.0.0 q:1 s:2 (w:0)
-WS client connected client: 2 192.168.8.126 q:0 s:1 (w:1)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-seqNrToName: 2DRing241.json 2246
-WS_EVT_DATA json {"uiFun":["bri","fx","consectetur","projection","pview","ledFix","dimensions","nrOfLeds","fps"],"bri":{"label":"Brightness"},"fx":{"label":"Effect","comment":"Effect to show","select":["Rainbow","Rainbow with glitter","Sinelon","Running","Confetti","Beats per minute","Juggle","Ripples 3D","SphereMove 3D","Frizzles2D"],"value":2},"consectetur":{"select":["Oui","Non"],"value":0},"projection":{"comment":"How to project fx to fixture","select":["None","Random","Distance from point","Distance from centre"],"value":0},"pview":{"label":"Preview","comment":"Shows the preview","file":"/2DRing241.json"},"ledFix":{"label":"LedFix","comment":"Fixture to display effect on","select":["1DSpiral256.json","1DSpiral64.json","2DMatrix0808.json","2DMatrix3232.json","2DRing24.json","2DRing241.json","2DRing256.json","3DCone24.json","3DCube080808.json","3DGlobe12.json","3DSideCube080805.json","3DSideCube202005.json"],"value":5},"nrOfLeds":{"comment":"Max 4096 (1024 by FastLed)"},"fps":{"comment":"Frames per second"}}
-WS_EVT_DATA info  1429 / 2048 (69%) (9 0 3)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA json {"uiFun":["realFps","dataPin","flist","flName","flSize","flLink","drsize","deleteFiles","upTime"],"realFps":{"comment":"Depends on how much leds fastled has configured"},"dataPin":{"comment":"Not implemented yet (fixed to 16)"},"flist":{"label":"Files","comment":"List of files","table":[["1DSpiral256.json",2977,"file/1DSpiral256.json"],["1DSpiral64.json",790,"file/1DSpiral64.json"],["2DMatrix0808.json",495,"file/2DMatrix0808.json"],["2DMatrix3232.json",7667,"file/2DMatrix3232.json"],["2DRing24.json",290,"file/2DRing24.json"],["2DRing241.json",2246,"file/2DRing241.json"],["2DRing256.json",2518,"file/2DRing256.json"],["3DCone24.json",11796,"file/3DCone24.json"],["3DCube080808.json",4208,"file/3DCube080808.json"],["3DGlobe12.json",250,"file/3DGlobe12.json"],["3DSideCube080805.json",2756,"file/3DSideCube080805.json"],["3DSideCube202005.json",19400,"file/3DSideCube202005.json"],["model.json",4509,"file/model.json"]]},"flName":{"label":"Name"},"flSize":{"label":"Size (B)"},"flLink":{"label":"Show"},"drsize":{"label":"Total FS size"},"deleteFiles":{"comment":"All but model.json"},"upTime":{"comment":"Uptime of board"}}
-WS_EVT_DATA info  1977 / 2048 (96%) (10 0 4)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA json {"uiFun":["heap","reset0","reset1","restartReason","board","pins","pinNr","pinOwner","pinDetails"],"heap":{"comment":"Free / Total (largest free)"},"reset0":{"label":"Reset 0","comment":"Reason Core 0","select":["NO_MEAN","Vbat power on reset","SW_RESET (2)","SW_RESET (3)","OWDT_RESET","DEEPSLEEP_RESET","SDIO_RESET","TG0WDT_SYS_RESET","TG1WDT_SYS_RESET","RTCWDT_SYS_RESET","INTRUSION_RESET","TGWDT_CPU_RESET","SW reset CPU (12)","RTCWDT_CPU_RESET","for APP CPU, reseted by PRO CPU","RTCWDT_BROWN_OUT_RESET","RTCWDT_RTC_RESET"],"value":1},"reset1":{"label":"Reset 1","comment":"Reason Core 1","select":["NO_MEAN","Vbat power on reset","SW_RESET (2)","SW_RESET (3)","OWDT_RESET","DEEPSLEEP_RESET","SDIO_RESET","TG0WDT_SYS_RESET","TG1WDT_SYS_RESET","RTCWDT_SYS_RESET","INTRUSION_RESET","TGWDT_CPU_RESET","SW reset CPU (12)","RTCWDT_CPU_RESET","for APP CPU, reseted by PRO CPU","RTCWDT_BROWN_OUT_RESET","RTCWDT_RTC_RESET"],"value":14},"restartReason":{"label":"Restart","comment":"Reason restart","select":["ESP_RST_UNKNOWN","Reset due to power-on event","ESP_RST_EXT","Software reset via esp_restart (3)","SW reset due to exception/panic (4)","ESP_RST_INT_WDT","ESP_RST_TASK_WDT","ESP_RST_WDT","ESP_RST_DEEPSLEEP","ESP_RST_BROWNOUT","ESP_RST_SDIO"],"value":1},"board":{"label":"Board layout","comment":"WIP"},"pins":{"comment":"List of pins","table":[]},"pinNr":{"label":"Pinnr"},"pinOwner":{"label":"Owner"},"pinDetails":{"label":"Details"}}
-WS_EVT_DATA i 1489 / 2048 (72%) (10 0 3)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA json {"uiFun":["pOut","log","ledFixGen","firstLedX","firstLedY","generate","vloops","ulVar","ulLoopps"],"pOut":{"label":"Output","comment":"System log to Serial or Net print (WIP)","select":["No","Serial","UI","192.168.8.126"],"value":1},"log":{"comment":"Show the printed log"},"ledFixGen":{"label":"Fixture","comment":"Type of fixture","select":["1DSpiral","2DMatrix","2DRing","2DRings241","3DCone","3DSideCube","3DCube","3DGlobe"],"value":1},"firstLedX":{"select":["Left","Richt"],"value":0},"firstLedY":{"select":["Top","Bottom"],"value":0},"vloops":{"label":"Variable loops","comment":"Loops initiated by a variable","table":[["pview",14],["board",11]]},"ulVar":{"label":"Name"},"ulLoopps":{"label":"Loops//s"}}
-WS_EVT_DATA info  1105 / 2048 (53%) (9 0 4)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA json {"uiFun":["clist","clNr","clIp","clIsFull","clStatus","pw","connect","nwstatus","mSize"],"clist":{"label":"Clients","comment":"List of clients","table":[[2,"192.168.8.126",false,1]]},"clNr":{"label":"Nr"},"clIp":{"label":"IP"},"clIsFull":{"label":"Is full"},"clStatus":{"label":"Status","select":["Disconnected","Connected","Disconnecting"],"value":1},"pw":{"label":"Password"},"connect":{"comment":"Force reconnect (you loose current connection)"},"nwstatus":{"label":"Status"},"mSize":{"label":"Size"}}
-WS_EVT_DATA info  760 / 2048 (37%) (10 0 4)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA json {"uiFun":["saveModel","showObsolete","deleteObsolete","deleteModel","modules","mdlName","mdlSucces","mdlEnabled"],"saveModel":{"comment":"Write to model.json (manual save only currently)"},"showObsolete":{"comment":"Show in UI (refresh)"},"deleteObsolete":{"label":"Delete obsolete variables","comment":"WIP"},"deleteModel":{"comment":"Back to defaults"},"modules":{"comment":"List of modules","table":[["Leds",true,true],["Files",true,true],["System",true,true],["Pins",true,true],["Print",true,true],["LedFixGen",true,true],["UI",true,true],["Web",true,true],["Network",true,true],["Model",true,true],["e131/sACN support",true,true]]},"mdlName":{"label":"Name"},"mdlSucces":{"label":"Success"},"mdlEnabled":{"label":"Enabled"}}
-WS_EVT_DATA info  1290 / 2048 (62%) (9 0 4)
-fileServer request /file /file/2DRing241.json /2DRing241.json
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-initSelect chFun Change fx to 4
-initVar create new select: sit
-initVar create new range: dolor
-Object sit already defined
-Object sit already defined
-initVar create new number: ipsum
-parentVar {"id":"fx","type":"select","ro":false,"o":3,"value":"4","uiFun":2,"chFun":3,"n":[{"id":"sit","type":"text","ro":false,"o":-84,"uiFun":4,"value":0},{"id":"dolor","type":"range","ro":false,"o":-82,"value":248},{"id":"ipsum","type":"number","ro":false,"o":-85,"value":0}]}
-WS_EVT_DATA json {"fx":{"value":"4"}}
-WS_EVT_DATA info  34 / 2048 (1%) (1 0 2)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-WS_EVT_DATA json {"uiFun":["sit"],"sit":{"select":["Oui","Non"]}}
-WS_EVT_DATA info  96 / 2048 (4%) (2 0 3)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-initSelect chFun Change projection to 2
-seqNrToName: 2DRing241.json 2246
-JsonRDWS constructing /2DRing241.json r
-  new pin found 10 (0)
-JsonRDWS found all what it was looking for 248 >= 7
-ledV 3 mapping: firstLedP: 218 #ledsP: 2
-ledV 4 mapping: firstLedP: 216 #ledsP: 4
-ledV 5 mapping: firstLedP: 162 #ledsP: 5
-ledV 6 mapping: firstLedP: 161 #ledsP: 5
-ledV 7 mapping: firstLedP: 116 #ledsP: 10
-ledV 8 mapping: firstLedP: 79 #ledsP: 11
-ledV 9 mapping: firstLedP: 51 #ledsP: 13
-ledV 10 mapping: firstLedP: 31 #ledsP: 11
-ledV 11 mapping: firstLedP: 16 #ledsP: 18
-ledV 12 mapping: firstLedP: 5 #ledsP: 17
-ledV 13 mapping: firstLedP: 0 #ledsP: 17
-ledV 14 mapping: firstLedP: 1 #ledsP: 19
-ledV 15 mapping: firstLedP: 10 #ledsP: 17
-ledV 16 mapping: firstLedP: 37 #ledsP: 16
-ledV 17 mapping: firstLedP: 39 #ledsP: 17
-ledV 18 mapping: firstLedP: 63 #ledsP: 13
-ledV 19 mapping: firstLedP: 95 #ledsP: 15
-ledV 20 mapping: firstLedP: 134 #ledsP: 12
-ledV 21 mapping: firstLedP: 138 #ledsP: 7
-ledV 22 mapping: firstLedP: 183 #ledsP: 12
-jrdws whd P:19x19x1 V:19x19x1 and P:241 V:23
-pins 10: Leds 0-240
-allocatePin 10 Leds Leds 0-240
-JsonRDWS destructing
-WS_EVT_DATA json {"projection":{"value":"2"}}
-WS_EVT_DATA info  34 / 2048 (1%) (1 0 2)
-WS event data client: 2 192.168.8.126 q:0 s:1 (w:1)
-initSelect chFun Change ledFix to 7
-seqNrToName: 3DCone24.json 11796
-JsonRDWS constructing /3DCone24.json r
-deallocatePin 10 Leds
-  new pin found 10 (0)
-JsonRDWS found all what it was looking for 907 >= 7
-ledV 14 mapping: firstLedP: 39 #ledsP: 17
-ledV 15 mapping: firstLedP: 6 #ledsP: 44
-ledV 16 mapping: firstLedP: 0 #ledsP: 45
-ledV 17 mapping: firstLedP: 3 #ledsP: 44
-ledV 18 mapping: firstLedP: 10 #ledsP: 49
-ledV 19 mapping: firstLedP: 31 #ledsP: 45
-ledV 20 mapping: firstLedP: 47 #ledsP: 54
-ledV 21 mapping: firstLedP: 85 #ledsP: 61
-ledV 22 mapping: firstLedP: 110 #ledsP: 57
-ledV 23 mapping: firstLedP: 138 #ledsP: 61
-ledV 24 mapping: firstLedP: 199 #ledsP: 52
-ledV 25 mapping: firstLedP: 235 #ledsP: 47
-ledV 26 mapping: firstLedP: 275 #ledsP: 44
-ledV 27 mapping: firstLedP: 317 #ledsP: 43
-ledV 28 mapping: firstLedP: 363 #ledsP: 40
-ledV 29 mapping: firstLedP: 412 #ledsP: 34
-ledV 30 mapping: firstLedP: 463 #ledsP: 33
-ledV 31 mapping: firstLedP: 517 #ledsP: 33
-ledV 32 mapping: firstLedP: 575 #ledsP: 29
-ledV 33 mapping: firstLedP: 635 #ledsP: 24
-ledV 34 mapping: firstLedP: 698 #ledsP: 22
-ledV 35 mapping: firstLedP: 765 #ledsP: 16
-ledV 36 mapping: firstLedP: 834 #ledsP: 6
-jrdws whd P:23x24x23 V:19x19x1 and P:900 V:37
-pins 10: Leds 0-899
-allocatePin 10 Leds Leds 0-899
-JsonRDWS destructing
-seqNrToName: 3DCone24.json 11796
-ledfix chFun send ws done {"pview":{"file":"/3DCone24.json"}}
-WS_EVT_DATA json {"ledFix":{"value":"7"}}
-WS_EVT_DATA info  34 / 2048 (1%) (1 0 2)
-fileServer request /file /file/3DCone24.json /3DCone24.json
+mDNS started C8:F0:9E:73:61:EC -> c8f09e7361ec -> wled-7361ec
+αWS client connected client: 1 ...126 q:0 l:0 s:1 (#:1)
+SysModWeb clientsChanged
+setValue var clNr[0] value null not array, creating
+setValue var clIp[0] value null not array, creating
+setValue var clIsFull[0] value null not array, creating
+setValue var clStatus[0] value null not array, creating
+setValue var clLength[0] value null not array, creating
+sendDataWs client full or not connected client: 1 ...126 q:0 l:12 s:1 (#:1)
+sendDataWs client full or not connected client: 1 ...126 q:0 l:12 s:1 (#:1)
+αWebserver: server->on addUrl / text/html csdata 1061164428-20841 (/)α!
+αWS Client disconnected client: 1 ...0 q:1 l:0 s:2 (#:0)
+αWS client connected client: 2 ...126 q:0 l:0 s:1 (#:1)
+αWS event data client: 2 ...126 q:0 l:15 s:1 (#:1)
+αWS_EVT_DATA json {"pview":{"label":"Preview","comment":"Shows the fixture"}}
+αWS_EVT_DATA info  48 / 3072 (1%) (1 0 2)
+αWS event data client: 2 ...126 q:0 l:15 s:1 (#:1)
+αWS_EVT_DATA json {"on":{"label":"On/Off"},"bri":{"label":"Brightness"},"pro":{"label":"Projection","comment":"How to project fx to fixture","options":["None","Random","Distance from point","Distance from center","Mirror","Reverse","Multiply","Kaleidoscope","Fun"]},"fxStart":{"label":"Start"},"fxEnd":{"label":"End"},"fxSize":{"label":"Size"},"fxCount":{"label":"Count"}}
+αWS_EVT_DATA info  400 / 3072 (13%) (7 0 3)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:15 s:1 (#:1)
+αWS event data client: 2 ...126 q:0 l:16 s:1 (#:1)
+αseqNrToName: 2DMatrix3232.json 9640
+αWS_EVT_DATA json {"fxTbl":{"label":"Effects","comment":"List of effects (WIP)","value":[[2,[{"x":0,"y":0,"z":0}],[{"x":32,"y":32,"z":0}],{"x":15,"y":15,"z":1},225]]},"pal":{"label":"Palette","comment":"Colors","options":["CloudColors","LavaColors","OceanColors","ForestColors","RainbowColors","RainbowStripeColors","PartyColors","HeatColors"]},"fx":{"label":"Effect","comment":"Effect to show","options":["Solid 1D","Rainbow 1D","Rainbow with glitter 1D","Sinelon 1D","Running 1D","Confetti 1D","Beats per minute 1D","Juggle 1D","Ripples 3D","SphereMove 3D","Frizzles 2D","Lines 2D","DistortionWaves 2D","Octopus 2D","Lissajous 2D","Bouncing Balls 1D","RingRandomFlow 1D","GEQ 2D","AudioRings 1D","FreqMatrix 1D"]},"fixture":{"comment":"Fixture to display effect on","options":["2DMatrix3232.json","3DCube888.json","3DSideCube205.json"]},"pview":{"file":"/2DMatrix3232.json"},"fixSize":{"label":"Size"},"fixCount":{"label":"Count","comment":"Max 4096"},"fps":{"comment":"Frames per second"},"realFps":{"comment":"f(1024 leds)"}}
+αWS_EVT_DATA info  1283 / 3072 (41%) (9 0 6)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:16 s:1 (#:1)
+αWS event data client: 2 ...126 q:0 l:16 s:1 (#:1)
+αWS_EVT_DATA json {"fixtureGen":{"label":"Fixture","comment":"Type of fixture","options":["1DSpiral","2DMatrix","2DRing","2DRings241","2DCloud","2DWall","2DWheel","3DCone","3DSideCube","3DCube","3DGlobe WIP","3DGeodesicDome WIP"]},"pinList":{"comment":"One or more e.g. 12,13,14"}}
+αWS_EVT_DATA info  288 / 3072 (9%) (2 0 3)
+αWS event data client: 2 ...126 q:0 l:16 s:1 (#:1)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:16 s:1 (#:1)
+αWS_EVT_DATA json {"flName":{"label":"Name"},"flSize":{"label":"Size (B)"},"flLink":{"label":"Show"},"fileTbl":{"label":"Files","comment":"List of files","value":[["2DMatrix3232.json",9640,"file/2DMatrix3232.json"],["3DCube888.json",5538,"file/3DCube888.json"],["3DSideCube205.json",29246,"file/3DSideCube205.json"],["model.json",6847,"file/model.json"]]},"drsize":{"value":"69632 / 262144 B","label":"Total FS size"}}
+αWS_EVT_DATA info  627 / 3072 (20%) (5 0 4)
+αWS event data client: 2 ...126 q:0 l:16 s:1 (#:1)
+αWS_EVT_DATA json {"serverName":{"label":"Name","comment":"Instance name"},"upTime":{"comment":"Uptime of board"},"heap":{"comment":"Free / Total (largest free)"},"reset0":{"label":"Reset 0","comment":"Reason Core 0","options":["NO_MEAN (0)","power-on (1)","exception (2)","SW reset (3)","watchdog (4)","wakeup (5)","watchdog (6)","watchdog (7)","watchdog (8)","watchdog (9)","intrusion (10)","watchdog (11)","SW restart (12)","watchdog (13)","restart (14)","brown-out (15)","watchdog (16)","watchdog (17)","super watchdog (18)","glitch (19)","EFUSE reset (20)","USB UART reset (21)","JTAG reset (22)","power glitch (23)"]},"reset1":{"label":"Reset 1","comment":"Reason Core 1","options":["NO_MEAN (0)","power-on (1)","exception (2)","SW reset (3)","watchdog (4)","wakeup (5)","watchdog (6)","watchdog (7)","watchdog (8)","watchdog (9)","intrusion (10)","watchdog (11)","SW restart (12)","watchdog (13)","restart (14)","brown-out (15)","watchdog (16)","watchdog (17)","super watchdog (18)","glitch (19)","EFUSE reset (20)","USB UART reset (21)","JTAG reset (22)","power glitch (23)"]},"restartReason":{"label":"Restart","comment":"Reason restart","options":["(0) ESP_RST_UNKNOWN","(1) power-on event","(2) external pin reset","(3) SW restart by esp_restart()","(4) SW error - panic or exception","(5) interrupt watchdog","(6) task watchdog","(7) other watchdog","(8) exit from deep sleep","(9) Brownout Reset","(10) Reset over SDIO"]}}
+αWS_EVT_DATA info  1847 / 3072 (60%) (6 0 3)
+αWS event data client: 2 ...126 q:0 l:16 s:1 (#:1)
+αWS_EVT_DATA json {"pinNr":{"label":"Pin"},"pinOwner":{"label":"Owner"},"pinDetails":{"label":"Details"},"pinTbl":{"label":"Pins","comment":"List of pins","value":[[16,"Leds","0-1023"]]},"board":{"label":"Board layout","comment":"WIP"}}
+αWS_EVT_DATA info  284 / 3072 (9%) (5 0 4)
+αWS event data client: 2 ...126 q:0 l:16 s:1 (#:1)
+αWS_EVT_DATA json {"pOut":{"label":"Output","comment":"System log to Serial or Net print (WIP)","options":["No","Serial","UI","192.168.8.126"]},"log":{"comment":"Show the printed log"}}
+αWS_EVT_DATA info  174 / 3072 (5%) (2 0 3)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:16 s:1 (#:1)
+αWS event data client: 2 ...126 q:0 l:16 s:1 (#:1)
+αWS_EVT_DATA json {"clNr":{"label":"Nr"},"clIp":{"label":"IP"},"clIsFull":{"label":"Is full"},"clStatus":{"label":"Status","options":["Disconnected","Connected","Disconnecting"]},"clLength":{"label":"Length"}}
+αWS_EVT_DATA info  224 / 3072 (7%) (5 0 3)
+αWS event data client: 2 ...126 q:0 l:17 s:1 (#:1)
+αWS_EVT_DATA json {"clTbl":{"label":"Clients","comment":"List of clients"},"wsCounter":{"comment":"#web socket calls"}}
+αWS_EVT_DATA info  80 / 3072 (2%) (2 0 2)
+insTbl updateNode 132
+αWS event data client: 2 ...126 q:0 l:17 s:1 (#:1)
+αWS_EVT_DATA json {"pw":{"label":"Password"},"connect":{"comment":"Force reconnect (loose current connection)"},"nwstatus":{"label":"Status"},"rssi":{"label":"Wifi signal"}}
+αWS_EVT_DATA info  128 / 3072 (4%) (4 0 2)
+αWS event data client: 2 ...126 q:0 l:20 s:1 (#:1)
+αWS_EVT_DATA json {"ddpInst":{"label":"Instance","comment":"Instance to send data","options":[[0,"no sync"],[132,"192.168.8.132 StarModRS"]]}}
+αWS_EVT_DATA info  184 / 3072 (5%) (1 0 4)
+αWS event data client: 2 ...126 q:0 l:20 s:1 (#:1)
+αWS_EVT_DATA json {"artInst":{"label":"Instance","comment":"Instance to send data","options":[[0,"no sync"],[132,"192.168.8.132 StarModRS"]]}}
+αWS_EVT_DATA info  184 / 3072 (5%) (1 0 4)
+αWS event data client: 2 ...126 q:0 l:20 s:1 (#:1)
+αWS_EVT_DATA json {"dun":{"label":"DMX Universe"},"dch":{"label":"DMX Channel","comment":"First channel"},"e131Channel":{"label":"Channel"},"e131Name":{"label":"Name"},"e131Max":{"label":"Max"},"e131Value":{"label":"Value"},"e131Tbl":{"label":"Vars to watch","comment":"List of instances","value":[[1,"bri",255,0],[2,"fx",20,0],[3,"pal",8,0]]}}
+αWS_EVT_DATA info  523 / 3072 (17%) (7 0 4)
+SysModWeb clientsChanged
+αWS event data client: 2 ...126 q:0 l:23 s:1 (#:1)
+αWS_EVT_DATA json {"mSize":{"label":"Size"},"saveModel":{"comment":"Write to model.json (manual save only currently)"},"showObsolete":{"comment":"Show in UI (refresh)"},"deleteObsolete":{"label":"Delete obsolete variables","comment":"WIP"}}
+αWS_EVT_DATA info  144 / 3072 (4%) (4 0 2)
+setValue var clNr[0] value null not array, creating
+αWS event data client: 2 ...126 q:0 l:23 s:1 (#:1)
+αWS_EVT_DATA json {"vlVar":{"label":"Name"},"vlLoopps":{"label":"Loops p s"}}
+αWS_EVT_DATA info  64 / 3072 (2%) (2 0 2)
+sαWS event data client: 2 ...126 q:0 l:25 s:1 (#:1)
+αWS_EVT_DATA json {"vlTbl":{"label":"Variable loops","comment":"Loops initiated by a variable","value":[["pview",4],["board",0]]}}
+αWS_EVT_DATA info  172 / 3072 (5%) (1 0 4)
+etValue var clIp[0] value null not array, creating
+αWS event data client: 2 ...126 q:0 l:25 s:1 (#:1)
+αWS_EVT_DATA json {"insName":{"label":"Name"},"insLink":{"label":"Show"},"insIp":{"label":"IP"},"insType":{"label":"Type"},"insVersion":{"label":"Version"},"insUp":{"label":"Uptime"},"inson":{"label":"On/Off"},"insbri":{"label":"Brightness"},"inspro":{"label":"Projection","comment":"How to project fx to fixture","options":["None","Random","Distance from point","Distance from center","Mirror","Reverse","Multiply","Kaleidoscope","Fun"]}}
+αWS_EVT_DATA info  464 / 3072 (15%) (9 0 3)
+setValue var clIsFull[0] value null not array, creating
+αWS event data client: 2 ...126 q:0 l:27 s:1 (#:1)
+αWS_EVT_DATA json {"insfx":{"label":"Effect","comment":"Effect to show","options":["Solid 1D","Rainbow 1D","Rainbow with glitter 1D","Sinelon 1D","Running 1D","Confetti 1D","Beats per minute 1D","Juggle 1D","Ripples 3D","SphereMove 3D","Frizzles 2D","Lines 2D","DistortionWaves 2D","Octopus 2D","Lissajous 2D","Bouncing Balls 1D","RingRandomFlow 1D","GEQ 2D","AudioRings 1D","FreqMatrix 1D"]},"inspal":{"label":"Palette","comment":"Colors","options":["CloudColors","LavaColors","OceanColors","ForestColors","RainbowColors","RainbowStripeColors","PartyColors","HeatColors"]},"insdch":{"label":"DMX Channel","comment":"First channel"},"inssma":{"label":"Sync Master","comment":"Instance to sync from","options":[[0,"no sync"],[132,"192.168.8.132 StarModRS"]]},"insTbl":{"label":"Instances","comment":"List of instances","value":[["StarModRS","http://192.168.8.132","192.168.8.132","StarMod",24012818,8151,1,141,0,19,-1,1,0]]},"sma":{"label":"Sync Master","comment":"Instance to sync from","options":[[0,"no sync"],[132,"192.168.8.132 StarModRS"]]}}
+αWS_EVT_DATA info  1301 / 3072 (42%) (6 0 4)
+setValue var clStatus[0] value null not array, creating
+αWS event data client: 2 ...126 q:0 l:28 s:1 (#:1)
+αWS_EVT_DATA json {"mdlName":{"label":"Name"},"mdlSuccess":{"label":"Success"},"mdlEnabled":{"label":"Enabled"}}
+αWS_EVT_DATA info  96 / 3072 (3%) (3 0 2)
+sαWS event data client: 2 ...126 q:0 l:30 s:1 (#:1)
+αWS_EVT_DATA json {"mdlTbl":{"label":"Modules","comment":"List of modules"}}
+αWS_EVT_DATA info  48 / 3072 (1%) (1 0 2)
+etValue var clLength[0] value null not array, creating
+sendDataWs client full or not connected client: 2 ...126 q:0 l:32 s:1 (#:1)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:32 s:1 (#:1)
+αfileServer request /file /file/2DMatrix3232.json /2DMatrix3232.json
+sendDataWs client full or not connected client: 2 ...126 q:0 l:32 s:1 (#:1)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:7 s:1 (#:1)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:5 s:1 (#:1)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:4 s:1 (#:1)
+insTbl updateNode 153
+sendDataWs client full or not connected client: 2 ...126 q:0 l:4 s:1 (#:1)
+sendDataWs client full or not connected client: 2 ...126 q:0 l:4 s:1 (#:1)
+insTbl updateNode 166
+sendDataWs client full or not connected client: 2 ...126 q:0 l:4 s:1 (#:1)
+setValue changed version ->24012822
+❤️insTbl updateNode 152

@@ -1,37 +1,32 @@
 /*
    @title     StarMod
    @file      UserModExample.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-class UserModExample:public Module {
+class UserModExample:public SysModuleule {
 
 public:
 
-  UserModExample() :Module("Usermod example") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  UserModExample() :SysModule(le("Usermod example") {
   };
 
   //setup filesystem
   void setup() {
-    Module::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    SysModule::setup();
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
   }
 
   void onOffChanged() {
-    if (SysModModules::isConnected && isEnabled) {
+    if (SysModules::isConnected && isEnabled) {
     } else {
     }
   }

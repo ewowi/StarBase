@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      SysModSystem.h
+   @file      SysModules.h
    @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -10,28 +10,29 @@
 */
 
 #pragma once
-
 #include "SysModule.h"
 
-class SysModSystem:public SysModule {
-
+class SysModules {
 public:
-  char version[16] = "";
-  char chipInfo[64] = "";
+  static bool newConnection;// = false; //need to be static otherwise crash
+  static bool isConnected;// = false; //need to be static otherwise crash
 
-  SysModSystem();
+  SysModules();
+
   void setup();
-  void loop();
-  void loop1s();
-  void loop10s();
 
+  void loop();
+
+  void reboot();
+
+  void add(SysModule* module);
+
+  void connectedChanged();
 
 private:
-  unsigned long loopCounter = 0;
-
-  void addResetReasonsSelect(JsonArray select);
-  void addRestartReasonsSelect(JsonArray select);
-
+  std::vector<SysModule *> modules;
+  // unsigned long oneSecondMillis = 0;
+  // unsigned long tenSecondMillis = millis() - 4500;
 };
 
-static SysModSystem *sys;
+static SysModules *mdls;

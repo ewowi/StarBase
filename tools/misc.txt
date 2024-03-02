@@ -1,0 +1,51 @@
+
+1) Download ffmpeg and exiftool 
+copy to /usr/local/bin (macos)
+
+2) Rename all files with their creationdate (so the name sort will show up chronological)
+exiftool -d '%Y%m%d-%H%M%%-03.c.%%e' '-filename<CreateDate' *.mov
+exiftool -d '%Y%m%d-%H%M%%-03.c.%%e' '-filename<FileCreateDate' *.png
+
+3) Make 1 second movies from png 
+for f in (*.png|sort -n) ; do ffmpeg -loop 1 -i $f -c:v libx264 -t 1 -pix_fmt yuv420p -vf scale=1920:1080 $f.mov; done
+
+4) Decode movie into frames for png mov and mov
+for f in (*.mov|sort -n) ; do ffmpeg -i $f -r 10 -t 0.5 $f._%04d.png; done
+
+5) Encode frames into movie (from 10 to 30fps)
+ffmpeg -framerate 30 -pattern_type glob -i '*.png' -c:v libx264 -pix_fmt yuv420p StarMod.mp4
+
+6) Go to a video editor and add soundtrack
+
+
+Old:
+
+4) Make 1 second movies from mov
+for f in (*.mov|sort -n) ; do ffmpeg -i $f -c:v libx264 -t 1 -pix_fmt yuv420p -vf scale=1920:1080 pngtomov/$f.mov; done
+
+5) Concatenate all to a move with 0.1 second shots
+ffmpeg -f concat -safe 0 -i <(for f in (202309*.mov|sort -n) ; do echo "file '$PWD/$f'"; echo inpoint 1.00000; echo outpoint 1.1666666667; done) ../voutall.mp4
+
+
+Images
+ffmpeg -f concat -safe 0 -i <(for f in (*.png|sort -n) ; do echo "file '$PWD/$f'"; echo duration 0.03333; done) -pix_fmt yuv420p ../pout.mp4
+
+Video
+ffmpeg -f concat -safe 0 -i <(for f in (*.mov|sort -n) ; do echo "file '$PWD/$f'"; echo inpoint 0.5; echo outpoint 0.6; done) -s 1920x1080 -pix_fmt yuv420p ../vout.mp4
+
+-acodec libvo_aacenc -vcodec libx264 -s 1920x1080 -r 60 -strict experimental
+
+ls -tU
+
+
+remove sound
+for f in (I*.mov|sort -d) ; do ffmpeg -i $PWD/$f -c copy -an $PWD/$f.nosound.mov; done
+
+Update instance
+curl -s -F "update=@/Users/ewoudwijma/Developer/GitHub/ewowi/StarMod/.pio/build/esp32dev/firmware.bin" 192.168.8.189/update
+
+
+
+FileCreateDate for png files
+
+curl -F 'data=@model.json' 4.3.2.1/upload

@@ -1,5 +1,5 @@
 {
-  "name": "StarMod",
+  "name": "starmod",
   "version": "0.0.1",
   "description": "Tools for StarMod",
   "main": "tools/cdata.js",

@@ -1,18 +1,19 @@
 /*
    @title     StarMod
    @file      SysModNetwork.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
- */
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+*/
 
-#include "Module.h"
+#include "SysModule.h"
 
 #include <DNSServer.h>
 
-class SysModNetwork:public Module {
+class SysModNetwork:public SysModule {
 
 public:
 
@@ -22,6 +23,7 @@ public:
   void setup();
 
   void loop();
+  void loop1s();
 
   void handleConnection();
 
@@ -40,7 +42,8 @@ private:
   DNSServer dnsServer;
   bool noWifiSleep = true;
 
-  static bool forceReconnect;
+  //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
+  bool forceReconnect = false;
 };
   
 static SysModNetwork *net;

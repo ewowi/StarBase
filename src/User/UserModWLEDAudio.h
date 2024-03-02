@@ -1,42 +1,37 @@
 /*
    @title     StarMod
    @file      UserModWLEDAudio.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #pragma once
 
 #include <WLED-sync.h> // https://github.com/netmindz/WLED-sync
 
-class UserModWLEDAudio:public Module {
+#define MAX_FREQUENCY   11025          // sample frequency / 2 (as per Nyquist criterion)
+
+class UserModWLEDAudio:public SysModule {
 
 public:
 
+  WLEDSync sync;
   uint8_t fftResults[NUM_GEQ_CHANNELS]= {0};
 
-  UserModWLEDAudio() :Module("WLED Audio Sync Receiver") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    isEnabled = false; //default off
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  UserModWLEDAudio() :SysModule("WLED Audio Sync Receiver") {
   };
 
   //setup filesystem
   void setup() {
-    Module::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+    SysModule::setup();
   }
 
   void onOffChanged() {
-    if (SysModModules::isConnected && isEnabled) {
-      USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
+    if (SysModules::isConnected && isEnabled) {
       sync.begin();
     } else {
       // sync.end();???
@@ -44,8 +39,8 @@ public:
   }
 
   void loop() {
-    // Module::loop();
-    if (sync.read()) {
+    // SysModule::loop();
+    if (SysModules::isConnected && sync.read()) {
       if(debug) USER_PRINTF("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
         uint8_t val = sync.fftResult[b];
@@ -57,7 +52,6 @@ public:
   }
 
   private:
-    WLEDSync sync;
     boolean debug = false; 
 
 };

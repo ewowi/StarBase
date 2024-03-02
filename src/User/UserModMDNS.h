@@ -1,31 +1,28 @@
 /*
    @title     StarMod
    @file      UserModMDNS.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #include <ESPmDNS.h>
 
-class UserModMDNS:public Module {
+class UserModMDNS:public SysModule {
 
 public:
   String escapedMac;
   char cmDNS[64] = "";
 
-  UserModMDNS() :Module("MDNS") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  UserModMDNS() :SysModule("MDNS") {
   };
 
   //setup filesystem
   void setup() {
-    Module::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
+    SysModule::setup();
 
     escapedMac = WiFi.macAddress();
     escapedMac.replace(":", "");
@@ -33,16 +30,14 @@ public:
 
     sprintf(cmDNS, PSTR("wled-%*s"), 6, escapedMac.c_str() + 6);
     // strncpy(cmDNS, "wled-98765", sizeof(cmDNS) -1);
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
   }
 
   void onOffChanged() {
-    if (SysModModules::isConnected && isEnabled) {
+    if (SysModules::isConnected && isEnabled) {
 
       // print->fFormat(cmDNS, sizeof(cmDNS)-1, "wled-%*s", WiFi.macAddress().c_str() + 6);
 

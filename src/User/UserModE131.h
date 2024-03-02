@@ -1,44 +1,108 @@
 /*
    @title     StarMod
    @file      UserModE131.h
-   @date      20231016
+   @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
 #pragma once
 #include <ESPAsyncE131.h>
 
-#include <vector>
+#define maxChannels 513
 
-#define maxChannels 20
-
-struct VarToWatch {
-  const char * id = nullptr;
-  uint16_t max = -1;
-  uint8_t savedValue = -1;
-};
-
-class UserModE131:public Module {
+class UserModE131:public SysModule {
 
 public:
 
-  VarToWatch varsToWatch[maxChannels]; //up to 513
-
-  UserModE131() :Module("e131-sACN") {
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
-
-    isEnabled = false; //default off
-
-    USER_PRINT_FUNCTION("%s %s %s\n", __PRETTY_FUNCTION__, name, success?"success":"failed");
+  UserModE131() :SysModule("e131-sACN") {
   };
 
   //setup filesystem
   void setup() {
-    Module::setup();
-    USER_PRINT_FUNCTION("%s %s\n", __PRETTY_FUNCTION__, name);
+    SysModule::setup();
+
+    parentVar = ui->initUserMod(parentVar, name);
+    if (parentVar["o"] > -1000) parentVar["o"] = -3200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+
+    ui->initNumber(parentVar, "dun", universe, 0, 7, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        ui->setLabel(var, "DMX Universe");
+        return true;
+      case f_ChangeFun:
+        universe = var["value"];
+        return true;
+      default: return false;
+    }});
+
+    JsonObject currentVar = ui->initNumber(parentVar, "dch", 1, 1, 512, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        ui->setLabel(var, "DMX Channel");
+        ui->setComment(var, "First channel");
+        return true;
+      case f_ChangeFun:
+        for (JsonObject childVar: mdl->varN("e131Tbl"))
+          ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
+        return true;
+      default: return false;
+    }});
+    currentVar["stage"] = true;
+
+    JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_UIFun:
+        ui->setLabel(var, "Vars to watch");
+        ui->setComment(var, "List of instances");
+        return true;
+      default: return false;
+    }});
+
+    ui->initNumber(tableVar, "e131Channel", UINT16_MAX, 1, 512, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<uint8_t>(), rowNr);
+        return true;
+      case f_UIFun:
+        ui->setLabel(var, "Channel");
+        return true;
+      default: return false;
+    }});
+
+    ui->initText(tableVar, "e131Name", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          mdl->setValue(var, varsToWatch[rowNr].id, rowNr);
+        return true;
+      case f_UIFun:
+        ui->setLabel(var, "Name");
+        return true;
+      default: return false;
+    }});
+
+    ui->initNumber(tableVar, "e131Max", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
+        return true;
+      case f_UIFun:
+        ui->setLabel(var, "Max");
+        return true;
+      default: return false;
+    }});
+
+    ui->initNumber(tableVar, "e131Value", UINT16_MAX, 0, 255, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case f_ValueFun:
+        for (uint8_t rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+          mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
+        return true;
+      case f_UIFun:
+        ui->setLabel(var, "Value");
+        return true;
+      default: return false;
+    }});
+
   }
 
   // void connectedChanged() {
@@ -51,7 +115,7 @@ public:
 
   void onOffChanged() {
 
-    if (SysModModules::isConnected && isEnabled) {
+    if (SysModules::isConnected && isEnabled) {
       USER_PRINTF("UserModE131::connected && enabled\n");
 
       if (e131Created) { // TODO: crashes here - no idea why!
@@ -71,12 +135,13 @@ public:
       e131Created = true;
     }
     else {
+      // e131.end()???
       e131Created = false;
     }
   }
 
   void loop() {
-    // Module::loop();
+    // SysModule::loop();
     if(!e131Created) {
       return;
     }
@@ -84,35 +149,42 @@ public:
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
 
-      for (int i=0; i < maxChannels; i++) {
-        if (packet.property_values[i] != varsToWatch[i].savedValue) {
+      for (auto varToWatch=varsToWatch.begin(); varToWatch!=varsToWatch.end(); ++varToWatch) {
+        for (int i=0; i < maxChannels; i++) {
+          if (i == varToWatch->channel) {
+            if (packet.property_values[i] != varToWatch->savedValue) {
 
-          USER_PRINTF("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u",
-                  htons(packet.universe),                 // The Universe for this packet
-                  htons(packet.property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
-                  e131.stats.num_packets,                 // Packet counter
-                  e131.stats.packet_errors,               // Packet error counter
-                  i,
-                  varsToWatch[i].savedValue,
-                  packet.property_values[i]);             // Dimmer data for Channel i
+              USER_PRINTF("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u",
+                      htons(packet.universe),                 // The Universe for this packet
+                      htons(packet.property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
+                      e131.stats.num_packets,                 // Packet counter
+                      e131.stats.packet_errors,               // Packet error counter
+                      i,
+                      varToWatch->savedValue,
+                      packet.property_values[i]);             // Dimmer data for Channel i
 
-          varsToWatch[i].savedValue = packet.property_values[i];
+              varToWatch->savedValue = packet.property_values[i];
 
-          if (varsToWatch[i].id != nullptr && varsToWatch[i].max != 0) {
-            USER_PRINTF(" varsToWatch: %s\n", varsToWatch[i].id);
-            mdl->setValueI(varsToWatch[i].id, varsToWatch[i].savedValue%(varsToWatch[i].max+1)); // TODO: ugly to have magic string 
-          }
-          else
-            USER_PRINTF("\n");
-        }
-      }
-    }
-  }
+              if (varToWatch->id != nullptr && varToWatch->max != 0) {
+                USER_PRINTF(" varsToWatch: %s\n", varToWatch->id);
+                mdl->setValue(varToWatch->id, varToWatch->savedValue%(varToWatch->max+1)); // TODO: ugly to have magic string 
+              }
+              else
+                USER_PRINTF("\n");
+            }//!= savedValue
+          }//if channel
+        }//maxChannels
+      } //for varToWatch
+    } //!e131.isEmpty()
+  } //loop
 
   void patchChannel(uint8_t channel, const char * id, uint8_t max = 255) {
-    varsToWatch[channel].id = id;
-    varsToWatch[channel].savedValue = 0; // Always reset when (re)patching so variable gets set to DMX value even if unchanged
-    varsToWatch[channel].max = max;
+    VarToWatch varToWatch;
+    varToWatch.channel = channel;
+    varToWatch.id = id;
+    varToWatch.savedValue = 0; // Always reset when (re)patching so variable gets set to DMX value even if unchanged
+    varToWatch.max = max;
+    varsToWatch.push_back(varToWatch);
   }
 
   // uint8_t getValue(const char * id) {
@@ -126,6 +198,15 @@ public:
   // }
 
   private:
+    struct VarToWatch {
+      uint16_t channel;
+      const char * id = nullptr;
+      uint16_t max = -1;
+      uint8_t savedValue = -1;
+    };
+
+    std::vector<VarToWatch> varsToWatch;
+
     ESPAsyncE131 e131;
     boolean e131Created = false;
     uint16_t universe = 1;

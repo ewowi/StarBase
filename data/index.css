@@ -1,144 +1,86 @@
 /*
    @title     StarMod
    @file      index.css
-   @date      20231016
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-/* default nodes */
-label {
-  margin-right: 6px; /*space after*/
-}
+:root,
+	:root.starmod {
+		--bg-color: linear-gradient(to bottom, #ffbe33 0%, #b60f62 100%);
+		--text-color: #030303;
+		--th-color: #b60f6281;
+		--h-color: #b60f62;
+		--border-color: #666;
+		--select-color: #FFFFFF; /*used for view buttons*/
+	}
+    :root.wled {
+		--bg-color: #121212;
+		--text-color: #fff;
+		--th-color: rgb(255, 160, 0);
+		--h-color: rgb(255, 160, 0);
+		--border-color: rgb(255, 160, 0);
+		--select-color: rgb(255, 160, 0);
+	}
+	:root.grayeen {
+		--bg-color: linear-gradient(to bottom, #979294 0%, #474542 100%);
+		--text-color: #fbf4f4;
+		--th-color: #21482b;
+		--h-color: #21482b;
+		--border-color: #21482b;
+		--select-color: #21482b; /*used for view buttons*/
+	}
+	:root.dev {
+		--bg-color: #121212;
+		--text-color: #cfd096;
+		--th-color: #c27e66;
+		--h-color:#c27e66;
+		--border-color: #cdad6a;
+		--select-color: #1a8aff; /*used for view buttons*/
+		--label-color: #83c5eb;
+		--comment-color: #598a43;
+	}
+	:root.light {
+		--bg-color: #fff;
+		--text-color: #123;
+		--h-color: #000000;
+		--th-color: #6d686a81;
+		--select-color: #6d686a81;
+    }
+    :root.dark {
+		--bg-color: #121212;
+		--text-color: #696d7d;
+    }
+    :root.blue {
+		--bg-color: #05396B;
+		--text-color: #E7F1FE;
+		--th-color: #b60f6281;
+		--h-color: #b60f62;
+		--select-color: #b60f6281;
+    }
+    :root.pink {
+		--bg-color: #ffcad4;
+		--text-color: #e75480;
+		--select-color: #e75480; /*used for view buttons*/
+	}
+    :root.space {
+		--bg-color: #000;
+		--text-color: #f2bd16;
+		--bg-url: url(//space);
+		--font-family: 'Press Start 2P', cursive;
+    }
+    :root.nyan {
+		--bg-color: #013367;
+		--text-color: #fff;
+		--bg-url: url(//nyan);
+		--font-family: 'Comic Neue', cursive;
+    }
 
-comment {
-  font-size: 10px;
-  font-style: italic;
-  margin-left: 6px; /*space before*/
-}
-
-text { /*currently only for buttonSaveNode and buttonCancelNode*/
-	font-size: 10px;
-}
-
-/* For textarea variables */
-textarea {
-	width: 100%;
-	height: 100%;
-	border-radius: 12px;
-	background: transparent;
-}
-
-canvas {
-	width: 100%;
-	height: 100%;
-	border-radius: 12px;
-	background: transparent;
-	cursor: default;
-}
-
-body {
-	font-family: Arial, Helvetica, sans-serif;
-	background: black;
-}
-
-input {
-	background: transparent;
-}
-
-select {
-	background: transparent;
-}
-
-h1,h2 {
-	color: #b60f62; /* StarMod base color??? */
-}
-
-/* for toggleModal */
-.modal {
-	position:fixed;
-	left: 0px;
-	bottom: 0px;
-	right: 0px;
-	top: 0px;
-	/* calc(var(--th) - 1px); */
-	/* background-color: linear-gradient(to bottom, #ffbe3399 0%, #b60f6299 100%); var(--c-o); */
-	background-color: var(--c-o);
-	transform: translateY(100%);
-	transition: transform 0.4s;
-	padding: 8px;
-	font-size: 18px; /* WLEDMM: smaller is better (was 20px)*/
-	overflow: auto;
-	border-radius: 42px;
-}
-
-.ndiv {
-	/* border: 2px solid black; */
-	margin-left: 50px;
-	border-radius: 12px;
-}
-
-/*table layout */
-.table-style {
-  font-family: Arial, Helvetica, sans-serif;
-  border-collapse: collapse;
-  width: 100%;
-  border-radius: .5em; /*does not seem to work */
-}
-
-.table-style td, .table-style th {
-  border: 1px solid #000000;
-  padding: 6px;
-}
-
-/* .table-style tr:nth-child(even){background-color: #f2f2f2;} */
-
-/* .table-style tr:hover {background-color: #ddd;} */
-
-.table-style th {
-  /* padding-top: 12px;
-  padding-bottom: 12px; */
-  text-align: left;
-  background-color: #676767;
-  color: white;
-}
-
-/* drag and drop style */
-.container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-}
-  
-.screenBox {
-  border: 3px solid #666;
-  /* background-color: #ddd; */
-  /* background: linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%); */
-  background: linear-gradient(to bottom, #ffbe33 0%, #b60f62 100%);
-  border-radius: 21px; /* from .5em */
-  padding: 10px;
-  margin: 10px; /*space around boxes */
-  cursor: move;
-}
-
-.screenBox:hover {
-  background-color: #00BFFF;
-}
-
-.screenColumn {
-  border: 3px solid #666;
-  /* border-radius: .5em; */
-  border-radius: 21px;
-  padding: 10px;
-  /* cursor: move; */
-}
-
-.screenBox.over, .screenColumn.over {
-  border: 3px dotted #666;
-}
-
-/* inspired by WLED / MoonModules */
+/* inspired by WLED / MoonModules - temporary */
 :root {
 	--c-1: #111;
 	--c-f: #fff;
@@ -172,6 +114,188 @@ h1,h2 {
 	--bmt: 0px;
 }
 
+/* default nodes */
+label {
+  margin-right: 6px; /*space after*/
+  color: var(--label-color);
+}
+
+comment {
+  font-size: 10px;
+  font-style: italic;
+  margin-left: 6px; /*space before*/
+  color: var(--comment-color);
+}
+
+text { /*currently only for buttonSaveNode and buttonCancelNode*/
+	font-size: 10px;
+}
+
+/* For textarea variables */
+textarea {
+	width: 100%;
+	height: 100%;
+	border-radius: 12px;
+	background: transparent;
+	color: var(--text-color);
+}
+
+canvas {
+	width: 100%;
+	height: 100%;
+	border-radius: 12px;
+	border: 1px solid black;
+	background: transparent;
+	cursor: default;
+}
+
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	background: black;
+	color: var(--text-color);
+}
+
+input {
+	background: transparent;
+	color: var(--text-color);
+}
+
+/* https://blog.openreplay.com/how-to-customize-checkboxes-with-css/ */
+/* WIP */
+/* 
+.checkbox input {
+	height: 0;
+	width: 0;
+}
+.checkbox {
+	display: block;
+	position: relative;
+	padding-left: 26px;
+	margin-bottom: 18px;
+	user-select: none;
+}
+.checkmark {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 20px;
+	width: 20px;
+	border: 2px solid var(--text-color);
+	background-color: var(--text-color);
+}
+*/
+
+select {
+	background: transparent;
+	color: var(--text-color);
+}
+
+h1,h2 {
+	color: var(--h-color);
+	line-height: 5px;
+}
+
+a {
+	color: var(--h-color); 
+	text-decoration: none;
+}
+
+div {
+	line-height: 2; /* 1.6 is recommended height */
+}
+
+/* for toggleModal */
+.modal {
+	position:fixed;
+	left: 0px;
+	bottom: 0px;
+	right: 0px;
+	top: 0px;
+	/* calc(var(--th) - 1px); */
+	/* background-color: linear-gradient(to bottom, #ffbe3399 0%, #b60f6299 100%); var(--c-o); */
+	background-color: var(--c-o);
+	transform: translateY(100%);
+	transition: transform 0.4s;
+	padding: 8px;
+	font-size: 18px; /* WLEDMM: smaller is better (was 20px)*/
+	overflow: auto;
+	border-radius: 42px;
+}
+
+.ndiv {
+	/* border: 2px solid black; */
+	margin-left: 25px;
+	border-radius: 12px;
+}
+
+/*table layout */
+.table {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  border-radius: 10px; /*does not seem to work */
+  border-style: hidden; /* hide standard table (collapsed) border */
+  box-shadow: 0 0 0 1px #666; /* this draws the table border  */ 
+}
+
+.table td, .table th {
+  border: 1px solid #000000;
+  padding: 6px;
+}
+
+/* .table tr:nth-child(even){background-color: #f2f2f2;} */
+
+/* .table tr:hover {background-color: #ddd;} */
+
+.table th {
+  /* padding-top: 12px;
+  padding-bottom: 12px; */
+  text-align: left;
+  background-color: var(--th-color);
+  color: var(--label-color);
+}
+
+/* drag and drop style */
+.mdlContainer2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+.mdlContainer3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+.mdlContainer4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.module, .appmod, .sysmod, .usermod {
+  border: 3px solid var(--border-color);
+  /* background-color: #ddd; */
+  /* background: linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%); */
+  background: var(--bg-color); /* linear-gradient(to bottom, #ffbe33 0%, #b60f62 100%); */
+  border-radius: 21px; /* from .5em */
+  padding: 10px;
+  margin: 10px; /*space around modules */
+  cursor: move;
+}
+
+.module.over, .appmod.over, .sysmod.over, .usermod.over {
+  background-color: #00BFFF;
+}
+
+.mdlColumn {
+  border: 3px solid var(--border-color);
+  /* border-radius: .5em; */
+  border-radius: 21px;
+  padding: 10px;
+  /* cursor: move; */
+}
+
+.module.over, .appmod.over, .sysmod.over, .usermod.over, .mdlColumn.over {
+  border: 3px dotted var(--border-color);
+}
+
 #connind {
 	position: fixed;
 	bottom: calc(var(--bh) + 5px);
@@ -182,3 +306,58 @@ h1,h2 {
 	z-index: -2;
 }
 
+/* https://www.w3schools.com/howto/howto_css_tooltip.asp */
+  
+/* Tooltip mdlContainer */
+.tooltip {
+	position: relative;
+	display: inline-block;
+	border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+  }
+  
+  /* Tooltip text */
+  .tooltip .tooltiptext {
+	visibility: hidden;
+	width: 120px;
+	background-color: var(--bg-color);
+	font-style: italic;
+	color: var(--comment-color);
+	text-align: center;
+	padding: 5px 0;
+	border-radius: 6px;
+	font-size: 10px; /*SM*/
+
+	/* Position the tooltip text */
+	position: absolute;
+	z-index: 1;
+	bottom: 125%;
+	left: 50%;
+	margin-left: -60px;
+  
+	/* Fade in tooltip */
+	opacity: 0;
+	transition: opacity 0.3s;
+  }
+  
+  /* Tooltip arrow */
+  .tooltip .tooltiptext::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: #555 transparent transparent transparent;
+  }
+  
+  /* Show the tooltip text when you mouse over the tooltip mdlContainer */
+  .tooltip:hover .tooltiptext {
+	visibility: visible;
+	opacity: 1;
+  }
+
+  /*used for view buttons*/
+  .selected {
+	background: var(--select-color);
+  }

@@ -1,18 +1,16 @@
 /*
    @title     StarMod
    @file      SysModPins.h
-   @date      20231016
+   @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
-   @Copyright (c) 2023 Github StarMod Commit Authors
+   @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
- */
+   @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+*/
 
-#include "Module.h"
-
-#include "ArduinoJson.h"
-
-#define NUM_PINS 50
+#pragma once
+#include "SysModule.h"
 
 //info stored per pin
 struct PinObject {
@@ -20,22 +18,61 @@ struct PinObject {
   char details[32]; //info about pin usage
 };
 
-class SysModPins:public Module {
+class SysModPins:public SysModule {
 
 public:
 
-  static PinObject pinObjects[NUM_PINS]; //all pins
-  static bool pinsChanged; //update pins table if pins changed
+  static PinObject pinObjects[NUM_DIGITAL_PINS]; //all pins
 
   SysModPins();
   void setup();
-  void loop();
+  void loop1s();
 
-  static void allocatePin(uint8_t pinNr, const char * owner, const char * details);
-  static void deallocatePin(uint8_t pinNr, const char * owner);
+  void allocatePin(uint8_t pinNr, const char * owner, const char * details);
+  void deallocatePin(uint8_t pinNr, const char * owner);
+  bool isOwner(uint8_t pinNr, const char * owner) {
+    return strcmp(pinObjects[pinNr].owner, owner) == 0;
+  }
 
-  static void updateGPIO(JsonObject var);
+  //temporary functions until we refactored the PinObject
+  PinObject getNthAllocatedPinObject(uint8_t rowNr) {
+    uint8_t n = 0;
+    for (PinObject pinObject:pinObjects) {
+      if (strcmp(pinObject.owner, "") != 0) {
+        if (n == rowNr)
+          return pinObject;
+        n++;
+      }
+    }
+    return PinObject();
+  }
+  uint8_t getNrOfAllocatedPins() {
+    uint8_t n = 0;
+    for (PinObject pinObject:pinObjects) {
+      if (strcmp(pinObject.owner, "") != 0) {
+        n++;
+      }
+    }
+    return n;
+  }
+  uint8_t getPinNr(uint8_t rowNr) {
+    uint8_t pinNr = 0;
+    uint8_t n = 0;
+    for (PinObject pinObject:pinObjects) {
+      if (strcmp(pinObject.owner, "") != 0) {
+        if (n == rowNr)
+          return pinNr;
+        n++;
+      }
+      pinNr++;
+    }
+    return UINT8_MAX;
+  }
 
+  static bool updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType);
+
+private:
+  static bool pinsChanged; //update pins table if pins changed
 };
 
 static SysModPins *pins;

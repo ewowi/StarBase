@@ -29,7 +29,7 @@ public:
 
   virtual void loop(Leds &leds) {}
 
-  virtual void controls(JsonObject parentVar, Leds &leds) {}
+  virtual void controls(JsonObject parentVar) {}
 
   void addPalette(JsonObject parentVar, uint8_t value) {
     //currentVar["value"][contextRowNr] will be set to value parameter
@@ -80,7 +80,7 @@ public:
     CRGB color = CRGB(red, green, blue);
     leds.fill_solid(color);
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "Red", 182);
     ui->initSlider(parentVar, "Green", 15);
     ui->initSlider(parentVar, "Blue", 98);
@@ -127,7 +127,7 @@ public:
     int pos = beatsin16( mdl->getValue("BPM").as<int>(), 0, leds.nrOfLeds-1 );
     leds[pos] = leds.getPixelColor(pos) + CHSV( gHue, 255, 192);
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "BPM", 60);
   }
 }; //Sinelon
@@ -146,7 +146,7 @@ public:
     leds[pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
     // leds[leds.nrOfLeds -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setComment(var, "in BPM!");
@@ -187,7 +187,7 @@ public:
       leds[i] = ColorFromPalette(pal, gHue+(i*2), beat-gHue+(i*10));
     }
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
   }
 };
@@ -215,23 +215,25 @@ public:
   }
   void loop(Leds &leds) {
     uint8_t interval = mdl->getValue("interval");
+    uint8_t speed = mdl->getValue("speed");
 
-    float ripple_interval = 1.3 * (interval/128.0);
+    float ripple_interval = 1.3f * (interval/128.0f);
 
     leds.fill_solid(CRGB::Black);
-    // fill(CRGB::Black);
 
     Coord3D pos = {0,0,0};
     for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-        for (pos.x=0; pos.x<leds.size.x; pos.x++) {
-            float d = leds.fixture->distance(3.5, 3.5, 0, pos.x, pos.z, 0)/9.899495*leds.size.y;
-            pos.y = floor(leds.size.y/2.0+sinf(d/ripple_interval + now/100/((256.0-128.0)/20.0))*leds.size.y/2.0); //between 0 and 8
+        for (pos.y=0; pos.y<leds.size.y; pos.y++) {
+            float d = leds.fixture->distance(3.5f, 3.5f, 0.0f, (float)pos.x, (float)pos.z, 0.0f) / 9.899495f * leds.size.x;
+            uint32_t time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
+            pos.x = floor(leds.size.x/2.0f + sinf(d/ripple_interval + time_interval) * leds.size.x/2.0f); //between 0 and leds.size.x
 
             leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
         }
     }
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 50, 0, 99);
     ui->initSlider(parentVar, "interval", 128);
   }
 };
@@ -242,27 +244,25 @@ public:
     return "SphereMove 3D";
   }
   void loop(Leds &leds) {
-    uint16_t origin_x, origin_y, origin_z, d;
-    float diameter;
+    uint8_t speed = mdl->getValue("speed");
 
     leds.fill_solid(CRGB::Black);
-    // fill(CRGB::Black);
 
-    uint32_t interval = now/100/((256.0-128.0)/20.0);
+    uint32_t time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
 
     Coord3D origin;
-    origin.x = 3.5+sinf(interval)*2.5;
-    origin.y = 3.5+cosf(interval)*2.5;
-    origin.z = 3.5+cosf(interval)*2.0;
+    origin.x = 3.5f+sinf(time_interval)*2.5f;
+    origin.y = 3.5f+cosf(time_interval)*2.5f;
+    origin.z = 3.5f+cosf(time_interval)*2.0f;
 
-    diameter = 2.0+sinf(interval/3.0);
+    float diameter = 2.0f+sinf(time_interval/3.0f);
 
     // CRGBPalette256 pal;
     Coord3D pos;
     for (pos.x=0; pos.x<leds.size.x; pos.x++) {
         for (pos.y=0; pos.y<leds.size.y; pos.y++) {
             for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-                d = leds.fixture->distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
+                uint16_t d = leds.fixture->distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
 
                 if (d>diameter && d<diameter+1) {
                   leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
@@ -270,6 +270,9 @@ public:
             }
         }
     }
+  }
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 50, 0, 99);
   }
 }; // SphereMove3DEffect
 
@@ -297,7 +300,7 @@ public:
     leds.blur2d(mdl->getValue("blur"));
   }
 
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "BPM", 60);
     ui->initSlider(parentVar, "intensity", 128);
@@ -329,7 +332,7 @@ public:
     }
   }
 
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "BPM", 60);
     ui->initCheckBox(parentVar, "Vertical", true);
   }
@@ -389,7 +392,7 @@ public:
       }
     }
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 128);
     ui->initSlider(parentVar, "scale", 128);
   }
@@ -461,7 +464,7 @@ public:
       }
     }
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
 
     //bind the variables to sharedData...
     // uint8_t *speed2 = leds.sharedData.bind(speed2);
@@ -529,7 +532,7 @@ public:
       leds[locn] = ColorFromPalette(pal, now/100+i);
     }
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "X frequency", 64);
     ui->initSlider(parentVar, "Fade rate", 128);
@@ -612,7 +615,7 @@ public:
     } //balls
   }
 
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "gravity", 128);
     ui->initSlider(parentVar, "balls", 8, 1, 16);
@@ -667,7 +670,7 @@ public:
     }
 
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     ui->initText(parentVar, "text", "StarMod");
     ui->initSlider(parentVar, "speed", 128);
     ui->initSelect(parentVar, "font", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
@@ -712,15 +715,16 @@ public:
       uint16_t thisMax = min(map(thisVal, 0, 512, 0, leds.size.y), (long)leds.size.x);
 
       for (pos.y = 0; pos.y < thisMax; pos.y++) {
+        CRGB color = ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND);
         if (!noClouds)
-          leds.addPixelColor(pos, ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND));
-        leds.addPixelColor(leds.XY((leds.size.x - 1) - pos.x, (leds.size.y - 1) - pos.y), ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND));
+          leds.addPixelColor(pos, color);
+        leds.addPixelColor(leds.XY((leds.size.x - 1) - pos.x, (leds.size.y - 1) - pos.y), color);
       }
     }
     leds.blur2d(16);
 
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "Amplification", 128);
     ui->initSlider(parentVar, "Sensitivity", 128);
@@ -807,7 +811,7 @@ public:
     }
 
   }
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "speed", 128);
     ui->initSlider(parentVar, "intensity", 128);
@@ -913,7 +917,7 @@ public:
     }
   }
 
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "fadeOut", 255);
     ui->initSlider(parentVar, "ripple", 128);
@@ -975,7 +979,7 @@ public:
     setRing(leds, ring, color);
   }
 
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initCheckBox(parentVar, "inWards", true);
   }
@@ -1035,7 +1039,7 @@ public:
     }
   }
 
-  void controls(JsonObject parentVar, Leds &leds) {
+  void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 255);
     ui->initSlider(parentVar, "Sound effect", 128);
     ui->initSlider(parentVar, "Low bin", 18);
@@ -1142,7 +1146,7 @@ public:
       // effect->loop(leds); //do a loop to set sharedData right
       // leds.sharedData.loop();
       mdl->varPreDetails(var, rowNr);
-      effect->controls(var, leds); //new controls have positive order (var["o"])
+      effect->controls(var);
       mdl->varPostDetails(var, rowNr);
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)

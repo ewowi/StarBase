@@ -13,6 +13,10 @@
 // git reset --hard HEAD^
 // git push origin -f
 
+#warning ******************************************************************************************************************************
+#warning ********** STARMOD IS LICENSED UNDER GPL-V3. BY INSTALLING STARMOD YOU IMPLICITLY ACCEPT THE TERMS AND CONDITIONS  ********
+#warning ******************************************************************************************************************************
+
 #include "SysModule.h"
 #include "SysModules.h"
 #include "Sys/SysModPrint.h"

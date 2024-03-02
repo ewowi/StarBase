@@ -70,8 +70,13 @@ struct Coord3D {
     z /= rhs.z;
     return *this;
   }
+  //Minus / delta (abs)
   Coord3D operator-(Coord3D rhs) {
-    return Coord3D{uint16_t(x - rhs.x), uint16_t(y - rhs.y), uint16_t(z - rhs.z)};
+    Coord3D result;
+    result.x = x > rhs.x? x - rhs.x : rhs.x - x;
+    result.y = y > rhs.y? y - rhs.y : rhs.y - y;
+    result.z = z > rhs.z? z - rhs.z : rhs.z - z;
+    return result;
   }
   Coord3D operator+(Coord3D rhs) {
     return Coord3D{uint16_t(x + rhs.x), uint16_t(y + rhs.y), uint16_t(z + rhs.z)};
@@ -83,12 +88,6 @@ struct Coord3D {
   }
   Coord3D minimum(Coord3D rhs) {
     return Coord3D{min(x, rhs.x), min(y, rhs.y), min(z, rhs.z)};
-  }
-  Coord3D absx() {
-    x = abs(x);
-    y = abs(y);
-    z = abs(z);
-    return *this;
   }
   Coord3D operator*(uint8_t rhs) {
     return Coord3D{uint16_t(x * rhs), uint16_t(y * rhs), uint16_t(z * rhs)};
@@ -379,6 +378,10 @@ public:
               print->printJson("remove allnulls", *childVar);
               varN(var).remove(childVar);
             }
+          }
+          else {
+            print->printJson("remove non valArray", *childVar);
+            varN(var).remove(childVar);
           }
 
         }

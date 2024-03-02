@@ -30,6 +30,9 @@ public:
 
   void allocatePin(uint8_t pinNr, const char * owner, const char * details);
   void deallocatePin(uint8_t pinNr, const char * owner);
+  bool isOwner(uint8_t pinNr, const char * owner) {
+    return strcmp(pinObjects[pinNr].owner, owner) == 0;
+  }
 
   //temporary functions until we refactored the PinObject
   PinObject getNthAllocatedPinObject(uint8_t rowNr) {

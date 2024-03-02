@@ -47,6 +47,7 @@ void Fixture::projectAndMap() {
         for (std::vector<std::vector<uint16_t>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap)
           physMap->clear();
         leds->mappingTable.clear();
+        leds->sharedData.clear();
       }
       rowNr++;
     }
@@ -95,7 +96,7 @@ void Fixture::projectAndMap() {
             //set start and endPos between bounderies of fixture
             Coord3D startPosAdjusted = (leds->startPos).minimum(size - Coord3D{1,1,1}) * 10;
             Coord3D endPosAdjusted = (leds->endPos).minimum(size - Coord3D{1,1,1}) * 10;
-            Coord3D projSize = (endPosAdjusted - startPosAdjusted).absx()/10 + Coord3D{1,1,1};
+            Coord3D projSize = (endPosAdjusted - startPosAdjusted)/10 + Coord3D{1,1,1};
 
             // 0 to 3D depending on start and endpos (e.g. to display ScrollingText on one side of a cube)
             uint8_t projectionDimension = 0;
@@ -108,8 +109,6 @@ void Fixture::projectAndMap() {
 
             //only needed one time
             //does not work for some reason...
-
-            Coord3D split = mdl->getValue("proSplit", rowNr);
 
             // if (indexP == 0) //first
             {
@@ -132,6 +131,7 @@ void Fixture::projectAndMap() {
                       break;
                     case _2D:
                       if (leds->projectionNr == p_Multiply) {
+                        Coord3D split = mdl->getValue("proSplit", rowNr);
                         leds->size = map2Dto2D(projSize) / split;
                         // USER_PRINTF("Multiply %d,%d,%d\n", leds->size.x, leds->size.y, leds->size.z);
                       }
@@ -168,7 +168,7 @@ void Fixture::projectAndMap() {
                   //scaling (check rounding errors)
                   //1024 crash in makebuffer...
                   // if (leds->size.x * leds->size.y > 256)
-                  //   scale = (sqrt((float)256.0 / (leds->size.x * leds->size.y))); //avoid high virtual resolutions
+                  //   scale = (sqrt(256.0f / (leds->size.x * leds->size.y))); //avoid high virtual resolutions
                   // leds->size.x *= scale;
                   // leds->size.y *= scale;
               }
@@ -323,18 +323,21 @@ void Fixture::projectAndMap() {
                     if (indexV >= leds->nrOfLeds || indexV >= NUM_LEDS_Max) {
                       USER_PRINTF("dev post [%d] indexV too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
                     }
-                    else {
+                    else if (indexP < NUM_LEDS_Max) {
                       //create new physMaps if needed
                       if (indexV >= leds->mappingTable.size()) {
                         for (size_t i = leds->mappingTable.size(); i <= indexV; i++) {
                           // USER_PRINTF("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
                           std::vector<uint16_t> physMap;
+                          physMap.push_back(0);
                           leds->mappingTable.push_back(physMap); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                         }
                       }
                       //indexV is within the square
-                      if (indexP < NUM_LEDS_Max) leds->mappingTable[indexV].push_back(indexP); //add the current led in the right physMap
+                       leds->mappingTable[indexV].push_back(indexP); //add the current led in the right physMap
                     }
+                    else 
+                      USER_PRINTF("dev post [%d] indexP too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexP, nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
                   }
                   // USER_PRINTF("mapping b:%d t:%d V:%d\n", indexV, indexP, leds->mappingTable.size());
                 } //indexV not too high
@@ -349,33 +352,35 @@ void Fixture::projectAndMap() {
       } //if 1D-3D
       else { // end of leds array
 
-        //check if pin already allocated, if so, extend range in details
-        PinObject pinObject = pins->pinObjects[currPin];
-        char details[32] = "";
-        if (strcmp(pinObject.owner, "Leds") == 0) { //if owner
+        if (doAllocPins) {
+          //check if pin already allocated, if so, extend range in details
+          PinObject pinObject = pins->pinObjects[currPin];
+          char details[32] = "";
+          if (pins->isOwner(currPin, "Leds")) { //if owner
 
-          char * after = strtok((char *)pinObject.details, "-");
-          if (after != NULL ) {
-            char * before;
-            before = after;
-            after = strtok(NULL, " ");
-            uint16_t startLed = atoi(before);
-            uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
-            print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((uint16_t)(indexP - 1), nrOfLeds)); //careful: AppModLeds:loop uses this to assign to FastLed
-            USER_PRINTF("pins extend leds %d: %s\n", currPin, details);
-            //tbd: more check
+            char * after = strtok((char *)pinObject.details, "-");
+            if (after != NULL ) {
+              char * before;
+              before = after;
+              after = strtok(NULL, " ");
+              uint16_t startLed = atoi(before);
+              uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
+              print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((uint16_t)(indexP - 1), nrOfLeds)); //careful: AppModLeds:loop uses this to assign to FastLed
+              USER_PRINTF("pins extend leds %d: %s\n", currPin, details);
+              //tbd: more check
 
-            strncpy(pins->pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
+              strncpy(pins->pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
+            }
           }
-        }
-        else {//allocate new pin
-          //tbd: check if free
-          print->fFormat(details, sizeof(details)-1, "%d-%d", prevIndexP, indexP - 1); //careful: AppModLeds:loop uses this to assign to FastLed
-          USER_PRINTF("pins %d: %s\n", currPin, details);
-          pins->allocatePin(currPin, "Leds", details);
-        }
+          else {//allocate new pin
+            //tbd: check if free
+            print->fFormat(details, sizeof(details)-1, "%d-%d", prevIndexP, indexP - 1); //careful: AppModLeds:loop uses this to assign to FastLed
+            USER_PRINTF("pins %d: %s\n", currPin, details);
+            pins->allocatePin(currPin, "Leds", details);
+          }
 
-        prevIndexP = indexP;
+          prevIndexP = indexP;
+        }
       }
     }); //starModJson.lookFor("leds" (create the right type, otherwise crash)
 
@@ -398,13 +403,13 @@ void Fixture::projectAndMap() {
 
           } else {
 
-            // if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
-            //   USER_PRINTF("mapping add extra physMap %d of %d %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
-            // for (size_t i = leds->mappingTable.size(); i < leds->size.x * leds->size.y * leds->size.z; i++) {
-            //   std::vector<uint16_t> physMap;
-            //   physMap.push_back(0);
-            //   leds->mappingTable.push_back(physMap);
-            // }
+            if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
+              USER_PRINTF("mapping add extra physMap %d of %d %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
+            for (size_t i = leds->mappingTable.size(); i < leds->size.x * leds->size.y * leds->size.z; i++) {
+              std::vector<uint16_t> physMap;
+              physMap.push_back(0);
+              leds->mappingTable.push_back(physMap);
+            }
 
             leds->nrOfLeds = leds->mappingTable.size();
 

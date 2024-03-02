@@ -370,28 +370,35 @@ public:
 
       //https://github.com/FastLED/FastLED/wiki/Multiple-Controller-Examples
 
-      //allocatePins
-      uint8_t pinNr=0;
-      for (PinObject pinObject:pins->pinObjects) {
-        if (strcmp(pinObject.owner, "Leds")== 0) {
-          //dirty trick to decode nrOfLedsPerPin
-          char * after = strtok((char *)pinObject.details, "-");
-          if (after != NULL ) {
-            char * before;
-            before = after;
-            after = strtok(NULL, " ");
-            uint16_t startLed = atoi(before);
-            uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
-            USER_PRINTF("driver.initled new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
+      //connect allocated Pins to gpio
 
-            int pins[1] = { pinNr };
-            driver.initled((uint8_t*) fixture.ledsP, pins, 1, (int) nrOfLeds, ORDER_GRB);
+      if (fixture.doAllocPins) {
+        unsigned pinNr = 0;
 
-            driverInit = true;
+        for (PinObject pinObject:pins->pinObjects) {
 
-          }
-        }
-        pinNr++;
+          if (pins->isOwner(pinNr, "Leds")) { //if pin owned by leds, (assigned in projectAndMap)
+            //dirty trick to decode nrOfLedsPerPin
+            char * after = strtok((char *)pinObject.details, "-");
+            if (after != NULL ) {
+              char * before;
+              before = after;
+              after = strtok(NULL, " ");
+
+              uint16_t startLed = atoi(before);
+              uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
+              USER_PRINTF("driver.initled new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
+
+              int pins[1] = { pinNr };
+              driver.initled((uint8_t*) fixture.ledsP, pins, 1, (int) nrOfLeds, ORDER_GRB);
+
+              driverInit = true;
+
+            } //if led range in details (- in details e.g. 0-1023)
+          } //if pin owned by leds
+          pinNr++;
+        } // for pins
+        fixture.doAllocPins = false;
       }
     }
   } //loop

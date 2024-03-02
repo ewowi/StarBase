@@ -11,6 +11,17 @@
 
 #include "AppLeds.h"
 
+//convenience functions to call fastled functions out of the Leds namespace (there naming conflict)
+void fastled_fadeToBlackBy(CRGB* leds, uint16_t num_leds, uint8_t fadeBy) {
+  fadeToBlackBy(leds, num_leds, fadeBy);
+}
+void fastled_fill_solid( struct CRGB * targetArray, int numToFill, const struct CRGB& color) {
+  fill_solid(targetArray, numToFill, color);
+}
+void fastled_fill_rainbow(struct CRGB * targetArray, int numToFill, uint8_t initialhue, uint8_t deltahue) {
+  fill_rainbow(targetArray, numToFill, initialhue, deltahue);
+}
+
 // maps the virtual led to the physical led(s) and assign a color to it
 void Leds::setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount) {
   if (mappingTable.size()) {
@@ -53,36 +64,45 @@ CRGB Leds::getPixelColor(uint16_t indexV) {
 }
 
 void Leds::fadeToBlackBy(uint8_t fadeBy) {
-  //fade2black for old start to endpos
-
-  for (std::vector<std::vector<uint16_t>>::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap) {
-    for (uint16_t indexP:*physMap) {
-      CRGB oldValue = fixture->ledsP[indexP];
-      fixture->ledsP[indexP].nscale8(255-fadeBy); //this overrides the old value
-      fixture->ledsP[indexP] = blend(fixture->ledsP[indexP], oldValue, fixture->globalBlend); // we want to blend in the old value
+  if (projectionNr == p_None || p_Random) {
+    fastled_fadeToBlackBy(fixture->ledsP, fixture->nrOfLeds, fadeBy);
+  } else {
+    for (std::vector<std::vector<uint16_t>>::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap) {
+      for (uint16_t indexP:*physMap) {
+        CRGB oldValue = fixture->ledsP[indexP];
+        fixture->ledsP[indexP].nscale8(255-fadeBy); //this overrides the old value
+        fixture->ledsP[indexP] = blend(fixture->ledsP[indexP], oldValue, fixture->globalBlend); // we want to blend in the old value
+      }
     }
   }
 }
 
 void Leds::fill_solid(const struct CRGB& color) {
-  //fade2black for old start to endpos
-  for (std::vector<std::vector<uint16_t>>::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap) {
-    for (uint16_t indexP:*physMap) {
-      fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], fixture->globalBlend);
+  if (projectionNr == p_None || p_Random) {
+    fastled_fill_solid(fixture->ledsP, fixture->nrOfLeds, color);
+  } else {
+    for (std::vector<std::vector<uint16_t>>::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap) {
+      for (uint16_t indexP:*physMap) {
+        fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], fixture->globalBlend);
+      }
     }
   }
 }
 
 void Leds::fill_rainbow(uint8_t initialhue, uint8_t deltahue) {
-  CHSV hsv;
-  hsv.hue = initialhue;
-  hsv.val = 255;
-  hsv.sat = 240;
+  if (projectionNr == p_None || p_Random) {
+    fastled_fill_rainbow(fixture->ledsP, fixture->nrOfLeds, initialhue, deltahue);
+  } else {
+    CHSV hsv;
+    hsv.hue = initialhue;
+    hsv.val = 255;
+    hsv.sat = 240;
 
-  for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap) {
-    for (uint16_t indexP:*physMap) {
-      fixture->ledsP[indexP] = blend(hsv, fixture->ledsP[indexP], fixture->globalBlend);
+    for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap) {
+      for (uint16_t indexP:*physMap) {
+        fixture->ledsP[indexP] = blend(hsv, fixture->ledsP[indexP], fixture->globalBlend);
+      }
+      hsv.hue += deltahue;
     }
-    hsv.hue += deltahue;
   }
 }

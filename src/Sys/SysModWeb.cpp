@@ -197,18 +197,18 @@ void SysModWeb::loop1s() {
   for (JsonObject childVar: mdl->varN("clTbl"))
     ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
 
-  mdl->setUIValueV("wsSend", "#: %d /s T: %d /Bs B:%d /Bs", sendWsCounter, sendWsTBytes, sendWsBBytes);
+  mdl->setUIValueV("wsSend", "#: %d /s T: %d B/s B:%d B/s", sendWsCounter, sendWsTBytes, sendWsBBytes);
   sendWsCounter = 0;
   sendWsTBytes = 0;
   sendWsBBytes = 0;
-  mdl->setUIValueV("wsRecv", "#: %d /s %d /Bs", recvWsCounter, recvWsBytes);
+  mdl->setUIValueV("wsRecv", "#: %d /s %d B/s", recvWsCounter, recvWsBytes);
   recvWsCounter = 0;
   recvWsBytes = 0;
 
-  mdl->setUIValueV("udpSend", "#: %d /s %d /Bs", sendUDPCounter, sendUDPBytes);
+  mdl->setUIValueV("udpSend", "#: %d /s %d B/s", sendUDPCounter, sendUDPBytes);
   sendUDPCounter = 0;
   sendUDPBytes = 0;
-  mdl->setUIValueV("udpRecv", "#: %d /s %d /Bs", recvUDPCounter, recvUDPBytes);
+  mdl->setUIValueV("udpRecv", "#: %d /s %d B/s", recvUDPCounter, recvUDPBytes);
   recvUDPCounter = 0;
   recvUDPBytes = 0;
 

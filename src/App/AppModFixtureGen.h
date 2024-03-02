@@ -286,13 +286,13 @@ public:
     float hexaY[7] = {0.0, y, y, 0, -y, -y, 0.0};
 
     for (uint16_t i = 0; i < ledsPerSide * 6; i++) {
-      float offset = 6.0 * (float)i / (float)(ledsPerSide*6);
+      float offset = 6.0f * (float)i / (float)(ledsPerSide*6);
       uint8_t edgenum = floor(offset);  // On which edge is this dot?
       offset = offset - (float)edgenum; // Retain fractional part only: offset on that edge
 
       // Use interpolation to get coordinates of that point on that edge
-      float x = (float)center.x + radius*10 * (hexaX[edgenum] + offset * (hexaX[edgenum + 1] - hexaX[edgenum]));
-      float y = (float)center.y + radius*10 * (hexaY[edgenum] + offset * (hexaY[edgenum + 1] - hexaY[edgenum]));
+      float x = (float)center.x + radius*10.0f * (hexaX[edgenum] + offset * (hexaX[edgenum + 1] - hexaX[edgenum]));
+      float y = (float)center.y + radius*10.0f * (hexaY[edgenum] + offset * (hexaY[edgenum + 1] - hexaY[edgenum]));
       // USER_PRINTF(" %d %f: %f,%f", edgenum, offset, x, y);
 
       write3D(x,y, first.z*10);
@@ -613,11 +613,11 @@ public:
               panel = 0; mdl->setValue("fixPin", 12, panel++); mdl->setValue("fixPin", 12, panel++); mdl->setValue("fixPin", 13, panel++); mdl->setValue("fixPin", 13, panel++); mdl->setValue("fixPin", 14, panel++); mdl->setValue("fixPin", 14, panel++);
             }
             else if (var["value"] == optionNr++) { //Cube 3D
-              uint8_t length = 8;
+              uint8_t length = 8; uint8_t size = length -1;
               for (uint8_t panel=0; panel < length; panel++) {
-                mdl->setValue("pnlFirst", Coord3D{1,1,panel}, panel);
-                mdl->setValue("mrxRowEnd", Coord3D{1,length,panel}, panel);
-                mdl->setValue("mrxColEnd", Coord3D{length,length,panel}, panel);
+                mdl->setValue("pnlFirst", Coord3D{0,0,panel}, panel);
+                mdl->setValue("mrxRowEnd", Coord3D{0,size,panel}, panel);
+                mdl->setValue("mrxColEnd", Coord3D{size,size,panel}, panel);
                 mdl->setValue("fixPin", 12, panel);
               }
             }
@@ -864,7 +864,7 @@ public:
 
     if (fgValue == f_Matrix) {
 
-      Coord3D size = (mdl->getValue("mrxColEnd").as<Coord3D>() - mdl->getValue("pnlFirst").as<Coord3D>()).absx() + Coord3D{1,1,1};
+      Coord3D size = (mdl->getValue("mrxColEnd").as<Coord3D>() - mdl->getValue("pnlFirst").as<Coord3D>()) + Coord3D{1,1,1};
       char fileName[32]; print->fFormat(fileName, 31, "F_Matrix%d%d%d", size.x, size.y, size.z);
 
       getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {

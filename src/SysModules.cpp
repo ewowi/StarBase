@@ -30,7 +30,7 @@ void SysModules::setup() {
   JsonObject parentVar = ui->initSysMod(parentVar, "Modules");
   if (mdl->varOrder(parentVar) > -1000) mdl->varOrder(parentVar, -5000); //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Modules");
       ui->setComment(var, "List of modules");
@@ -38,9 +38,9 @@ void SysModules::setup() {
     default: return false;
   }});
 
-  ui->initText(tableVar, "mdlName", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "mdlName", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < modules.size(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
         mdl->setValue(var, JsonString(modules[rowNr]->name, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -50,9 +50,9 @@ void SysModules::setup() {
   }});
 
   //UINT16_MAX: no value set
-  ui->initCheckBox(tableVar, "mdlSuccess", UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initCheckBox(tableVar, "mdlSuccess", UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < modules.size(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
         mdl->setValue(var, modules[rowNr]->success, rowNr);
       return true;
     case f_UIFun:
@@ -61,10 +61,10 @@ void SysModules::setup() {
     default: return false;
   }});
 
-  ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun not readonly! (tbd)
+  ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun not readonly! (tbd)
     case f_ValueFun:
       //never a rowNr as parameter, set all
-      for (uint8_t rowNr = 0; rowNr < modules.size(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
         mdl->setValue(var, modules[rowNr]->isEnabled, rowNr);
       return true;
     case f_UIFun:

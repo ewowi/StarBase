@@ -29,7 +29,7 @@ void SysModUI::setup() {
   parentVar = initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -4100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Variable loops");
       ui->setComment(var, "Loops initiated by a variable");
@@ -37,9 +37,9 @@ void SysModUI::setup() {
     default: return false;
   }});
 
-  initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
         mdl->setValue(var, JsonString(loopFunctions[rowNr].var["id"], JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -48,9 +48,9 @@ void SysModUI::setup() {
     default: return false;
   }});
 
-  initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
         mdl->setValue(var, loopFunctions[rowNr].counter, rowNr);
       return true;
     case f_UIFun:
@@ -188,7 +188,7 @@ void SysModUI::processJson(JsonVariant json) {
         if (value.is<JsonObject>()) {
           JsonObject command = value;
           JsonObject var = mdl->findVar(command["id"]);
-          uint8_t rowNr = command["rowNr"];
+          unsigned8 rowNr = command["rowNr"];
           USER_PRINTF("processJson %s - %s [%d]\n", key, value.as<String>().c_str(), rowNr);
 
           //first remove the deleted row both on server and on client(s)
@@ -234,7 +234,7 @@ void SysModUI::processJson(JsonVariant json) {
           key = rowNrC;
           rowNrC = strtok(NULL, " ");
         }
-        uint8_t rowNr = rowNrC?atoi(rowNrC):UINT8_MAX;
+        unsigned8 rowNr = rowNrC?atoi(rowNrC):UINT8_MAX;
 
         JsonObject var = mdl->findVar(key);
 

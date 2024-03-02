@@ -57,7 +57,7 @@ void SysModPrint::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
     {
       ui->setLabel(var, "Output");
@@ -74,7 +74,7 @@ void SysModPrint::setup() {
     default: return false;
   }});
 
-  ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setComment(var, "Show the printed log");
       return true;
@@ -94,7 +94,7 @@ size_t SysModPrint::print(const char * format, ...) {
 
 
   //tbd: print to UI (crashes because of recursive calls to print in setUIValueV...
-  // uint8_t pOut = mdl->getValue("pOut");
+  // unsigned8 pOut = mdl->getValue("pOut");
   // if (pOut == 2) {
     // Serial.println(format);
     // char value[1024];

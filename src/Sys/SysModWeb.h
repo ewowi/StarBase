@@ -40,15 +40,15 @@ public:
   static WebSocket *ws;
   static SemaphoreHandle_t wsMutex;
 
-  static uint8_t sendWsCounter;
-  static uint16_t sendWsTBytes;
-  static uint16_t sendWsBBytes;
-  static uint8_t recvWsCounter;
-  static uint16_t recvWsBytes;
-  static uint8_t sendUDPCounter;
-  static uint16_t sendUDPBytes;
-  static uint8_t recvUDPCounter;
-  static uint16_t recvUDPBytes;
+  static unsigned8 sendWsCounter;
+  static unsigned16 sendWsTBytes;
+  static unsigned16 sendWsBBytes;
+  static unsigned8 recvWsCounter;
+  static unsigned16 recvWsBytes;
+  static unsigned8 sendUDPCounter;
+  static unsigned16 sendUDPBytes;
+  static unsigned8 recvUDPCounter;
+  static unsigned16 recvUDPBytes;
 
   SysModWeb();
 
@@ -60,7 +60,7 @@ public:
 
   void connectedChanged();
 
-  static void wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len);
+  static void wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, byte *data, size_t len);
   
   //send json to client or all clients
   static void sendDataWs(JsonVariant json = JsonVariant(), WebClient * client = nullptr);
@@ -73,9 +73,9 @@ public:
 
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  static void serveUpload(WebRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
+  static void serveUpload(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final);
   // curl -s -F "update=@/Users/ewoudwijma/Developer/GitHub/ewowi/StarMod/.pio/build/esp32dev/firmware.bin" 192.168.8.102/update /dev/null &
-  static void serveUpdate(WebRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
+  static void serveUpdate(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final);
   static void serveFiles(WebRequest *request);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
@@ -117,7 +117,7 @@ public:
   }
 
   template <typename Type>
-  void addResponse(const char * id, const char * key, Type value, uint8_t rowNr = UINT8_MAX) {
+  void addResponse(const char * id, const char * key, Type value, unsigned8 rowNr = UINT8_MAX) {
     JsonObject responseObject = getResponseObject();
     // if (responseObject[id].isNull()) responseObject[id].to<JsonObject>();;
     if (rowNr == UINT8_MAX)

@@ -48,7 +48,7 @@ public:
     parentVar = ui->initUserMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -3000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    ui->initIP(parentVar, "ddpInst", UINT16_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initIP(parentVar, "ddpInst", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     
       case f_UIFun: {
         ui->setLabel(var, "Instance");
@@ -97,7 +97,7 @@ public:
     const size_t channelCount = lds->fixture.nrOfLeds * (isRGBW? 4:3); // 1 channel for every R,G,B,(W?) value
     const size_t packetCount = ((channelCount-1) / DDP_CHANNELS_PER_PACKET) +1;
 
-    uint32_t channel = 0; 
+    unsigned32 channel = 0; 
     size_t bufferOffset = 0;
 
     sequenceNumber++;
@@ -118,7 +118,7 @@ public:
       // the amount of data is AFTER the header in the current packet
       size_t packetSize = DDP_CHANNELS_PER_PACKET;
 
-      uint8_t flags = DDP_FLAGS1_VER1;
+      byte flags = DDP_FLAGS1_VER1;
       if (currentPacket == (packetCount - 1U)) {
         // last packet, set the push flag
         // TODO: determine if we want to send an empty push packet to each destination after sending the pixel data

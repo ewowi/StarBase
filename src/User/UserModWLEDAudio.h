@@ -20,7 +20,7 @@ class UserModWLEDAudio:public SysModule {
 public:
 
   WLEDSync sync;
-  uint8_t fftResults[NUM_GEQ_CHANNELS]= {0};
+  byte fftResults[NUM_GEQ_CHANNELS]= {0};
 
   UserModWLEDAudio() :SysModule("WLED Audio Sync Receiver") {
   };
@@ -43,7 +43,7 @@ public:
     if (SysModules::isConnected && sync.read()) {
       if(debug) USER_PRINTF("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
-        uint8_t val = sync.fftResult[b];
+        byte val = sync.fftResult[b];
         fftResults[b] = val;
         if(debug) USER_PRINTF("%u ", val);
       }

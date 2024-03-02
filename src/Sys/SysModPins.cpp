@@ -38,16 +38,16 @@ void SysModPins::setup() {
   if (parentVar["o"] > -1000) parentVar["o"] = -2200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
   //show table of allocated pins
-  JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun: {
       ui->setLabel(var, "Allocated Pins");
       return true; }
     default: return false;
   }});
 
-  ui->initPin(tableVar, "pinNr", UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initPin(tableVar, "pinNr", UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
         mdl->setValue(var, getPinNr(rowNr), rowNr);
       return true;
     case f_UIFun:
@@ -56,9 +56,9 @@ void SysModPins::setup() {
     default: return false;
   }});
 
-  ui->initText(tableVar, "pinOwner", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "pinOwner", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).owner, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -67,9 +67,9 @@ void SysModPins::setup() {
     default: return false;
   }});
 
-  ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -78,7 +78,7 @@ void SysModPins::setup() {
     default: return false;
   }});
 
-  ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Board layout");
       ui->setComment(var, "WIP");
@@ -87,7 +87,7 @@ void SysModPins::setup() {
       var["interval"] = 10*10*10; //every 10 sec from cs to ms
 
       web->sendDataWs([](AsyncWebSocketMessageBuffer * wsBuf) {
-        uint8_t* buffer;
+        byte* buffer;
 
         buffer = wsBuf->get();
 
@@ -124,7 +124,7 @@ void SysModPins::loop1s() {
   }
 }
 
-bool SysModPins::updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+bool SysModPins::updateGPIO(JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ChangeFun:
       if (var["value"].is<bool>()) {
         bool pinValue = var["value"];
@@ -144,7 +144,7 @@ bool SysModPins::updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType) { sw
     default: return false;
   }};
 
-void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * details) {
+void SysModPins::allocatePin(unsigned8 pinNr, const char * owner, const char * details) {
   USER_PRINTF("allocatePin %d %s %s\n", pinNr, owner, details);
   if ((pinNr < NUM_DIGITAL_PINS) && (digitalPinIsValid(pinNr))) {
     if (strcmp(pinObjects[pinNr].owner, "") != 0 && strcmp(pinObjects[pinNr].owner, owner) != 0)
@@ -157,7 +157,7 @@ void SysModPins::allocatePin(uint8_t pinNr, const char * owner, const char * det
   }
 }
 
-void SysModPins::deallocatePin(uint8_t pinNr, const char * owner) {
+void SysModPins::deallocatePin(unsigned8 pinNr, const char * owner) {
   // USER_PRINTF("deallocatePin %d %s\n", pinNr, owner);
   if (pinNr < NUM_DIGITAL_PINS) {
     if (strcmp(pinObjects[pinNr].owner, owner) != 0)

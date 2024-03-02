@@ -21,7 +21,7 @@ public:
     parentVar = ui->initAppMod(parentVar, name);
     if (parentVar["o"] > -1000) parentVar["o"] = -1100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "On");
         return true;
@@ -33,14 +33,14 @@ public:
     currentVar["stage"] = true;
 
     //logarithmic slider (10)
-    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "Brightness");
         return true;
       case f_ChangeFun: {
-        uint8_t bri = var["value"];
+        unsigned8 bri = var["value"];
 
-        uint8_t result = mdl->getValue("on").as<bool>()?linearToLogarithm(var, bri):0;
+        unsigned8 result = mdl->getValue("on").as<bool>()?linearToLogarithm(var, bri):0;
 
         FastLED.setBrightness(result);
 
@@ -51,7 +51,7 @@ public:
     currentVar["log"] = true; //logarithmic
     currentVar["stage"] = true; //these values override model.json???
 
-    ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "Preview");
         ui->setComment(var, "Shows the fixture");
@@ -61,7 +61,7 @@ public:
         var["interval"] =  max(lds->fixture.nrOfLeds * web->ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
 
         web->sendDataWs([this](AsyncWebSocketMessageBuffer * wsBuf) {
-          uint8_t* buffer;
+          byte* buffer;
 
           buffer = wsBuf->get();
 
@@ -84,7 +84,7 @@ public:
       default: return false;
     }});
 
-    ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, false ,[](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, false ,[](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
       {
         // ui->setComment(var, "Fixture to display effect on");
@@ -120,7 +120,7 @@ public:
       default: return false; 
     }}); //fixture
 
-    ui->initCoord3D(parentVar, "fixSize", lds->fixture.size, 0, NUM_LEDS_Max, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCoord3D(parentVar, "fixSize", lds->fixture.size, 0, NUM_LEDS_Max, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
         mdl->setValue(var, lds->fixture.size);
         return true;
@@ -130,7 +130,7 @@ public:
       default: return false;
     }});
 
-    ui->initNumber(parentVar, "fixCount", lds->fixture.nrOfLeds, 0, UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initNumber(parentVar, "fixCount", lds->fixture.nrOfLeds, 0, UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
         mdl->setValue(var, lds->fixture.nrOfLeds);
         return true;
@@ -141,7 +141,7 @@ public:
       default: return false;
     }});
 
-    ui->initNumber(parentVar, "fps", lds->fps, 1, 999, false , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initNumber(parentVar, "fps", lds->fps, 1, 999, false , [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setComment(var, "Frames per second");
         return true;
@@ -151,7 +151,7 @@ public:
       default: return false; 
     }});
 
-    ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         web->addResponseV(var["id"], "comment", "f(%d leds)", lds->fixture.nrOfLeds);
         return true;
@@ -159,7 +159,7 @@ public:
     }});
 
     #ifdef STARMOD_USERMOD_WLEDAUDIO
-      ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
         case f_UIFun:
           ui->setLabel(var, "Moving heads");
           ui->setComment(var, "Move on GEQ");

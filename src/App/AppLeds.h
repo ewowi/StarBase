@@ -52,8 +52,8 @@ class SharedData {
 
   private:
     byte *data;
-    uint16_t index = 0;
-    uint16_t bytesAllocated = 0;
+    unsigned16 index = 0;
+    unsigned16 bytesAllocated = 0;
 
   public:
 
@@ -142,26 +142,26 @@ public:
 
   Fixture *fixture;
 
-  uint16_t nrOfLeds = 64;  //amount of virtual leds (calculated by projection)
+  unsigned16 nrOfLeds = 64;  //amount of virtual leds (calculated by projection)
 
   Coord3D size = {8,8,1}; //not 0,0,0 to prevent div0 eg in Octopus2D
 
-  uint8_t fx = -1;
-  uint8_t projectionNr = -1;
-  uint8_t effectDimension = -1;
+  unsigned8 fx = -1;
+  unsigned8 projectionNr = -1;
+  unsigned8 effectDimension = -1;
   Coord3D startPos = {0,0,0}, endPos = {UINT16_MAX,UINT16_MAX,UINT16_MAX}; //default
 
   SharedData sharedData;
 
-  std::vector<std::vector<uint16_t>> mappingTable;
+  std::vector<std::vector<unsigned16>> mappingTable;
 
-  uint16_t XY(uint16_t x, uint16_t y) {
+  unsigned16 XY(unsigned16 x, unsigned16 y) {
     return XYZ(x, y, 0);
   }
-  uint16_t XYZ(Coord3D coord) {
+  unsigned16 XYZ(Coord3D coord) {
     return XYZ(coord.x, coord.y, coord.z);
   }
-  uint16_t XYZ(uint16_t x, uint16_t y, uint16_t z) {
+  unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
 
     if (projectionNr == p_Rotate) {
       Coord3D result = spinXY(x,y, size.x, size.y);
@@ -171,7 +171,7 @@ public:
       return x + y * size.x + z * size.x * size.y;
   }
 
-  uint16_t indexVLocal = 0; //set in operator[], used by operator=
+  unsigned16 indexVLocal = 0; //set in operator[], used by operator=
 
   bool doMap = false;
 
@@ -187,13 +187,13 @@ public:
     USER_PRINTF("Leds[%d] destructor\n", UINT8_MAX);
     fadeToBlackBy(100);
     doMap = true; // so loop is not running while deleting
-    for (std::vector<std::vector<uint16_t>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap)
+    for (std::vector<std::vector<unsigned16>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap)
       physMap->clear();
     mappingTable.clear();
   }
 
   // indexVLocal stored to be used by other operators
-  Leds& operator[](uint16_t indexV) {
+  Leds& operator[](unsigned16 indexV) {
     indexVLocal = indexV;
     return *this;
   }
@@ -203,7 +203,7 @@ public:
     return *this;
   }
 
-  // CRGB& operator[](uint16_t indexV) {
+  // CRGB& operator[](unsigned16 indexV) {
   //   // indexVLocal = indexV;
   //   CRGB x = getPixelColor(indexV);
   //   return x;
@@ -232,37 +232,37 @@ public:
 
 
   // maps the virtual led to the physical led(s) and assign a color to it
-  void setPixelColor(uint16_t indexV, CRGB color, uint8_t blendAmount = UINT8_MAX);
-  void setPixelColor(Coord3D pixel, CRGB color, uint8_t blendAmount = UINT8_MAX) {setPixelColor(XYZ(pixel), color, blendAmount);}
+  void setPixelColor(unsigned16 indexV, CRGB color, unsigned8 blendAmount = UINT8_MAX);
+  void setPixelColor(Coord3D pixel, CRGB color, unsigned8 blendAmount = UINT8_MAX) {setPixelColor(XYZ(pixel), color, blendAmount);}
 
-  CRGB getPixelColor(uint16_t indexV);
+  CRGB getPixelColor(unsigned16 indexV);
   CRGB getPixelColor(Coord3D pixel) {return getPixelColor(XYZ(pixel));}
 
-  void addPixelColor(uint16_t indexV, CRGB color) {setPixelColor(indexV, getPixelColor(indexV) + color);}
+  void addPixelColor(unsigned16 indexV, CRGB color) {setPixelColor(indexV, getPixelColor(indexV) + color);}
   void addPixelColor(Coord3D pixel, CRGB color) {setPixelColor(pixel, getPixelColor(pixel) + color);}
 
-  void fadeToBlackBy(uint8_t fadeBy = 255);
+  void fadeToBlackBy(unsigned8 fadeBy = 255);
   void fill_solid(const struct CRGB& color);
-  void fill_rainbow(uint8_t initialhue, uint8_t deltahue);
+  void fill_rainbow(unsigned8 initialhue, unsigned8 deltahue);
   void blur2d(fract8 blur_amount)
   {
       blurRows(size.x, size.y, blur_amount);
       blurColumns(size.x, size.y, blur_amount);
   }
 
-  void blurRows(uint8_t width, uint8_t height, fract8 blur_amount)
+  void blurRows(unsigned8 width, unsigned8 height, fract8 blur_amount)
   {
-  /*    for( uint8_t row = 0; row < height; row++) {
+  /*    for( unsigned8 row = 0; row < height; row++) {
           CRGB* rowbase = leds + (row * width);
           blur1d( rowbase, width, blur_amount);
       }
   */
       // blur rows same as columns, for irregular matrix
-      uint8_t keep = 255 - blur_amount;
-      uint8_t seep = blur_amount >> 1;
-      for( uint8_t row = 0; row < height; row++) {
+      unsigned8 keep = 255 - blur_amount;
+      unsigned8 seep = blur_amount >> 1;
+      for( unsigned8 row = 0; row < height; row++) {
           CRGB carryover = CRGB::Black;
-          for( uint8_t i = 0; i < width; i++) {
+          for( unsigned8 i = 0; i < width; i++) {
               CRGB cur = getPixelColor(XY(i,row));
               CRGB part = cur;
               part.nscale8( seep);
@@ -276,14 +276,14 @@ public:
   }
 
   // blurColumns: perform a blur1d on each column of a rectangular matrix
-  void blurColumns(uint8_t width, uint8_t height, fract8 blur_amount)
+  void blurColumns(unsigned8 width, unsigned8 height, fract8 blur_amount)
   {
       // blur columns
-      uint8_t keep = 255 - blur_amount;
-      uint8_t seep = blur_amount >> 1;
-      for( uint8_t col = 0; col < width; ++col) {
+      unsigned8 keep = 255 - blur_amount;
+      unsigned8 seep = blur_amount >> 1;
+      for( unsigned8 col = 0; col < width; ++col) {
           CRGB carryover = CRGB::Black;
-          for( uint8_t i = 0; i < height; ++i) {
+          for( unsigned8 i = 0; i < height; ++i) {
               CRGB cur = getPixelColor(XY(col,i));
               CRGB part = cur;
               part.nscale8( seep);
@@ -297,7 +297,7 @@ public:
   }
 
   //shift is used by drawText indicating which letter it is drawing
-  void drawCharacter(unsigned char chr, int x = 0, int16_t y = 0, uint8_t font = 0, CRGB col = CRGB::Red, uint8_t shiftPixel = 0, uint8_t shiftChr = 0) {
+  void drawCharacter(unsigned char chr, int x = 0, int16_t y = 0, unsigned8 font = 0, CRGB col = CRGB::Red, unsigned16 shiftPixel = 0, unsigned16 shiftChr = 0) {
     if (chr < 32 || chr > 126) return; // only ASCII 32-126 supported
     chr -= 32; // align with font table entries
 
@@ -315,7 +315,7 @@ public:
       Coord3D pixel;
       pixel.y = y + chrPixel.y;
       if (pixel.y >=0 && pixel.y < size.y) {
-        uint8_t bits = 0;
+        byte bits = 0;
         switch (font%5) {
           case 0: bits = pgm_read_byte_near(&console_font_4x6[(chr * fontSize.y) + chrPixel.y]); break;
           case 1: bits = pgm_read_byte_near(&console_font_5x8[(chr * fontSize.y) + chrPixel.y]); break;
@@ -335,7 +335,7 @@ public:
     }
   }
 
-  void drawText(const char * text, int x = 0, int16_t y = 0, uint8_t font = 0, CRGB col = CRGB::Red, u_int16_t shiftPixel = 0) {
+  void drawText(const char * text, int x = 0, int16_t y = 0, unsigned8 font = 0, CRGB col = CRGB::Red, unsigned16 shiftPixel = 0) {
     const int numberOfChr = strlen(text); //Core  1 panic'ed (LoadProhibited). Exception was unhandled. - /builds/idf/crosstool-NG/.build/HOST-x86_64-apple-darwin12/xtensa-esp32-elf/src/newlib/newlib/libc/machine/xtensa/strlen.S:82
     for (int shiftChr = 0; shiftChr < numberOfChr; shiftChr++) {
       drawCharacter(text[shiftChr], x, y, font, col, shiftPixel, shiftChr);

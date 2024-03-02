@@ -28,15 +28,15 @@ public:
   void setup();
   void loop1s();
 
-  void allocatePin(uint8_t pinNr, const char * owner, const char * details);
-  void deallocatePin(uint8_t pinNr, const char * owner);
-  bool isOwner(uint8_t pinNr, const char * owner) {
+  void allocatePin(unsigned8 pinNr, const char * owner, const char * details);
+  void deallocatePin(unsigned8 pinNr, const char * owner);
+  bool isOwner(unsigned8 pinNr, const char * owner) {
     return strcmp(pinObjects[pinNr].owner, owner) == 0;
   }
 
   //temporary functions until we refactored the PinObject
-  PinObject getNthAllocatedPinObject(uint8_t rowNr) {
-    uint8_t n = 0;
+  PinObject getNthAllocatedPinObject(unsigned8 rowNr) {
+    unsigned8 n = 0;
     for (PinObject pinObject:pinObjects) {
       if (strcmp(pinObject.owner, "") != 0) {
         if (n == rowNr)
@@ -46,8 +46,8 @@ public:
     }
     return PinObject();
   }
-  uint8_t getNrOfAllocatedPins() {
-    uint8_t n = 0;
+  unsigned8 getNrOfAllocatedPins() {
+    unsigned8 n = 0;
     for (PinObject pinObject:pinObjects) {
       if (strcmp(pinObject.owner, "") != 0) {
         n++;
@@ -55,9 +55,9 @@ public:
     }
     return n;
   }
-  uint8_t getPinNr(uint8_t rowNr) {
-    uint8_t pinNr = 0;
-    uint8_t n = 0;
+  unsigned8 getPinNr(unsigned8 rowNr) {
+    unsigned8 pinNr = 0;
+    unsigned8 n = 0;
     for (PinObject pinObject:pinObjects) {
       if (strcmp(pinObject.owner, "") != 0) {
         if (n == rowNr)
@@ -69,7 +69,7 @@ public:
     return UINT8_MAX;
   }
 
-  static bool updateGPIO(JsonObject var, uint8_t rowNr, uint8_t funType);
+  static bool updateGPIO(JsonObject var, unsigned8 rowNr, unsigned8 funType);
 
 private:
   static bool pinsChanged; //update pins table if pins changed

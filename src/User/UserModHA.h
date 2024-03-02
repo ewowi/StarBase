@@ -28,7 +28,7 @@ public:
       sender->setState(state); // report state back to the Home Assistant
   }
 
-  static void onBrightnessCommand(uint8_t brightness, HALight* sender) {
+  static void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
       Serial.print("Brightness: ");
       Serial.println(brightness);
 

@@ -34,15 +34,15 @@ JsonDocument * SysModWeb::responseDocLoopTask = nullptr;
 JsonDocument * SysModWeb::responseDocAsyncTCP = nullptr;
 bool SysModWeb::clientsChanged = false;
 
-uint8_t SysModWeb::sendWsCounter = 0;
-uint16_t SysModWeb::sendWsTBytes = 0;
-uint16_t SysModWeb::sendWsBBytes = 0;
-uint8_t SysModWeb::recvWsCounter = 0;
-uint16_t SysModWeb::recvWsBytes = 0;
-uint8_t SysModWeb::sendUDPCounter = 0;
-uint16_t SysModWeb::sendUDPBytes = 0;
-uint8_t SysModWeb::recvUDPCounter = 0;
-uint16_t SysModWeb::recvUDPBytes = 0;
+unsigned8 SysModWeb::sendWsCounter = 0;
+unsigned16 SysModWeb::sendWsTBytes = 0;
+unsigned16 SysModWeb::sendWsBBytes = 0;
+unsigned8 SysModWeb::recvWsCounter = 0;
+unsigned16 SysModWeb::recvWsBytes = 0;
+unsigned8 SysModWeb::sendUDPCounter = 0;
+unsigned16 SysModWeb::sendUDPBytes = 0;
+unsigned8 SysModWeb::recvUDPCounter = 0;
+unsigned16 SysModWeb::recvUDPBytes = 0;
 
 SemaphoreHandle_t SysModWeb::wsMutex = xSemaphoreCreateMutex();
 
@@ -69,16 +69,16 @@ void SysModWeb::setup() {
   parentVar = ui->initSysMod(parentVar, name);
   if (parentVar["o"] > -1000) parentVar["o"] = -2400; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
 
-  JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Clients");
       return true;
     default: return false;
   }});
 
-  ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
-      uint8_t rowNr = 0; for (auto client:ws->getClients())
+      unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, client->id(), rowNr++);
       return true; }
     case f_UIFun:
@@ -87,9 +87,9 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
-      uint8_t rowNr = 0; for (auto client:ws->getClients())
+      unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr++);
       return true; }
     case f_UIFun:
@@ -98,9 +98,9 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
-      uint8_t rowNr = 0; for (auto client:ws->getClients())
+      unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, client->queueIsFull(), rowNr++);
       return true; }
     case f_UIFun:
@@ -109,9 +109,9 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
-      uint8_t rowNr = 0; for (auto client:ws->getClients())
+      unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, client->status(), rowNr++);
       return true; }
     case f_UIFun:
@@ -127,9 +127,9 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
-      uint8_t rowNr = 0; for (auto client:ws->getClients())
+      unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, client->queueLength(), rowNr++);
       return true; }
     case f_UIFun:
@@ -140,7 +140,7 @@ void SysModWeb::setup() {
 
   ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
 
-  ui->initText(parentVar, "wsSend", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "wsSend", nullptr, 16, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "WS Send");
       // ui->setComment(var, "web socket calls");
@@ -148,7 +148,7 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initText(parentVar, "wsRecv", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "wsRecv", nullptr, 16, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "WS Recv");
       // ui->setComment(var, "web socket calls");
@@ -156,14 +156,14 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initText(parentVar, "udpSend", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "udpSend", nullptr, 16, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "UDP Send");
       return true;
     default: return false;
   }});
 
-  ui->initText(parentVar, "udpRecv", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "udpRecv", nullptr, 16, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "UDP Recv");
       return true;
@@ -262,7 +262,7 @@ void SysModWeb::connectedChanged() {
 //wsEvent deserializeJson failed with code EmptyInput
 
 // https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
-void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, byte *data, size_t len){
   // if (!ws->count()) {
   //   USER_PRINT_Async("wsEvent no clients\n");
   //   return;
@@ -354,7 +354,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
       // else {
       //   char buff[3];
       //   for (size_t i=0; i < len; i++) {
-      //     sprintf(buff, "%02x ", (uint8_t) data[i]);
+      //     sprintf(buff, "%02x ", (unsigned8) data[i]);
       //     msg += buff ;
       //   }
       // }
@@ -375,7 +375,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
 
       //message is comprised of multiple frames or the frame is split into multiple packets
       //if(info->index == 0){
-        //if (!wsFrameBuffer && len < 4096) wsFrameBuffer = new uint8_t[4096];
+        //if (!wsFrameBuffer && len < 4096) wsFrameBuffer = new unsigned8[4096];
       //}
 
       //if (wsFrameBuffer && len < 4096 && info->index + info->)
@@ -397,7 +397,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
     //error was received from the other end
     // printClient("WS error", client); //crashes
     // USER_PRINT_Async("WS error\n");
-    USER_PRINT_Async("ws[%s][%u] error(): \n", ws->url(), client->id());//, *((uint16_t*)arg));//, (char*)data);
+    USER_PRINT_Async("ws[%s][%u] error(): \n", ws->url(), client->id());//, *((unsigned16*)arg));//, (char*)data);
   } else if (type == WS_EVT_PONG){
     //pong message was received (in response to a ping request maybe)
     // printClient("WS pong", client); //crashes!
@@ -488,7 +488,7 @@ void SysModWeb::serveIndex(WebRequest *request) {
   USER_PRINT_Async("!\n");
 }
 
-void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
+void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
   USER_PRINT_Async("handleUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
@@ -524,7 +524,7 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
   }
 }
 
-void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
+void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
   USER_PRINT_Async("handleUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
@@ -659,7 +659,7 @@ void SysModWeb::serveJson(WebRequest *request) {
 
     root["info"]["rel"] = "StarMod";
     root["info"]["ver"] = "0.0.1";
-    root["info"]["vid"] = mdl->getValue("version").as<uint32_t>(); //WLED-native needs int otherwise status offline!!!
+    root["info"]["vid"] = mdl->getValue("version").as<unsigned32>(); //WLED-native needs int otherwise status offline!!!
     root["info"]["leds"]["count"] = 999;
     root["info"]["leds"]["countP"] = 998;
     root["info"]["leds"]["fps"] = mdl->getValue("fps"); //tbd: should be realFps but is ro var

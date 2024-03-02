@@ -16,7 +16,6 @@
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 std::vector<VarFun> SysModUI::varFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
-int SysModUI::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 bool SysModUI::stageVarChanged = false;
 
 SysModUI::SysModUI() :SysModule("UI") {
@@ -27,7 +26,7 @@ void SysModUI::setup() {
   SysModule::setup();
 
   parentVar = initSysMod(parentVar, name);
-  if (parentVar["o"] > -1000) parentVar["o"] = -4100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  mdl->varSetFixedOrder(parentVar, 4100);
 
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -118,15 +117,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
     if (var["ro"].isNull() || mdl->varRO(var) != readOnly) mdl->varRO(var, readOnly);
 
-    //set order. make order negative to check if not obsolete, see cleanUpModel
-    if (mdl->varOrder(var) >= 1000) //predefined! (modules)
-      mdl->varOrder(var, -mdl->varOrder(var)); //leave the order as is
-    else {
-      if (mdl->varOrder(parent) >= 0) // if checks on the parent already done so vars added later, e.g. controls, will be autochecked
-        mdl->varOrder(var, varCounter++); //redefine order
-      else
-        mdl->varOrder(var, -varCounter++); //redefine order
-    }
+    mdl->varInitOrder(parent, var);
 
     //if varFun, add it to the list
     if (varFun) {

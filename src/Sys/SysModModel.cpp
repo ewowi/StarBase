@@ -18,6 +18,7 @@
 JsonDocument * SysModModel::model = nullptr;
 JsonObject SysModModel::modelParentVar;
 unsigned8 SysModModel::contextRowNr = UINT8_MAX;
+int SysModModel::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 
 SysModModel::SysModModel() :SysModule("Model") {
   model = new JsonDocument(&allocator);
@@ -37,7 +38,7 @@ void SysModModel::setup() {
   SysModule::setup();
 
   parentVar = ui->initSysMod(parentVar, name);
-  if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  mdl->varSetFixedOrder(parentVar, 4000);
 
   ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

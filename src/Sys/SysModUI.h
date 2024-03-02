@@ -271,8 +271,6 @@ public:
   }
 
 private:
-  static int varCounter; //not static crashes ??? (not called async...?)
-
   static std::vector<VarLoop> loopFunctions; //non static crashing ...
 
 };

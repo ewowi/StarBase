@@ -32,7 +32,7 @@ SysModFiles::SysModFiles() :SysModule("Files") {
 void SysModFiles::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name);
-  if (parentVar["o"] > -1000) parentVar["o"] = -2000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  mdl->varSetFixedOrder(parentVar, 2000);
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

@@ -315,14 +315,31 @@ public:
 
   //pseudo VarObject: public JsonObject functions
   const char * varID(JsonObject var) {return var["id"];}
+
   bool varRO(JsonObject var) {return var["ro"];}
   void varRO(JsonObject var, bool value) {var["ro"] = value;}
+
   JsonArray varChildren(const char * id) {return varChildren(findVar(id));}
   JsonArray varChildren(JsonObject var) {return var["n"];}
+
   JsonArray varValArray(JsonObject var) {if (var["value"].is<JsonArray>()) return var["value"]; else return JsonArray(); }
+
   int varOrder(JsonObject var) {return var["o"];}
   void varOrder(JsonObject var, int value) {var["o"] = value;}
-
+  
+  void varInitOrder(JsonObject parent, JsonObject var) {
+        //set order. make order negative to check if not obsolete, see cleanUpModel
+    if (varOrder(var) >= 1000) //predefined! (modules) - positive as saved in model.json
+      varOrder(var, -varOrder(var)); //leave the order as is
+    else {
+      if (!parent.isNull() && varOrder(parent) >= 0) // if checks on the parent already done so vars added later, e.g. controls, will be autochecked
+        varOrder(var, varCounter++); //redefine order
+      else
+        varOrder(var, -varCounter++); //redefine order
+    }
+  }
+  void varSetFixedOrder(JsonObject var, int value) {if (varOrder(var) > -1000) varOrder(var, -value); } //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  
   //recursively remove all value[rowNr] from children of var
   void varRemoveValuesForRow(JsonObject var, unsigned8 rowNr) {
     for (JsonObject childVar: varChildren(var)) {
@@ -398,6 +415,7 @@ public:
 private:
   bool doShowObsolete = false;
   bool cleanUpModelDone = false;
+  static int varCounter; //not static crashes ??? (not called async...?)
 
 };
 

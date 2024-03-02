@@ -58,7 +58,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initAppMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -1200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    mdl->varSetFixedOrder(parentVar, 1200);
 
     JsonObject currentVar;
 

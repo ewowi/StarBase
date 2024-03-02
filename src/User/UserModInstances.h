@@ -169,7 +169,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initSysMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -4200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    mdl->varSetFixedOrder(parentVar, 4200);
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {

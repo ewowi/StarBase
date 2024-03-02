@@ -430,7 +430,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initUserMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -1300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    mdl->varSetFixedOrder(parentVar, 1300);
 
     ui->initSelect(parentVar, "fixtureGen", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {

@@ -28,7 +28,7 @@ void SysModules::setup() {
 
   //do its own setup: will be shown as last module
   JsonObject parentVar = ui->initSysMod(parentVar, "Modules");
-  if (mdl->varOrder(parentVar) > -1000) mdl->varOrder(parentVar, -5000); //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  mdl->varSetFixedOrder(parentVar, 5000);
 
   JsonObject tableVar = ui->initTable(parentVar, "mdlTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

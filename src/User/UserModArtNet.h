@@ -29,7 +29,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initUserMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -3100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    mdl->varSetFixedOrder(parentVar, 3100);
 
     ui->initIP(parentVar, "artInst", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     

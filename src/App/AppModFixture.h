@@ -102,6 +102,7 @@ public:
       {
         lds->fixture.fixtureNr = var["value"];
         lds->fixture.doMap = true;
+        lds->fixture.doAllocPins = true;
 
         //remap all leds
         // for (std::vector<Leds *>::iterator leds=lds->fixture.ledsList.begin(); leds!=lds->fixture.ledsList.end(); ++leds) {

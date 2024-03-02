@@ -243,9 +243,7 @@ public:
 
   void fadeToBlackBy(uint8_t fadeBy = 255);
   void fill_solid(const struct CRGB& color);
-
   void fill_rainbow(uint8_t initialhue, uint8_t deltahue);
-
   void blur2d(fract8 blur_amount)
   {
       blurRows(size.x, size.y, blur_amount);

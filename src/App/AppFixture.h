@@ -48,18 +48,22 @@ public:
   Coord3D head = {0,0,0};
 
   bool doMap = false;
+  bool doAllocPins = false;
 
   uint8_t globalBlend = 128;
   
   //load fixture json file, parse it and depending on the projection, create a mapping for it
   void projectAndMap();
 
+  float distance(float x1, float y1, float z1, float x2, float y2, float z2) {
+    return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+  }
   float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16_t y2, uint16_t z2) {
     return distance(Coord3D{x1, y1, z1}, Coord3D{x2,y2,z2});
     // return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
   }
   float distance(Coord3D c1, Coord3D c2) {
-    Coord3D delta = (c1-c2).absx();
+    Coord3D delta = (c1-c2);
     return sqrtf((delta.x)*(delta.x) + (delta.y)*(delta.y) + (delta.z)*(delta.z));
   }
 

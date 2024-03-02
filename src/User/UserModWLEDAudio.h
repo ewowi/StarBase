@@ -61,10 +61,7 @@ public:
   }
 
   void loop1s() {
-    for (JsonObject childVar: mdl->varN("clTbl")) {
-      ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
-    }
-    mdl->setUIValueV("wledAudioStatus", "%d, %d", sync,  sync.lastPacketTime);
+    mdl->setUIValueV("wledAudioStatus", "%d, %s, %d",sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
   }
 
   private:

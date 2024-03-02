@@ -28,6 +28,15 @@ public:
   //setup filesystem
   void setup() {
     SysModule::setup();
+    parentVar = ui->initUserMod(parentVar, name);
+    ui->initText(parentVar, "wledAudioStatus", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    case f_UIFun:
+      ui->setLabel(var, "Status");
+      // ui->setComment(var, "web socket calls");
+      return true;
+    default: return false;
+   }});
+
   }
 
   void onOffChanged() {
@@ -49,6 +58,13 @@ public:
       }
       if(debug) USER_PRINTF("\n");
     }
+  }
+
+  void loop1s() {
+    for (JsonObject childVar: mdl->varN("clTbl")) {
+      ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
+    }
+    mdl->setUIValueV("wledAudioStatus", "%d, %d", sync,  sync.lastPacketTime);
   }
 
   private:

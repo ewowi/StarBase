@@ -384,8 +384,8 @@ public:
             uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
             USER_PRINTF("driver.initled new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
 
-            int pins[1] = {pinNr};
-            driver.initled((uint8_t*) fixture.ledsP, pins, 1, (int) nrOfLeds);
+            int pins[1] = { pinNr };
+            driver.initled((uint8_t*) fixture.ledsP, pins, 1, (int) nrOfLeds, ORDER_GRB);
 
             driverInit = true;
 

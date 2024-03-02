@@ -317,15 +317,15 @@ public:
   const char * varID(JsonObject var) {return var["id"];}
   bool varRO(JsonObject var) {return var["ro"];}
   void varRO(JsonObject var, bool value) {var["ro"] = value;}
-  JsonArray varN(const char * id) {return varN(findVar(id));}
-  JsonArray varN(JsonObject var) {return var["n"];}
+  JsonArray varChildren(const char * id) {return varChildren(findVar(id));}
+  JsonArray varChildren(JsonObject var) {return var["n"];}
   JsonArray varValArray(JsonObject var) {if (var["value"].is<JsonArray>()) return var["value"]; else return JsonArray(); }
   int varOrder(JsonObject var) {return var["o"];}
   void varOrder(JsonObject var, int value) {var["o"] = value;}
 
   //recursively remove all value[rowNr] from children of var
   void varRemoveValuesForRow(JsonObject var, uint8_t rowNr) {
-    for (JsonObject childVar: varN(var)) {
+    for (JsonObject childVar: varChildren(var)) {
       JsonArray valArray = varValArray(childVar);
       if (!valArray.isNull()) {
         valArray.remove(rowNr);
@@ -336,7 +336,7 @@ public:
   }
 
   void varPreDetails(JsonObject var, uint8_t rowNr = UINT8_MAX) {
-    for (JsonObject var: varN(var)) { //for all controls
+    for (JsonObject var: varChildren(var)) { //for all controls
       if (varOrder(var) >= 0) { //post init
         varOrder(var, -varOrder(var)); // set all negative
       }
@@ -354,7 +354,7 @@ public:
 
       //check if post init added: parent is already >=0
       if (varOrder(var) >= 0) {
-        for (JsonArray::iterator childVar=varN(var).begin(); childVar!=varN(var).end(); ++childVar) { //use iterator to make .remove work!!!
+        for (JsonArray::iterator childVar=varChildren(var).begin(); childVar!=varChildren(var).end(); ++childVar) { //use iterator to make .remove work!!!
           JsonArray valArray = varValArray(*childVar);
           if (!valArray.isNull())
           {
@@ -376,12 +376,12 @@ public:
             }
             if (allNull) {
               print->printJson("remove allnulls", *childVar);
-              varN(var).remove(childVar);
+              varChildren(var).remove(childVar);
             }
           }
           else {
             print->printJson("remove non valArray", *childVar);
-            varN(var).remove(childVar);
+            varChildren(var).remove(childVar);
           }
 
         }

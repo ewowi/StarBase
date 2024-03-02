@@ -134,7 +134,7 @@ void SysModFiles::loop() {
 
     ui->callVarFun(mdl->findVar("drsize")); //valueFun
 
-    for (JsonObject childVar: mdl->varN("fileTbl"))
+    for (JsonObject childVar: mdl->varChildren("fileTbl"))
       ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
   }
 }

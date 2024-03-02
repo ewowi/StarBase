@@ -445,7 +445,7 @@ public:
         // Serial.println();
 
         USER_PRINTF("insTbl handleNotifications %d\n", remoteIp[3]);
-        for (JsonObject childVar: mdl->varN("insTbl"))
+        for (JsonObject childVar: mdl->varChildren("insTbl"))
           ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //rowNr //instance - instances.begin()
 
         web->recvUDPCounter++;
@@ -501,7 +501,7 @@ public:
         instance = instances.erase(instance);
         USER_PRINTF("insTbl remove inactive instances %d\n", instance->ip[3]);
 
-        for (JsonObject childVar: mdl->varN("insTbl"))
+        for (JsonObject childVar: mdl->varChildren("insTbl"))
           ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //no rowNr so all rows updated
 
         ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun);
@@ -670,7 +670,7 @@ public:
 
           // USER_PRINTF("updateNode updRow[%d] %s\n", instance - instances.begin(), instances[instance - instances.begin()].name);
 
-          for (JsonObject childVar: mdl->varN("insTbl"))
+          for (JsonObject childVar: mdl->varChildren("insTbl"))
             ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //rowNr instance - instances.begin()
 
           //tbd: now done for all rows, should be done only for updated rows!
@@ -691,7 +691,7 @@ public:
       //run though it sorted to find the right rowNr
       // for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
       //   if (instance->ip == messageIP) {
-          for (JsonObject childVar: mdl->varN("insTbl")) {
+          for (JsonObject childVar: mdl->varChildren("insTbl")) {
             ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //no rowNr, update all
           }
       //   }

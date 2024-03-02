@@ -119,7 +119,7 @@ void SysModPins::loop1s() {
   if (pinsChanged) {
     pinsChanged = false;
 
-    for (JsonObject childVar: mdl->varN("pinTbl"))
+    for (JsonObject childVar: mdl->varChildren("pinTbl"))
       ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
   }
 }

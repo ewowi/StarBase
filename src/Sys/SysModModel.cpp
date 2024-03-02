@@ -105,7 +105,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
   if (parent.isNull()) //no parent
     vars = model->as<JsonArray>();
   else
-    vars = varN(parent);
+    vars = varChildren(parent);
 
   for (JsonArray::iterator varV=vars.begin(); varV!=vars.end(); ++varV) {
   // for (JsonVariant varV : vars) {
@@ -140,7 +140,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
       }
 
       //recursive call
-      if (!varN(var).isNull())
+      if (!varChildren(var).isNull())
         cleanUpModel(var, oPos, ro);
     } 
   }

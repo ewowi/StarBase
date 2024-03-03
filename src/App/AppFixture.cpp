@@ -329,11 +329,12 @@ void Fixture::projectAndMap() {
                         for (size_t i = leds->mappingTable.size(); i <= indexV; i++) {
                           // USER_PRINTF("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
                           std::vector<unsigned16> physMap;
+                          physMap.push_back(0);
                           leds->mappingTable.push_back(physMap); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                         }
                       }
                       //indexV is within the square
-                       leds->mappingTable[indexV].push_back(indexP); //add the current led in the right physMap
+                      leds->mappingTable[indexV].push_back(indexP); //add the current led in the right physMap
                     }
                     else 
                       USER_PRINTF("dev post [%d] indexP too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexP, nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
@@ -402,13 +403,13 @@ void Fixture::projectAndMap() {
 
           } else {
 
-            if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
-              USER_PRINTF("mapping add extra physMap %d to %d size: %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
-            for (size_t i = leds->mappingTable.size(); i < leds->size.x * leds->size.y * leds->size.z; i++) {
-              std::vector<unsigned16> physMap;
-              // physMap.push_back(0);
-              leds->mappingTable.push_back(physMap);
-            }
+            // if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
+            //   USER_PRINTF("mapping add extra physMap %d to %d size: %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
+            // for (size_t i = leds->mappingTable.size(); i < leds->size.x * leds->size.y * leds->size.z; i++) {
+            //   std::vector<unsigned16> physMap;
+            //   // physMap.push_back(0);
+            //   leds->mappingTable.push_back(physMap);
+            // }
 
             leds->nrOfLeds = leds->mappingTable.size();
 

@@ -174,7 +174,12 @@ public:
           }
           if (proValue == p_Rotate) {
             ui->initCoord3D(var, "proCenter", Coord3D{8,8,8}, 0, NUM_LEDS_Max);
-            ui->initSlider(var, "proSpeed", 1, 0, 60);
+            ui->initSlider(var, "proSpeed", 128, 1, 255, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+              case f_ChangeFun:
+                fixture.ledsList[rowNr]->proSpeed = mdl->getValue(var, rowNr);
+                return true;
+              default: return false;
+            }});
           }
           mdl->varPostDetails(var, rowNr);
 

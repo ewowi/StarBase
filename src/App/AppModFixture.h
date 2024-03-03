@@ -19,7 +19,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initAppMod(parentVar, name);
-    mdl->varSetFixedOrder(parentVar, 1100);
+    mdl->varSetDefaultOrder(parentVar, 1100);
 
     JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
@@ -58,7 +58,7 @@ public:
         // ui->setComment(var, "Click to enlarge");
         return true;
       case f_LoopFun: {
-        var["interval"] =  max(lds->fixture.nrOfLeds * web->ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
+        var["interval"] =  max(eff->fixture.nrOfLeds * web->ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
 
         web->sendDataWs([this](AsyncWebSocketMessageBuffer * wsBuf) {
           byte* buffer;
@@ -66,25 +66,25 @@ public:
           buffer = wsBuf->get();
 
           // send leds preview to clients
-          for (size_t i = 0; i < lds->fixture.nrOfLeds; i++)
+          for (size_t i = 0; i < eff->fixture.nrOfLeds; i++)
           {
-            buffer[i*3+5] = lds->fixture.ledsP[i].red;
-            buffer[i*3+5+1] = lds->fixture.ledsP[i].green;
-            buffer[i*3+5+2] = lds->fixture.ledsP[i].blue;
+            buffer[i*3+5] = eff->fixture.ledsP[i].red;
+            buffer[i*3+5+1] = eff->fixture.ledsP[i].green;
+            buffer[i*3+5+2] = eff->fixture.ledsP[i].blue;
           }
           //new values
           buffer[0] = 1; //userFun id
-          buffer[1] = lds->fixture.head.x;
-          buffer[2] = lds->fixture.head.y;
-          buffer[3] = lds->fixture.head.y;
+          buffer[1] = eff->fixture.head.x;
+          buffer[2] = eff->fixture.head.y;
+          buffer[3] = eff->fixture.head.y;
 
-        }, lds->fixture.nrOfLeds * 3 + 5, true);
+        }, eff->fixture.nrOfLeds * 3 + 5, true);
         return true;
       }
       default: return false;
     }});
 
-    ui->initSelect(parentVar, "fixture", lds->fixture.fixtureNr, false ,[](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initSelect(parentVar, "fixture", eff->fixture.fixtureNr, false ,[](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
       {
         // ui->setComment(var, "Fixture to display effect on");
@@ -100,18 +100,18 @@ public:
       }
       case f_ChangeFun:
       {
-        lds->fixture.fixtureNr = var["value"];
-        lds->fixture.doMap = true;
-        lds->fixture.doAllocPins = true;
+        eff->fixture.fixtureNr = var["value"];
+        eff->fixture.doMap = true;
+        eff->fixture.doAllocPins = true;
 
         //remap all leds
-        // for (std::vector<Leds *>::iterator leds=lds->fixture.ledsList.begin(); leds!=lds->fixture.ledsList.end(); ++leds) {
-        for (Leds *leds: lds->fixture.ledsList) {
+        // for (std::vector<Leds *>::iterator leds=eff->fixture.ledsList.begin(); leds!=eff->fixture.ledsList.end(); ++leds) {
+        for (Leds *leds: eff->fixture.ledsList) {
           leds->doMap = true;
         }
 
         char fileName[32] = "";
-        if (files->seqNrToName(fileName, lds->fixture.fixtureNr)) {
+        if (files->seqNrToName(fileName, eff->fixture.fixtureNr)) {
           //send to pview a message to get file filename
           web->addResponse("pview", "file", JsonString(fileName, JsonString::Copied));
         }
@@ -120,9 +120,9 @@ public:
       default: return false; 
     }}); //fixture
 
-    ui->initCoord3D(parentVar, "fixSize", lds->fixture.size, 0, NUM_LEDS_Max, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initCoord3D(parentVar, "fixSize", eff->fixture.size, 0, NUM_LEDS_Max, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        mdl->setValue(var, lds->fixture.size);
+        mdl->setValue(var, eff->fixture.size);
         return true;
       case f_UIFun:
         ui->setLabel(var, "Size");
@@ -130,9 +130,9 @@ public:
       default: return false;
     }});
 
-    ui->initNumber(parentVar, "fixCount", lds->fixture.nrOfLeds, 0, UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initNumber(parentVar, "fixCount", eff->fixture.nrOfLeds, 0, UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        mdl->setValue(var, lds->fixture.nrOfLeds);
+        mdl->setValue(var, eff->fixture.nrOfLeds);
         return true;
       case f_UIFun:
         ui->setLabel(var, "Count");
@@ -141,19 +141,19 @@ public:
       default: return false;
     }});
 
-    ui->initNumber(parentVar, "fps", lds->fps, 1, 999, false , [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initNumber(parentVar, "fps", eff->fps, 1, 999, false , [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setComment(var, "Frames per second");
         return true;
       case f_ChangeFun:
-        lds->fps = var["value"];
+        eff->fps = var["value"];
         return true;
       default: return false; 
     }});
 
     ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
-        web->addResponseV(var["id"], "comment", "f(%d leds)", lds->fixture.nrOfLeds);
+        web->addResponseV(var["id"], "comment", "f(%d leds)", eff->fixture.nrOfLeds);
         return true;
       default: return false;
     }});
@@ -166,7 +166,7 @@ public:
           return true;
         case f_ChangeFun:
           if (!var["value"])
-            lds->fixture.head = {0,0,0};
+            eff->fixture.head = {0,0,0};
           return true;
         default: return false; 
       }});

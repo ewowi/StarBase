@@ -31,7 +31,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initUserMod(parentVar, name);
-    mdl->varSetFixedOrder(parentVar, 5100);
+    mdl->varSetDefaultOrder(parentVar, 5100);
 
     JsonObject tableVar = ui->initTable(parentVar, "aiTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:

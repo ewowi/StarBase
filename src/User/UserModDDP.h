@@ -46,7 +46,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initUserMod(parentVar, name);
-    mdl->varSetFixedOrder(parentVar, 3000);
+    mdl->varSetDefaultOrder(parentVar, 3000);
 
     ui->initIP(parentVar, "ddpInst", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     
@@ -89,12 +89,12 @@ public:
 
     if(!targetIp) return;
 
-    if(!lds->newFrame) return;
+    if(!eff->newFrame) return;
 
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;
 
-    const size_t channelCount = lds->fixture.nrOfLeds * (isRGBW? 4:3); // 1 channel for every R,G,B,(W?) value
+    const size_t channelCount = eff->fixture.nrOfLeds * (isRGBW? 4:3); // 1 channel for every R,G,B,(W?) value
     const size_t packetCount = ((channelCount-1) / DDP_CHANNELS_PER_PACKET) +1;
 
     unsigned32 channel = 0; 
@@ -142,8 +142,8 @@ public:
       /*8*/ddpUdp.write(0xFF & (packetSize >> 8));
       /*9*/ddpUdp.write(0xFF & (packetSize     ));
 
-      for (size_t i = 0; i < lds->fixture.nrOfLeds; i++) {
-        CRGB pixel = lds->fixture.ledsP[i];
+      for (size_t i = 0; i < eff->fixture.nrOfLeds; i++) {
+        CRGB pixel = eff->fixture.ledsP[i];
         ddpUdp.write(scale8(pixel.r, bri)); // R
         ddpUdp.write(scale8(pixel.g, bri)); // G
         ddpUdp.write(scale8(pixel.b, bri)); // B

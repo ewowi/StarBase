@@ -24,7 +24,7 @@ void SysModNetwork::setup() {
   SysModule::setup();
 
   parentVar = ui->initSysMod(parentVar, name);
-  mdl->varSetFixedOrder(parentVar, 2500);
+  mdl->varSetDefaultOrder(parentVar, 2500);
 
   // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { //varFun ro false: create and delete row possible
   //   ui->setLabel(var, "Wifi");

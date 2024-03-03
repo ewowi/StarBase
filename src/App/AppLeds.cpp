@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModLeds.cpp
+   @file      AppModEffects.cpp
    @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main

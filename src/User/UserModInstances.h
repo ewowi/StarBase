@@ -40,33 +40,60 @@ struct VarData {
 struct AppData {
   VarData vars[nrOfAppVars]; //total 80
 
+  bool str3cmp(const char * lhs, const char * rhs) {
+    for (int i = 0; i < 3; i++) {
+      if (lhs[i] == '\0' || rhs[i] == '\0')
+        return true;
+      if (lhs[i] != rhs[i])
+        return false;
+    }
+    return true;
+  }
+
+  void str3cpy(char * lhs, const char * rhs) {
+    bool found0 = false;
+    for (int i = 0; i < 3; i++) {
+      if (rhs[i] == '\0')
+        found0 = true;
+      if (!found0)
+        lhs[i] = rhs[i]; //copy
+      else
+        lhs[i] = '\0'; //add 0
+    }
+  }
+
   int getVar(const char * varID) { //int to support -1
     for (int i=0; i < nrOfAppVars; i++) {
-      if (strncmp(vars[i].id, "", 3) != 0 && strncmp(vars[i].id, varID, 3) == 0) {
+      // USER_PRINTF("getVar %d %s %s %d\n", i, varID, vars[i].id, vars[i].value);
+      if (varID && !str3cmp(vars[i].id, "-") && str3cmp(vars[i].id, varID)) {
         return vars[i].value;
       }
     }
+    // USER_PRINTF("getVar %s not found\n", varID);
     return -1;
   }
   
   void setVar(const char * varID, unsigned8 value) {
     size_t foundAppVar;
     for (int i=0; i< nrOfAppVars; i++) {
-      if (strncmp(vars[i].id, "", 3) == 0)
-        foundAppVar = i;
-      else if (strncmp(vars[i].id, varID, 3) == 0) {
-        foundAppVar = i;
-        break; //use this slot
+      if (str3cmp(vars[i].id, "-")) {
+        foundAppVar = i; //use empty slot
+        break;
+      }
+      else if (str3cmp(vars[i].id, varID)) {
+        foundAppVar = i; //use existing slot for var
+        break; 
       }
     }
     size_t i = foundAppVar;
-    if (strncmp(vars[i].id, "", 3) == 0) strncpy(vars[i].id, varID, 3);
+    if (str3cmp(vars[i].id, "-")) str3cpy(vars[i].id, varID); //assign empty slot to var
     vars[i].value = value;
+    // USER_PRINTF("setVar %d %s %d\n", i, varID, vars[i].value);
   }
 
   void initVars() {
-    for (int i=0; i< nrOfAppVars; i++) {
-      strncpy(vars[i].id, "", 3);
+    for (int i = 0; i < nrOfAppVars; i++) {
+      str3cpy(vars[i].id, "-");
       vars[i].value = 0;
     }
   }
@@ -169,7 +196,7 @@ public:
     SysModule::setup();
 
     parentVar = ui->initSysMod(parentVar, name);
-    mdl->varSetFixedOrder(parentVar, 4200);
+    mdl->varSetDefaultOrder(parentVar, 4200);
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {
@@ -631,14 +658,14 @@ public:
 
               VarData newVar = udpStarMessage.app.vars[i];
 
-              if (strncmp(newVar.id, "", 3) != 0) {
+              if (!instance->app.str3cmp(newVar.id, "-")) {
 
                 int value = instance->app.getVar(newVar.id);
 
                 //if no value found or value has changed
                 if (value == -1 || value != newVar.value) {
                   char varID[4];
-                  strncpy(varID, newVar.id, 3);
+                  instance->app.str3cpy(varID, newVar.id);
                   varID[3]='\0';
 
                   USER_PRINTF("AppData3 %s %s %d\n", instance->name, varID, newVar.value);

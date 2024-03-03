@@ -87,6 +87,8 @@ function makeWS() {
             else
               changeHTMLView("vApp"); //default
 
+            gId("vApp").value = "Leds"; //tbd: should be set by server
+
             //send request for uiFun
             flushUIFunCommands();
           }
@@ -172,8 +174,6 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     }
     let parentNodeType = parentNode.nodeName.toLocaleLowerCase();
 
-    let isPartOfTableRow = (rowNr != UINT8_MAX);
-
     // if (!variable || !variable.id) {
     //   console.log("genHTML no variable and id", variable, parentNode); //tbd: caused by more data then columns in table...
     //   return;
@@ -188,10 +188,18 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     let ndivNeeded = true; //for details ("n"), module and table do not need an extra div for details
        
     let labelNode = cE("label");
-    labelNode.innerText = initCap(variable.id); // the default when not overridden by uiFun
+    let parentVar = findParentVar(variable.id);
+    if (parentVar && variable.id != parentVar.id && parentVar.id && variable.id.substring(0, parentVar.id.length) == parentVar.id) { // if parent id is beginning of the name of the child id then remove that part
+      labelNode.innerText = initCap(variable.id.substring(parentVar.id.length)); // the default when not overridden by uiFun
+    }
+    else
+      labelNode.innerText = initCap(variable.id); // the default when not overridden by uiFun
+    // if (variable.id == "proSplit" && parentNode.className == "ndiv") {
+    //   // findParent(model, variable.id);
+    // }
     
     divNode = cE("div");
-    divNode.id = variable.id + (isPartOfTableRow?"#" + rowNr:"") + "_d";
+    divNode.id = variable.id + (rowNr != UINT8_MAX?"#" + rowNr:"") + "_d";
 
     //table cells and buttons don't get a label
     if (parentNodeType != "td" && variable.type != "checkbox") { //has its own label
@@ -326,7 +334,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       varNode.max = variable.max?variable.max:255; //range slider default 0..255
       varNode.disabled = variable.ro;
       //numerical ui value changes while draging the slider (oninput)
-      let rvNode = variable.id + (isPartOfTableRow?"#" + rowNr:"") + "_rv";
+      let rvNode = variable.id + (rowNr != UINT8_MAX?"#" + rowNr:"") + "_rv";
       varNode.addEventListener('input', (event) => {
         if (gId(rvNode)) {
           gId(rvNode).innerText = variable.log?linearToLogarithm(variable, event.target.value):event.target.value;
@@ -399,7 +407,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       divNode.appendChild(varNode);
       parentNode.appendChild(divNode);
     }
-    varNode.id = variable.id + (isPartOfTableRow?"#" + rowNr:"");
+    varNode.id = variable.id + (rowNr != UINT8_MAX?"#" + rowNr:"");
     varNode.className = variable.type;
 
     if (rangeValueNode) divNode.appendChild(rangeValueNode); //_rv value of range / sliders
@@ -416,7 +424,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       //add a div with _n extension and details have this as parent
       if (ndivNeeded) {
         let ndivNode = cE("div");
-        ndivNode.id = variable.id + (isPartOfTableRow?"#" + rowNr:"") + "_n";
+        ndivNode.id = variable.id + (rowNr != UINT8_MAX?"#" + rowNr:"") + "_n";
         ndivNode.className = "ndiv";
         divNode.appendChild(ndivNode); // add to the parent of the node
         createHTML(variable.n, ndivNode, rowNr);
@@ -643,7 +651,6 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
   }
 
   let nodeType = node.nodeName.toLocaleLowerCase();
-  let isPartOfTableRow = (rowNr != UINT8_MAX);
 
   if (commandJson.hasOwnProperty("label")) {
     if (nodeType == "th") //table header
@@ -655,7 +662,7 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
       node.querySelector("span").innerText = initCap(commandJson.label) + " ";
     }
     else {
-      let labelNode = gId(node.id).parentNode.querySelector("label");
+      let labelNode = node.parentNode.querySelector("label");
       if (labelNode) labelNode.innerText = initCap(commandJson.label);
     }
 
@@ -996,7 +1003,31 @@ function findVar(id, parent = model) {
       if (variable.id == id)
         foundVar = variable;
       else if (variable.n)
-        foundVar = findVar(id, variable.n);
+        foundVar = findVar(id, variable.n); //recursive
+    }
+  }
+  return foundVar;
+}
+
+function findParentVar(id, parent = model) {
+  // console.log("findParentVar", id, parent, model);
+
+  let varArray;
+  if (Array.isArray(parent))
+    varArray = parent;
+  else if (parent.n)
+    varArray = parent.n;
+
+  let foundVar = null;
+
+  if (varArray) {
+    for (var variable of varArray) {
+      if (foundVar == null) {
+        if (variable.id == id)
+          foundVar = parent;
+        else if (variable.n)
+          foundVar = findParentVar(id, variable); //recursive
+      }
     }
   }
   return foundVar;

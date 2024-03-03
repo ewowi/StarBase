@@ -338,7 +338,7 @@ public:
         varOrder(var, -varCounter++); //redefine order
     }
   }
-  void varSetFixedOrder(JsonObject var, int value) {if (varOrder(var) > -1000) varOrder(var, -value); } //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  void varSetDefaultOrder(JsonObject var, int value) {if (varOrder(var) > -1000) varOrder(var, - value); } //set default order (in range >=1000). Don't use auto generated order as order can be changed in the ui (WIP)
   
   //recursively remove all value[rowNr] from children of var
   void varRemoveValuesForRow(JsonObject var, unsigned8 rowNr) {

@@ -11,7 +11,7 @@
 
 #pragma once
 
-//conventional
+//conventional (works)
 // #define unsigned8 uint8_t
 // #define unsigned16 uint16_t
 // #define unsigned32 uint32_t

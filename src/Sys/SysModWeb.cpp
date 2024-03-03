@@ -67,7 +67,7 @@ SysModWeb::SysModWeb() :SysModule("Web") {
 void SysModWeb::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name);
-  mdl->varSetFixedOrder(parentVar, 2400);
+  mdl->varSetDefaultOrder(parentVar, 2400);
 
   JsonObject tableVar = ui->initTable(parentVar, "clTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

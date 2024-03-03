@@ -55,7 +55,7 @@ void SysModPrint::setup() {
   SysModule::setup();
 
   parentVar = ui->initSysMod(parentVar, name);
-  mdl->varSetFixedOrder(parentVar, 2300);
+  mdl->varSetDefaultOrder(parentVar, 2300);
 
   ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

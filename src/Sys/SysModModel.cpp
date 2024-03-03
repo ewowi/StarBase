@@ -38,7 +38,7 @@ void SysModModel::setup() {
   SysModule::setup();
 
   parentVar = ui->initSysMod(parentVar, name);
-  mdl->varSetFixedOrder(parentVar, 4000);
+  mdl->varSetDefaultOrder(parentVar, 4000);
 
   ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

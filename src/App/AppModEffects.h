@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModLeds.h
+   @file      AppModEffects.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -40,7 +40,7 @@ inline unsigned16 getRGBWsize(unsigned16 nleds){
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
-class AppModLeds:public SysModule {
+class AppModEffects:public SysModule {
 
 public:
   bool newFrame = false; //for other modules (DDP)
@@ -51,14 +51,14 @@ public:
 
   Fixture fixture = Fixture();
 
-  AppModLeds() :SysModule("Leds") {
+  AppModEffects() :SysModule("Effects") {
   };
 
   void setup() {
     SysModule::setup();
 
     parentVar = ui->initAppMod(parentVar, name);
-    mdl->varSetFixedOrder(parentVar, 1200);
+    mdl->varSetDefaultOrder(parentVar, 1200);
 
     JsonObject currentVar;
 
@@ -156,7 +156,7 @@ public:
             ui->initCoord3D(var, "proPoint", Coord3D{8,8,8}, 0, NUM_LEDS_Max);
             // , [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
             //   case f_ValueFun:
-            //     mdl->setValue(var, lds->fixture.size);
+            //     mdl->setValue(var, eff->fixture.size);
             //     return true;
             //   case f_UIFun:
             //     ui->setLabel(var, "Size");
@@ -341,7 +341,7 @@ public:
     JsonObject var = mdl->findVar("System");
     if (!var["canvasData"].isNull()) {
       const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
-      USER_PRINTF("AppModLeds loop canvasData %s\n", canvasData);
+      USER_PRINTF("AppModEffects loop canvasData %s\n", canvasData);
 
       //currently only leds[0] supported
       if (fixture.ledsList.size()) {
@@ -612,4 +612,4 @@ private:
 
 };
 
-static AppModLeds *lds;
+static AppModEffects *eff;

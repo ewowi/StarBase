@@ -35,7 +35,7 @@ SysModPins::SysModPins() :SysModule("Pins") {
 void SysModPins::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name);
-  mdl->varSetFixedOrder(parentVar, 2200);
+  mdl->varSetDefaultOrder(parentVar, 2200);
 
   //show table of allocated pins
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun

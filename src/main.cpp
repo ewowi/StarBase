@@ -30,7 +30,7 @@
 #include "User/UserModInstances.h"
 #include "User/UserModMDNS.h"
 #ifdef STARMOD_APPMOD_LEDS
-  #include "App/AppModLeds.h"
+  #include "App/AppModEffects.h"
   #include "App/AppModFixture.h"
   #include "App/AppModFixtureGen.h"
   #ifdef STARMOD_USERMOD_ARTNET
@@ -70,7 +70,7 @@ void setup() {
   instances = new UserModInstances();
   mdns = new UserModMDNS();
   #ifdef STARMOD_APPMOD_LEDS
-    lds = new AppModLeds();
+    eff= new AppModEffects();
     fix = new AppModFixture();
     lfg = new AppModFixtureGen();
     #ifdef STARMOD_USERMOD_ARTNET
@@ -95,7 +95,7 @@ void setup() {
   mdls->add(ai);
   #ifdef STARMOD_APPMOD_LEDS
     mdls->add(fix);
-    mdls->add(lds);
+    mdls->add(eff);
     mdls->add(lfg);
   #endif
   mdls->add(files);

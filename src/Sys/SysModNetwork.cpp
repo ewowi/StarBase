@@ -23,28 +23,27 @@ SysModNetwork::SysModNetwork() :SysModule("Network") {};
 void SysModNetwork::setup() {
   SysModule::setup();
 
-  parentVar = ui->initSysMod(parentVar, name);
-  if (parentVar["o"] > -1000) parentVar["o"] = -2500; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  parentVar = ui->initSysMod(parentVar, name, 2500);
 
-  // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { //varFun ro false: create and delete row possible
+  // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { //varFun ro false: create and delete row possible
   //   ui->setLabel(var, "Wifi");
   //   ui->setComment(var, "List of defined and available Wifi APs");
   // });
 
   ui->initText(parentVar, "ssid", "", 32, false);
   // , nullptr
-  // , nullptr, nullptr, 1, [this](JsonObject var, uint8_t rowNr) { //valueFun
+  // , nullptr, nullptr, 1, [this](JsonObject var, unsigned8 rowNr) { //valueFun
   //   var["value"][0] = "";
   // });
 
-  ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Password");
       return true;
     default: return false;
   }});
 
-  ui->initButton(parentVar, "connect", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initButton(parentVar, "connect", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setComment(var, "Force reconnect (loose current connection)");
       return true;
@@ -55,14 +54,14 @@ void SysModNetwork::setup() {
     default: return false;
   }});
 
-  ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "nwstatus", nullptr, 32, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Status");
       return true;
     default: return false;
   }});
 
-  ui->initText(parentVar, "rssi", nullptr, 32, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "rssi", nullptr, 32, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Wifi signal");
       return true;

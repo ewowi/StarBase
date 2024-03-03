@@ -190,6 +190,15 @@ select {
 	color: var(--text-color);
 }
 
+option {
+	color: var(--text-color);
+	background: var(--bg-color);
+}
+
+input[type="button"] {
+	padding: 7px;
+}
+
 h1,h2 {
 	color: var(--h-color);
 	line-height: 5px;

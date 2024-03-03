@@ -31,10 +31,9 @@ SysModFiles::SysModFiles() :SysModule("Files") {
 //setup filesystem
 void SysModFiles::setup() {
   SysModule::setup();
-  parentVar = ui->initSysMod(parentVar, name);
-  if (parentVar["o"] > -1000) parentVar["o"] = -2000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  parentVar = ui->initSysMod(parentVar, name, 2000);
 
-  JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Files");
       ui->setComment(var, "List of files");
@@ -56,9 +55,9 @@ void SysModFiles::setup() {
     default: return false;
   }});
 
-  ui->initText(tableVar, "flName", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "flName", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < fileList.size(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++)
         mdl->setValue(var, JsonString(fileList[rowNr].name, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -67,9 +66,9 @@ void SysModFiles::setup() {
     default: return false;
   }});
 
-  ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < fileList.size(); rowNr++)
+      for (unsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++)
         mdl->setValue(var, fileList[rowNr].size, rowNr);
       return true;
     case f_UIFun:
@@ -78,9 +77,9 @@ void SysModFiles::setup() {
     default: return false;
   }});
 
-  ui->initURL(tableVar, "flLink", nullptr, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initURL(tableVar, "flLink", nullptr, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (uint8_t rowNr = 0; rowNr < fileList.size(); rowNr++) {
+      for (unsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++) {
         char urlString[32] = "file/";
         strncat(urlString, fileList[rowNr].name, sizeof(urlString)-1);
         mdl->setValue(var, JsonString(urlString, JsonString::Copied), rowNr);
@@ -92,7 +91,7 @@ void SysModFiles::setup() {
     default: return false;
   }});
 
-  ui->initProgress(parentVar, "drsize", UINT16_MAX, 0, files->totalBytes(), true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initProgress(parentVar, "drsize", UINT16_MAX, 0, files->totalBytes(), true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
       mdl->setValue(var, files->usedBytes());
       return true;
@@ -134,7 +133,7 @@ void SysModFiles::loop() {
 
     ui->callVarFun(mdl->findVar("drsize")); //valueFun
 
-    for (JsonObject childVar: mdl->varN("fileTbl"))
+    for (JsonObject childVar: mdl->varChildren("fileTbl"))
       ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
   }
 }

@@ -33,7 +33,7 @@ public:
   
 private:
   bool apActive = false;
-  uint32_t lastReconnectAttempt = 0;
+  unsigned32 lastReconnectAttempt = 0;
   char apSSID[33] = "StarMod AP";
   char apPass[65] = "star1234";
   byte apChannel = 1; // 2.4GHz WiFi AP channel (1-13)

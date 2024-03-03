@@ -19,16 +19,16 @@ typedef std::function<void(JsonObject)> FindFun;
 typedef std::function<void(JsonObject, size_t)> ChangeFun;
 
 struct Coord3D {
-  uint16_t x;
-  uint16_t y;
-  uint16_t z;
+  unsigned16 x;
+  unsigned16 y;
+  unsigned16 z;
 
   // Coord3D() {
   //   x = 0;
   //   y = 0;
   //   z = 0;
   // }
-  // Coord3D(uint16_t x, uint16_t y, uint16_t z) {
+  // Coord3D(unsigned16 x, unsigned16 y, unsigned16 z) {
   //   this->x = x;
   //   this->y = y;
   //   this->z = y;
@@ -79,22 +79,22 @@ struct Coord3D {
     return result;
   }
   Coord3D operator+(Coord3D rhs) {
-    return Coord3D{uint16_t(x + rhs.x), uint16_t(y + rhs.y), uint16_t(z + rhs.z)};
+    return Coord3D{unsigned16(x + rhs.x), unsigned16(y + rhs.y), unsigned16(z + rhs.z)};
     // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   Coord3D operator/(Coord3D rhs) {
-    return Coord3D{uint16_t(x / rhs.x), uint16_t(y / rhs.y), uint16_t(z / rhs.z)};
+    return Coord3D{unsigned16(x / rhs.x), unsigned16(y / rhs.y), unsigned16(z / rhs.z)};
     // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   Coord3D minimum(Coord3D rhs) {
     return Coord3D{min(x, rhs.x), min(y, rhs.y), min(z, rhs.z)};
   }
-  Coord3D operator*(uint8_t rhs) {
-    return Coord3D{uint16_t(x * rhs), uint16_t(y * rhs), uint16_t(z * rhs)};
+  Coord3D operator*(unsigned8 rhs) {
+    return Coord3D{unsigned16(x * rhs), unsigned16(y * rhs), unsigned16(z * rhs)};
     // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
-  Coord3D operator/(uint8_t rhs) {
-    return Coord3D{uint16_t(x / rhs), uint16_t(y / rhs), uint16_t(z / rhs)};
+  Coord3D operator/(unsigned8 rhs) {
+    return Coord3D{unsigned16(x / rhs), unsigned16(y / rhs), unsigned16(z / rhs)};
     // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   //move the coordinate one step closer to the goal, if difference in coordinates (used in GenFix)
@@ -109,7 +109,7 @@ struct Coord3D {
 //used to sort keys of jsonobjects
 struct ArrayIndexSortValue {
   size_t index;
-  uint32_t value;
+  unsigned32 value;
 };
 
 //https://arduinojson.org/news/2021/05/04/version-6-18-0/
@@ -131,7 +131,7 @@ namespace ArduinoJson {
     }
 
     static bool checkJson(JsonVariantConst src) {
-      return src["x"].is<uint16_t>() && src["y"].is<uint16_t>() && src["z"].is<uint16_t>();
+      return src["x"].is<unsigned16>() && src["y"].is<unsigned16>() && src["z"].is<unsigned16>();
     }
   };
 }
@@ -169,7 +169,7 @@ public:
 
   bool doWriteModel = false;
 
-  static uint8_t contextRowNr;
+  static unsigned8 contextRowNr;
 
   SysModModel();
   void setup();
@@ -180,7 +180,7 @@ public:
 
   //sets the value of var with id
   template <typename Type>
-  JsonObject setValue(const char * id, Type value, uint8_t rowNr = UINT8_MAX) {
+  JsonObject setValue(const char * id, Type value, unsigned8 rowNr = UINT8_MAX) {
     JsonObject var = findVar(id);
     if (!var.isNull()) {
       return setValue(var, value, rowNr);
@@ -192,7 +192,7 @@ public:
   }
 
   template <typename Type>
-  JsonObject setValue(JsonObject var, Type value, uint8_t rowNr = UINT8_MAX) {
+  JsonObject setValue(JsonObject var, Type value, unsigned8 rowNr = UINT8_MAX) {
 
     bool changed = false;
 
@@ -201,7 +201,7 @@ public:
         JsonString oldValue = JsonString(var["value"], JsonString::Copied);
         var["value"] = value;
         //trick to remove null values
-        if (var["value"].isNull() || var["value"].as<uint32_t>() == UINT16_MAX) {
+        if (var["value"].isNull() || var["value"].as<unsigned16>() == UINT16_MAX) {
           var.remove("value");
           if (oldValue.size()>0)
             USER_PRINTF("dev setValue value removed %s %s\n", varID(var), oldValue.c_str()); //old value
@@ -250,7 +250,7 @@ public:
   }
 
   //Set value with argument list with rowNr (rowNr cannot have a default)
-  JsonObject setValueV(const char * id, uint8_t rowNr = UINT8_MAX, const char * format = nullptr, ...) {
+  JsonObject setValueV(const char * id, unsigned8 rowNr = UINT8_MAX, const char * format = nullptr, ...) {
     va_list args;
     va_start(args, format);
 
@@ -276,7 +276,7 @@ public:
     web->addResponse(id, "value", JsonString(value, JsonString::Copied)); //setValue not necessary
   }
 
-  JsonVariant getValue(const char * id, uint8_t rowNr = UINT8_MAX) {
+  JsonVariant getValue(const char * id, unsigned8 rowNr = UINT8_MAX) {
     JsonObject var = findVar(id);
     if (!var.isNull()) {
       return getValue(var, rowNr);
@@ -286,7 +286,7 @@ public:
       return JsonVariant();
     }
   }
-  JsonVariant getValue(JsonObject var, uint8_t rowNr = UINT8_MAX) {
+  JsonVariant getValue(JsonObject var, unsigned8 rowNr = UINT8_MAX) {
     if (var["value"].is<JsonArray>()) {
       JsonArray valueArray = var["value"].as<JsonArray>();
       if (rowNr == UINT8_MAX) rowNr = contextRowNr;
@@ -311,21 +311,38 @@ public:
   void varToValues(JsonObject var, JsonArray values);
 
   //run the change function and send response to all? websocket clients
-  static void callChangeFun(JsonObject var, uint8_t rowNr = UINT8_MAX);
+  static void callChangeFun(JsonObject var, unsigned8 rowNr = UINT8_MAX);
 
   //pseudo VarObject: public JsonObject functions
   const char * varID(JsonObject var) {return var["id"];}
+
   bool varRO(JsonObject var) {return var["ro"];}
   void varRO(JsonObject var, bool value) {var["ro"] = value;}
-  JsonArray varN(const char * id) {return varN(findVar(id));}
-  JsonArray varN(JsonObject var) {return var["n"];}
+
+  JsonArray varChildren(const char * id) {return varChildren(findVar(id));}
+  JsonArray varChildren(JsonObject var) {return var["n"];}
+
   JsonArray varValArray(JsonObject var) {if (var["value"].is<JsonArray>()) return var["value"]; else return JsonArray(); }
+
   int varOrder(JsonObject var) {return var["o"];}
   void varOrder(JsonObject var, int value) {var["o"] = value;}
-
+  
+  void varInitOrder(JsonObject parent, JsonObject var) {
+        //set order. make order negative to check if not obsolete, see cleanUpModel
+    if (varOrder(var) >= 1000) //predefined! (modules) - positive as saved in model.json
+      varOrder(var, -varOrder(var)); //leave the order as is
+    else {
+      if (!parent.isNull() && varOrder(parent) >= 0) // if checks on the parent already done so vars added later, e.g. controls, will be autochecked
+        varOrder(var, varCounter++); //redefine order
+      else
+        varOrder(var, -varCounter++); //redefine order
+    }
+  }
+  void varSetDefaultOrder(JsonObject var, int value) {if (varOrder(var) > -1000) varOrder(var, - value); } //set default order (in range >=1000). Don't use auto generated order as order can be changed in the ui (WIP)
+  
   //recursively remove all value[rowNr] from children of var
-  void varRemoveValuesForRow(JsonObject var, uint8_t rowNr) {
-    for (JsonObject childVar: varN(var)) {
+  void varRemoveValuesForRow(JsonObject var, unsigned8 rowNr) {
+    for (JsonObject childVar: varChildren(var)) {
       JsonArray valArray = varValArray(childVar);
       if (!valArray.isNull()) {
         valArray.remove(rowNr);
@@ -335,8 +352,8 @@ public:
     }
   }
 
-  void varPreDetails(JsonObject var, uint8_t rowNr = UINT8_MAX) {
-    for (JsonObject var: varN(var)) { //for all controls
+  void varPreDetails(JsonObject var, unsigned8 rowNr = UINT8_MAX) {
+    for (JsonObject var: varChildren(var)) { //for all controls
       if (varOrder(var) >= 0) { //post init
         varOrder(var, -varOrder(var)); // set all negative
       }
@@ -345,7 +362,7 @@ public:
     print->printJson("varPreDetails post", var);
   }
 
-  void varPostDetails(JsonObject var, uint8_t rowNr) {
+  void varPostDetails(JsonObject var, unsigned8 rowNr) {
 
     contextRowNr = UINT8_MAX;
     if (rowNr != UINT8_MAX) {
@@ -354,7 +371,7 @@ public:
 
       //check if post init added: parent is already >=0
       if (varOrder(var) >= 0) {
-        for (JsonArray::iterator childVar=varN(var).begin(); childVar!=varN(var).end(); ++childVar) { //use iterator to make .remove work!!!
+        for (JsonArray::iterator childVar=varChildren(var).begin(); childVar!=varChildren(var).end(); ++childVar) { //use iterator to make .remove work!!!
           JsonArray valArray = varValArray(*childVar);
           if (!valArray.isNull())
           {
@@ -376,12 +393,12 @@ public:
             }
             if (allNull) {
               print->printJson("remove allnulls", *childVar);
-              varN(var).remove(childVar);
+              varChildren(var).remove(childVar);
             }
           }
           else {
             print->printJson("remove non valArray", *childVar);
-            varN(var).remove(childVar);
+            varChildren(var).remove(childVar);
           }
 
         }
@@ -398,6 +415,7 @@ public:
 private:
   bool doShowObsolete = false;
   bool cleanUpModelDone = false;
+  static int varCounter; //not static crashes ??? (not called async...?)
 
 };
 

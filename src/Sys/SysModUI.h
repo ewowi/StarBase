@@ -26,9 +26,9 @@ enum FunIDs
 };
 
 // https://stackoverflow.com/questions/59111610/how-do-you-declare-a-lambda-function-using-typedef-and-then-use-it-by-passing-to
-typedef std::function<uint8_t(JsonObject, uint8_t, uint8_t)> VarFun;
-// typedef void(*LoopFun)(JsonObject, uint8_t*); //std::function is crashing...
-// typedef std::function<void(JsonObject, uint8_t)> LoopFun;
+typedef std::function<unsigned8(JsonObject, unsigned8, unsigned8)> VarFun;
+// typedef void(*LoopFun)(JsonObject, unsigned8*); //std::function is crashing...
+// typedef std::function<void(JsonObject, unsigned8)> LoopFun;
 
 struct VarLoop {
   JsonObject var;
@@ -37,7 +37,7 @@ struct VarLoop {
   unsigned long counter = 0;
 };
 
-static uint8_t linearToLogarithm(JsonObject var, uint8_t value) {
+static unsigned8 linearToLogarithm(JsonObject var, unsigned8 value) {
   if (value == 0) return 0;
 
   float minp = var["min"].isNull()?var["min"]:0;
@@ -67,25 +67,31 @@ public:
   void loop();
   void loop1s();
 
-  JsonObject initAppMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "appmod", value, 0, 0, readOnly, varFun);
+  JsonObject initAppMod(JsonObject parent, const char * id, int order = 0) {
+    JsonObject var = initVarAndUpdate<const char *>(parent, id, "appmod", (const char *)nullptr);
+    if (order) mdl->varSetDefaultOrder(var, order + 1000);
+    return var;
   }
-  JsonObject initSysMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "sysmod", value, 0, 0, readOnly, varFun);
+  JsonObject initSysMod(JsonObject parent, const char * id, int order = 0) {
+    JsonObject var = initVarAndUpdate<const char *>(parent, id, "sysmod", (const char *)nullptr);
+    if (order) mdl->varSetDefaultOrder(var, order + 1000);
+    return var;
   }
-  JsonObject initUserMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "usermod", value, 0, 0, readOnly, varFun);
+  JsonObject initUserMod(JsonObject parent, const char * id, int order = 0) {
+    JsonObject var = initVarAndUpdate<const char *>(parent, id, "usermod", (const char *)nullptr);
+    if (order) mdl->varSetDefaultOrder(var, order + 1000);
+    return var;
   }
 
   JsonObject initTable(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
     return initVarAndUpdate<const char *>(parent, id, "table", value, 0, 0, readOnly, varFun);
   }
 
-  JsonObject initText(JsonObject parent, const char * id, const char * value = nullptr, uint16_t max = 32, bool readOnly = false, VarFun varFun = nullptr) {
+  JsonObject initText(JsonObject parent, const char * id, const char * value = nullptr, unsigned16 max = 32, bool readOnly = false, VarFun varFun = nullptr) {
     return initVarAndUpdate<const char *>(parent, id, "text", value, 0, max, readOnly, varFun);
   }
 
-  JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, uint8_t max = 32, bool readOnly = false, VarFun varFun = nullptr) {
+  JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, unsigned8 max = 32, bool readOnly = false, VarFun varFun = nullptr) {
     return initVarAndUpdate<const char *>(parent, id, "password", value, 0, 0, readOnly, varFun);
   }
 
@@ -134,8 +140,8 @@ public:
   }
 
   //WIP pointer values
-  JsonObject initSelect(JsonObject parent, const char * id, uint8_t * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
-    return initVarAndUpdate<uint8_t>(parent, id, "select", value, 0, 0, readOnly, varFun);
+  JsonObject initSelect(JsonObject parent, const char * id, unsigned8 * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
+    return initVarAndUpdate<unsigned8>(parent, id, "select", value, 0, 0, readOnly, varFun);
   }
 
   JsonObject initTextArea(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
@@ -210,13 +216,13 @@ public:
 
   JsonObject initVar(JsonObject parent, const char * id, const char * type, bool readOnly = true, VarFun varFun = nullptr);
 
-  uint8_t callVarFun(const char * varID, uint8_t rowNr = UINT8_MAX, uint8_t funType = f_ChangeFun) {
+  unsigned8 callVarFun(const char * varID, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ChangeFun) {
     JsonObject var = mdl->findVar(varID);
     return callVarFun(var, rowNr, funType);
   }
 
-  uint8_t callVarFun(JsonObject var, uint8_t rowNr = UINT8_MAX, uint8_t funType = f_ValueFun) {
-    uint8_t result = false;
+  unsigned8 callVarFun(JsonObject var, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ValueFun) {
+    unsigned8 result = false;
 
     if (!var["fun"].isNull()) {//isNull needed here!
       size_t funNr = var["fun"];
@@ -271,8 +277,6 @@ public:
   }
 
 private:
-  static int varCounter; //not static crashes ??? (not called async...?)
-
   static std::vector<VarLoop> loopFunctions; //non static crashing ...
 
 };

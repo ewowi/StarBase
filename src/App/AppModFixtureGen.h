@@ -25,13 +25,13 @@ class GenFix {
 public:
   char name[32] = "";
 
-  // uint16_t distance = 1; //cm, not used yet (to display multiple fixture, also from other devices)
+  // unsigned16 distance = 1; //cm, not used yet (to display multiple fixture, also from other devices)
 
   char pinSep[2]="";
   char pixelSep[2]="";
 
   Coord3D fixSize = {0,0,0};
-  uint16_t nrOfLeds=0;
+  unsigned16 nrOfLeds=0;
   
   File f;
 
@@ -79,9 +79,9 @@ public:
     g.print("{");
     g.printf("\"name\":\"%s\"", name);
     g.printf(",\"nrOfLeds\":%d", nrOfLeds);
-    g.printf(",\"width\":%d", fixSize.x/10+1); //effects run on 1 led is 1 cm mode.
-    g.printf(",\"height\":%d", fixSize.y/10+1);
-    g.printf(",\"depth\":%d", fixSize.z/10+1);
+    g.printf(",\"width\":%d", (fixSize.x+5)/10+1); //effects run on 1 led is 1 cm mode.
+    g.printf(",\"height\":%d", (fixSize.y+5)/10+1);
+    g.printf(",\"depth\":%d", (fixSize.z+5)/10+1);
 
     byte character;
     f.read(&character, sizeof(byte));
@@ -98,7 +98,7 @@ public:
     files->remove("/temp.json");
   }
 
-  void openPin(uint8_t pin) {
+  void openPin(unsigned8 pin) {
     f.printf("%s{\"pin\":%d,\"leds\":[", pinSep, pin);
     strcpy(pinSep, ",");
     strcpy(pixelSep, "");
@@ -107,7 +107,7 @@ public:
     f.printf("]}");
   }
 
-  void write3D(uint16_t x, uint16_t y, uint16_t z) {
+  void write3D(unsigned16 x, unsigned16 y, unsigned16 z) {
     if (x>UINT16_MAX/2 || y>UINT16_MAX/2 || z>UINT16_MAX/2) USER_PRINTF("write3D coord too high %d,%d,%d\n", x, y, z);
 
     f.printf("%s[%d,%d,%d]", pixelSep, x, y, z);
@@ -118,7 +118,13 @@ public:
     nrOfLeds++;
   }
 
-  void matrix (Coord3D first, Coord3D rowEnd, Coord3D colEnd, uint8_t ip, uint8_t pin) {
+  //utility
+  unsigned u_abs(int x) {
+    if (x <0) return -x;
+    else return x;
+  }
+
+  void matrix (Coord3D first, Coord3D rowEnd, Coord3D colEnd, unsigned8 ip, unsigned8 pin) {
 
     openPin(pin);
 
@@ -133,12 +139,12 @@ public:
 
     // Coord3D pixel = first;
 
-    uint8_t rowDimension; //in what dimension the row will advance (x=0, y=1, z=2), now only one should differ
+    unsigned8 rowDimension; //in what dimension the row will advance (x=0, y=1, z=2), now only one should differ
     if (first.x != rowEnd.x) rowDimension = 0;
     if (first.y != rowEnd.y) rowDimension = 1; //
     if (first.z != rowEnd.z) rowDimension = 2;
 
-    uint8_t colDimension; //in what dimension the col will advance, not the rowDimension
+    unsigned8 colDimension; //in what dimension the col will advance, not the rowDimension
     if (first.x != colEnd.x && rowDimension != 0) colDimension = 0; //
     if (first.y != colEnd.y && rowDimension != 1) colDimension = 1;
     if (first.z != colEnd.z && rowDimension != 2) colDimension = 2;
@@ -146,7 +152,7 @@ public:
     bool rowValueSame = (rowDimension == 0)? first.x == colEnd.x : (rowDimension == 1)? first.y == colEnd.y : first.z == colEnd.z; 
     bool serpentine = rowValueSame;
     
-    uint16_t nrOfColumns = (colDimension == 0)? abs(colEnd.x - first.x) + 1 : (colDimension == 1)? abs(colEnd.y - first.y) + 1 : abs(colEnd.z - first.z) + 1;
+    unsigned16 nrOfColumns = (colDimension == 0)? u_abs(colEnd.x - first.x) + 1 : (colDimension == 1)? u_abs(colEnd.y - first.y) + 1 : u_abs(colEnd.z - first.z) + 1;
     if (nrOfColumns % 2 == 1 && rowValueSame) //if odd nrOfCols and rowValueSame then adjust the endpoint col value to the rowEnd col value
     {
       if (rowDimension == 0)
@@ -158,7 +164,7 @@ public:
     }
 
     Coord3D colPixel = Coord3D{(rowDimension==0)?colEnd.x:first.x, (rowDimension==1)?colEnd.y:first.y, (rowDimension==2)?colEnd.z:first.z};
-    uint8_t colNr = 0;
+    unsigned8 colNr = 0;
     while (true) {
       // colPixel is not advancing over the dimension of the row but advances over it's own dimension towards the colEnd
 
@@ -190,7 +196,7 @@ public:
     closePin();
   }
 
-  void ring (Coord3D first, uint16_t ledCount, uint8_t ip, uint8_t pin) {
+  void ring (Coord3D first, unsigned16 ledCount, unsigned8 ip, unsigned8 pin) {
 
     // float size = nrOfLeds / 2 / M_PI;
     openPin(pin);
@@ -198,17 +204,17 @@ public:
     float ringDiam = 10 * ledCount / 2 / M_PI; //in mm
     for (int i=0; i<ledCount; i++) {
       float radians = i*360/ledCount * (M_PI / 180);
-      uint16_t x = ringDiam + ringDiam * sinf(radians);
-      uint16_t y = ringDiam + ringDiam * cosf(radians);
+      unsigned16 x = ringDiam + ringDiam * sinf(radians);
+      unsigned16 y = ringDiam + ringDiam * cosf(radians);
       write3D( x + first.x * 10, y + first.y * 10, first.z * 10);
     }
     closePin();
   }
 
-  void rings241 (Coord3D first, uint8_t nrOfRings, bool in2out, uint8_t ip, uint8_t pin) {
+  void rings241 (Coord3D first, unsigned8 nrOfRings, bool in2out, unsigned8 ip, unsigned8 pin) {
     float ringDiam;
-    uint8_t ringsNrOfLeds[9] = {1, 8, 12, 16, 24, 32, 40, 48, 60};
-    uint8_t ringDiams[9] = {0, 13, 23, 33, 43, 53, 63, 73, 83}; //in mm
+    unsigned8 ringsNrOfLeds[9] = {1, 8, 12, 16, 24, 32, 40, 48, 60};
+    unsigned8 ringDiams[9] = {0, 13, 23, 33, 43, 53, 63, 73, 83}; //in mm
     //  {0, 0},     //0 Center Point -> 1
     //   {1, 8},     //1 -> 8
     //   {9, 20},   //2 -> 12
@@ -222,21 +228,21 @@ public:
     openPin(pin);
 
     // in2out or out2in
-    uint16_t size = ringDiams[nrOfRings-1]; //size if the biggest ring
+    unsigned16 size = ringDiams[nrOfRings-1]; //size if the biggest ring
     for (int j=0; j<nrOfRings; j++) {
-      uint8_t ringNrOfLeds = in2out?ringsNrOfLeds[j]:ringsNrOfLeds[nrOfRings - 1 - j];
+      unsigned8 ringNrOfLeds = in2out?ringsNrOfLeds[j]:ringsNrOfLeds[nrOfRings - 1 - j];
       ringDiam = in2out?ringDiams[j]:ringDiams[nrOfRings - 1 - j]; //in mm
       for (int i=0; i<ringNrOfLeds; i++) {
         float radians = i*360/ringNrOfLeds * (M_PI / 180);
-        uint16_t x = size + ringDiam * sinf(radians);
-        uint16_t y = size + ringDiam * cosf(radians);
+        unsigned16 x = size + ringDiam * sinf(radians);
+        unsigned16 y = size + ringDiam * cosf(radians);
         write3D(x + first.x*10, y + first.y*10, first.z*10);
       }
     }
     closePin();
   }
 
-  void spiral (Coord3D first, uint16_t ledCount, uint8_t ip, uint8_t pin) {
+  void spiral (Coord3D first, unsigned16 ledCount, unsigned8 ip, unsigned8 pin) {
 
     float width = 10;
     // float height = ledCount/12;
@@ -246,16 +252,16 @@ public:
 
     for (int i=0; i<ledCount; i++) {
       float radians = i*360/48 * (M_PI / 180); //48 leds per round
-      uint16_t x = 10 * width/2 * (1 + sinf(radians));
-      uint16_t y = 10 * i/12; //
-      uint16_t z = 10 * depth/2 * (1+ cosf(radians));
+      unsigned16 x = 10 * width/2 * (1 + sinf(radians));
+      unsigned16 y = 10 * i/12; //
+      unsigned16 z = 10 * depth/2 * (1+ cosf(radians));
       write3D(x + first.x*10, y + first.y*10, z + first.z*10);
     }
 
     closePin();
   }
 
-  void wheel (Coord3D first, uint16_t nrOfSpokes, uint16_t ledsPerSpoke, uint8_t ip, uint8_t pin) {
+  void wheel (Coord3D first, unsigned16 nrOfSpokes, unsigned16 ledsPerSpoke, unsigned8 ip, unsigned8 pin) {
 
     float size = 50 + 10 * ledsPerSpoke;
     openPin(pin);
@@ -264,8 +270,8 @@ public:
       float radians = i*360/nrOfSpokes * (M_PI / 180);
       for (int j=0;j<ledsPerSpoke;j++) {
         float ringDiam = 50 + 10 * j; //in mm
-        uint16_t x = size + ringDiam * sinf(radians);
-        uint16_t y = size + ringDiam * cosf(radians);
+        unsigned16 x = size + ringDiam * sinf(radians);
+        unsigned16 y = size + ringDiam * cosf(radians);
         write3D(x+first.x*10,y+first.y*10, first.z*10);
       }
     }
@@ -273,21 +279,21 @@ public:
   }
 
   //https://stackoverflow.com/questions/71816702/coordinates-of-dot-on-an-hexagon-path
-  void hexagon (Coord3D first, uint16_t ledsPerSide, uint8_t ip, uint8_t pin) {
+  void hexagon (Coord3D first, unsigned16 ledsPerSide, unsigned8 ip, unsigned8 pin) {
 
     openPin(pin);
 
     float radius = ledsPerSide; //or float if it needs to be tuned
 
-    Coord3D center = (first + Coord3D{(uint16_t)radius, (uint16_t)radius, 0}) * 10; //in mm
+    Coord3D center = (first + Coord3D{(unsigned16)radius, (unsigned16)radius, 0}) * 10; //in mm
 
     const float y = sqrtf(3)/2; // = sin(60°)
     float hexaX[7] = {1.0, 0.5, -0.5, -1.0, -0.5, 0.5, 1.0};
     float hexaY[7] = {0.0, y, y, 0, -y, -y, 0.0};
 
-    for (uint16_t i = 0; i < ledsPerSide * 6; i++) {
+    for (unsigned16 i = 0; i < ledsPerSide * 6; i++) {
       float offset = 6.0f * (float)i / (float)(ledsPerSide*6);
-      uint8_t edgenum = floor(offset);  // On which edge is this dot?
+      unsigned8 edgenum = floor(offset);  // On which edge is this dot?
       offset = offset - (float)edgenum; // Retain fractional part only: offset on that edge
 
       // Use interpolation to get coordinates of that point on that edge
@@ -302,7 +308,7 @@ public:
     closePin();
   }
 
-  void cone (Coord3D first, uint8_t nrOfRings, uint8_t ip, uint8_t pin) {
+  void cone (Coord3D first, unsigned8 nrOfRings, unsigned8 ip, unsigned8 pin) {
 
     openPin(pin);
 
@@ -314,13 +320,13 @@ public:
     // bool in2out = mdl->getValue("in2out");
 
     for (int j=0; j<nrOfRings; j++) {
-      uint8_t ringNrOfLeds = (j+1) * 3;
+      unsigned8 ringNrOfLeds = (j+1) * 3;
       float ringDiam = 10*ringNrOfLeds / 2 / M_PI; //in mm
       for (int i=0; i<ringNrOfLeds; i++) {
         float radians = i*360/ringNrOfLeds * (M_PI / 180);
-        uint16_t x = 10* width / 2 + ringDiam * sinf(radians);
-        uint16_t z = 10 * height / 2 + ringDiam * cosf(radians);
-        uint16_t y = j*10;
+        unsigned16 x = 10* width / 2 + ringDiam * sinf(radians);
+        unsigned16 z = 10 * height / 2 + ringDiam * cosf(radians);
+        unsigned16 y = j*10;
         write3D(x + first.x*10, y + first.y*10, z + first.z*10);
       }
     }
@@ -328,10 +334,10 @@ public:
     closePin();
   }
 
-  void cloud (Coord3D first, uint8_t ip, uint8_t pin) {
+  void cloud (Coord3D first, unsigned8 ip, unsigned8 pin) {
     //Small RL Alt Test
 
-    uint8_t y;
+    unsigned8 y;
 
     //tbd: different pins for each section!!!
 
@@ -365,16 +371,16 @@ public:
     closePin();
   }
 
-  void globe (Coord3D first, uint8_t width, uint8_t ip, uint8_t pin) {
+  void globe (Coord3D first, unsigned8 width, unsigned8 ip, unsigned8 pin) {
 
     openPin(pin);
 
     float ringDiam = 10 * width / 2 / M_PI; //in mm
     for (int i=0; i<width; i++) {
       float radians = i*360/width * (M_PI / 180);
-      uint16_t x = 10 * width/M_PI / 2 + ringDiam * sinf(radians);
-      uint16_t y = 10 * width / 2 + ringDiam * cosf(radians);
-      uint16_t z = 10 * width / 2 + ringDiam * cosf(radians);
+      unsigned16 x = 10 * width/M_PI / 2 + ringDiam * sinf(radians);
+      unsigned16 y = 10 * width / 2 + ringDiam * cosf(radians);
+      unsigned16 z = 10 * width / 2 + ringDiam * cosf(radians);
       write3D(x + first.x*10, y + first.y*10, z + first.z*10);
     }
 
@@ -383,9 +389,9 @@ public:
 
   // https://stackoverflow.com/questions/17705621/algorithm-for-a-geodesic-sphere
   //https://opengl.org.ru/docs/pg/0208.html
-  void geodesicDome (Coord3D first, uint8_t width, uint8_t ip, uint8_t pin) {
+  void geodesicDome (Coord3D first, unsigned8 width, unsigned8 ip, unsigned8 pin) {
  
-    uint8_t tindices[20][3] = {    {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},       {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},       {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6},    {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} };
+    unsigned8 tindices[20][3] = {    {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},       {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},       {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6},    {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} };
 
     openPin(pin);
 
@@ -423,10 +429,9 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initUserMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -1300; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    parentVar = ui->initUserMod(parentVar, name, 1300);
 
-    ui->initSelect(parentVar, "fixtureGen", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initSelect(parentVar, "fixtureGen", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {
         ui->setLabel(var, "Fixture");
         ui->setComment(var, "Type of fixture");
@@ -450,7 +455,7 @@ public:
       default: return false; 
     }}); //fixtureGen
 
-    ui->initCheckBox(parentVar, "panels", false, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCheckBox(parentVar, "panels", false, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setComment(var, "Show panels");
         return true;
@@ -461,7 +466,7 @@ public:
     }});
 
 	// gpio2 seems to be a safe choice on all esp32 variants
-//     ui->initText(parentVar, "pinList", "2", 32, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+//     ui->initText(parentVar, "pinList", "2", 32, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
 //       case f_UIFun:
 //         ui->setComment(var, "One or more e.g. 12,13,14");
 //         return true;
@@ -481,7 +486,7 @@ public:
 //       default: return false;
 //     }});
 
-    ui->initButton(parentVar, "generate", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initButton(parentVar, "generate", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ChangeFun:
         generateChFun(var);
         //reload fixture select
@@ -503,7 +508,7 @@ public:
     JsonObject panelVar = mdl->findVar("panels");
 
     // JsonObject parentVar = mdl->findVar(var["id"]); //local parentVar
-    uint8_t fgValue = fixtureGenVar["value"];
+    unsigned8 fgValue = fixtureGenVar["value"];
 
     fixtureGenVar.remove("n"); //tbd: we should also remove the varFun !!
 
@@ -512,7 +517,7 @@ public:
     JsonObject parentVar = fixtureGenVar;
     if (panelVar["value"].as<bool>()) {
 
-      parentVar = ui->initTable(fixtureGenVar, "pnlTbl", nullptr, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      parentVar = ui->initTable(fixtureGenVar, "pnlTbl", nullptr, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
         case f_UIFun:
           ui->setLabel(var, "Panels");
           ui->setComment(var, "List of fixtures");
@@ -526,7 +531,7 @@ public:
         default: return false;
       }});
 
-      ui->initCoord3D(parentVar, "pnlFirst", {0,0,0}, 0, NUM_LEDS_Max, false, [fgValue](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      ui->initCoord3D(parentVar, "pnlFirst", {0,0,0}, 0, NUM_LEDS_Max, false, [fgValue](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
         case f_UIFun:
           //show Top Left for all fixture except Matrix as it has its own
           if (fgValue == f_Matrix)
@@ -542,7 +547,7 @@ public:
 
     if (fgValue == f_Matrix) {
 
-      ui->initCoord3D(parentVar, "mrxRowEnd", {7,0,0}, 0, NUM_LEDS_Max, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      ui->initCoord3D(parentVar, "mrxRowEnd", {7,0,0}, 0, NUM_LEDS_Max, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
         case f_UIFun:
           ui->setLabel(var, "Row end");
           ui->setComment(var, "-> Orientation");
@@ -550,7 +555,7 @@ public:
         default: return false;
       }});
 
-      ui->initCoord3D(parentVar, "mrxColEnd", {7,7,0}, 0, NUM_LEDS_Max, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      ui->initCoord3D(parentVar, "mrxColEnd", {7,7,0}, 0, NUM_LEDS_Max, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
         case f_UIFun:
           ui->setLabel(var, "Column end");
           ui->setComment(var, "Last LED -> nrOfLeds, Serpentine");
@@ -560,7 +565,7 @@ public:
 
       if (panelVar["value"].as<bool>()) {
 
-        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
           case f_UIFun: {
             ui->setLabel(var, "Preset");
             JsonArray options = ui->setOptions(var);
@@ -575,46 +580,46 @@ public:
             options.add("Great Plains");
             return true; }
           case f_ChangeFun: {
-            uint8_t optionNr = 1; // 0 is none, maintain the same order here as the options
-            uint8_t panel = 0;
+            unsigned8 optionNr = 1; // 0 is none, maintain the same order here as the options
+            unsigned8 panel = 0;
             if (var["value"] == optionNr++) { //16x16
-              uint8_t lengthMinOne = 15;
+              unsigned8 lengthMinOne = 15;
               panel = 0; mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); 
               panel = 0; mdl->setValue("mrxRowEnd", Coord3D{0,lengthMinOne,0}, panel++);
               panel = 0; mdl->setValue("mrxColEnd", Coord3D{lengthMinOne,lengthMinOne,0}, panel++);
               panel = 0; mdl->setValue("fixPin", 2, panel++); // default per board...
             }
             if (var["value"] == optionNr++) { //4x16x16
-              uint8_t lengthMinOne = 15; uint8_t size = lengthMinOne + 1;
+              unsigned8 lengthMinOne = 15; unsigned8 size = lengthMinOne + 1;
               panel = 0; mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{16,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{0,16,0}, panel++); mdl->setValue("pnlFirst", Coord3D{16,16,0}, panel++); 
               panel = 0; mdl->setValue("mrxRowEnd", Coord3D{0,lengthMinOne,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{16,lengthMinOne,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{0,31,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{16,31,0}, panel++); 
               panel = 0; mdl->setValue("mrxColEnd", Coord3D{lengthMinOne,lengthMinOne,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{31,lengthMinOne,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{lengthMinOne,31,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{31,31,0}, panel++); 
               panel = 0; mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); 
             }
             if (var["value"] == optionNr++) { //4x32x8
-              uint8_t lengthMinOne = 31;
+              unsigned8 lengthMinOne = 31;
               panel = 0; mdl->setValue("pnlFirst", Coord3D{lengthMinOne,lengthMinOne,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,23,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,15,0}, panel++); mdl->setValue("pnlFirst", Coord3D{lengthMinOne,7,0}, panel++);
               panel = 0; mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,24,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,16,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,8,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{lengthMinOne,0,0}, panel++);
               panel = 0; mdl->setValue("mrxColEnd", Coord3D{0,lengthMinOne,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,23,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,15,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,7,0}, panel++);
               panel = 0; mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); mdl->setValue("fixPin", 2, panel++); 
             }
             else if (var["value"] == optionNr++) { //Human Sized Cube
-              uint8_t length = 20; uint8_t size = length + 1;
+              unsigned8 length = 20; unsigned8 size = length + 1;
               panel = 0; mdl->setValue("pnlFirst", Coord3D{1,1,size}, panel++); mdl->setValue("pnlFirst", Coord3D{0,1,1}, panel++); mdl->setValue("pnlFirst", Coord3D{1,1,0}, panel++); mdl->setValue("pnlFirst", Coord3D{size,1,1}, panel++); mdl->setValue("pnlFirst", Coord3D{1,0,1}, panel++);
               panel = 0; mdl->setValue("mrxRowEnd", Coord3D{1,length,size}, panel++); mdl->setValue("mrxRowEnd", Coord3D{0,length,1}, panel++); mdl->setValue("mrxRowEnd", Coord3D{1,length,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{size,length,1}, panel++); mdl->setValue("mrxRowEnd", Coord3D{1,0,length}, panel++);
               panel = 0; mdl->setValue("mrxColEnd", Coord3D{length,length,size}, panel++); mdl->setValue("mrxColEnd", Coord3D{0,length,length}, panel++); mdl->setValue("mrxColEnd", Coord3D{length,length,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{size,length,length}, panel++); mdl->setValue("mrxColEnd", Coord3D{length,0,length}, panel++);
               panel = 0; mdl->setValue("fixPin", 16, panel++); mdl->setValue("fixPin", 14, panel++); mdl->setValue("fixPin", 32, panel++); mdl->setValue("fixPin", 3, panel++); mdl->setValue("fixPin", 15, panel++);
             }
             else if (var["value"] == optionNr++) { //Cube 6 x 8 x 8
-              uint8_t length = 8; uint8_t size = length + 1;
+              unsigned8 length = 8; unsigned8 size = length + 1;
               panel = 0; mdl->setValue("pnlFirst", Coord3D{1,1,0}, panel++); mdl->setValue("pnlFirst", Coord3D{length, size, length}, panel++); mdl->setValue("pnlFirst", Coord3D{size, 1, 1}, panel++); mdl->setValue("pnlFirst", Coord3D{0, length, length}, panel++); mdl->setValue("pnlFirst", Coord3D{length, 1, size}, panel++); mdl->setValue("pnlFirst", Coord3D{1, 0, length}, panel++);
               panel = 0; mdl->setValue("mrxRowEnd", Coord3D{1,length,0}, panel++); mdl->setValue("mrxRowEnd", Coord3D{1, size, length}, panel++); mdl->setValue("mrxRowEnd", Coord3D{size, 1, length}, panel++); mdl->setValue("mrxRowEnd", Coord3D{0, 1, length}, panel++); mdl->setValue("mrxRowEnd", Coord3D{1, 1, size}, panel++); mdl->setValue("mrxRowEnd", Coord3D{length, 0, length}, panel++);
               panel = 0; mdl->setValue("mrxColEnd", Coord3D{length,length,0}, panel++); mdl->setValue("mrxColEnd", Coord3D{1, size, 1}, panel++); mdl->setValue("mrxColEnd", Coord3D{size, length, length}, panel++); mdl->setValue("mrxColEnd", Coord3D{0, 1, 1}, panel++); mdl->setValue("mrxColEnd", Coord3D{1, length, size}, panel++); mdl->setValue("mrxColEnd", Coord3D{length, 0, 1}, panel++);
               panel = 0; mdl->setValue("fixPin", 12, panel++); mdl->setValue("fixPin", 12, panel++); mdl->setValue("fixPin", 13, panel++); mdl->setValue("fixPin", 13, panel++); mdl->setValue("fixPin", 14, panel++); mdl->setValue("fixPin", 14, panel++);
             }
             else if (var["value"] == optionNr++) { //Cube 3D
-              uint8_t length = 8; uint8_t size = length -1;
-              for (uint8_t panel=0; panel < length; panel++) {
+              unsigned8 length = 8; unsigned8 size = length -1;
+              for (unsigned8 panel=0; panel < length; panel++) {
                 mdl->setValue("pnlFirst", Coord3D{0,0,panel}, panel);
                 mdl->setValue("mrxRowEnd", Coord3D{0,size,panel}, panel);
                 mdl->setValue("mrxColEnd", Coord3D{size,size,panel}, panel);
@@ -622,12 +627,12 @@ public:
               }
             }
             else if (var["value"] == optionNr++) { //Sticks
-              uint8_t length = 16;
-              uint8_t height = 54;
-              for (uint8_t panel=0; panel < length; panel++) {
-                mdl->setValue("pnlFirst", Coord3D{(uint16_t)(panel*5), height, 0}, panel);
-                mdl->setValue("mrxRowEnd", Coord3D{(uint16_t)(panel*5), height, 0}, panel);
-                mdl->setValue("mrxColEnd", Coord3D{(uint16_t)(panel*5), 0, 0}, panel);
+              unsigned8 length = 16;
+              unsigned8 height = 54;
+              for (unsigned8 panel=0; panel < length; panel++) {
+                mdl->setValue("pnlFirst", Coord3D{(unsigned16)(panel*5), height, 0}, panel);
+                mdl->setValue("mrxRowEnd", Coord3D{(unsigned16)(panel*5), height, 0}, panel);
+                mdl->setValue("mrxColEnd", Coord3D{(unsigned16)(panel*5), 0, 0}, panel);
                 mdl->setValue("fixPin", 12, panel);
               }
             }
@@ -640,7 +645,7 @@ public:
       }
     }
     else if (fgValue == f_Ring) {
-      ui->initNumber(parentVar, "fixLeds", 24, 1, NUM_LEDS_Max, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      ui->initNumber(parentVar, "fixLeds", 24, 1, NUM_LEDS_Max, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
         case f_UIFun:
           ui->setLabel(var, "Leds");
           return true;
@@ -649,7 +654,7 @@ public:
 
       if (panelVar["value"].as<bool>()) {
 
-        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
           case f_UIFun: {
             ui->setLabel(var, "Preset");
             JsonArray options = ui->setOptions(var);
@@ -658,8 +663,8 @@ public:
             options.add("Audi");
             return true; }
           case f_ChangeFun: {
-            uint8_t optionNr = 1; // 0 is none, maintain the same order here as the options
-            uint8_t panel = 0;
+            unsigned8 optionNr = 1; // 0 is none, maintain the same order here as the options
+            unsigned8 panel = 0;
             if (var["value"] == optionNr++) { //Olympic
               panel = 0; mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{10,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{20,0,0}, panel++); mdl->setValue("pnlFirst", Coord3D{5,3,0}, panel++); mdl->setValue("pnlFirst", Coord3D{15,3,0}, panel++); 
               panel = 0; mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); mdl->setValue("fixLeds", 24, panel++); 
@@ -680,7 +685,7 @@ public:
       ui->initCheckBox(parentVar, "in2out", true);
     }
     else if (fgValue == f_Spiral) {
-      ui->initNumber(parentVar, "fixLeds", 64, 1, NUM_LEDS_Max, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      ui->initNumber(parentVar, "fixLeds", 64, 1, NUM_LEDS_Max, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
         case f_UIFun:
           ui->setLabel(var, "Leds");
           return true;
@@ -696,7 +701,7 @@ public:
 
       if (panelVar["value"].as<bool>()) {
 
-        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
           case f_UIFun: {
             ui->setLabel(var, "Preset");
             JsonArray options = ui->setOptions(var);
@@ -704,8 +709,8 @@ public:
             options.add("HexaWall");
             return true; }
           case f_ChangeFun: {
-            uint8_t optionNr = 1; // 0 is none, maintain the same order here as the options
-            uint8_t panel = 0;
+            unsigned8 optionNr = 1; // 0 is none, maintain the same order here as the options
+            unsigned8 panel = 0;
             if (var["value"] == optionNr++) { //HexaWall
               panel = 0; 
               mdl->setValue("pnlFirst", Coord3D{0,0,0}, panel++); 
@@ -718,7 +723,7 @@ public:
               mdl->setValue("pnlFirst", Coord3D{50,6,0}, panel++); 
               mdl->setValue("pnlFirst", Coord3D{60,0,0}, panel++); 
 
-              for (uint8_t panel = 0; panel < 9; panel++) {
+              for (unsigned8 panel = 0; panel < 9; panel++) {
                 mdl->setValue("ledsPerSide", 6, panel);
                 mdl->setValue("fixPin", 2, panel);
               }
@@ -738,7 +743,7 @@ public:
 
 
 
-    ui->initNumber(parentVar, "fixIP", WiFi.localIP()[3], 1, 256, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initNumber(parentVar, "fixIP", WiFi.localIP()[3], 1, 256, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "IP");
         ui->setComment(var, "Super-Sync WIP");
@@ -746,14 +751,14 @@ public:
       default: return false; 
     }});
 
-    ui->initPin(parentVar, "fixPin", 2, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initPin(parentVar, "fixPin", 2, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {
         ui->setLabel(var, "Pin");
 
         //tbd: move logic to pinMgr and create initPin
         JsonArray options = ui->setOptions(var);
         
-        for (uint8_t pinNr = 0; pinNr < NUM_DIGITAL_PINS; pinNr++) {
+        for (unsigned8 pinNr = 0; pinNr < NUM_DIGITAL_PINS; pinNr++) {
           char text[32];
           itoa(pinNr, text, 10);
           if (digitalPinIsValid(pinNr)) {
@@ -791,11 +796,11 @@ public:
         //set remaining rows to same pin
         JsonArray valArray = mdl->varValArray(var);
 
-        uint8_t thisVal = var["value"];
-        uint8_t rowNrL = 0;
+        unsigned8 thisVal = var["value"];
+        unsigned8 rowNrL = 0;
         for (JsonVariant val: valArray) {
           if (rowNrL > rowNr)
-            mdl->setValue(var, valArray[rowNr].as<uint8_t>(), rowNrL);
+            mdl->setValue(var, valArray[rowNr].as<unsigned8>(), rowNrL);
           rowNrL++;
         }
         return true; }
@@ -820,11 +825,11 @@ public:
       return str; 
   } 
 
-  void getPanels(const char * fileName, std::function<void(GenFix *, uint8_t)> genFun) {
+  void getPanels(const char * fileName, std::function<void(GenFix *, unsigned8)> genFun) {
     GenFix genFix;
 
     JsonObject presetsVar = mdl->findVar("fixPreset");
-    uint8_t presets = mdl->getValue(presetsVar);
+    unsigned8 presets = mdl->getValue(presetsVar);
 
     //set header and file name
     if (presets != 0) {
@@ -839,14 +844,14 @@ public:
       ui->clearOptions(presetsVar);
     }
     else {
-      uint16_t ledCount = mdl->getValue("fixLeds");
+      unsigned16 ledCount = mdl->getValue("fixLeds");
       genFix.openHeader(fileName);
     }
 
     JsonVariant pnlFirstValue = mdl->findVar("pnlFirst")["value"];
 
     if (pnlFirstValue.is<JsonArray>()) {
-      uint8_t rowNr = 0;
+      unsigned8 rowNr = 0;
       for (JsonVariant firstValueRow: pnlFirstValue.as<JsonArray>()) {
         genFun(&genFix, rowNr);
         rowNr++;
@@ -860,72 +865,72 @@ public:
  
   void generateChFun(JsonObject var) {
 
-    uint8_t fgValue = mdl->getValue("fixtureGen");
+    unsigned8 fgValue = mdl->getValue("fixtureGen");
 
     if (fgValue == f_Matrix) {
 
       Coord3D size = (mdl->getValue("mrxColEnd").as<Coord3D>() - mdl->getValue("pnlFirst").as<Coord3D>()) + Coord3D{1,1,1};
       char fileName[32]; print->fFormat(fileName, 31, "F_Matrix%d%d%d", size.x, size.y, size.z);
 
-      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->matrix(mdl->getValue("pnlFirst", rowNr), mdl->getValue("mrxRowEnd", rowNr), mdl->getValue("mrxColEnd", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Ring) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Ring%d", mdl->getValue("fixLeds").as<uint8_t>());
+      char fileName[32]; print->fFormat(fileName, 31, "F_Ring%d", mdl->getValue("fixLeds").as<unsigned8>());
 
-      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->ring(mdl->getValue("pnlFirst", rowNr), mdl->getValue("fixLeds", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Rings241) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Ring241-%d", mdl->getValue("nrOfRings").as<uint8_t>());
+      char fileName[32]; print->fFormat(fileName, 31, "F_Ring241-%d", mdl->getValue("nrOfRings").as<unsigned8>());
 
-      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->rings241(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfRings", rowNr), mdl->getValue("in2out", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Spiral) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Spiral%d", mdl->getValue("fixLeds").as<uint8_t>());
+      char fileName[32]; print->fFormat(fileName, 31, "F_Spiral%d", mdl->getValue("fixLeds").as<unsigned8>());
 
-      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->spiral(mdl->getValue("pnlFirst", rowNr), mdl->getValue("fixLeds", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Wheel) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Wheel%d%d", mdl->getValue("nrOfSpokes").as<uint8_t>(), mdl->getValue("ledsPerSpoke").as<uint8_t>());
+      char fileName[32]; print->fFormat(fileName, 31, "F_Wheel%d%d", mdl->getValue("nrOfSpokes").as<unsigned8>(), mdl->getValue("ledsPerSpoke").as<unsigned8>());
       
-      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->wheel(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfSpokes", rowNr), mdl->getValue("ledsPerSpoke", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Hexagon) {
 
-      getPanels("F_Hexagon", [](GenFix * genFix, uint8_t rowNr) {
+      getPanels("F_Hexagon", [](GenFix * genFix, unsigned8 rowNr) {
         genFix->hexagon(mdl->getValue("pnlFirst", rowNr), mdl->getValue("ledsPerSide", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Cone) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Cone%d", mdl->getValue("nrOfRings").as<uint8_t>());
+      char fileName[32]; print->fFormat(fileName, 31, "F_Cone%d", mdl->getValue("nrOfRings").as<unsigned8>());
 
-      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->cone(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfRings", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Cloud) {
 
-      getPanels("F_Cloud5416", [](GenFix * genFix, uint8_t rowNr) {
+      getPanels("F_Cloud5416", [](GenFix * genFix, unsigned8 rowNr) {
         genFix->cloud(mdl->getValue("pnlFirst", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Wall) {
 
-      getPanels("F_Wall", [](GenFix * genFix, uint8_t rowNr) {
+      getPanels("F_Wall", [](GenFix * genFix, unsigned8 rowNr) {
         genFix->rings241(Coord3D{0,0,0}, 9, true, UINT8_MAX, 2);
 
         genFix->matrix (Coord3D{19,0,0}, Coord3D{19,8,0}, Coord3D{27,0,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -938,15 +943,15 @@ public:
 
     } else if (fgValue == f_Globe) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Globe%d", mdl->getValue("width").as<uint8_t>());
+      char fileName[32]; print->fFormat(fileName, 31, "F_Globe%d", mdl->getValue("width").as<unsigned8>());
 
-      getPanels(fileName, [](GenFix * genFix, uint8_t rowNr) {
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->globe(mdl->getValue("pnlFirst", rowNr), mdl->getValue("width", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_GeodesicDome) {
 
-      getPanels("F_GeodesicDome", [](GenFix * genFix, uint8_t rowNr) {
+      getPanels("F_GeodesicDome", [](GenFix * genFix, unsigned8 rowNr) {
         genFix->geodesicDome(mdl->getValue("pnlFirst", rowNr), mdl->getValue("width", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 

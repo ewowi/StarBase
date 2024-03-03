@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModLeds.h
+   @file      AppModEffects.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -25,8 +25,8 @@
 // #define FASTLED_RGBW
 
 //https://www.partsnotincluded.com/fastled-rgbw-neopixels-sk6812/
-inline uint16_t getRGBWsize(uint16_t nleds){
-	uint16_t nbytes = nleds * 4;
+inline unsigned16 getRGBWsize(unsigned16 nleds){
+	unsigned16 nbytes = nleds * 4;
 	if(nbytes % 3 > 0) return nbytes / 3 + 1;
 	else return nbytes / 3;
 }
@@ -34,12 +34,12 @@ inline uint16_t getRGBWsize(uint16_t nleds){
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
-class AppModLeds:public SysModule {
+class AppModEffects:public SysModule {
 
 public:
   bool newFrame = false; //for other modules (DDP)
 
-  uint16_t fps = 60;
+  unsigned16 fps = 60;
   unsigned long lastMappingMillis = 0;
   Effects effects;
 
@@ -48,18 +48,17 @@ public:
   I2SClocklessLedDriver driver;
   boolean driverInit = false;
 
-  AppModLeds() :SysModule("Leds") {
+  AppModEffects() :SysModule("Effects") {
   };
 
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initAppMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -1200; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    parentVar = ui->initAppMod(parentVar, name, 1200);
 
     JsonObject currentVar;
 
-    JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    JsonObject tableVar = ui->initTable(parentVar, "fxTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "Effects");
         ui->setComment(var, "List of effects");
@@ -87,9 +86,9 @@ public:
       default: return false;
     }});
 
-    currentVar = ui->initSelect(tableVar, "fx", 0, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    currentVar = ui->initSelect(tableVar, "fx", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
+        for (unsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
           mdl->setValue(var, fixture.ledsList[rowNr]->fx, rowNr);
         return true;
       case f_UIFun: {
@@ -117,9 +116,9 @@ public:
     }});
     currentVar["stage"] = true;
 
-    currentVar = ui->initSelect(tableVar, "pro", 2, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    currentVar = ui->initSelect(tableVar, "pro", 2, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
+        for (unsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
           mdl->setValue(var, fixture.ledsList[rowNr]->projectionNr, rowNr);
         return true;
       case f_UIFun: {
@@ -145,15 +144,15 @@ public:
         if (rowNr < fixture.ledsList.size()) {
           fixture.ledsList[rowNr]->doMap = true;
 
-          uint8_t proValue = mdl->getValue(var, rowNr);
+          unsigned8 proValue = mdl->getValue(var, rowNr);
           fixture.ledsList[rowNr]->projectionNr = proValue;
 
           mdl->varPreDetails(var, rowNr); //set all positive var N orders to negative
           if (proValue == p_DistanceFromPoint) {
             ui->initCoord3D(var, "proPoint", Coord3D{8,8,8}, 0, NUM_LEDS_Max);
-            // , [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+            // , [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
             //   case f_ValueFun:
-            //     mdl->setValue(var, lds->fixture.size);
+            //     mdl->setValue(var, eff->fixture.size);
             //     return true;
             //   case f_UIFun:
             //     ui->setLabel(var, "Size");
@@ -162,7 +161,7 @@ public:
             // }});
           }
           if (proValue == p_Multiply) {
-            ui->initCoord3D(var, "proSplit", Coord3D{2,2,1}, 0, 10, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+            ui->initCoord3D(var, "proSplit", Coord3D{2,2,1}, 0, 10, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
               case f_ChangeFun:
                 fixture.ledsList[rowNr]->doMap = true;
                 fixture.doMap = true;
@@ -185,9 +184,9 @@ public:
     }});
     currentVar["stage"] = true;
 
-    ui->initCoord3D(tableVar, "fxStart", {0,0,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCoord3D(tableVar, "fxStart", {0,0,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
+        for (unsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
           USER_PRINTF("fxStart[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr]->startPos.x, fixture.ledsList[rowNr]->startPos.y, fixture.ledsList[rowNr]->startPos.z);
           mdl->setValue(var, fixture.ledsList[rowNr]->startPos, rowNr);
         }
@@ -213,9 +212,9 @@ public:
       default: return false;
     }});
 
-    ui->initCoord3D(tableVar, "fxEnd", {8,8,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initCoord3D(tableVar, "fxEnd", {8,8,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (uint8_t rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
+        for (unsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
           USER_PRINTF("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr]->endPos.x, fixture.ledsList[rowNr]->endPos.y, fixture.ledsList[rowNr]->endPos.z);
           mdl->setValue(var, fixture.ledsList[rowNr]->endPos, rowNr);
         }
@@ -241,10 +240,10 @@ public:
       default: return false;
     }});
 
-    ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun: {
         // for (std::vector<Leds *>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
-        uint8_t rowNr = 0;
+        unsigned8 rowNr = 0;
         for (Leds *leds: fixture.ledsList) {
           char message[32];
           print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
@@ -259,7 +258,7 @@ public:
       default: return false;
     }});
 
-    // ui->initSelect(parentVar, "fxLayout", 0, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    // ui->initSelect(parentVar, "fxLayout", 0, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     //   case f_UIFun: {
     //     ui->setLabel(var, "Layout");
     //     ui->setComment(var, "WIP");
@@ -273,7 +272,7 @@ public:
     //   default: return false;
     // }}); //fxLayout
 
-    ui->initSlider(parentVar, "Blending", fixture.globalBlend, 0, 255, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initSlider(parentVar, "Blending", fixture.globalBlend, 0, 255, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ChangeFun:
         fixture.globalBlend = var["value"];
         return true;
@@ -291,7 +290,7 @@ public:
 
           // ui->stageVarChanged = true;
           // //rebuild the table
-          for (JsonObject childVar: mdl->varN("e131Tbl"))
+          for (JsonObject childVar: mdl->varChildren("e131Tbl"))
             ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
 
       // }
@@ -316,7 +315,7 @@ public:
       //  run the next frame of the effect
       // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
       // for (std::vector<Leds *>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
-      uint8_t rowNr = 0;
+      unsigned8 rowNr = 0;
       for (Leds *leds: fixture.ledsList) {
         if (!leds->doMap) { // don't run effect while remapping
           // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
@@ -337,7 +336,7 @@ public:
     JsonObject var = mdl->findVar("System");
     if (!var["canvasData"].isNull()) {
       const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
-      USER_PRINTF("AppModLeds loop canvasData %s\n", canvasData);
+      USER_PRINTF("AppModEffects loop canvasData %s\n", canvasData);
 
       //currently only leds[0] supported
       if (fixture.ledsList.size()) {
@@ -385,8 +384,8 @@ public:
               before = after;
               after = strtok(NULL, " ");
 
-              uint16_t startLed = atoi(before);
-              uint16_t nrOfLeds = atoi(after) - atoi(before) + 1;
+              unsigned16 startLed = atoi(before);
+              unsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
               USER_PRINTF("driver.initled new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
 
               int pins[1] = { pinNr };
@@ -414,4 +413,4 @@ private:
 
 };
 
-static AppModLeds *lds;
+static AppModEffects *eff;

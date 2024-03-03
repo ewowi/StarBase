@@ -39,8 +39,8 @@ public:
   // leds = (CRGB*)malloc(nrOfLeds * sizeof(CRGB));
   // leds = (CRGB*)reallocarray
 
-  uint16_t nrOfLeds = 64; //amount of physical leds
-  uint8_t fixtureNr = -1;
+  unsigned16 nrOfLeds = 64; //amount of physical leds
+  unsigned8 fixtureNr = -1;
   Coord3D size = {8,8,1};
 
   std::vector<Leds *> ledsList; //virtual leds
@@ -50,7 +50,7 @@ public:
   bool doMap = false;
   bool doAllocPins = false;
 
-  uint8_t globalBlend = 128;
+  unsigned8 globalBlend = 128;
   
   //load fixture json file, parse it and depending on the projection, create a mapping for it
   void projectAndMap();
@@ -58,7 +58,7 @@ public:
   float distance(float x1, float y1, float z1, float x2, float y2, float z2) {
     return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
   }
-  float distance(uint16_t x1, uint16_t y1, uint16_t z1, uint16_t x2, uint16_t y2, uint16_t z2) {
+  float distance(unsigned16 x1, unsigned16 y1, unsigned16 z1, unsigned16 x2, unsigned16 y2, unsigned16 z2) {
     return distance(Coord3D{x1, y1, z1}, Coord3D{x2,y2,z2});
     // return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
   }

@@ -17,7 +17,8 @@
 
 JsonDocument * SysModModel::model = nullptr;
 JsonObject SysModModel::modelParentVar;
-uint8_t SysModModel::contextRowNr = UINT8_MAX;
+unsigned8 SysModModel::contextRowNr = UINT8_MAX;
+int SysModModel::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 
 SysModModel::SysModModel() :SysModule("Model") {
   model = new JsonDocument(&allocator);
@@ -36,10 +37,9 @@ SysModModel::SysModModel() :SysModule("Model") {
 void SysModModel::setup() {
   SysModule::setup();
 
-  parentVar = ui->initSysMod(parentVar, name);
-  if (parentVar["o"] > -1000) parentVar["o"] = -4000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+  parentVar = ui->initSysMod(parentVar, name, 4000);
 
-  ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setComment(var, "Write to model.json");
       return true;
@@ -49,7 +49,7 @@ void SysModModel::setup() {
     default: return false;
   }});
 
-  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setComment(var, "Show in UI (refresh)");
       return true;
@@ -59,7 +59,7 @@ void SysModModel::setup() {
     default: return false;
   }});
 
-  ui->initButton(parentVar, "deleteObsolete", false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+  ui->initButton(parentVar, "deleteObsolete", false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Delete obsolete variables");
       ui->setComment(var, "WIP");
@@ -105,7 +105,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
   if (parent.isNull()) //no parent
     vars = model->as<JsonArray>();
   else
-    vars = varN(parent);
+    vars = varChildren(parent);
 
   for (JsonArray::iterator varV=vars.begin(); varV!=vars.end(); ++varV) {
   // for (JsonVariant varV : vars) {
@@ -140,7 +140,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
       }
 
       //recursive call
-      if (!varN(var).isNull())
+      if (!varChildren(var).isNull())
         cleanUpModel(var, oPos, ro);
     } 
   }
@@ -203,7 +203,7 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
     }
 }
 
-void SysModModel::callChangeFun(JsonObject var, uint8_t rowNr) {
+void SysModModel::callChangeFun(JsonObject var, unsigned8 rowNr) {
 
   //done here as ui cannot be used in SysModModel.h
   if (var["stage"])

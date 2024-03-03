@@ -30,20 +30,18 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initUserMod(parentVar, name);
-    if (mdl->varOrder(parentVar) > -1000) parentVar["o"] = -5000;//-1000; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    parentVar = ui->initUserMod(parentVar, name, 5100);
 
-    JsonObject tableVar = ui->initTable(parentVar, "aiTbl", nullptr, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    JsonObject tableVar = ui->initTable(parentVar, "aiTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "AI recommendations");
-        // ui->setComment(var, "List of instances");
         return true;
       default: return false;
     }});
 
-    ui->initText(tableVar, "aiIntel", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "aiIntel", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (uint8_t rowNr = 0; rowNr < recommendations.size(); rowNr++)
+        for (unsigned8 rowNr = 0; rowNr < recommendations.size(); rowNr++)
           mdl->setValue(var, JsonString(recommendations[rowNr].intel, JsonString::Copied), rowNr);
         return true;
       case f_UIFun:
@@ -52,9 +50,9 @@ public:
       default: return false;
     }});
 
-    ui->initButton(tableVar, "aiButton", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initButton(tableVar, "aiButton", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (uint8_t rowNr = 0; rowNr < recommendations.size(); rowNr++)
+        for (unsigned8 rowNr = 0; rowNr < recommendations.size(); rowNr++)
           mdl->setValue(var, JsonString(recommendations[rowNr].module, JsonString::Copied), rowNr);
         return true;
       case f_UIFun:

@@ -28,10 +28,9 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initUserMod(parentVar, name);
-    if (parentVar["o"] > -1000) parentVar["o"] = -3100; //set default order. Don't use auto generated order as order can be changed in the ui (WIP)
+    parentVar = ui->initUserMod(parentVar, name, 3100);
 
-    ui->initIP(parentVar, "artInst", UINT16_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initIP(parentVar, "artInst", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     
       case f_UIFun: {
         ui->setLabel(var, "Instance");
@@ -42,10 +41,10 @@ public:
         instanceObject.add("no sync");
         for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
           if (node->ip != WiFi.localIP()) {
-            char option[32] = { 0 };
-            strncpy(option, node->ip.toString().c_str(), sizeof(option)-1);
+            char option[64] = { 0 };
+            strncpy(option, node->name, sizeof(option)-1);
             strncat(option, " ", sizeof(option)-1);
-            strncat(option, node->name, sizeof(option)-1);
+            strncat(option, node->ip.toString().c_str(), sizeof(option)-1);
             instanceObject = options.add<JsonArray>();
             instanceObject.add(node->ip[3]);
             instanceObject.add(option);
@@ -72,16 +71,16 @@ public:
 
     if(!targetIp) return;
 
-    if(!lds->newFrame) return;
+    if(!eff->newFrame) return;
 
     // calculate the number of UDP packets we need to send
     bool isRGBW = false;
 
-    const size_t channelCount = lds->fixture.nrOfLeds * (isRGBW?4:3); // 1 channel for every R,G,B,(W?) value
+    const size_t channelCount = eff->fixture.nrOfLeds * (isRGBW?4:3); // 1 channel for every R,G,B,(W?) value
     const size_t ARTNET_CHANNELS_PER_PACKET = isRGBW?512:510; // 512/4=128 RGBW LEDs, 510/3=170 RGB LEDs
     const size_t packetCount = ((channelCount-1)/ARTNET_CHANNELS_PER_PACKET)+1;
 
-    uint32_t channel = 0; 
+    unsigned32 channel = 0; 
     size_t bufferOffset = 0;
 
     sequenceNumber++;
@@ -118,8 +117,8 @@ public:
       ddpUdp.write(0xFF & (packetSize >> 8)); // 16-bit length of channel data, MSB
       ddpUdp.write(0xFF & (packetSize     )); // 16-bit length of channel data, LSB
 
-      for (size_t i = 0; i < lds->fixture.nrOfLeds; i++) {
-        CRGB pixel = lds->fixture.ledsP[i];
+      for (size_t i = 0; i < eff->fixture.nrOfLeds; i++) {
+        CRGB pixel = eff->fixture.ledsP[i];
         ddpUdp.write(scale8(pixel.r, bri)); // R
         ddpUdp.write(scale8(pixel.g, bri)); // G
         ddpUdp.write(scale8(pixel.b, bri)); // B

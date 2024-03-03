@@ -286,10 +286,10 @@ public:
         instanceObject.add(0);
         instanceObject.add("no sync");
         for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
-          char option[32] = { 0 };
-          strncpy(option, instance->ip.toString().c_str(), sizeof(option)-1);
+          char option[64] = { 0 };
+          strncpy(option, instance->name, sizeof(option)-1);
           strncat(option, " ", sizeof(option)-1);
-          strncat(option, instance->name, sizeof(option)-1);
+          strncat(option, instance->ip.toString().c_str(), sizeof(option)-1);
           instanceObject = options.add<JsonArray>();
           instanceObject.add(instance->ip[3]);
           instanceObject.add(option);
@@ -707,7 +707,7 @@ public:
     } // for instances
 
     if (!instanceFound) {
-      USER_PRINTF("insTbl new instance node %d\n", messageIP[3]);
+      USER_PRINTF("insTbl new instance node %s\n", messageIP.toString().c_str());
       
       ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun); //UiFun as select changes
       ui->callVarFun("artInst", UINT8_MAX, f_UIFun);

@@ -35,10 +35,11 @@ public:
   void setup() {
     SysModule::setup();
     parentVar = ui->initUserMod(parentVar, name);
+    mdl->varSetDefaultOrder(parentVar, 5300);
+  
     ui->initText(parentVar, "wledAudioStatus", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Status");
-      // ui->setComment(var, "web socket calls");
       return true;
     default: return false;
    }});
@@ -70,11 +71,11 @@ public:
   }
 
   void loop10s() {
-    USER_PRINTF("%d, %s, %d\n",sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
+    // USER_PRINTF("%d, %s, %d\n", sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
   }
 
   void loop1s() {
-    mdl->setUIValueV("wledAudioStatus", "%d, %s, %d",sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
+    mdl->setUIValueV("wledAudioStatus", "%d, %s, %d", sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
   }
 
   private:

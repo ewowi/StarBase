@@ -67,14 +67,20 @@ public:
   void loop();
   void loop1s();
 
-  JsonObject initAppMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "appmod", value, 0, 0, readOnly, varFun);
+  JsonObject initAppMod(JsonObject parent, const char * id, int order = 0) {
+    JsonObject var = initVarAndUpdate<const char *>(parent, id, "appmod", (const char *)nullptr);
+    if (order) mdl->varSetDefaultOrder(var, order + 1000);
+    return var;
   }
-  JsonObject initSysMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "sysmod", value, 0, 0, readOnly, varFun);
+  JsonObject initSysMod(JsonObject parent, const char * id, int order = 0) {
+    JsonObject var = initVarAndUpdate<const char *>(parent, id, "sysmod", (const char *)nullptr);
+    if (order) mdl->varSetDefaultOrder(var, order + 1000);
+    return var;
   }
-  JsonObject initUserMod(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {
-    return initVarAndUpdate<const char *>(parent, id, "usermod", value, 0, 0, readOnly, varFun);
+  JsonObject initUserMod(JsonObject parent, const char * id, int order = 0) {
+    JsonObject var = initVarAndUpdate<const char *>(parent, id, "usermod", (const char *)nullptr);
+    if (order) mdl->varSetDefaultOrder(var, order + 1000);
+    return var;
   }
 
   JsonObject initTable(JsonObject parent, const char * id, const char * value = nullptr, bool readOnly = false, VarFun varFun = nullptr) {

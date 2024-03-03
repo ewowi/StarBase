@@ -23,8 +23,7 @@ SysModSystem::SysModSystem() :SysModule("System") {};
 
 void SysModSystem::setup() {
   SysModule::setup();
-  parentVar = ui->initSysMod(parentVar, name);
-  mdl->varSetDefaultOrder(parentVar, 2100);
+  parentVar = ui->initSysMod(parentVar, name, 2100);
 
   ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

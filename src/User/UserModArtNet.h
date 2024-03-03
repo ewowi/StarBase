@@ -28,8 +28,7 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initUserMod(parentVar, name);
-    mdl->varSetDefaultOrder(parentVar, 3100);
+    parentVar = ui->initUserMod(parentVar, name, 3100);
 
     ui->initIP(parentVar, "artInst", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     

@@ -38,7 +38,7 @@ public:
   
     ui->initText(parentVar, "wledAudioStatus", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:
-      ui->setLabel(var, "Status");
+      ui->setLabel(var, "Status:");
       return true;
     default: return false;
    }});
@@ -53,9 +53,14 @@ public:
     }
   }
 
+  bool isTimeout() {
+    return ((millis() - lastData) > 10000);
+  }
+
   void loop() {
     // SysModule::loop();
     if (SysModules::isConnected && sync.read()) {
+      lastData = millis();
       if(debug) USER_PRINTF("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
         byte val = sync.fftResult[b];
@@ -64,21 +69,35 @@ public:
       }
       if(debug) USER_PRINTF("\n");
     }
-    else if(sync.receivedFormat == -1) { // Could also check how recent and/or non-silent
+    else if((lastData == 0) || isTimeout()) { // Could also check for non-silent
       simulateSound(UMS_BeatSin);
     }
   }
 
   void loop10s() {
     // USER_PRINTF("%d, %s, %d\n", sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
-  }
-
-  void loop1s() {
-    mdl->setUIValueV("wledAudioStatus", "%d, %s, %d", sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
+    String msg = "";
+    if((lastData != 0) && isTimeout()) {
+      msg = "No data";
+    }
+    else {
+      switch(sync.receivedFormat) {
+        case -1: msg = "Not connected";
+          break;
+        case 1: msg = "V1 from " + sync.sourceIP.toString();
+          break;
+        case 2: msg = "V2 from " + sync.sourceIP.toString();
+          break;
+        default: msg = "Unknown";
+          break;
+      }
+    }
+    mdl->setUIValueV("wledAudioStatus", "%s", msg.c_str());
   }
 
   private:
     boolean debug = false;
+    unsigned long lastData = 0; 
 
     void simulateSound(uint8_t simulationId)
     {

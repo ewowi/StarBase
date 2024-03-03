@@ -1093,19 +1093,7 @@ public:
       // Update the display:
       for (int i = (rows - 1); i > 0; i--) {
         for (int j = (cols - 1); j >= 0; j--) {
-          unsigned16 p = leds.XY(j, i-1);
-          if((p == 0)||(p > (leds.nrOfLeds -1))) {
-            USER_PRINTF("%dx%d = %d\n", j, (i - 1), p);
-          }
-          else {
-            // USER_PRINTF("%dx%d = %d\n", j, (i - 1), p);
-
-            // leds.setPixelColor(leds.XY(j, i), leds.getPixelColor(p)); // TODO fix 
-            /*
-            #0  0x400d821f:0x3ffb2100 in std::vector<unsigned short, std::allocator<unsigned short> >::size() const at /home/will/.platformio/packages/toolchain-xtensa-esp32/xtensa-esp32-elf/include/c++/8.4.0/bits/stl_vector.h:806
-      (inlined by) Leds::getPixelColor(unsigned short) at src/App/AppLeds.cpp:49
-            */
-          }
+          leds.setPixelColor(leds.XY(j, i), leds.getPixelColor(leds.XY(j, i-1)));
         }
       }
       

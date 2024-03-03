@@ -218,7 +218,7 @@ void Fixture::projectAndMap() {
                     if (projectionDimension == _1D)
                       indexV = leds->XYZ(map1Dto2D((pixel - startPosAdjusted)/10));
                     else if (projectionDimension == _2D) {
-                      Coord3D mapped = map2Dto2D(pixel - startPosAdjusted);
+                      Coord3D mapped = map2Dto2D(pixel - startPosAdjusted) + Coord3D{5,5,5}; // add 0.5 for rounding
                       if (leds->projectionNr == p_Multiply) {
                         mapped.x = mapped.x % (leds->size.x*10);
                         mapped.y = mapped.y % (leds->size.y*10);
@@ -329,7 +329,6 @@ void Fixture::projectAndMap() {
                         for (size_t i = leds->mappingTable.size(); i <= indexV; i++) {
                           // USER_PRINTF("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
                           std::vector<unsigned16> physMap;
-                          physMap.push_back(0);
                           leds->mappingTable.push_back(physMap); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                         }
                       }
@@ -404,10 +403,10 @@ void Fixture::projectAndMap() {
           } else {
 
             if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
-              USER_PRINTF("mapping add extra physMap %d of %d %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
+              USER_PRINTF("mapping add extra physMap %d to %d size: %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
             for (size_t i = leds->mappingTable.size(); i < leds->size.x * leds->size.y * leds->size.z; i++) {
               std::vector<unsigned16> physMap;
-              physMap.push_back(0);
+              // physMap.push_back(0);
               leds->mappingTable.push_back(physMap);
             }
 
@@ -432,7 +431,7 @@ void Fixture::projectAndMap() {
             }
           }
 
-          USER_PRINTF("projectAndMap [%d] V:%d x %d x %d = %d (%d-%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
+          USER_PRINTF("projectAndMap [%d] V:%d x %d x %d = %d (v:%d - p:%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
 
           // mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
           char buf[32];
@@ -447,7 +446,7 @@ void Fixture::projectAndMap() {
         rowNr++;
       } // leds
 
-      USER_PRINTF("projectAndMap P:%dx%dx%d = %d\n", size.x, size.y, size.z, nrOfLeds);
+      USER_PRINTF("projectAndMap P:%dx%dx%d -> %d\n", size.x, size.y, size.z, nrOfLeds);
 
       mdl->setValue("fixSize", size);
       mdl->setValue("fixCount", nrOfLeds);

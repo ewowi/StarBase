@@ -53,7 +53,6 @@ public:
     JsonObject tableVar = ui->initTable(parentVar, "e131Tbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "Vars to watch");
-        ui->setComment(var, "List of instances");
         return true;
       default: return false;
     }});

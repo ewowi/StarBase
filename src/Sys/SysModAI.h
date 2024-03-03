@@ -35,7 +35,6 @@ public:
     JsonObject tableVar = ui->initTable(parentVar, "aiTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "AI recommendations");
-        // ui->setComment(var, "List of instances");
         return true;
       default: return false;
     }});

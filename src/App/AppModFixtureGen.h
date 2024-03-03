@@ -79,9 +79,9 @@ public:
     g.print("{");
     g.printf("\"name\":\"%s\"", name);
     g.printf(",\"nrOfLeds\":%d", nrOfLeds);
-    g.printf(",\"width\":%d", fixSize.x/10+1); //effects run on 1 led is 1 cm mode.
-    g.printf(",\"height\":%d", fixSize.y/10+1);
-    g.printf(",\"depth\":%d", fixSize.z/10+1);
+    g.printf(",\"width\":%d", (fixSize.x+5)/10+1); //effects run on 1 led is 1 cm mode.
+    g.printf(",\"height\":%d", (fixSize.y+5)/10+1);
+    g.printf(",\"depth\":%d", (fixSize.z+5)/10+1);
 
     byte character;
     f.read(&character, sizeof(byte));

@@ -765,11 +765,13 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
         //add each row
         let newRowNr = 0;
         for (var row of commandJson.value) {
-          genTableRowHTML(variable, node, newRowNr);
-          let colNr = 0;
-          for (let columnVar of variable.n) {
-            changeHTML(columnVar, {"value": row[colNr], "chk":"table"}, newRowNr);
-            colNr++;
+          if (row) { //not null, pnlTbl sent value:[null]... tbd: check why
+            genTableRowHTML(variable, node, newRowNr);
+            let colNr = 0;
+            for (let columnVar of variable.n) {
+              changeHTML(columnVar, {"value": row[colNr], "chk":"table"}, newRowNr);
+              colNr++;
+            }
           }
 
           newRowNr++;

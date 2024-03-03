@@ -31,8 +31,7 @@ SysModFiles::SysModFiles() :SysModule("Files") {
 //setup filesystem
 void SysModFiles::setup() {
   SysModule::setup();
-  parentVar = ui->initSysMod(parentVar, name);
-  mdl->varSetDefaultOrder(parentVar, 2000);
+  parentVar = ui->initSysMod(parentVar, name, 2000);
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

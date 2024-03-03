@@ -25,8 +25,7 @@ SysModUI::SysModUI() :SysModule("UI") {
 void SysModUI::setup() {
   SysModule::setup();
 
-  parentVar = initSysMod(parentVar, name);
-  mdl->varSetDefaultOrder(parentVar, 4100);
+  parentVar = initSysMod(parentVar, name, 4100);
 
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

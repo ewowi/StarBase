@@ -34,8 +34,7 @@ public:
   //setup filesystem
   void setup() {
     SysModule::setup();
-    parentVar = ui->initUserMod(parentVar, name);
-    mdl->varSetDefaultOrder(parentVar, 5300);
+    parentVar = ui->initUserMod(parentVar, name, 5300);
   
     ui->initText(parentVar, "wledAudioStatus", nullptr, 16, true, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
     case f_UIFun:

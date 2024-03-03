@@ -18,8 +18,7 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initAppMod(parentVar, name);
-    mdl->varSetDefaultOrder(parentVar, 1100);
+    parentVar = ui->initAppMod(parentVar, name, 1100);
 
     JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:

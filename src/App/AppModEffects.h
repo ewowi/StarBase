@@ -57,8 +57,7 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initAppMod(parentVar, name);
-    mdl->varSetDefaultOrder(parentVar, 1200);
+    parentVar = ui->initAppMod(parentVar, name, 1200);
 
     JsonObject currentVar;
 

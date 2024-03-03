@@ -1070,6 +1070,7 @@ public:
     float volumeSmth   = wledAudioMod->sync.volumeSmth;
 
     unsigned8 speed = mdl->getValue("speed");
+    bool candyFactory = mdl->getValue("candyFactory").as<bool>();
 
     unsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
     if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
@@ -1077,20 +1078,20 @@ public:
 
       CRGB color = CRGB(0,0,0);
       // color = CRGB(fftResult[15]/2, fftResult[5]/2, fftResult[0]/2);   // formula from 0.13.x (10Khz): R = 3880-5120, G=240-340, B=60-100
-//TODO      if (!SEGENV.check1) {
+      if (!candyFactory) {
         color = CRGB(fftResult[12]/2, fftResult[3]/2, fftResult[1]/2);    // formula for 0.14.x  (22Khz): R = 3015-3704, G=216-301, B=86-129
-      // } else {
-      //   // candy factory: an attempt to get more colors
-      //   color = CRGB(fftResult[11]/2 + fftResult[12]/4 + fftResult[14]/4, // red  : 2412-3704 + 4479-7106 
-      //               fftResult[4]/2 + fftResult[3]/4,                     // green: 216-430
-      //               fftResult[0]/4 + fftResult[1]/4 + fftResult[2]/4);   // blue:  46-216
-      //   if ((color.getLuma() < 96) && (volumeSmth >= 1.5f)) {             // enhance "almost dark" pixels with yellow, based on not-yet-used channels 
-      //     unsigned yello_g = (fftResult[5] + fftResult[6] + fftResult[7]) / 3;
-      //     unsigned yello_r = (fftResult[7] + fftResult[8] + fftResult[9] + fftResult[10]) / 4;
-      //     color.green += (uint8_t) yello_g / 2;
-      //     color.red += (uint8_t) yello_r / 2;
-      //   }
-      // }
+      } else {
+        // candy factory: an attempt to get more colors
+        color = CRGB(fftResult[11]/2 + fftResult[12]/4 + fftResult[14]/4, // red  : 2412-3704 + 4479-7106 
+                    fftResult[4]/2 + fftResult[3]/4,                     // green: 216-430
+                    fftResult[0]/4 + fftResult[1]/4 + fftResult[2]/4);   // blue:  46-216
+        if ((color.getLuma() < 96) && (volumeSmth >= 1.5f)) {             // enhance "almost dark" pixels with yellow, based on not-yet-used channels 
+          unsigned yello_g = (fftResult[5] + fftResult[6] + fftResult[7]) / 3;
+          unsigned yello_r = (fftResult[7] + fftResult[8] + fftResult[9] + fftResult[10]) / 4;
+          color.green += (uint8_t) yello_g / 2;
+          color.red += (uint8_t) yello_r / 2;
+        }
+      }
 
       if (volumeSmth < 1.0f) color = CRGB(0,0,0); // silence = black
 
@@ -1098,9 +1099,9 @@ public:
       if (color.getLuma() > 32) {                                      // don't change "dark" pixels
         CHSV hsvColor = rgb2hsv_approximate(color);
         hsvColor.v = min(max(hsvColor.v, (uint8_t)48), (uint8_t)204);  // 48 < brightness < 204
-// TODO        // if (SEGENV.check1)
-        //   hsvColor.s = max(hsvColor.s, (uint8_t)204);                  // candy factory mode: strongly turn up color saturation (> 192)
-        // else
+        if (candyFactory)
+          hsvColor.s = max(hsvColor.s, (uint8_t)204);                  // candy factory mode: strongly turn up color saturation (> 192)
+        else
           hsvColor.s = max(hsvColor.s, (uint8_t)108);                  // normal mode: turn up color saturation to avoid pastels
         color = hsvColor;
       }
@@ -1108,7 +1109,7 @@ public:
 
       //SEGMENT.setPixelColor(mid, color.fadeToBlackBy(map(fftResult[4], 0, 255, 255, 4)));     // 0.13.x  fade -> 180hz-260hz
       uint8_t fadeVal = map(fftResult[3], 0, 255, 255, 4);                                      // 0.14.x  fade -> 216hz-301hz
-//TODO:      if (SEGENV.check1) fadeVal = constrain(fadeVal, 0, 176);  // "candy factory" mode - avoid complete fade-out
+      if (candyFactory) fadeVal = constrain(fadeVal, 0, 176);  // "candy factory" mode - avoid complete fade-out
       leds.setPixelColor(mid, color.fadeToBlackBy(fadeVal));
 
       //TODO: fix getPixelColor
@@ -1119,6 +1120,7 @@ public:
 
   void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 255);
+    ui->initCheckBox(parentVar, "candyFactory", true);
   }
 };
 

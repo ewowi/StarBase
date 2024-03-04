@@ -183,7 +183,7 @@ public:
   //   row.add(instance->version);
   //   row.add(instance->sys.upTime);
 
-  //   mdl->findVars("stage", true, [instance, row](JsonObject var) { //findFun
+  //   mdl->findVars("dash", true, [instance, row](JsonObject var) { //findFun
   //     //look for value in instance
   //     int value = instance->app.getVar(var["id"]);
   //     // USER_PRINTF("insTbl %s %s: %d\n", instance->name, varID, value);
@@ -298,12 +298,12 @@ public:
       }
       default: return false;
     }}); //syncMaster
-    currentVar["stage"] = true;
+    currentVar["dash"] = true;
 
-    //find stage variables and add them to the table
-    mdl->findVars("stage", true, [tableVar, this](JsonObject var) { //findFun
+    //find dash variables and add them to the table
+    mdl->findVars("dash", true, [tableVar, this](JsonObject var) { //findFun
 
-      USER_PRINTF("stage %s %s found\n", mdl->varID(var), var["value"].as<String>().c_str());
+      USER_PRINTF("dash %s %s found\n", mdl->varID(var), var["value"].as<String>().c_str());
 
       char columnVarID[32] = "ins";
       strcat(columnVarID, var["id"]);
@@ -314,7 +314,7 @@ public:
         case f_ValueFun:
           //should not trigger chFun
           for (unsigned8 rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++) {
-            // USER_PRINTF("initVar stage %s[%d]\n", mdl->varID(insVar), rowNrL);
+            // USER_PRINTF("initVar dash %s[%d]\n", mdl->varID(insVar), rowNrL);
             //do what setValue is doing except calling changeFun
             // insVar["value"][rowNrL] = instances[rowNrL].app.getVar(mdl->varID(var)); //only int values...
             web->addResponse(insVar["id"], "value", instances[rowNrL].app.getVar(mdl->varID(var)), rowNrL); //only int values...);
@@ -412,8 +412,8 @@ public:
 
     handleNotifications();
 
-    if (ui->stageVarChanged) {
-      ui->stageVarChanged = false;
+    if (ui->dashVarChanged) {
+      ui->dashVarChanged = false;
       sendSysInfoUDP(); 
     }
   }
@@ -573,11 +573,11 @@ public:
       }
     #endif
 
-    //stage values default 0
+    //dash values default 0
     starModMessage.app.initVars();
 
-    //send stage values
-    mdl->findVars("stage", true, [&starModMessage](JsonObject var) { //varFun
+    //send dash values
+    mdl->findVars("dash", true, [&starModMessage](JsonObject var) { //varFun
       // print->printJson("setVar", var);
       JsonArray valArray = mdl->varValArray(var);
       if (valArray.isNull())
@@ -629,7 +629,7 @@ public:
         instance.sys.dmx.start = 0;
         instance.sys.dmx.count = 0;
         instance.sys.syncMaster = 0;
-        //stage values default 0
+        //dash values default 0
         instance.app.initVars();
       }
 

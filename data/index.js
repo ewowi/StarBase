@@ -87,7 +87,7 @@ function makeWS() {
             else
               changeHTMLView("vApp"); //default
 
-            gId("vApp").value = "Leds"; //tbd: should be set by server
+            gId("vApp").value = appName(); //tbd: should be set by server
 
             //send request for uiFun
             flushUIFunCommands();
@@ -221,7 +221,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       let helpNode = cE("a");
       helpNode.innerText = "ⓘ";
       helpNode.style="float: right;"
-      let initCapVarType = variable.type=="appmod"?"AppMod":variable.type=="usermod"?"UserMod":"SysMod"; 
+      let initCapVarType = variable.type=="appmod"?appName() + "Mod":variable.type=="usermod"?"UserMod":"SysMod"; 
       helpNode.setAttribute('href', "https://ewowi.github.io/StarDocs/" + initCapVarType + "/" + initCapVarType + initCap(variable.id));
       hgroupNode.appendChild(helpNode);
 
@@ -1302,7 +1302,7 @@ function setInstanceTableColumns() {
 
   let tbl = gId("insTbl");
   if (!tbl) return;
-  let isStageView = gId("vStage").classList.contains("selected");
+  let isDashView = gId("vDash").classList.contains("selected");
   let thead = tbl.querySelector("thead");
   let tbody = tbl.querySelector("tbody");
 
@@ -1318,13 +1318,13 @@ function setInstanceTableColumns() {
   // console.log("setInstanceTableColumns", tbl, thead, tbody);
   columnNr = 2;
   for (; columnNr<6; columnNr++) {
-    showHideColumn(columnNr, isStageView);
+    showHideColumn(columnNr, isDashView);
   }
   for (; columnNr<thead.querySelector("tr").childNodes.length; columnNr++) {
-    showHideColumn(columnNr, !isStageView);
+    showHideColumn(columnNr, !isDashView);
   }
 
-  if (gId("sma")) gId("sma").parentNode.hidden = isStageView; //hide sync master label field and comment
+  if (gId("sma")) gId("sma").parentNode.hidden = isDashView; //hide sync master label field and comment
 }
 
 function changeHTMLView(value) {
@@ -1333,7 +1333,7 @@ function changeHTMLView(value) {
   
   gId("vAI").classList.remove("selected");
   gId("vApp").classList.remove("selected");
-  gId("vStage").classList.remove("selected");
+  gId("vDash").classList.remove("selected");
   gId("vUser").classList.remove("selected");
   gId("vSys").classList.remove("selected");
   gId("vAll").classList.remove("selected");
@@ -1359,7 +1359,7 @@ function changeHTMLView(value) {
               found = true;
             if (value=="vUser" && moduleNode.className == "usermod")
               found = true;
-            if (value=="vStage" && moduleNode.id == "Instances")
+            if (value=="vDash" && moduleNode.id == "Instances")
               found = true;
           }
           // console.log(mdlColumnNode, moduleNode, moduleNode.className);

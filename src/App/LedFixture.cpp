@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppFixture.cpp
+   @file      LedFixture.cpp
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -9,7 +9,7 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-#include "AppFixture.h"
+#include "LedFixture.h"
 
 #include "../Sys/SysModFiles.h"
 #include "../Sys/SysStarModJson.h"
@@ -44,8 +44,12 @@ void Fixture::projectAndMap() {
       if (leds->doMap) {
         USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
         //vectors really gone now?
-        for (std::vector<std::vector<unsigned16>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap)
-          physMap->clear();
+        for (std::vector<unsigned16>* physMap:leds->mappingTable) {
+          if (physMap) {
+            physMap->clear();
+            delete physMap;
+          }
+        }
         leds->mappingTable.clear();
         leds->sharedData.clear();
       }
@@ -328,12 +332,13 @@ void Fixture::projectAndMap() {
                       if (indexV >= leds->mappingTable.size()) {
                         for (size_t i = leds->mappingTable.size(); i <= indexV; i++) {
                           // USER_PRINTF("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
-                          std::vector<unsigned16> physMap;
-                          leds->mappingTable.push_back(physMap); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
+                          leds->mappingTable.push_back(nullptr); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                         }
                       }
                       //indexV is within the square
-                       leds->mappingTable[indexV].push_back(indexP); //add the current led in the right physMap
+                      if (!leds->mappingTable[indexV]) 
+                        leds->mappingTable[indexV] = new std::vector<unsigned16>;
+                      leds->mappingTable[indexV]->push_back(indexP); //add the current led in the right physMap
                     }
                     else 
                       USER_PRINTF("dev post [%d] indexP too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexP, nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
@@ -364,7 +369,7 @@ void Fixture::projectAndMap() {
               after = strtok(NULL, " ");
               unsigned16 startLed = atoi(before);
               unsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
-              print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((unsigned16)(indexP - 1), nrOfLeds)); //careful: AppModEffects:loop uses this to assign to FastLed
+              print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((unsigned16)(indexP - 1), nrOfLeds)); //careful: LedModEffects:loop uses this to assign to FastLed
               USER_PRINTF("pins extend leds %d: %s\n", currPin, details);
               //tbd: more check
 
@@ -373,7 +378,7 @@ void Fixture::projectAndMap() {
           }
           else {//allocate new pin
             //tbd: check if free
-            print->fFormat(details, sizeof(details)-1, "%d-%d", prevIndexP, indexP - 1); //careful: AppModEffects:loop uses this to assign to FastLed
+            print->fFormat(details, sizeof(details)-1, "%d-%d", prevIndexP, indexP - 1); //careful: LedModEffects:loop uses this to assign to FastLed
             USER_PRINTF("pins %d: %s\n", currPin, details);
             pins->allocatePin(currPin, "Leds", details);
           }
@@ -402,19 +407,19 @@ void Fixture::projectAndMap() {
 
           } else {
 
-            if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
-              USER_PRINTF("mapping add extra physMap %d to %d size: %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
-            for (size_t i = leds->mappingTable.size(); i < leds->size.x * leds->size.y * leds->size.z; i++) {
-              std::vector<unsigned16> physMap;
-              // physMap.push_back(0);
-              leds->mappingTable.push_back(physMap);
-            }
+            // if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
+            //   USER_PRINTF("mapping add extra physMap %d to %d size: %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
+            // for (size_t i = leds->mappingTable.size(); i < leds->size.x * leds->size.y * leds->size.z; i++) {
+            //   std::vector<unsigned16> physMap;
+            //   // physMap.push_back(0);
+            //   leds->mappingTable.push_back(physMap);
+            // }
 
             leds->nrOfLeds = leds->mappingTable.size();
 
             unsigned16 indexV = 0;
-            for (std::vector<std::vector<unsigned16>>::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap) {
-              if (physMap->size()) {
+            for (std::vector<unsigned16>* physMap:leds->mappingTable) {
+              if (physMap && physMap->size()) {
                 // USER_PRINTF("ledV %d mapping: #ledsP (%d):", indexV, physMap->size());
 
                 for (unsigned16 indexP:*physMap) {

@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppLeds.h
+   @file      LedLeds.h
    @date      20240227
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -20,7 +20,7 @@
 // #define FASTLED_I2S_MAX_CONTROLLERS 8 // 8 LED pins should be enough (default = 24)
 #include "FastLED.h"
 
-#include "AppFixture.h"
+#include "LedFixture.h"
 
 #include "../data/font/console_font_4x6.h"
 #include "../data/font/console_font_5x8.h"
@@ -102,10 +102,10 @@ constexpr float projScaleMax = 1.0f;   // full size
 constexpr float projScaleMin = 0.701f; // 1/sqrt(2)
 static float projScale = projScaleMax;
 
-static Coord3D spinXY(uint_fast16_t x, uint_fast16_t y, uint_fast16_t width, uint_fast16_t height) {
+static Coord3D spinXY(uint_fast16_t x, uint_fast16_t y, uint_fast16_t width, uint_fast16_t height, unsigned8 speed) {
   if ((millis()/12) !=  last_millis) {
     // update sin / cos for rotation - once each 12ms
-    float now = float(millis()/12) / 160.0f;  // this sets the rotation speed
+    float now = float(millis()/12) / (255 - speed);  // this sets the rotation speed
     //float now = float(strip.now) / 2000.0f;  // error: 'strip' was not declared in this scope
     sinrot = sinf(now);
     cosrot = cosf(now);
@@ -129,7 +129,7 @@ static Coord3D spinXY(uint_fast16_t x, uint_fast16_t y, uint_fast16_t width, uin
 
   if ((x3 <0) || (x3 >= width) || (y3 <0) || (y3 >= height)) return Coord3D{0, 0, 0}; // outside of matrix
   // deliver fish
-  else return Coord3D{x3, y3, 0};
+  else return Coord3D{(unsigned16)x3, (unsigned16)y3, 0};
 }
 
 
@@ -150,10 +150,11 @@ public:
   unsigned8 projectionNr = -1;
   unsigned8 effectDimension = -1;
   Coord3D startPos = {0,0,0}, endPos = {UINT16_MAX,UINT16_MAX,UINT16_MAX}; //default
+  unsigned8 proSpeed = 128;
 
   SharedData sharedData;
 
-  std::vector<std::vector<unsigned16>> mappingTable;
+  std::vector<std::vector<unsigned16> *> mappingTable;
 
   unsigned16 XY(unsigned16 x, unsigned16 y) {
     return XYZ(x, y, 0);
@@ -164,7 +165,7 @@ public:
   unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
 
     if (projectionNr == p_Rotate) {
-      Coord3D result = spinXY(x,y, size.x, size.y);
+      Coord3D result = spinXY(x,y, size.x, size.y, proSpeed);
       return result.x + result.y * size.x + result.z * size.x * size.y;
     }
     else
@@ -187,8 +188,13 @@ public:
     USER_PRINTF("Leds[%d] destructor\n", UINT8_MAX);
     fadeToBlackBy(100);
     doMap = true; // so loop is not running while deleting
-    for (std::vector<std::vector<unsigned16>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap)
-      physMap->clear();
+    for (std::vector<unsigned16>* physMap:mappingTable) {
+      if (physMap) {
+        physMap->clear();
+        // free(physMap);
+        delete physMap;
+      }
+    }
     mappingTable.clear();
   }
 

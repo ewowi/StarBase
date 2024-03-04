@@ -27,6 +27,7 @@ public:
 
   WLEDSync sync;
   byte fftResults[NUM_GEQ_CHANNELS]= {0};
+  float volumeSmth;
 
   UserModWLEDAudio() :SysModule("WLED Audio Sync Receiver") {
   };
@@ -67,6 +68,7 @@ public:
         fftResults[b] = val;
         if(debug) USER_PRINTF("%u ", val);
       }
+      volumeSmth = sync.volumeSmth;
       if(debug) USER_PRINTF("\n");
     }
     else if((lastData == 0) || isTimeout()) { // Could also check for non-silent
@@ -106,7 +108,6 @@ public:
       static uint8_t maxVol;
       static uint8_t binNum;
 
-      static float    volumeSmth;
       static uint16_t volumeRaw;
       static float    my_magnitude;
 

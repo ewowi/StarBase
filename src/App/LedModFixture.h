@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModFixture.h
+   @file      LedModFixture.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -9,11 +9,11 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-class AppModFixture:public SysModule {
+class LedModFixture:public SysModule {
 
 public:
 
-  AppModFixture() :SysModule("Fixture") {};
+  LedModFixture() :SysModule("Fixture") {};
 
   void setup() {
     SysModule::setup();
@@ -29,7 +29,7 @@ public:
         return true;
       default: return false;
     }});
-    currentVar["stage"] = true;
+    currentVar["dash"] = true;
 
     //logarithmic slider (10)
     currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
@@ -48,7 +48,7 @@ public:
       default: return false; 
     }});
     currentVar["log"] = true; //logarithmic
-    currentVar["stage"] = true; //these values override model.json???
+    currentVar["dash"] = true; //these values override model.json???
 
     ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
@@ -174,4 +174,4 @@ public:
   }
 };
 
-static AppModFixture *fix;
+static LedModFixture *fix;

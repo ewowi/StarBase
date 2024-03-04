@@ -56,7 +56,7 @@ static unsigned8 linearToLogarithm(JsonObject var, unsigned8 value) {
 class SysModUI:public SysModule {
 
 public:
-  static bool stageVarChanged;// = false; //tbd: move mechanism to UserModInstances as there it will be used
+  static bool dashVarChanged;// = false; //tbd: move mechanism to UserModInstances as there it will be used
   static std::vector<VarFun> varFunctions; //static because of static functions callChangeFun, processJson...
 
   SysModUI();

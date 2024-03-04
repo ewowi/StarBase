@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModEffects.h
+   @file      LedModEffects.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -15,8 +15,8 @@
 
 #include "FastLED.h" // still used for helper methods
 
-#include "AppFixture.h"
-#include "AppEffects.h"
+#include "LedFixture.h"
+#include "LedEffects.h"
 
 // #ifdef STARMOD_USERMOD_E131
 //   #include "../User/UserModE131.h"
@@ -34,7 +34,7 @@ inline unsigned16 getRGBWsize(unsigned16 nleds){
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
-class AppModEffects:public SysModule {
+class LedModEffects:public SysModule {
 
 public:
   bool newFrame = false; //for other modules (DDP)
@@ -48,7 +48,7 @@ public:
   I2SClocklessLedDriver driver;
   boolean driverInit = false;
 
-  AppModEffects() :SysModule("Effects") {
+  LedModEffects() :SysModule("Effects") {
   };
 
   void setup() {
@@ -114,7 +114,7 @@ public:
         return true;
       default: return false;
     }});
-    currentVar["stage"] = true;
+    currentVar["dash"] = true;
 
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
@@ -124,7 +124,7 @@ public:
       case f_UIFun: {
         ui->setLabel(var, "Projection");
         ui->setComment(var, "How to project fx");
-        JsonArray options = ui->setOptions(var); // see enum Projections in AppFixture.h and keep the same order !
+        JsonArray options = ui->setOptions(var); // see enum Projections in LedFixture.h and keep the same order !
         options.add("Default");
         options.add("Multiply");
         options.add("Rotate");
@@ -171,7 +171,12 @@ public:
           }
           if (proValue == p_Rotate) {
             ui->initCoord3D(var, "proCenter", Coord3D{8,8,8}, 0, NUM_LEDS_Max);
-            ui->initSlider(var, "proSpeed", 1, 0, 60);
+            ui->initSlider(var, "proSpeed", 128, 1, 255, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+              case f_ChangeFun:
+                fixture.ledsList[rowNr]->proSpeed = mdl->getValue(var, rowNr);
+                return true;
+              default: return false;
+            }});
           }
           mdl->varPostDetails(var, rowNr);
 
@@ -182,7 +187,7 @@ public:
         return true;
       default: return false;
     }});
-    currentVar["stage"] = true;
+    currentVar["dash"] = true;
 
     ui->initCoord3D(tableVar, "fxStart", {0,0,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
@@ -288,7 +293,7 @@ public:
           // e131mod->patchChannel(3, "pro", Projections::count);
           // e131mod->patchChannel(4, "fixture", 5); //assuming 5!!!
 
-          // ui->stageVarChanged = true;
+          // ui->dashVarChanged = true;
           // //rebuild the table
           for (JsonObject childVar: mdl->varChildren("e131Tbl"))
             ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
@@ -336,7 +341,7 @@ public:
     JsonObject var = mdl->findVar("System");
     if (!var["canvasData"].isNull()) {
       const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
-      USER_PRINTF("AppModEffects loop canvasData %s\n", canvasData);
+      USER_PRINTF("LedModEffects loop canvasData %s\n", canvasData);
 
       //currently only leds[0] supported
       if (fixture.ledsList.size()) {
@@ -413,4 +418,4 @@ private:
 
 };
 
-static AppModEffects *eff;
+static LedModEffects *eff;

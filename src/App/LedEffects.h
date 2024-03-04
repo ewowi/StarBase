@@ -1071,6 +1071,8 @@ public:
 
     unsigned8 speed = mdl->getValue("speed");
     bool candyFactory = mdl->getValue("candyFactory").as<bool>();
+    unsigned8 fade = mdl->getValue("fade");
+
 
     unsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
     if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
@@ -1114,12 +1116,16 @@ public:
 
       for (int i = leds.nrOfLeds - 1; i > mid; i--)   leds.setPixelColor(i, leds.getPixelColor(i-1)); // move to the left
       for (int i = 0; i < mid; i++)            leds.setPixelColor(i, leds.getPixelColor(i+1)); // move to the right
+
+      leds.fadeToBlackBy(fade);
+
     }
   }
 
   void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 255);
     ui->initCheckBox(parentVar, "candyFactory", true);
+    ui->initSlider(parentVar, "fade", 4, 0, 10);
   }
 };
 

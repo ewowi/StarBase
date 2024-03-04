@@ -1067,7 +1067,7 @@ public:
     unsigned8 *aux0 = leds.sharedData.bind(aux0);
 
     uint8_t *fftResult = wledAudioMod->fftResults;
-    float volumeSmth   = wledAudioMod->sync.volumeSmth;
+    float volumeSmth   = wledAudioMod->volumeSmth;
 
     unsigned8 speed = mdl->getValue("speed");
     bool candyFactory = mdl->getValue("candyFactory").as<bool>();

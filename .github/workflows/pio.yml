@@ -23,7 +23,8 @@ jobs:
     - name: Get default environments
       id: envs
       run: |
-        echo "environments=\"$(pio project config --json-output | jq -cr '.[][0]' | grep 'env:'| awk -F: '{ print $2" "}' | tr -d '\n')\"" >> $GITHUB_OUTPUT
+      	echo -n "environments=" >> $GITHUB_OUTPUT
+      	jq -c -n '$ARGS.positional' --args $(pio project config --json-output | jq -cr '.[][0]' | grep 'env:'| awk -F: '{ print $2" "}' | tr -d '\n') >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
     outputs:
       environments: ${{ steps.envs.outputs.environments }}
@@ -34,7 +35,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        environment: ${{ needs.get_default_envs.outputs.environments }}
+        environment: ${{ fromJSON(needs.get_default_envs.outputs.environments) }}
     steps:
       - uses: actions/checkout@v3
         with:

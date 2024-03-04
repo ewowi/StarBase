@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModEffects.h
+   @file      LedModEffects.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -21,8 +21,8 @@
 // #define FASTLED_I2S_MAX_CONTROLLERS 8 // 8 LED pins should be enough (default = 24)
 #include "FastLED.h"
 
-#include "AppFixture.h"
-#include "AppEffects.h"
+#include "LedFixture.h"
+#include "LedEffects.h"
 
 // #ifdef STARMOD_USERMOD_E131
 //   #include "../User/UserModE131.h"
@@ -40,7 +40,7 @@ inline unsigned16 getRGBWsize(unsigned16 nleds){
 //https://github.com/FastLED/FastLED/blob/master/examples/DemoReel100/DemoReel100.ino
 //https://blog.ja-ke.tech/2019/06/02/neopixel-performance.html
 
-class AppModEffects:public SysModule {
+class LedModEffects:public SysModule {
 
 public:
   bool newFrame = false; //for other modules (DDP)
@@ -51,7 +51,7 @@ public:
 
   Fixture fixture = Fixture();
 
-  AppModEffects() :SysModule("Effects") {
+  LedModEffects() :SysModule("Effects") {
   };
 
   void setup() {
@@ -127,7 +127,7 @@ public:
       case f_UIFun: {
         ui->setLabel(var, "Projection");
         ui->setComment(var, "How to project fx");
-        JsonArray options = ui->setOptions(var); // see enum Projections in AppFixture.h and keep the same order !
+        JsonArray options = ui->setOptions(var); // see enum Projections in LedFixture.h and keep the same order !
         options.add("Default");
         options.add("Multiply");
         options.add("Rotate");
@@ -345,7 +345,7 @@ public:
     JsonObject var = mdl->findVar("System");
     if (!var["canvasData"].isNull()) {
       const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
-      USER_PRINTF("AppModEffects loop canvasData %s\n", canvasData);
+      USER_PRINTF("LedModEffects loop canvasData %s\n", canvasData);
 
       //currently only leds[0] supported
       if (fixture.ledsList.size()) {
@@ -616,4 +616,4 @@ private:
 
 };
 
-static AppModEffects *eff;
+static LedModEffects *eff;

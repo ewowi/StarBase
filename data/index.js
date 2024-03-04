@@ -87,7 +87,7 @@ function makeWS() {
             else
               changeHTMLView("vApp"); //default
 
-            gId("vApp").value = "Leds"; //tbd: should be set by server
+            gId("vApp").value = appName(); //tbd: should be set by server
 
             //send request for uiFun
             flushUIFunCommands();
@@ -221,7 +221,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       let helpNode = cE("a");
       helpNode.innerText = "ⓘ";
       helpNode.style="float: right;"
-      let initCapVarType = variable.type=="appmod"?"AppMod":variable.type=="usermod"?"UserMod":"SysMod"; 
+      let initCapVarType = variable.type=="appmod"?appName() + "Mod":variable.type=="usermod"?"UserMod":"SysMod"; 
       helpNode.setAttribute('href', "https://ewowi.github.io/StarDocs/" + initCapVarType + "/" + initCapVarType + initCap(variable.id));
       hgroupNode.appendChild(helpNode);
 

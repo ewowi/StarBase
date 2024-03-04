@@ -90,7 +90,7 @@ void SysModModel::setup() {
 
     StarModJson starModJson("/model.json", "w"); //open fileName for deserialize
     starModJson.addExclusion("fun");
-    starModJson.addExclusion("stage");
+    starModJson.addExclusion("dash");
     starModJson.writeJsonDocToFile(model);
 
     // print->printJson("Write model", *model); //this shows the model before exclusion
@@ -206,8 +206,8 @@ void SysModModel::varToValues(JsonObject var, JsonArray row) {
 void SysModModel::callChangeFun(JsonObject var, unsigned8 rowNr) {
 
   //done here as ui cannot be used in SysModModel.h
-  if (var["stage"])
-    ui->stageVarChanged = true;
+  if (var["dash"])
+    ui->dashVarChanged = true;
 
   ui->callVarFun(var, rowNr, f_ChangeFun);
 

@@ -117,7 +117,7 @@ public:
         return true;
       default: return false;
     }});
-    currentVar["stage"] = true;
+    currentVar["dash"] = true;
 
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
@@ -190,7 +190,7 @@ public:
         return true;
       default: return false;
     }});
-    currentVar["stage"] = true;
+    currentVar["dash"] = true;
 
     ui->initCoord3D(tableVar, "fxStart", {0,0,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
@@ -296,7 +296,7 @@ public:
           // e131mod->patchChannel(3, "pro", Projections::count);
           // e131mod->patchChannel(4, "fixture", 5); //assuming 5!!!
 
-          // ui->stageVarChanged = true;
+          // ui->dashVarChanged = true;
           // //rebuild the table
           for (JsonObject childVar: mdl->varChildren("e131Tbl"))
             ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);

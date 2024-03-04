@@ -329,7 +329,8 @@ void Fixture::projectAndMap() {
                         for (size_t i = leds->mappingTable.size(); i <= indexV; i++) {
                           // USER_PRINTF("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
                           std::vector<unsigned16> physMap;
-                          physMap.push_back(0);
+                          if (i != indexV)
+                            physMap.push_back(0);
                           leds->mappingTable.push_back(physMap); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                         }
                       }

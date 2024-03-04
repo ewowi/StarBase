@@ -16,7 +16,7 @@
 //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 std::vector<VarFun> SysModUI::varFunctions;
 std::vector<VarLoop> SysModUI::loopFunctions;
-bool SysModUI::stageVarChanged = false;
+bool SysModUI::dashVarChanged = false;
 
 SysModUI::SysModUI() :SysModule("UI") {
 };

@@ -22,7 +22,7 @@
 #define unsigned32 unsigned
 #define forUnsigned8 unsigned
 #define forUnsigned16 unsigned
-#define stackUnsigned8 unsigned
+#define stackUnsigned8 uint8_t //unsigned causes some effects to run faulty. tbd to find out
 #define stackUnsigned16 unsigned
 #define stackUnsigned32 unsigned
 

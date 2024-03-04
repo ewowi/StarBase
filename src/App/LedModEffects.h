@@ -248,7 +248,7 @@ public:
       default: return false;
     }});
 
-    ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, stackUnsigned8 rowNr, stackUnsigned8 funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun: {
         // for (std::vector<Leds *>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
         stackUnsigned8 rowNr = 0;

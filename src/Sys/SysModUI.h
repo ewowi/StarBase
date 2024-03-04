@@ -216,13 +216,13 @@ public:
 
   JsonObject initVar(JsonObject parent, const char * id, const char * type, bool readOnly = true, VarFun varFun = nullptr);
 
-  unsigned8 callVarFun(const char * varID, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ChangeFun) {
+  bool callVarFun(const char * varID, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ChangeFun) {
     JsonObject var = mdl->findVar(varID);
     return callVarFun(var, rowNr, funType);
   }
 
-  unsigned8 callVarFun(JsonObject var, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ValueFun) {
-    stackUnsigned8 result = false;
+  bool callVarFun(JsonObject var, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ValueFun) {
+    bool result = false;
 
     if (!var["fun"].isNull()) {//isNull needed here!
       size_t funNr = var["fun"];

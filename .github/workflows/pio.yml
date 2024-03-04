@@ -23,8 +23,8 @@ jobs:
     - name: Get default environments
       id: envs
       run: |
-      	echo -n "environments=" >> $GITHUB_OUTPUT
-      	jq -c -n '$ARGS.positional' --args $(pio project config --json-output | jq -cr '.[][0]' | grep 'env:'| awk -F: '{ print $2" "}' | tr -d '\n') >> $GITHUB_OUTPUT
+        echo -n "environments=" >> $GITHUB_OUTPUT
+        jq -c -n '$ARGS.positional' --args $(pio project config --json-output | jq -cr '.[][0]' | grep 'env:'| awk -F: '{ print $2" "}' | tr -d '\n') >> $GITHUB_OUTPUT
         cat $GITHUB_OUTPUT
     outputs:
       environments: ${{ steps.envs.outputs.environments }}

@@ -44,8 +44,12 @@ void Fixture::projectAndMap() {
       if (leds->doMap) {
         USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
         //vectors really gone now?
-        for (std::vector<std::vector<unsigned16>> ::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap)
-          physMap->clear();
+        for (std::vector<unsigned16>* physMap:leds->mappingTable) {
+          if (physMap) {
+            physMap->clear();
+            delete physMap;
+          }
+        }
         leds->mappingTable.clear();
         leds->sharedData.clear();
       }
@@ -328,14 +332,13 @@ void Fixture::projectAndMap() {
                       if (indexV >= leds->mappingTable.size()) {
                         for (size_t i = leds->mappingTable.size(); i <= indexV; i++) {
                           // USER_PRINTF("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
-                          std::vector<unsigned16> physMap;
-                          if (i != indexV)
-                            physMap.push_back(0);
-                          leds->mappingTable.push_back(physMap); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
+                          leds->mappingTable.push_back(nullptr); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                         }
                       }
                       //indexV is within the square
-                      leds->mappingTable[indexV].push_back(indexP); //add the current led in the right physMap
+                      if (!leds->mappingTable[indexV]) 
+                        leds->mappingTable[indexV] = new std::vector<unsigned16>;
+                      leds->mappingTable[indexV]->push_back(indexP); //add the current led in the right physMap
                     }
                     else 
                       USER_PRINTF("dev post [%d] indexP too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexP, nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
@@ -415,8 +418,8 @@ void Fixture::projectAndMap() {
             leds->nrOfLeds = leds->mappingTable.size();
 
             unsigned16 indexV = 0;
-            for (std::vector<std::vector<unsigned16>>::iterator physMap=leds->mappingTable.begin(); physMap!=leds->mappingTable.end(); ++physMap) {
-              if (physMap->size()) {
+            for (std::vector<unsigned16>* physMap:leds->mappingTable) {
+              if (physMap && physMap->size()) {
                 // USER_PRINTF("ledV %d mapping: #ledsP (%d):", indexV, physMap->size());
 
                 for (unsigned16 indexP:*physMap) {

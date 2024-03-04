@@ -154,7 +154,7 @@ public:
 
   SharedData sharedData;
 
-  std::vector<std::vector<unsigned16>> mappingTable;
+  std::vector<std::vector<unsigned16> *> mappingTable;
 
   unsigned16 XY(unsigned16 x, unsigned16 y) {
     return XYZ(x, y, 0);
@@ -188,8 +188,13 @@ public:
     USER_PRINTF("Leds[%d] destructor\n", UINT8_MAX);
     fadeToBlackBy(100);
     doMap = true; // so loop is not running while deleting
-    for (std::vector<std::vector<unsigned16>> ::iterator physMap=mappingTable.begin(); physMap!=mappingTable.end(); ++physMap)
-      physMap->clear();
+    for (std::vector<unsigned16>* physMap:mappingTable) {
+      if (physMap) {
+        physMap->clear();
+        // free(physMap);
+        delete physMap;
+      }
+    }
     mappingTable.clear();
   }
 

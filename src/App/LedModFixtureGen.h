@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModFixtureGen.h
+   @file      LedModFixtureGen.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -420,11 +420,11 @@ enum Fixtures
   fixtureCount
 };
 
-class AppModFixtureGen:public SysModule {
+class LedModFixtureGen:public SysModule {
 
 public:
 
-  AppModFixtureGen() :SysModule("Fixture Generator") {};
+  LedModFixtureGen() :SysModule("Fixture Generator") {};
 
   void setup() {
     SysModule::setup();
@@ -974,4 +974,4 @@ public:
 
 };
 
-static AppModFixtureGen *lfg;
+static LedModFixtureGen *lfg;

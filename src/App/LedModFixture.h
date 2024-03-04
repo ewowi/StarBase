@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModFixture.h
+   @file      LedModFixture.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -9,11 +9,11 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-class AppModFixture:public SysModule {
+class LedModFixture:public SysModule {
 
 public:
 
-  AppModFixture() :SysModule("Fixture") {};
+  LedModFixture() :SysModule("Fixture") {};
 
   void setup() {
     SysModule::setup();
@@ -174,4 +174,4 @@ public:
   }
 };
 
-static AppModFixture *fix;
+static LedModFixture *fix;

@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppEffects.h
+   @file      LedEffects.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main

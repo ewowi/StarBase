@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppFixture.cpp
+   @file      LedFixture.cpp
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -9,7 +9,7 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-#include "AppFixture.h"
+#include "LedFixture.h"
 
 #include "../Sys/SysModFiles.h"
 #include "../Sys/SysStarModJson.h"
@@ -366,7 +366,7 @@ void Fixture::projectAndMap() {
               after = strtok(NULL, " ");
               unsigned16 startLed = atoi(before);
               unsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
-              print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((unsigned16)(indexP - 1), nrOfLeds)); //careful: AppModEffects:loop uses this to assign to FastLed
+              print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((unsigned16)(indexP - 1), nrOfLeds)); //careful: LedModEffects:loop uses this to assign to FastLed
               USER_PRINTF("pins extend leds %d: %s\n", currPin, details);
               //tbd: more check
 
@@ -375,7 +375,7 @@ void Fixture::projectAndMap() {
           }
           else {//allocate new pin
             //tbd: check if free
-            print->fFormat(details, sizeof(details)-1, "%d-%d", prevIndexP, indexP - 1); //careful: AppModEffects:loop uses this to assign to FastLed
+            print->fFormat(details, sizeof(details)-1, "%d-%d", prevIndexP, indexP - 1); //careful: LedModEffects:loop uses this to assign to FastLed
             USER_PRINTF("pins %d: %s\n", currPin, details);
             pins->allocatePin(currPin, "Leds", details);
           }

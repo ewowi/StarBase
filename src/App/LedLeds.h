@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppLeds.h
+   @file      LedLeds.h
    @date      20240227
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -20,7 +20,7 @@
 // #define FASTLED_I2S_MAX_CONTROLLERS 8 // 8 LED pins should be enough (default = 24)
 #include "FastLED.h"
 
-#include "AppFixture.h"
+#include "LedFixture.h"
 
 #include "../data/font/console_font_4x6.h"
 #include "../data/font/console_font_5x8.h"

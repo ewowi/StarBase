@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppModEffects.cpp
+   @file      LedLeds.cpp
    @date      20240226
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -9,7 +9,7 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-#include "AppLeds.h"
+#include "LedLeds.h"
 
 //convenience functions to call fastled functions out of the Leds namespace (there naming conflict)
 void fastled_fadeToBlackBy(CRGB* leds, unsigned16 num_leds, unsigned8 fadeBy) {

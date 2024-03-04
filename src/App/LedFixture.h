@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      AppFixture.h
+   @file      LedFixture.h
    @date      20240228
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -13,7 +13,7 @@
 
 #include "../Sys/SysModModel.h" //for Coord3D
 
-#include "AppLeds.h"
+#include "LedLeds.h"
 
 #define NUM_LEDS_Max 4096
 

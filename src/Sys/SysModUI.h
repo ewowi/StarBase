@@ -222,7 +222,7 @@ public:
   }
 
   unsigned8 callVarFun(JsonObject var, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ValueFun) {
-    unsigned8 result = false;
+    stackUnsigned8 result = false;
 
     if (!var["fun"].isNull()) {//isNull needed here!
       size_t funNr = var["fun"];

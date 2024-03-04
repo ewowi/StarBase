@@ -37,7 +37,7 @@ void SysModUI::setup() {
 
   initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
         mdl->setValue(var, JsonString(loopFunctions[rowNr].var["id"], JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -48,7 +48,7 @@ void SysModUI::setup() {
 
   initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
         mdl->setValue(var, loopFunctions[rowNr].counter, rowNr);
       return true;
     case f_UIFun:
@@ -178,7 +178,7 @@ void SysModUI::processJson(JsonVariant json) {
         if (value.is<JsonObject>()) {
           JsonObject command = value;
           JsonObject var = mdl->findVar(command["id"]);
-          unsigned8 rowNr = command["rowNr"];
+          stackUnsigned8 rowNr = command["rowNr"];
           USER_PRINTF("processJson %s - %s [%d]\n", key, value.as<String>().c_str(), rowNr);
 
           //first remove the deleted row both on server and on client(s)
@@ -224,7 +224,7 @@ void SysModUI::processJson(JsonVariant json) {
           key = rowNrC;
           rowNrC = strtok(NULL, " ");
         }
-        unsigned8 rowNr = rowNrC?atoi(rowNrC):UINT8_MAX;
+        stackUnsigned8 rowNr = rowNrC?atoi(rowNrC):UINT8_MAX;
 
         JsonObject var = mdl->findVar(key);
 

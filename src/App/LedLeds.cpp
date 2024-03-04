@@ -27,7 +27,7 @@ void Leds::setPixelColor(unsigned16 indexV, CRGB color, unsigned8 blendAmount) {
   if (indexV < mappingTable.size()) {
     std::vector<unsigned16>* physMap = mappingTable[indexV];
     if (physMap)
-    for (unsigned16 indexP:*physMap) {
+    for (forUnsigned16 indexP:*physMap) {
       fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], blendAmount==UINT8_MAX?fixture->globalBlend:blendAmount);
     }
   }
@@ -59,7 +59,7 @@ void Leds::fadeToBlackBy(unsigned8 fadeBy) {
   } else {
     for (std::vector<unsigned16>* physMap:mappingTable) {
       if (physMap)
-      for (unsigned16 indexP:*physMap) {
+      for (forUnsigned16 indexP:*physMap) {
         CRGB oldValue = fixture->ledsP[indexP];
         fixture->ledsP[indexP].nscale8(255-fadeBy); //this overrides the old value
         fixture->ledsP[indexP] = blend(fixture->ledsP[indexP], oldValue, fixture->globalBlend); // we want to blend in the old value
@@ -74,7 +74,7 @@ void Leds::fill_solid(const struct CRGB& color) {
   } else {
     for (std::vector<unsigned16>* physMap:mappingTable) {
       if (physMap)
-      for (unsigned16 indexP:*physMap) {
+      for (forUnsigned16 indexP:*physMap) {
         fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], fixture->globalBlend);
       }
     }
@@ -92,7 +92,7 @@ void Leds::fill_rainbow(unsigned8 initialhue, unsigned8 deltahue) {
 
     for (std::vector<unsigned16>* physMap:mappingTable) {
       if (physMap)
-      for (unsigned16 indexP:*physMap) {
+      for (forUnsigned16 indexP:*physMap) {
         fixture->ledsP[indexP] = blend(hsv, fixture->ledsP[indexP], fixture->globalBlend);
       }
       hsv.hue += deltahue;

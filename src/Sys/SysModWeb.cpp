@@ -346,7 +346,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
       USER_PRINTF("💀");
 
       if(info->opcode == WS_TEXT){
-        for(size_t i=0; i < len; i++) {
+        for (size_t i=0; i < len; i++) {
           msg += (char) data[i];
         }
       }

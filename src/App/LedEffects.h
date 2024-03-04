@@ -73,9 +73,9 @@ public:
     return "Solid 1D";
   }
   void loop(Leds &leds) {
-    unsigned8 red = mdl->getValue("Red");
-    unsigned8 green = mdl->getValue("Green");
-    unsigned8 blue = mdl->getValue("Blue");
+    stackUnsigned8 red = mdl->getValue("Red");
+    stackUnsigned8 green = mdl->getValue("Green");
+    stackUnsigned8 blue = mdl->getValue("Blue");
 
     CRGB color = CRGB(red, green, blue);
     leds.fill_solid(color);
@@ -181,9 +181,9 @@ public:
     CRGBPalette16 pal = getPalette();
 
     // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
-    unsigned8 BeatsPerMinute = 62;
-    unsigned8 beat = beatsin8( BeatsPerMinute, 64, 255);
-    for (unsigned16 i = 0; i < leds.nrOfLeds; i++) { //9948
+    stackUnsigned8 BeatsPerMinute = 62;
+    stackUnsigned8 beat = beatsin8( BeatsPerMinute, 64, 255);
+    for (forUnsigned16 i = 0; i < leds.nrOfLeds; i++) { //9948
       leds[i] = ColorFromPalette(pal, gHue+(i*2), beat-gHue+(i*10));
     }
   }
@@ -200,8 +200,8 @@ public:
   void loop(Leds &leds) {
     // eight colored dots, weaving in and out of sync with each other
     leds.fadeToBlackBy(20);
-    unsigned8 dothue = 0;
-    for (unsigned8 i = 0; i < 8; i++) {
+    stackUnsigned8 dothue = 0;
+    for (forUnsigned8 i = 0; i < 8; i++) {
       leds[beatsin16( i+7, 0, leds.nrOfLeds-1 )] |= CHSV(dothue, 200, 255);
       dothue += 32;
     }
@@ -214,8 +214,8 @@ public:
     return "Ripples 3D";
   }
   void loop(Leds &leds) {
-    unsigned8 interval = mdl->getValue("interval");
-    unsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 interval = mdl->getValue("interval");
+    stackUnsigned8 speed = mdl->getValue("speed");
 
     float ripple_interval = 1.3f * (interval/128.0f);
 
@@ -223,13 +223,13 @@ public:
 
     Coord3D pos = {0,0,0};
     for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-        for (pos.y=0; pos.y<leds.size.y; pos.y++) {
-            float d = leds.fixture->distance(3.5f, 3.5f, 0.0f, (float)pos.x, (float)pos.z, 0.0f) / 9.899495f * leds.size.x;
-            unsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
-            pos.x = floor(leds.size.x/2.0f + sinf(d/ripple_interval + time_interval) * leds.size.x/2.0f); //between 0 and leds.size.x
+      for (pos.y=0; pos.y<leds.size.y; pos.y++) {
+        float d = leds.fixture->distance(3.5f, 3.5f, 0.0f, (float)pos.x, (float)pos.z, 0.0f) / 9.899495f * leds.size.x;
+        stackUnsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
+        pos.x = floor(leds.size.x/2.0f + sinf(d/ripple_interval + time_interval) * leds.size.x/2.0f); //between 0 and leds.size.x
 
-            leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
-        }
+        leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+      }
     }
   }
   void controls(JsonObject parentVar) {
@@ -244,11 +244,11 @@ public:
     return "SphereMove 3D";
   }
   void loop(Leds &leds) {
-    unsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 speed = mdl->getValue("speed");
 
     leds.fill_solid(CRGB::Black);
 
-    unsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
+    stackUnsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
 
     Coord3D origin;
     origin.x = 3.5f+sinf(time_interval)*2.5f;
@@ -262,7 +262,7 @@ public:
     for (pos.x=0; pos.x<leds.size.x; pos.x++) {
         for (pos.y=0; pos.y<leds.size.y; pos.y++) {
             for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-                unsigned16 d = leds.fixture->distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
+                stackUnsigned16 d = leds.fixture->distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
 
                 if (d>diameter && d<diameter+1) {
                   leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
@@ -286,11 +286,11 @@ public:
   void loop(Leds &leds) {
     leds.fadeToBlackBy(16);
 
-    unsigned16 bpm = mdl->getValue("BPM");
-    unsigned16 intensity = mdl->getValue("intensity");
+    stackUnsigned8 bpm = mdl->getValue("BPM");
+    stackUnsigned8 intensity = mdl->getValue("intensity");
     CRGBPalette16 pal = getPalette();
 
-    for (size_t i = 8; i > 0; i--) {
+    for (int i = 8; i > 0; i--) {
       Coord3D pos = {0,0,0};
       pos.x = beatsin8(bpm/8 + i, 0, leds.size.x - 1);
       pos.y = beatsin8(intensity/8 - i, 0, leds.size.y - 1);
@@ -351,27 +351,27 @@ public:
 
   void loop(Leds &leds) {
 
-    unsigned8 speed = mdl->getValue("speed").as<unsigned8>()/32;
-    unsigned8 scale = mdl->getValue("scale").as<unsigned8>()/32;
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 scale = mdl->getValue("scale");
 
-    unsigned8  w = 2;
+    stackUnsigned8  w = 2;
 
-    unsigned16 a  = now/32;
-    unsigned16 a2 = a/2;
-    unsigned16 a3 = a/3;
+    stackUnsigned16 a  = now/32;
+    stackUnsigned16 a2 = a/2;
+    stackUnsigned16 a3 = a/3;
 
-    unsigned16 cx =  beatsin8(10-speed,0,leds.size.x-1)*scale;
-    unsigned16 cy =  beatsin8(12-speed,0,leds.size.y-1)*scale;
-    unsigned16 cx1 = beatsin8(13-speed,0,leds.size.x-1)*scale;
-    unsigned16 cy1 = beatsin8(15-speed,0,leds.size.y-1)*scale;
-    unsigned16 cx2 = beatsin8(17-speed,0,leds.size.x-1)*scale;
-    unsigned16 cy2 = beatsin8(14-speed,0,leds.size.y-1)*scale;
+    stackUnsigned16 cx =  beatsin8(10-speed,0,leds.size.x-1)*scale;
+    stackUnsigned16 cy =  beatsin8(12-speed,0,leds.size.y-1)*scale;
+    stackUnsigned16 cx1 = beatsin8(13-speed,0,leds.size.x-1)*scale;
+    stackUnsigned16 cy1 = beatsin8(15-speed,0,leds.size.y-1)*scale;
+    stackUnsigned16 cx2 = beatsin8(17-speed,0,leds.size.x-1)*scale;
+    stackUnsigned16 cy2 = beatsin8(14-speed,0,leds.size.y-1)*scale;
     
-    unsigned16 xoffs = 0;
+    stackUnsigned16 xoffs = 0;
     Coord3D pos = {0,0,0};
     for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
       xoffs += scale;
-      unsigned16 yoffs = 0;
+      stackUnsigned16 yoffs = 0;
 
       for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
         yoffs += scale;
@@ -393,8 +393,8 @@ public:
     }
   }
   void controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 128);
-    ui->initSlider(parentVar, "scale", 128);
+    ui->initSlider(parentVar, "speed", 4, 0, 8);
+    ui->initSlider(parentVar, "scale", 4, 0, 8);
   }
 }; // DistortionWaves2D
 
@@ -413,15 +413,15 @@ public:
 
   void loop(Leds &leds) {
 
-    const unsigned8 mapp = 180 / max(leds.size.x,leds.size.y);
+    const stackUnsigned8 mapp = 180 / max(leds.size.x,leds.size.y);
 
-    // unsigned8 *speed2 = leds.sharedData.bind(speed2);
+    // stackUnsigned8 *speed2 = leds.sharedData.bind(speed2);
     // // USER_PRINTF(" %d:%d", speed2, *speed2);
     
-    unsigned8 speed = mdl->getValue("speed");
-    unsigned8 offsetX = mdl->getValue("Offset X");
-    unsigned8 offsetY = mdl->getValue("Offset Y");
-    unsigned8 legs = mdl->getValue("Legs");
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 offsetX = mdl->getValue("Offset X");
+    stackUnsigned8 offsetY = mdl->getValue("Offset Y");
+    stackUnsigned8 legs = mdl->getValue("Legs");
     CRGBPalette16 pal = getPalette();
 
     map_t    *rMap = leds.sharedData.bind(rMap, leds.size.x * leds.size.y); //array
@@ -429,7 +429,7 @@ public:
     uint8_t *offsY = leds.sharedData.bind(offsY);
     uint16_t *aux0 = leds.sharedData.bind(aux0);
     uint16_t *aux1 = leds.sharedData.bind(aux1);
-    unsigned32 *step = leds.sharedData.bind(step);
+    stackUnsigned32 *step = leds.sharedData.bind(step);
 
     Coord3D pos = {0,0,0};
 
@@ -440,8 +440,8 @@ public:
       *aux1 = leds.size.y;
       *offsX = offsetX;
       *offsY = offsetY;
-      const unsigned8 C_X = leds.size.x / 2 + (offsetX - 128)*leds.size.x/255;
-      const unsigned8 C_Y = leds.size.y / 2 + (offsetY - 128)*leds.size.y/255;
+      const stackUnsigned8 C_X = leds.size.x / 2 + (offsetX - 128)*leds.size.x/255;
+      const stackUnsigned8 C_Y = leds.size.y / 2 + (offsetY - 128)*leds.size.y/255;
       for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
         for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
           rMap[leds.XY(pos.x, pos.y)].angle = 40.7436f * atan2f(pos.y - C_Y, pos.x - C_X); // avoid 128*atan2()/PI
@@ -467,7 +467,7 @@ public:
   void controls(JsonObject parentVar) {
 
     //bind the variables to sharedData...
-    // unsigned8 *speed2 = leds.sharedData.bind(speed2);
+    // stackUnsigned8 *speed2 = leds.sharedData.bind(speed2);
     // USER_PRINTF("(bind %d) %d %d\n", speed2, leds.sharedData.index, leds.sharedData.bytesAllocated);
     // USER_PRINTF("bind %d->%d %d\n", index, newIndex, bytesAllocated);
 
@@ -499,9 +499,9 @@ public:
 
   void loop(Leds &leds) {
 
-    unsigned8 freqX = mdl->getValue("X frequency");
-    unsigned8 fadeRate = mdl->getValue("Fade rate");
-    unsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 freqX = mdl->getValue("X frequency");
+    stackUnsigned8 fadeRate = mdl->getValue("Fade rate");
+    stackUnsigned8 speed = mdl->getValue("speed");
     bool smooth = mdl->getValue("Smooth");
     CRGBPalette16 pal = getPalette();
 
@@ -513,7 +513,7 @@ public:
     if (smooth) { // WLEDMM: this is the original "float" code featuring anti-aliasing
         int maxLoops = max(192U, 4U*(leds.size.x+leds.size.y));
         maxLoops = ((maxLoops / 128) +1) * 128; // make sure whe have half or full turns => multiples of 128
-        for (int i=0; i < maxLoops; i ++) {
+        for (int i=0; i < maxLoops; i++) {
           locn.x = float(sin8(phase/2 + (i* freqX)/64)) / 255.0f;  // WLEDMM align speed with original effect
           locn.y = float(cos8(phase/2 + i*2)) / 255.0f;
           //SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing
@@ -559,8 +559,8 @@ public:
   }
 
   void loop(Leds &leds) {
-    unsigned8 grav = mdl->getValue("gravity");
-    unsigned8 numBalls = mdl->getValue("balls");
+    stackUnsigned8 grav = mdl->getValue("gravity");
+    stackUnsigned8 numBalls = mdl->getValue("balls");
     CRGBPalette16 pal = getPalette();
 
     Ball *balls = leds.sharedData.bind(balls, maxNumBalls); //array
@@ -597,7 +597,7 @@ public:
         continue; // do not draw OOB ball
       }
 
-      // unsigned32 color = SEGCOLOR(0);
+      // stackUnsigned32 color = SEGCOLOR(0);
       // if (SEGMENT.palette) {
       //   color = SEGMENT.color_wheel(i*(256/MAX(numBalls, 8)));
       // } 
@@ -607,7 +607,7 @@ public:
 
       int pos = roundf(balls[i].height * (leds.nrOfLeds - 1));
 
-      CRGB color = ColorFromPalette(pal, i*(256/max(numBalls, (unsigned8)8)), 255);
+      CRGB color = ColorFromPalette(pal, i*(256/max(numBalls, (stackUnsigned8)8)), 255);
 
       leds[pos] = color;
       // if (SEGLEN<32) SEGMENT.setPixelColor(indexToVStrip(pos, stripNr), color); // encode virtual strip into index
@@ -638,7 +638,7 @@ public:
   }
 
   void loop(Leds &leds) {
-    unsigned8 *hue = leds.sharedData.bind(hue, leds.nrOfLeds); //array
+    stackUnsigned8 *hue = leds.sharedData.bind(hue, leds.nrOfLeds); //array
 
     hue[0] = random(0, 255);
     for (int r = 0; r < leds.nrOfLeds; r++) {
@@ -658,8 +658,8 @@ public:
   }
 
   void loop(Leds &leds) {
-    unsigned8 speed = mdl->getValue("speed");
-    unsigned8 font = mdl->getValue("font");
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 font = mdl->getValue("font");
     const char * text = mdl->getValue("text");
 
     // text might be nullified by selecting other effects and if effect is selected, controls are run afterwards  
@@ -697,8 +697,8 @@ public:
 
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
-    unsigned8 amplification = mdl->getValue("Amplification");
-    unsigned8 sensitivity = mdl->getValue("Sensitivity");
+    stackUnsigned8 amplification = mdl->getValue("Amplification");
+    stackUnsigned8 sensitivity = mdl->getValue("Sensitivity");
     bool noClouds = mdl->getValue("No Clouds");
     // bool soundPressure = mdl->getValue("Sound Pressure");
     // bool agcDebug = mdl->getValue("AGC debug");
@@ -711,8 +711,8 @@ public:
     long t = now / 2; 
     Coord3D pos;
     for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
-      unsigned16 thisVal = wledAudioMod->sync.volumeSmth*sensitivity/64 * inoise8(pos.x * 45 , t , t)/64;      // WLEDMM back to SR code
-      unsigned16 thisMax = min(map(thisVal, 0, 512, 0, leds.size.y), (long)leds.size.x);
+      stackUnsigned16 thisVal = wledAudioMod->sync.volumeSmth*sensitivity/64 * inoise8(pos.x * 45 , t , t)/64;      // WLEDMM back to SR code
+      stackUnsigned16 thisMax = min(map(thisVal, 0, 512, 0, leds.size.y), (long)leds.size.x);
 
       for (pos.y = 0; pos.y < thisMax; pos.y++) {
         CRGB color = ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND);
@@ -755,8 +755,8 @@ public:
 
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
-    unsigned8 speed = mdl->getValue("speed");
-    unsigned8 intensity = mdl->getValue("intensity");
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 intensity = mdl->getValue("intensity");
     bool useaudio = mdl->getValue("useaudio");
 
     Spark *popcorn = leds.sharedData.bind(popcorn, maxNumPopcorn); //array
@@ -764,10 +764,10 @@ public:
     float gravity = -0.0001 - (speed/200000.0); // m/s/s
     gravity *= leds.nrOfLeds;
 
-    unsigned8 numPopcorn = intensity*maxNumPopcorn/255;
+    stackUnsigned8 numPopcorn = intensity*maxNumPopcorn/255;
     if (numPopcorn == 0) numPopcorn = 1;
 
-    for(int i = 0; i < numPopcorn; i++) {
+    for (int i = 0; i < numPopcorn; i++) {
       if (popcorn[i].pos >= 0.0f) { // if kernel is active, update its position
         popcorn[i].pos += popcorn[i].vel;
         popcorn[i].vel += gravity;
@@ -787,7 +787,7 @@ public:
         if (doPopCorn) { // POP!!!
           popcorn[i].pos = 0.01f;
 
-          unsigned16 peakHeight = 128 + random8(128); //0-255
+          stackUnsigned16 peakHeight = 128 + random8(128); //0-255
           peakHeight = (peakHeight * (leds.nrOfLeds -1)) >> 8;
           popcorn[i].vel = sqrtf(-2.0f * gravity * peakHeight);
 
@@ -802,9 +802,9 @@ public:
         }
       }
       if (popcorn[i].pos >= 0.0f) { // draw now active popcorn (either active before or just popped)
-        // unsigned32 col = SEGMENT.color_wheel(popcorn[i].colIndex);
+        // stackUnsigned32 col = SEGMENT.color_wheel(popcorn[i].colIndex);
         // if (!SEGMENT.palette && popcorn[i].colIndex < NUM_COLORS) col = SEGCOLOR(popcorn[i].colIndex);
-        unsigned16 ledIndex = popcorn[i].pos;
+        stackUnsigned16 ledIndex = popcorn[i].pos;
         CRGB col = ColorFromPalette(pal, popcorn[i].colIndex*(256/maxNumPopcorn), 255);
         if (ledIndex < leds.nrOfLeds) leds.setPixelColor(ledIndex, col);
       }
@@ -835,17 +835,17 @@ public:
 
   void loop(Leds &leds) {
 
-    unsigned16 *previousBarHeight = leds.sharedData.bind(previousBarHeight, leds.size.x); //array
-    unsigned32 *step = leds.sharedData.bind(step);
+    stackUnsigned16 *previousBarHeight = leds.sharedData.bind(previousBarHeight, leds.size.x); //array
+    stackUnsigned32 *step = leds.sharedData.bind(step);
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
 
     #ifdef SR_DEBUG
-    unsigned8 samplePeak = *(unsigned8*)um_data->u_data[3];
+    stackUnsigned8 samplePeak = *(unsigned8*)um_data->u_data[3];
     #endif
 
-    unsigned8 fadeOut = mdl->getValue("fadeOut");
-    unsigned8 ripple = mdl->getValue("ripple"); 
+    stackUnsigned8 fadeOut = mdl->getValue("fadeOut");
+    stackUnsigned8 ripple = mdl->getValue("ripple"); 
     bool colorBars = mdl->getValue("colorBars");
     bool smoothBars = mdl->getValue("smoothBars");
     CRGBPalette16 pal = getPalette();
@@ -861,12 +861,12 @@ public:
 
     if ((fadeoutDelay <= 1 ) || (beat == 0)) leds.fadeToBlackBy(fadeOut);
 
-    unsigned16 lastBandHeight = 0;  // WLEDMM: for smoothing out bars
+    stackUnsigned16 lastBandHeight = 0;  // WLEDMM: for smoothing out bars
 
     //WLEDMM: evenly ditribut bands
     float bandwidth = (float)leds.size.x / NUM_BANDS;
     float remaining = bandwidth;
-    unsigned8 band = 0;
+    stackUnsigned8 band = 0;
     Coord3D pos = {0,0,0};
     for (pos.x=0; pos.x < leds.size.x; pos.x++) {
       //WLEDMM if not enough remaining
@@ -874,25 +874,25 @@ public:
       remaining--; //consume remaining
 
       // USER_PRINTF("x %d b %d n %d w %f %f\n", x, band, NUM_BANDS, bandwidth, remaining);
-      unsigned8 frBand = ((NUM_BANDS < 16) && (NUM_BANDS > 1)) ? map(band, 0, NUM_BANDS - 1, 0, 15):band; // always use full range. comment out this line to get the previous behaviour.
+      stackUnsigned8 frBand = ((NUM_BANDS < 16) && (NUM_BANDS > 1)) ? map(band, 0, NUM_BANDS - 1, 0, 15):band; // always use full range. comment out this line to get the previous behaviour.
       // frBand = constrain(frBand, 0, 15); //WLEDMM can never be out of bounds (I think...)
-      unsigned16 colorIndex = frBand * 17; //WLEDMM 0.255
-      unsigned16 bandHeight = wledAudioMod->fftResults[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
+      stackUnsigned16 colorIndex = frBand * 17; //WLEDMM 0.255
+      stackUnsigned16 bandHeight = wledAudioMod->fftResults[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
 
       // WLEDMM begin - smooth out bars
       if ((pos.x > 0) && (pos.x < (leds.size.x-1)) && (smoothBars)) {
         // get height of next (right side) bar
-        unsigned8 nextband = (remaining < 1)? band +1: band;
+        stackUnsigned8 nextband = (remaining < 1)? band +1: band;
         nextband = constrain(nextband, 0, 15);  // just to be sure
         frBand = ((NUM_BANDS < 16) && (NUM_BANDS > 1)) ? map(nextband, 0, NUM_BANDS - 1, 0, 15):nextband; // always use full range. comment out this line to get the previous behaviour.
-        unsigned16 nextBandHeight = wledAudioMod->fftResults[frBand];
+        stackUnsigned16 nextBandHeight = wledAudioMod->fftResults[frBand];
         // smooth Band height
         bandHeight = (7*bandHeight + 3*lastBandHeight + 3*nextBandHeight) / 12;   // yeees, its 12 not 13 (10% amplification)
         bandHeight = constrain(bandHeight, 0, 255);   // remove potential over/underflows
         colorIndex = map(pos.x, 0, leds.size.x-1, 0, 255); //WLEDMM
       }
       lastBandHeight = bandHeight; // remember BandHeight (left side) for next iteration
-      unsigned16 barHeight = map(bandHeight, 0, 255, 0, leds.size.y); // Now we map bandHeight to barHeight. do not subtract -1 from leds.size.y here
+      stackUnsigned16 barHeight = map(bandHeight, 0, 255, 0, leds.size.y); // Now we map bandHeight to barHeight. do not subtract -1 from leds.size.y here
       // WLEDMM end
 
       if (barHeight > leds.size.y) barHeight = leds.size.y;                      // WLEDMM map() can "overshoot" due to rounding errors
@@ -998,15 +998,15 @@ public:
 
   void loop(Leds &leds) {
 
-    unsigned8 *aux0 = leds.sharedData.bind(aux0);
+    stackUnsigned8 *aux0 = leds.sharedData.bind(aux0);
 
-    unsigned8 speed = mdl->getValue("speed");
-    unsigned8 fx = mdl->getValue("Sound effect");
-    unsigned8 lowBin = mdl->getValue("Low bin");
-    unsigned8 highBin = mdl->getValue("High bin");
-    unsigned8 sensitivity10 = mdl->getValue("Sensivity");
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 fx = mdl->getValue("Sound effect");
+    stackUnsigned8 lowBin = mdl->getValue("Low bin");
+    stackUnsigned8 highBin = mdl->getValue("High bin");
+    stackUnsigned8 sensitivity10 = mdl->getValue("Sensivity");
 
-    unsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
+    stackUnsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
     if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
       *aux0 = secondHand;
 
@@ -1026,9 +1026,9 @@ public:
         // Pixel color (hue) based on major frequency
         int upperLimit = 80 + 42 * highBin;
         int lowerLimit = 80 + 3 * lowBin;
-        //unsigned8 i =  lowerLimit!=upperLimit ? map(FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : FFT_MajorPeak;  // (original formula) may under/overflow - so we enforce unsigned8
+        //stackUnsigned8 i =  lowerLimit!=upperLimit ? map(FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : FFT_MajorPeak;  // (original formula) may under/overflow - so we enforce unsigned8
         int freqMapped =  lowerLimit!=upperLimit ? map(wledAudioMod->sync.FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : wledAudioMod->sync.FFT_MajorPeak;  // WLEDMM preserve overflows
-        unsigned8 i = abs(freqMapped) & 0xFF;  // WLEDMM we embrace overflow ;-) by "modulo 256"
+        stackUnsigned8 i = abs(freqMapped) & 0xFF;  // WLEDMM we embrace overflow ;-) by "modulo 256"
 
         color = CHSV(i, 240, (unsigned8)pixVal); // implicit conversion to RGB supplied by FastLED
       }

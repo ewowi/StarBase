@@ -41,7 +41,7 @@ public:
 
     ui->initText(tableVar, "aiIntel", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < recommendations.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < recommendations.size(); rowNr++)
           mdl->setValue(var, JsonString(recommendations[rowNr].intel, JsonString::Copied), rowNr);
         return true;
       case f_UIFun:
@@ -52,7 +52,7 @@ public:
 
     ui->initButton(tableVar, "aiButton", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < recommendations.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < recommendations.size(); rowNr++)
           mdl->setValue(var, JsonString(recommendations[rowNr].module, JsonString::Copied), rowNr);
         return true;
       case f_UIFun:

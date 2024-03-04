@@ -57,7 +57,7 @@ void SysModFiles::setup() {
 
   ui->initText(tableVar, "flName", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++)
         mdl->setValue(var, JsonString(fileList[rowNr].name, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -68,7 +68,7 @@ void SysModFiles::setup() {
 
   ui->initNumber(tableVar, "flSize", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++)
         mdl->setValue(var, fileList[rowNr].size, rowNr);
       return true;
     case f_UIFun:
@@ -79,7 +79,7 @@ void SysModFiles::setup() {
 
   ui->initURL(tableVar, "flLink", nullptr, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++) {
+      for (forUnsigned8 rowNr = 0; rowNr < fileList.size(); rowNr++) {
         char urlString[32] = "file/";
         strncat(urlString, fileList[rowNr].name, sizeof(urlString)-1);
         mdl->setValue(var, JsonString(urlString, JsonString::Copied), rowNr);

@@ -258,17 +258,17 @@ public:
 
   void blurRows(unsigned8 width, unsigned8 height, fract8 blur_amount)
   {
-  /*    for( unsigned8 row = 0; row < height; row++) {
+  /*    for (forUnsigned8 row = 0; row < height; row++) {
           CRGB* rowbase = leds + (row * width);
           blur1d( rowbase, width, blur_amount);
       }
   */
       // blur rows same as columns, for irregular matrix
-      unsigned8 keep = 255 - blur_amount;
-      unsigned8 seep = blur_amount >> 1;
-      for( unsigned8 row = 0; row < height; row++) {
+      stackUnsigned8 keep = 255 - blur_amount;
+      stackUnsigned8 seep = blur_amount >> 1;
+      for (forUnsigned8 row = 0; row < height; row++) {
           CRGB carryover = CRGB::Black;
-          for( unsigned8 i = 0; i < width; i++) {
+          for (forUnsigned8 i = 0; i < width; i++) {
               CRGB cur = getPixelColor(XY(i,row));
               CRGB part = cur;
               part.nscale8( seep);
@@ -285,11 +285,11 @@ public:
   void blurColumns(unsigned8 width, unsigned8 height, fract8 blur_amount)
   {
       // blur columns
-      unsigned8 keep = 255 - blur_amount;
-      unsigned8 seep = blur_amount >> 1;
-      for( unsigned8 col = 0; col < width; ++col) {
+      stackUnsigned8 keep = 255 - blur_amount;
+      stackUnsigned8 seep = blur_amount >> 1;
+      for (forUnsigned8 col = 0; col < width; ++col) {
           CRGB carryover = CRGB::Black;
-          for( unsigned8 i = 0; i < height; ++i) {
+          for (forUnsigned8 i = 0; i < height; ++i) {
               CRGB cur = getPixelColor(XY(col,i));
               CRGB part = cur;
               part.nscale8( seep);

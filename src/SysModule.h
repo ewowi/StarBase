@@ -20,6 +20,11 @@
 #define unsigned8 uint8_t
 #define unsigned16 uint16_t
 #define unsigned32 unsigned
+#define forUnsigned8 unsigned
+#define forUnsigned16 unsigned
+#define stackUnsigned8 unsigned
+#define stackUnsigned16 unsigned
+#define stackUnsigned32 unsigned
 
 //tuning 2 - current goal as lowest flash size and no speed difference (runs but some effects messed up: tbd find out why)
 // #define unsigned8 unsigned

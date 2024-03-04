@@ -91,7 +91,7 @@ public:
 
     currentVar = ui->initSelect(tableVar, "fx", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
           mdl->setValue(var, fixture.ledsList[rowNr]->fx, rowNr);
         return true;
       case f_UIFun: {
@@ -121,7 +121,7 @@ public:
 
     currentVar = ui->initSelect(tableVar, "pro", 2, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++)
           mdl->setValue(var, fixture.ledsList[rowNr]->projectionNr, rowNr);
         return true;
       case f_UIFun: {
@@ -147,7 +147,7 @@ public:
         if (rowNr < fixture.ledsList.size()) {
           fixture.ledsList[rowNr]->doMap = true;
 
-          unsigned8 proValue = mdl->getValue(var, rowNr);
+          stackUnsigned8 proValue = mdl->getValue(var, rowNr);
           fixture.ledsList[rowNr]->projectionNr = proValue;
 
           mdl->varPreDetails(var, rowNr); //set all positive var N orders to negative
@@ -194,7 +194,7 @@ public:
 
     ui->initCoord3D(tableVar, "fxStart", {0,0,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
+        for (forUnsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
           USER_PRINTF("fxStart[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr]->startPos.x, fixture.ledsList[rowNr]->startPos.y, fixture.ledsList[rowNr]->startPos.z);
           mdl->setValue(var, fixture.ledsList[rowNr]->startPos, rowNr);
         }
@@ -222,7 +222,7 @@ public:
 
     ui->initCoord3D(tableVar, "fxEnd", {8,8,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
+        for (forUnsigned8 rowNr = 0; rowNr < fixture.ledsList.size(); rowNr++) {
           USER_PRINTF("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.ledsList[rowNr]->endPos.x, fixture.ledsList[rowNr]->endPos.y, fixture.ledsList[rowNr]->endPos.z);
           mdl->setValue(var, fixture.ledsList[rowNr]->endPos, rowNr);
         }
@@ -248,10 +248,10 @@ public:
       default: return false;
     }});
 
-    ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initText(tableVar, "fxSize", nullptr, 32, true, [this](JsonObject var, stackUnsigned8 rowNr, stackUnsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun: {
         // for (std::vector<Leds *>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
-        unsigned8 rowNr = 0;
+        stackUnsigned8 rowNr = 0;
         for (Leds *leds: fixture.ledsList) {
           char message[32];
           print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
@@ -324,7 +324,7 @@ public:
       //  run the next frame of the effect
       // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
       // for (std::vector<Leds *>::iterator leds=fixture.ledsList.begin(); leds!=fixture.ledsList.end(); ++leds) {
-      unsigned8 rowNr = 0;
+      stackUnsigned8 rowNr = 0;
       for (Leds *leds: fixture.ledsList) {
         if (!leds->doMap) { // don't run effect while remapping
           // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
@@ -393,8 +393,8 @@ public:
               before = after;
               after = strtok(NULL, " ");
 
-              unsigned16 startLed = atoi(before);
-              unsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
+              stackUnsigned16 startLed = atoi(before);
+              stackUnsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
               USER_PRINTF("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
 
               //commented pins: error: static assertion failed: Invalid pin specified

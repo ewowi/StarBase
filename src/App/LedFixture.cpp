@@ -39,7 +39,7 @@ void Fixture::projectAndMap() {
     StarModJson starModJson(fileName); //open fileName for deserialize
 
     // for (std::vector<Leds *>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
-    unsigned8 rowNr = 0;
+    stackUnsigned8 rowNr = 0;
     for (Leds *leds: ledsList) {
       if (leds->doMap) {
         USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
@@ -57,16 +57,16 @@ void Fixture::projectAndMap() {
     }
 
     //deallocate all led pins
-    unsigned8 pinNr = 0;
+    stackUnsigned8 pinNr = 0;
     for (PinObject pinObject: pins->pinObjects) {
       if (strcmp(pinObject.owner, "Leds") == 0)
         pins->deallocatePin(pinNr, "Leds");
       pinNr++;
     }
 
-    unsigned16 indexP = 0;
-    unsigned16 prevIndexP = 0;
-    unsigned16 currPin;
+    stackUnsigned16 indexP = 0;
+    stackUnsigned16 prevIndexP = 0;
+    unsigned16 currPin; //lookFor needs u16
 
     //what to deserialize
     starModJson.lookFor("width", &size.x);
@@ -78,7 +78,7 @@ void Fixture::projectAndMap() {
     //lookFor leds array and for each item in array call lambdo to make a projection
     starModJson.lookFor("leds", [this, &prevIndexP, &indexP, &currPin](std::vector<unsigned16> uint16CollectList) { //this will be called for each tuple of coordinates!
       // USER_PRINTF("funList ");
-      // for (unsigned16 num:uint16CollectList)
+      // for (forUnsigned16 num:uint16CollectList)
       //   USER_PRINTF(" %d", num);
       // USER_PRINTF("\n");
 
@@ -93,7 +93,7 @@ void Fixture::projectAndMap() {
 
         //vector iterator needed to get the pointer to leds as we need to update leds, also vector iteration on classes is faster!!!
         //search: ^(?=.*\bfor\b)(?=.*\b:\b).*$
-        unsigned8 rowNr = 0;
+        stackUnsigned8 rowNr = 0;
         for (Leds *leds: ledsList) {
           if (leds->doMap) {
 
@@ -103,7 +103,7 @@ void Fixture::projectAndMap() {
             Coord3D projSize = (endPosAdjusted - startPosAdjusted)/10 + Coord3D{1,1,1};
 
             // 0 to 3D depending on start and endpos (e.g. to display ScrollingText on one side of a cube)
-            unsigned8 projectionDimension = 0;
+            stackUnsigned8 projectionDimension = 0;
             if (projSize.x > 1) projectionDimension++;
             if (projSize.y > 1) projectionDimension++;
             if (projSize.z > 1) projectionDimension++;
@@ -116,7 +116,7 @@ void Fixture::projectAndMap() {
 
             // if (indexP == 0) //first
             {
-              unsigned16 maxDistance = distance(endPosAdjusted, startPosAdjusted) / 10;
+              stackUnsigned16 maxDistance = distance(endPosAdjusted, startPosAdjusted) / 10;
               // USER_PRINTF("maxDistance %d %d,%d,%d %d,%d,%d %d,%d,%d\n", maxDistance, pixel.x, pixel.y, pixel.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z);
 
               float scale = 1;
@@ -194,7 +194,7 @@ void Fixture::projectAndMap() {
               Coord3D midPoint = (startPosAdjusted + endPosAdjusted) / 2;
 
               //calculate the indexV to add to current physical led to
-              unsigned16 indexV = UINT16_MAX;
+              stackUnsigned16 indexV = UINT16_MAX;
               switch(leds->projectionNr) {
                 case p_None:
                   break;
@@ -289,8 +289,8 @@ void Fixture::projectAndMap() {
                       case _2D: 
                         float minDistance = 10;
                         // USER_PRINTF("checking indexV %d\n", indexV);
-                        for (unsigned16 y=0; y<size.y && minDistance > 0.5; y++)
-                        for (unsigned16 x=0; x<size.x && minDistance > 0.5; x++) {
+                        for (forUnsigned16 y=0; y<size.y && minDistance > 0.5; y++)
+                        for (forUnsigned16 x=0; x<size.x && minDistance > 0.5; x++) {
 
                           float xNew = sinf(x * TWO_PI / (float)(size.x-1)) * size.x;
                           float yNew = cosf(x * TWO_PI / (float)(size.x-1)) * size.y;
@@ -367,9 +367,9 @@ void Fixture::projectAndMap() {
               char * before;
               before = after;
               after = strtok(NULL, " ");
-              unsigned16 startLed = atoi(before);
-              unsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
-              print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((unsigned16)(indexP - 1), nrOfLeds)); //careful: LedModEffects:loop uses this to assign to FastLed
+              stackUnsigned16 startLed = atoi(before);
+              stackUnsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
+              print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((stackUnsigned16)(indexP - 1), nrOfLeds)); //careful: LedModEffects:loop uses this to assign to FastLed
               USER_PRINTF("pins extend leds %d: %s\n", currPin, details);
               //tbd: more check
 
@@ -390,14 +390,14 @@ void Fixture::projectAndMap() {
 
     if (starModJson.deserialize(false)) { //this will call above function parameter for each led
 
-      unsigned8 rowNr = 0;
+      stackUnsigned8 rowNr = 0;
       // for (std::vector<Leds *>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
       for (Leds *leds: ledsList) {
         if (leds->doMap) {
           USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
 
-          unsigned16 nrOfMappings = 0;
-          unsigned16 nrOfPixels = 0;
+          stackUnsigned16 nrOfMappings = 0;
+          stackUnsigned16 nrOfPixels = 0;
 
           if (leds->projectionNr == p_Random || leds->projectionNr == p_None) {
 
@@ -417,12 +417,12 @@ void Fixture::projectAndMap() {
 
             leds->nrOfLeds = leds->mappingTable.size();
 
-            unsigned16 indexV = 0;
+            stackUnsigned16 indexV = 0;
             for (std::vector<unsigned16>* physMap:leds->mappingTable) {
               if (physMap && physMap->size()) {
                 // USER_PRINTF("ledV %d mapping: #ledsP (%d):", indexV, physMap->size());
 
-                for (unsigned16 indexP:*physMap) {
+                for (forUnsigned16 indexP:*physMap) {
                   // USER_PRINTF(" %d", indexP);
                   nrOfPixels++;
                 }

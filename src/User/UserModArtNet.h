@@ -80,7 +80,7 @@ public:
     const size_t ARTNET_CHANNELS_PER_PACKET = isRGBW?512:510; // 512/4=128 RGBW LEDs, 510/3=170 RGB LEDs
     const size_t packetCount = ((channelCount-1)/ARTNET_CHANNELS_PER_PACKET)+1;
 
-    unsigned32 channel = 0; 
+    stackUnsigned32 channel = 0; 
     size_t bufferOffset = 0;
 
     sequenceNumber++;

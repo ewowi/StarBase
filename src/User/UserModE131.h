@@ -59,7 +59,7 @@ public:
 
     ui->initNumber(tableVar, "e131Channel", UINT16_MAX, 1, 512, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
           mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<unsigned8>(), rowNr);
         return true;
       case f_UIFun:
@@ -70,7 +70,7 @@ public:
 
     ui->initText(tableVar, "e131Name", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
           mdl->setValue(var, varsToWatch[rowNr].id, rowNr);
         return true;
       case f_UIFun:
@@ -81,7 +81,7 @@ public:
 
     ui->initNumber(tableVar, "e131Max", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
           mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
         return true;
       case f_UIFun:
@@ -92,7 +92,7 @@ public:
 
     ui->initNumber(tableVar, "e131Value", UINT16_MAX, 0, 255, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
           mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
         return true;
       case f_UIFun:

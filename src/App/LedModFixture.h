@@ -37,9 +37,9 @@ public:
         ui->setLabel(var, "Brightness");
         return true;
       case f_ChangeFun: {
-        unsigned8 bri = var["value"];
+        stackUnsigned8 bri = var["value"];
 
-        unsigned8 result = mdl->getValue("on").as<bool>()?linearToLogarithm(var, bri):0;
+        stackUnsigned8 result = mdl->getValue("on").as<bool>()?linearToLogarithm(var, bri):0;
 
         FastLED.setBrightness(result);
 

@@ -39,7 +39,7 @@ void SysModules::setup() {
 
   ui->initText(tableVar, "mdlName", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
         mdl->setValue(var, JsonString(modules[rowNr]->name, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -51,7 +51,7 @@ void SysModules::setup() {
   //UINT16_MAX: no value set
   ui->initCheckBox(tableVar, "mdlSuccess", UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
         mdl->setValue(var, modules[rowNr]->success, rowNr);
       return true;
     case f_UIFun:
@@ -63,7 +63,7 @@ void SysModules::setup() {
   ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun not readonly! (tbd)
     case f_ValueFun:
       //never a rowNr as parameter, set all
-      for (unsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
         mdl->setValue(var, modules[rowNr]->isEnabled, rowNr);
       return true;
     case f_UIFun:

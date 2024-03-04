@@ -96,7 +96,7 @@ public:
     const size_t channelCount = eff->fixture.nrOfLeds * (isRGBW? 4:3); // 1 channel for every R,G,B,(W?) value
     const size_t packetCount = ((channelCount-1) / DDP_CHANNELS_PER_PACKET) +1;
 
-    unsigned32 channel = 0; 
+    stackUnsigned32 channel = 0; 
     size_t bufferOffset = 0;
 
     sequenceNumber++;

@@ -46,7 +46,7 @@ void SysModPins::setup() {
 
   ui->initPin(tableVar, "pinNr", UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
         mdl->setValue(var, getPinNr(rowNr), rowNr);
       return true;
     case f_UIFun:
@@ -57,7 +57,7 @@ void SysModPins::setup() {
 
   ui->initText(tableVar, "pinOwner", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).owner, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -68,7 +68,7 @@ void SysModPins::setup() {
 
   ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:

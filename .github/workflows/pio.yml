@@ -24,6 +24,7 @@ jobs:
       id: envs
       run: |
         echo "environments=$(pio project config --json-output | jq -cr '.[][0]' | grep 'env:'| awk -F: '{ print $2" "}' | tr -d '\n')" >> $GITHUB_OUTPUT
+        cat $GITHUB_OUTPUT
     outputs:
       environments: ${{ steps.envs.outputs.environments }}
 

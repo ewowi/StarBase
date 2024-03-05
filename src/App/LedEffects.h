@@ -622,7 +622,7 @@ public:
   }
 }; // BouncingBalls2D
 
-class RingEffect:public Effect {
+class RingEffect {
   protected:
 
     void setRing(Leds &leds, int ring, CRGB colour) { //so britisch ;-)
@@ -631,7 +631,7 @@ class RingEffect:public Effect {
 
 };
 
-class RingRandomFlow:public RingEffect {
+class RingRandomFlow:public RingEffect, public Effect {
 public:
   const char * name() {
     return "RingRandomFlow 1D";
@@ -823,7 +823,14 @@ public:
 
 #ifdef STARMOD_USERMOD_WLEDAUDIO
 
-class GEQEffect:public Effect {
+class AudioEffect:public Effect {
+  protected:
+    uint8_t *fftResult = wledAudioMod->sync.fftResult;
+    float *volumeSmth   = &wledAudioMod->sync.volumeSmth;
+};
+
+
+class GEQEffect:public AudioEffect {
 public:
   const char * name() {
     return "GEQ 2D";
@@ -877,7 +884,7 @@ public:
       unsigned8 frBand = ((NUM_BANDS < 16) && (NUM_BANDS > 1)) ? map(band, 0, NUM_BANDS - 1, 0, 15):band; // always use full range. comment out this line to get the previous behaviour.
       // frBand = constrain(frBand, 0, 15); //WLEDMM can never be out of bounds (I think...)
       unsigned16 colorIndex = frBand * 17; //WLEDMM 0.255
-      unsigned16 bandHeight = wledAudioMod->fftResults[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
+      unsigned16 bandHeight = fftResult[frBand];  // WLEDMM we use the original ffResult, to preserve accuracy
 
       // WLEDMM begin - smooth out bars
       if ((pos.x > 0) && (pos.x < (leds.size.x-1)) && (smoothBars)) {
@@ -885,7 +892,7 @@ public:
         unsigned8 nextband = (remaining < 1)? band +1: band;
         nextband = constrain(nextband, 0, 15);  // just to be sure
         frBand = ((NUM_BANDS < 16) && (NUM_BANDS > 1)) ? map(nextband, 0, NUM_BANDS - 1, 0, 15):nextband; // always use full range. comment out this line to get the previous behaviour.
-        unsigned16 nextBandHeight = wledAudioMod->fftResults[frBand];
+        unsigned16 nextBandHeight = fftResult[frBand];
         // smooth Band height
         bandHeight = (7*bandHeight + 3*lastBandHeight + 3*nextBandHeight) / 12;   // yeees, its 12 not 13 (10% amplification)
         bandHeight = constrain(bandHeight, 0, 255);   // remove potential over/underflows
@@ -940,7 +947,7 @@ public:
   }
 };
 
-class AudioRings:public RingEffect {
+class AudioRings:public RingEffect, public AudioEffect {
 public:
   const char * name() {
     return "AudioRings 1D";
@@ -952,11 +959,11 @@ public:
 
       byte val;
       if(mdl->getValue("inWards").as<bool>()) {
-        val = wledAudioMod->fftResults[(i*2)];
+        val = fftResult[(i*2)];
       }
       else {
         int b = 14 -(i*2);
-        val = wledAudioMod->fftResults[b];
+        val = fftResult[b];
       }
   
       // Visualize leds to the beat
@@ -972,7 +979,7 @@ public:
 
   }
   void setRingFromFtt(Leds &leds, CRGBPalette16 pal, int index, int ring) {
-    byte val = wledAudioMod->fftResults[index];
+    byte val = fftResult[index];
     // Visualize leds to the beat
     CRGB color = ColorFromPalette(pal, val, 255);
     color.nscale8_video(val);
@@ -985,7 +992,7 @@ public:
   }
 };
 
-class FreqMatrix:public Effect {
+class FreqMatrix:public AudioEffect {
 public:
   char tesst[77];
   const char * name() {
@@ -1049,7 +1056,7 @@ public:
 };
 
 
-class DJLight:public Effect {
+class DJLight:public AudioEffect {
 public:
 
   const char * name() {
@@ -1066,8 +1073,6 @@ public:
 
     unsigned8 *aux0 = leds.sharedData.bind(aux0);
 
-    uint8_t *fftResult = wledAudioMod->fftResults;
-    float volumeSmth   = wledAudioMod->volumeSmth;
 
     unsigned8 speed = mdl->getValue("speed");
     bool candyFactory = mdl->getValue("candyFactory").as<bool>();
@@ -1087,7 +1092,7 @@ public:
         color = CRGB(fftResult[11]/2 + fftResult[12]/4 + fftResult[14]/4, // red  : 2412-3704 + 4479-7106 
                     fftResult[4]/2 + fftResult[3]/4,                     // green: 216-430
                     fftResult[0]/4 + fftResult[1]/4 + fftResult[2]/4);   // blue:  46-216
-        if ((color.getLuma() < 96) && (volumeSmth >= 1.5f)) {             // enhance "almost dark" pixels with yellow, based on not-yet-used channels 
+        if ((color.getLuma() < 96) && (*volumeSmth >= 1.5f)) {             // enhance "almost dark" pixels with yellow, based on not-yet-used channels 
           unsigned yello_g = (fftResult[5] + fftResult[6] + fftResult[7]) / 3;
           unsigned yello_r = (fftResult[7] + fftResult[8] + fftResult[9] + fftResult[10]) / 4;
           color.green += (uint8_t) yello_g / 2;
@@ -1095,7 +1100,7 @@ public:
         }
       }
 
-      if (volumeSmth < 1.0f) color = CRGB(0,0,0); // silence = black
+      if (*volumeSmth < 1.0f) color = CRGB(0,0,0); // silence = black
 
       // make colors less "pastel", by turning up color saturation in HSV space
       if (color.getLuma() > 32) {                                      // don't change "dark" pixels
@@ -1202,9 +1207,9 @@ public:
     #ifdef STARMOD_USERMOD_WLEDAUDIO
 
       if (mdl->getValue("mHead") ) {
-        leds.fixture->head.x = wledAudioMod->fftResults[3];
-        leds.fixture->head.y = wledAudioMod->fftResults[8];
-        leds.fixture->head.z = wledAudioMod->fftResults[13];
+        leds.fixture->head.x = wledAudioMod->sync.fftResult[3];
+        leds.fixture->head.y = wledAudioMod->sync.fftResult[8];
+        leds.fixture->head.z = wledAudioMod->sync.fftResult[13];
       }
 
     #endif

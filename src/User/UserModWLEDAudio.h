@@ -26,8 +26,6 @@ class UserModWLEDAudio:public SysModule {
 public:
 
   WLEDSync sync;
-  byte fftResults[NUM_GEQ_CHANNELS]= {0};
-  float volumeSmth;
 
   UserModWLEDAudio() :SysModule("WLED Audio Sync Receiver") {
   };
@@ -62,14 +60,6 @@ public:
     // SysModule::loop();
     if (SysModules::isConnected && sync.read()) {
       lastData = millis();
-      if(debug) USER_PRINTF("WLED-Sync: ");
-      for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
-        byte val = sync.fftResult[b];
-        fftResults[b] = val;
-        if(debug) USER_PRINTF("%u ", val);
-      }
-      volumeSmth = sync.volumeSmth;
-      if(debug) USER_PRINTF("\n");
     }
     else if((lastData == 0) || isTimeout()) { // Could also check for non-silent
       simulateSound(UMS_BeatSin);
@@ -103,15 +93,10 @@ public:
 
     void simulateSound(uint8_t simulationId)
     {
-      static uint8_t samplePeak;
-      static float   FFT_MajorPeak;
-      static uint8_t maxVol;
-      static uint8_t binNum;
-
-      static uint16_t volumeRaw;
-      static float    my_magnitude;
 
       uint32_t ms = millis();
+      uint8_t *fftResults = sync.fftResult;
+      float volumeSmth = 0;
 
       switch (simulationId) {
         default:
@@ -155,13 +140,14 @@ public:
           break;
       }
 
-      // samplePeak    = random8() > 250;
-      // FFT_MajorPeak = 21 + (volumeSmth*volumeSmth) / 8.0f; // WLEDMM 21hz...8200hz
-      // maxVol        = 31;  // this gets feedback fro UI
-      // binNum        = 8;   // this gets feedback fro UI
-      // volumeRaw = volumeSmth;
-      // my_magnitude = 10000.0f / 8.0f; //no idea if 10000 is a good value for FFT_Magnitude ???
-      // if (volumeSmth < 1 ) my_magnitude = 0.001f;             // noise gate closed - mute
+      // sync.samplePeak    = random8() > 250;
+      sync.FFT_MajorPeak = 21 + (volumeSmth*volumeSmth) / 8.0f; // WLEDMM 21hz...8200hz
+      // sync.maxVol        = 31;  // this gets feedback fro UI
+      // sync.binNum        = 8;   // this gets feedback fro UI
+      sync.volumeRaw = volumeSmth;
+      sync.volumeSmth = volumeSmth;
+      sync.my_magnitude = 10000.0f / 8.0f; //no idea if 10000 is a good value for FFT_Magnitude ???
+      if (sync.volumeSmth < 1 ) sync.my_magnitude = 0.001f;             // noise gate closed - mute
 
     }
  

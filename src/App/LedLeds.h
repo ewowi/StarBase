@@ -132,8 +132,13 @@ static Coord3D spinXY(uint_fast16_t x, uint_fast16_t y, uint_fast16_t width, uin
   else return Coord3D{(unsigned16)x3, (unsigned16)y3, 0};
 }
 
-
-
+struct PhysMap {
+  // uint8_t isPhys = pot_none;
+  // union {
+    std::vector<unsigned16> * indexes;
+    CRGB color;
+  // };
+};
 
 
 class Leds {
@@ -154,7 +159,7 @@ public:
 
   SharedData sharedData;
 
-  std::vector<std::vector<unsigned16> *> mappingTable;
+  std::vector<PhysMap> mappingTable;
 
   unsigned16 XY(unsigned16 x, unsigned16 y) {
     return XYZ(x, y, 0);
@@ -188,11 +193,11 @@ public:
     USER_PRINTF("Leds[%d] destructor\n", UINT8_MAX);
     fadeToBlackBy(100);
     doMap = true; // so loop is not running while deleting
-    for (std::vector<unsigned16>* physMap:mappingTable) {
-      if (physMap) {
-        physMap->clear();
+    for (auto map:mappingTable) {
+      if (map.indexes) {
+        map.indexes->clear();
         // free(physMap);
-        delete physMap;
+        delete map.indexes;
       }
     }
     mappingTable.clear();

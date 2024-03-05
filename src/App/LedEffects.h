@@ -1143,9 +1143,9 @@ public:
 
 class FunkyPlank:public Effect {
 public:
-  const char * name() {
-    return "Funky Plank 2D";
-  }
+  const char * name() {return "Funky Plank";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡♫";}
 
   void setup(Leds &leds) {
     leds.fill_solid(CRGB::Black);

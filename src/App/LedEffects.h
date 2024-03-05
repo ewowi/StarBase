@@ -23,7 +23,9 @@ unsigned long now = millis();
 //should not contain variables/bytes to keep mem as small as possible!!
 class Effect {
 public:
-  virtual const char * name() {return nullptr;}
+  virtual const char * name() {return "noname";}
+  virtual const char * tags() {return "";}
+  virtual unsigned8 dim() {return _1D;};
 
   virtual void setup(Leds &leds) {}
 
@@ -69,9 +71,10 @@ public:
 
 class SolidEffect: public Effect {
 public:
-  const char * name() {
-    return "Solid 1D";
-  }
+  const char * name() {return "Solid";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡";}
+
   void loop(Leds &leds) {
     stackUnsigned8 red = mdl->getValue("Red");
     stackUnsigned8 green = mdl->getValue("Green");
@@ -89,9 +92,10 @@ public:
 
 class RainbowEffect: public Effect {
 public:
-  const char * name() {
-    return "Rainbow 1D";
-  }
+  const char * name() {return "Rainbow";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "⚡";}
+
   void loop(Leds &leds) {
     // FastLED's built-in rainbow generator
     leds.fill_rainbow(gHue, 7);
@@ -100,9 +104,10 @@ public:
 
 class RainbowWithGlitterEffect:public RainbowEffect {
 public:
-  const char * name() {
-    return "Rainbow with glitter 1D";
-  }
+  const char * name() {return "Rainbow with glitter";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "⚡";}
+
   void loop(Leds &leds) {
     // built-in FastLED rainbow, plus some random sparkly glitter
     RainbowEffect::loop(leds);
@@ -118,9 +123,10 @@ public:
 
 class SinelonEffect: public Effect {
 public:
-  const char * name() {
-    return "Sinelon 1D";
-  }
+  const char * name() {return "Sinelon";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "⚡";}
+
   void loop(Leds &leds) {
     // a colored dot sweeping back and forth, with fading trails
     leds.fadeToBlackBy(20);
@@ -135,9 +141,10 @@ public:
 //https://www.perfectcircuit.com/signal/difference-between-waveforms
 class RunningEffect: public Effect {
 public:
-  const char * name() {
-    return "Running 1D";
-  }
+  const char * name() {return "Running";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💫";}
+
   void loop(Leds &leds) {
     // a colored dot sweeping back and forth, with fading trails
     leds.fadeToBlackBy(mdl->getValue("fade").as<int>()); //physical leds
@@ -160,9 +167,10 @@ public:
 
 class ConfettiEffect: public Effect {
 public:
-  const char * name() {
-    return "Confetti 1D";
-  }
+  const char * name() {return "Confetti";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "⚡";}
+
   void loop(Leds &leds) {
     // random colored speckles that blink in and fade smoothly
     leds.fadeToBlackBy(10);
@@ -173,9 +181,9 @@ public:
 
 class BPMEffect: public Effect {
 public:
-  const char * name() {
-    return "Beats per minute 1D";
-  }
+  const char * name() {return "Beats per minute";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "⚡";}
 
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
@@ -194,9 +202,10 @@ public:
 
 class JuggleEffect: public Effect {
 public:
-  const char * name() {
-    return "Juggle 1D";
-  }
+  const char * name() {return "Juggle";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "⚡";}
+
   void loop(Leds &leds) {
     // eight colored dots, weaving in and out of sync with each other
     leds.fadeToBlackBy(20);
@@ -208,11 +217,12 @@ public:
   }
 };
 
-class Ripples3DEffect: public Effect {
+class RipplesEffect: public Effect {
 public:
-  const char * name() {
-    return "Ripples 3D";
-  }
+  const char * name() {return "Ripples";}
+  unsigned8 dim() {return _3D;}
+  const char * tags() {return "💫";}
+
   void loop(Leds &leds) {
     stackUnsigned8 interval = mdl->getValue("interval");
     stackUnsigned8 speed = mdl->getValue("speed");
@@ -238,11 +248,12 @@ public:
   }
 };
 
-class SphereMove3DEffect: public Effect {
+class SphereMoveEffect: public Effect {
 public:
-  const char * name() {
-    return "SphereMove 3D";
-  }
+  const char * name() {return "SphereMove";}
+  unsigned8 dim() {return _3D;}
+  const char * tags() {return "💫";}
+
   void loop(Leds &leds) {
     stackUnsigned8 speed = mdl->getValue("speed");
 
@@ -277,11 +288,11 @@ public:
 }; // SphereMove3DEffect
 
 //Frizzles2D inspired by WLED, Stepko, Andrew Tuline, https://editor.soulmatelights.com/gallery/640-color-frizzles
-class Frizzles2D: public Effect {
+class Frizzles: public Effect {
 public:
-  const char * name() {
-    return "Frizzles 2D";
-  }
+  const char * name() {return "Frizzles";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
 
   void loop(Leds &leds) {
     leds.fadeToBlackBy(16);
@@ -308,11 +319,11 @@ public:
   }
 }; // Frizzles2D
 
-class Lines2D: public Effect {
+class Lines: public Effect {
 public:
-  const char * name() {
-    return "Lines 2D";
-  }
+  const char * name() {return "Lines";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💫";}
 
   void loop(Leds &leds) {
     leds.fadeToBlackBy(100);
@@ -343,11 +354,11 @@ unsigned8 gamma8(unsigned8 b) { //we do nothing with gamma for now
 }
 
 //DistortionWaves2D inspired by WLED, ldirko and blazoncek, https://editor.soulmatelights.com/gallery/1089-distorsion-waves
-class DistortionWaves2D: public Effect {
+class DistortionWaves: public Effect {
 public:
-  const char * name() {
-    return "DistortionWaves 2D";
-  }
+  const char * name() {return "DistortionWaves";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
 
   void loop(Leds &leds) {
 
@@ -400,11 +411,11 @@ public:
 
 //Octopus2D inspired by WLED, Stepko and Sutaburosu and blazoncek 
 //Idea from https://www.youtube.com/watch?v=HsA-6KIbgto&ab_channel=GreatScott%21 (https://editor.soulmatelights.com/gallery/671-octopus)
-class Octopus2D: public Effect {
+class Octopus: public Effect {
 public:
-  const char * name() {
-    return "Octopus 2D";
-  }
+  const char * name() {return "Octopus";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
 
   typedef struct {
     unsigned8 angle;
@@ -491,11 +502,11 @@ public:
 }; // Octopus2D
 
 //Lissajous2D inspired by WLED, Andrew Tuline 
-class Lissajous2D: public Effect {
+class Lissajous: public Effect {
 public:
-  const char * name() {
-    return "Lissajous 2D";
-  }
+  const char * name() {return "Lissajous";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
 
   void loop(Leds &leds) {
 
@@ -552,11 +563,11 @@ typedef struct Ball {
   float height;
 } ball;
 
-class BouncingBalls1D: public Effect {
+class BouncingBalls: public Effect {
 public:
-  const char * name() {
-    return "Bouncing Balls 1D";
-  }
+  const char * name() {return "Bouncing Balls";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡";}
 
   void loop(Leds &leds) {
     stackUnsigned8 grav = mdl->getValue("gravity");
@@ -633,9 +644,9 @@ class RingEffect:public Effect {
 
 class RingRandomFlow:public RingEffect {
 public:
-  const char * name() {
-    return "RingRandomFlow 1D";
-  }
+  const char * name() {return "RingRandomFlow";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💫";}
 
   void loop(Leds &leds) {
     stackUnsigned8 *hue = leds.sharedData.bind(hue, leds.nrOfLeds); //array
@@ -651,11 +662,11 @@ public:
   }
 };
 
-class ScrollingText2D: public Effect {
+class ScrollingText: public Effect {
 public:
-  const char * name() {
-    return "Scrolling Text 2D";
-  }
+  const char * name() {return "Scrolling Text";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💫";}
 
   void loop(Leds &leds) {
     stackUnsigned8 speed = mdl->getValue("speed");
@@ -689,11 +700,11 @@ public:
 };
 
 
-class Waverly2D: public Effect {
+class Waverly: public Effect {
 public:
-  const char * name() {
-    return "Waverly 2D";
-  }
+  const char * name() {return "Waverly";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡♪";}
 
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
@@ -747,11 +758,11 @@ typedef struct Spark {
 } spark;
 
 
-class PopCorn1D: public Effect {
+class PopCorn: public Effect {
 public:
-  const char * name() {
-    return "PopCorn 1D";
-  }
+  const char * name() {return "PopCorn";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡♪";}
 
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
@@ -824,10 +835,12 @@ public:
 #ifdef STARMOD_USERMOD_WLEDAUDIO
 
 class GEQEffect:public Effect {
+
 public:
-  const char * name() {
-    return "GEQ 2D";
-  }
+
+  const char * name() {return "GEQ";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡♫";}
 
   void setup(Leds &leds) {
     leds.fadeToBlackBy(16);
@@ -942,9 +955,9 @@ public:
 
 class AudioRings:public RingEffect {
 public:
-  const char * name() {
-    return "AudioRings 1D";
-  }
+  const char * name() {return "AudioRings";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💫♫";}
 
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
@@ -987,10 +1000,9 @@ public:
 
 class FreqMatrix:public Effect {
 public:
-  char tesst[77];
-  const char * name() {
-    return "FreqMatrix 1D";
-  }
+  const char * name() {return "FreqMatrix";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡♪";}
 
   void setup(Leds &leds) {
     leds.fadeToBlackBy(16);
@@ -1052,9 +1064,9 @@ public:
 class DJLight:public Effect {
 public:
 
-  const char * name() {
-    return "DJLight 1D";
-  }
+  const char * name() {return "DJLight";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡♫";}
 
   void setup(Leds &leds) {
     leds.fill_solid(CRGB::Black);
@@ -1146,18 +1158,18 @@ public:
     effects.push_back(new ConfettiEffect);
     effects.push_back(new BPMEffect);
     effects.push_back(new JuggleEffect);
-    effects.push_back(new Ripples3DEffect);
-    effects.push_back(new SphereMove3DEffect);
-    effects.push_back(new Frizzles2D);
-    effects.push_back(new Lines2D);
-    effects.push_back(new DistortionWaves2D);
-    effects.push_back(new Octopus2D);
-    effects.push_back(new Lissajous2D);
-    effects.push_back(new BouncingBalls1D);
+    effects.push_back(new RipplesEffect);
+    effects.push_back(new SphereMoveEffect);
+    effects.push_back(new Frizzles);
+    effects.push_back(new Lines);
+    effects.push_back(new DistortionWaves);
+    effects.push_back(new Octopus);
+    effects.push_back(new Lissajous);
+    effects.push_back(new BouncingBalls);
     effects.push_back(new RingRandomFlow);
-    effects.push_back(new ScrollingText2D);
-    effects.push_back(new Waverly2D);
-    effects.push_back(new PopCorn1D);
+    effects.push_back(new ScrollingText);
+    effects.push_back(new Waverly);
+    effects.push_back(new PopCorn);
     #ifdef STARMOD_USERMOD_WLEDAUDIO
       effects.push_back(new GEQEffect);
       effects.push_back(new AudioRings);
@@ -1247,29 +1259,11 @@ public:
       // }
       //remove vars with all values -99
 
-      //tbd: make property of effects
-      if (strstr(effects[leds.fx]->name(), "2D")) {
-        if (leds.effectDimension != 2) {
-          leds.effectDimension = 2;
-          leds.doMap = true;
-          leds.fixture->doMap = true;
-        }
+      if (effects[leds.fx]->dim() != leds.effectDimension) {
+        leds.effectDimension = effects[leds.fx]->dim();
+        leds.doMap = true;
+        leds.fixture->doMap = true;
       }
-      else if (strstr(effects[leds.fx]->name(), "3D")) {
-        if (leds.effectDimension != 3) {
-          leds.effectDimension = 3;
-          leds.doMap = true;
-          leds.fixture->doMap = true;
-        }
-      }
-      else {
-        if (leds.effectDimension != 1) {
-          leds.effectDimension = 1;
-          leds.doMap = true;
-          leds.fixture->doMap = true;
-        }
-      }
-
     } // fx < size
 
   }

@@ -99,7 +99,12 @@ public:
         ui->setComment(var, "Effect to show");
         JsonArray options = ui->setOptions(var);
         for (Effect *effect:effects.effects) {
-          options.add(effect->name());
+          char buf[32] = "";
+          strcat(buf, effect->name());
+          strcat(buf, effect->dim()==_1D?" ┊":effect->dim()==_2D?" ▦":" 🧊");
+          strcat(buf, " ");
+          strcat(buf, effect->tags());
+          options.add(JsonString(buf, JsonString::Copied)); //copy!
         }
         return true;
       }

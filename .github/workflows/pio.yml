@@ -64,6 +64,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: StarMod-${{ matrix.environment }}-${{env.git_branch}}-${{env.git_hash}}.bin
-          path: .pio/build/${{ matrix.environment }/firmware.bin
+          path: .pio/build/${{ matrix.environment }}/firmware.bin
           retention-days: 30
 

@@ -1141,6 +1141,65 @@ public:
   }
 };
 
+class FunkyPlank:public Effect {
+public:
+  const char * name() {
+    return "Funky Plank 2D";
+  }
+
+  void setup(Leds &leds) {
+    leds.fill_solid(CRGB::Black);
+  }
+
+  void loop(Leds &leds) {
+
+    const uint16_t cols = leds.size.x;
+    const uint16_t rows = leds.size.y;
+
+    unsigned8 num_bands = mdl->getValue("bands");
+    int barWidth = (cols / num_bands);
+    int bandInc = 1;
+    if (barWidth == 0) {
+      // Matrix narrower than fft bands
+      barWidth = 1;
+      bandInc = (num_bands / cols);
+    }
+
+    unsigned8 *aux0 = leds.sharedData.bind(aux0);
+    unsigned8 speed = mdl->getValue("speed");
+
+    unsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
+    if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
+      *aux0 = secondHand;
+
+      // display values of
+      int b = 0;
+      for (int band = 0; band < num_bands; band += bandInc, b++) {
+        int hue = wledAudioMod->fftResults[band % 16];
+        int v = map(wledAudioMod->fftResults[band % 16], 0, 255, 10, 255);
+        for (int w = 0; w < barWidth; w++) {
+          int xpos = (barWidth * b) + w;
+          leds.setPixelColor(leds.XY(xpos, 0), CHSV(hue, 255, v));
+        }
+      }
+
+      // Update the display:
+      for (int i = (rows - 1); i > 0; i--) {
+        for (int j = (cols - 1); j >= 0; j--) {
+          leds.setPixelColor(leds.XY(j, i), leds.getPixelColor(leds.XY(j, i-1)));
+        }
+      }
+      
+    }
+
+  }
+
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 255);
+    ui->initSlider(parentVar, "bands", NUM_GEQ_CHANNELS, 1, NUM_GEQ_CHANNELS);
+  }
+};
+
 
 #endif // End Audio Effects
 
@@ -1175,6 +1234,7 @@ public:
       effects.push_back(new AudioRings);
       effects.push_back(new FreqMatrix);
       effects.push_back(new DJLight);
+      effects.push_back(new FunkyPlank);
     #endif
   }
 

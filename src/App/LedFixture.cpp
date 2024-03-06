@@ -15,18 +15,11 @@
 #include "../Sys/SysStarModJson.h"
 #include "../Sys/SysModPins.h"
 
-Coord3D map1Dto2D(Coord3D in) {
-  Coord3D out;
-  out.x = sqrt(in.x * in.y * in.z); //only one is > 1, square root
-  out.y = out.x;
-  out.z = 0;
-  return out;
-}
 Coord3D map2Dto2D(Coord3D in) {
   Coord3D out;
-  out.x = in.x;//in.x>1?in.x:in.y; //2 of the 3 sizes are > 1
-  out.y = in.y;//in.x>1?in.y:in.z;
-  out.z = in.z;//0;
+  out.x = in.x;
+  out.y = in.y;
+  out.z = in.z;
   return out;
 }
 
@@ -114,9 +107,9 @@ void Fixture::projectAndMap() {
             //only needed one time
             //does not work for some reason...
 
-            // if (indexP == 0) //first
+            if (indexP == 0) //first
             {
-              stackUnsigned16 maxDistance = distance(endPosAdjusted, startPosAdjusted) / 10;
+              stackUnsigned16 maxDistance = distance(endPosAdjusted, startPosAdjusted) / 10 + 1;
               // USER_PRINTF("maxDistance %d %d,%d,%d %d,%d,%d %d,%d,%d\n", maxDistance, pixel.x, pixel.y, pixel.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z);
 
               float scale = 1;
@@ -129,9 +122,10 @@ void Fixture::projectAndMap() {
                 case _2D:
                   switch(projectionDimension) {
                     case _1D:
-                      leds->size = map1Dto2D(projSize);
-                      // leds->size.x = sqrt(projSize.x * projSize.y * projSize.z); //only one is > 1, square root
-                      // leds->size.y = leds->size.x;
+                      //verified
+                      leds->size.x = sqrt(projSize.x * projSize.y * projSize.z); //only one is > 1, square root
+                      leds->size.y = projSize.x * projSize.y * projSize.z / leds->size.x;
+                      leds->size.z = 1;
                       break;
                     case _2D:
                       if (leds->projectionNr == p_Multiply) {
@@ -184,6 +178,8 @@ void Fixture::projectAndMap() {
 
             if (pixel >= startPosAdjusted && pixel <= endPosAdjusted ) { //if pixel between start and end pos
 
+              Coord3D pixelAdjusted = (pixel - startPosAdjusted)/10;
+
               // if (leds->fx == 11) { //lines2D
               //   // USER_PRINTF(" XXX %d %d %d %d, %d, %d", leds->projectionNr, leds->effectDimension, projectionDimension, pixel.x, pixel.y, pixel.z);
               //   USER_PRINTF(" %d: %d,%d,%d", indexP, pixel.x, pixel.y, pixel.z);
@@ -219,8 +215,14 @@ void Fixture::projectAndMap() {
                     // }
                   }
                   else if (leds->effectDimension == _2D) {
-                    if (projectionDimension == _1D)
-                      indexV = leds->XYZ(map1Dto2D((pixel - startPosAdjusted)/10));
+                    if (projectionDimension == _1D) {
+                      //verified
+                      Coord3D mapped;
+                      mapped.x = (pixelAdjusted.x + pixelAdjusted.y) % leds->size.x;
+                      mapped.y = (pixelAdjusted.x + pixelAdjusted.y) / leds->size.x;
+                      mapped.z = 0;
+                      indexV = leds->XYZ(mapped);
+                    }
                     else if (projectionDimension == _2D) {
                       Coord3D mapped = map2Dto2D(pixel - startPosAdjusted) + Coord3D{5,5,5}; // add 0.5 for rounding
                       if (leds->projectionNr == p_Multiply) {
@@ -339,7 +341,7 @@ void Fixture::projectAndMap() {
                       if (!leds->mappingTable[indexV].indexes) {
                         leds->mappingTable[indexV].indexes = new std::vector<unsigned16>;
                       }
-                      leds->mappingTable[indexV].indexes->push_back(indexP); //add the current led in the right physMap
+                      leds->mappingTable[indexV].indexes->push_back(indexP); //add the current led to indexes
                     }
                     else 
                       USER_PRINTF("dev post [%d] indexP too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexP, nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
@@ -421,7 +423,7 @@ void Fixture::projectAndMap() {
             stackUnsigned16 indexV = 0;
             for (auto map:leds->mappingTable) {
               if (map.indexes && map.indexes->size()) {
-                // USER_PRINTF("ledV %d mapping: #ledsP (%d):", indexV, physMap->size());
+                // USER_PRINTF("ledV %d mapping: #ledsP (%d):", indexV, indexes->size());
 
                 for (forUnsigned16 indexP:*map.indexes) {
                   // USER_PRINTF(" %d", indexP);
@@ -437,7 +439,7 @@ void Fixture::projectAndMap() {
             }
           }
 
-          USER_PRINTF("projectAndMap [%d] V:%d x %d x %d = %d (v:%d - p:%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
+          USER_PRINTF("projectAndMap [%d] V:%d x %d x %d -> %d (v:%d - p:%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
 
           // mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
           char buf[32];

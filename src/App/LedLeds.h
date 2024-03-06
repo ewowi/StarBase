@@ -133,13 +133,12 @@ static Coord3D spinXY(uint_fast16_t x, uint_fast16_t y, uint_fast16_t width, uin
 }
 
 struct PhysMap {
-  // uint8_t isPhys = pot_none;
+  // bool isPhys = false; // 1 byte
   // union {
     std::vector<unsigned16> * indexes;
     CRGB color;
-  // };
-};
-
+  // }; // 4 bytes
+}; // expected to be 5 bytes but is 8 bytes!!!
 
 class Leds {
 
@@ -164,11 +163,12 @@ public:
   unsigned16 XY(unsigned16 x, unsigned16 y) {
     return XYZ(x, y, 0);
   }
+
   unsigned16 XYZ(Coord3D coord) {
     return XYZ(coord.x, coord.y, coord.z);
   }
-  unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
 
+  unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
     if (projectionNr == p_Rotate) {
       Coord3D result = spinXY(x,y, size.x, size.y, proSpeed);
       return result.x + result.y * size.x + result.z * size.x * size.y;
@@ -182,11 +182,8 @@ public:
   bool doMap = false;
 
   Leds(Fixture &fixture) {
-    USER_PRINTF("Leds[%d] constructor\n", UINT8_MAX);
-    // this->rowNr = rowNr;
+    USER_PRINTF("Leds[%d] constructor %d\n", UINT8_MAX, sizeof(PhysMap));
     this->fixture = &fixture;
-    // this->fx = 13;
-    // this->projectionNr = 2;
   }
 
   ~Leds() {
@@ -196,7 +193,6 @@ public:
     for (auto map:mappingTable) {
       if (map.indexes) {
         map.indexes->clear();
-        // free(physMap);
         delete map.indexes;
       }
     }

@@ -876,7 +876,7 @@ public:
 
     stackUnsigned16 lastBandHeight = 0;  // WLEDMM: for smoothing out bars
 
-    //WLEDMM: evenly ditribut bands
+    //evenly distribute see also Funky Plank/By ewowi/From AXI
     float bandwidth = (float)leds.size.x / NUM_BANDS;
     float remaining = bandwidth;
     stackUnsigned8 band = 0;
@@ -1145,7 +1145,7 @@ class FunkyPlank:public Effect {
 public:
   const char * name() {return "Funky Plank";}
   unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡♫";}
+  const char * tags() {return "💡💫♫";}
 
   void setup(Leds &leds) {
     leds.fill_solid(CRGB::Black);
@@ -1153,45 +1153,35 @@ public:
 
   void loop(Leds &leds) {
 
-    const uint16_t cols = leds.size.x;
-    const uint16_t rows = leds.size.y;
-
     unsigned8 num_bands = mdl->getValue("bands");
-    int barWidth = (cols / num_bands);
-    int bandInc = 1;
-    if (barWidth == 0) {
-      // Matrix narrower than fft bands
-      barWidth = 1;
-      bandInc = (num_bands / cols);
-    }
-
-    unsigned8 *aux0 = leds.sharedData.bind(aux0);
     unsigned8 speed = mdl->getValue("speed");
 
+    unsigned8 *aux0 = leds.sharedData.bind(aux0);
+
     unsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
-    if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
+    if ((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
       *aux0 = secondHand;
 
-      // display values of
-      int b = 0;
-      for (int band = 0; band < num_bands; band += bandInc, b++) {
-        int hue = wledAudioMod->fftResults[band % 16];
-        int v = map(wledAudioMod->fftResults[band % 16], 0, 255, 10, 255);
-        for (int w = 0; w < barWidth; w++) {
-          int xpos = (barWidth * b) + w;
-          leds.setPixelColor(leds.XY(xpos, 0), CHSV(hue, 255, v));
-        }
+      //evenly distribute see also GEQ/By ewowi/From AXI
+      float bandwidth = (float)leds.size.x / num_bands;
+      float remaining = bandwidth;
+      stackUnsigned8 band = 0;
+      for (int posx=0; posx < leds.size.x; posx++) {
+        if (remaining < 1) {band++; remaining += bandwidth;} //increase remaining but keep the current remaining
+        remaining--; //consume remaining
+
+        int hue = wledAudioMod->fftResults[map(band, 0, num_bands-1, 0, 15)];
+        int v = map(hue, 0, 255, 10, 255);
+        leds.setPixelColor(leds.XY(posx, 0), CHSV(hue, 255, v));
       }
 
-      // Update the display:
-      for (int i = (rows - 1); i > 0; i--) {
-        for (int j = (cols - 1); j >= 0; j--) {
+      // drip down:
+      for (int i = (leds.size.y - 1); i > 0; i--) {
+        for (int j = (leds.size.x - 1); j >= 0; j--) {
           leds.setPixelColor(leds.XY(j, i), leds.getPixelColor(leds.XY(j, i-1)));
         }
       }
-      
     }
-
   }
 
   void controls(JsonObject parentVar) {

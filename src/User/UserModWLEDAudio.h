@@ -80,7 +80,7 @@ public:
     // USER_PRINTF("%d, %s, %d\n", sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
     String msg = "";
     if((lastData != 0) && isTimeout()) {
-      msg = "No data";
+      msg = sync.sourceIP.toString() + " Timeout " + ((millis() - lastData) / 1000)  +"s";
     }
     else {
       switch(sync.receivedFormat) {

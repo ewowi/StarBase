@@ -109,6 +109,7 @@ void SysModNetwork::handleConnection() {
     }
   } else if (!interfacesInited) { //newly connected
     mdl->setUIValueV("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
+    USER_PRINTF("Connected %s\n", WiFi.localIP().toString().c_str());
 
     interfacesInited = true;
 

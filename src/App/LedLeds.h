@@ -34,9 +34,9 @@ enum Projections
   p_Multiply,
   p_Rotate,
   p_DistanceFromPoint,
+  p_Preset,
   p_None,
   p_Random,
-  p_Fun,
   p_Reverse,
   p_Mirror,
   p_Kaleidoscope,
@@ -154,7 +154,7 @@ public:
   unsigned8 projectionNr = -1;
   unsigned8 effectDimension = -1;
   Coord3D startPos = {0,0,0}, endPos = {UINT16_MAX,UINT16_MAX,UINT16_MAX}; //default
-  unsigned8 proSpeed = 128;
+  unsigned8 proRSpeed = 128;
 
   SharedData sharedData;
 
@@ -169,8 +169,8 @@ public:
   }
 
   unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
-    if (projectionNr == p_Rotate) {
-      Coord3D result = spinXY(x,y, size.x, size.y, proSpeed);
+    if (projectionNr == p_Rotate || projectionNr == p_Preset) {
+      Coord3D result = spinXY(x,y, size.x, size.y, proRSpeed);
       return result.x + result.y * size.x + result.z * size.x * size.y;
     }
     else
@@ -249,7 +249,7 @@ public:
   void addPixelColor(Coord3D pixel, CRGB color) {setPixelColor(pixel, getPixelColor(pixel) + color);}
 
   void fadeToBlackBy(unsigned8 fadeBy = 255);
-  void fill_solid(const struct CRGB& color);
+  void fill_solid(const struct CRGB& color, bool noBlend = false);
   void fill_rainbow(unsigned8 initialhue, unsigned8 deltahue);
   void blur2d(fract8 blur_amount)
   {

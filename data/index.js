@@ -194,9 +194,6 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     }
     else
       labelNode.innerText = initCap(variable.id); // the default when not overridden by uiFun
-    // if (variable.id == "proSplit" && parentNode.className == "ndiv") {
-    //   // findParent(model, variable.id);
-    // }
     
     divNode = cE("div");
     divNode.id = variable.id + (rowNr != UINT8_MAX?"#" + rowNr:"") + "_d";

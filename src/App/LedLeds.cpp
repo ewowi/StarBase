@@ -70,14 +70,14 @@ void Leds::fadeToBlackBy(unsigned8 fadeBy) {
   }
 }
 
-void Leds::fill_solid(const struct CRGB& color) {
+void Leds::fill_solid(const struct CRGB& color, bool noBlend) {
   if (projectionNr == p_None || projectionNr == p_Random) {
     fastled_fill_solid(fixture->ledsP, fixture->nrOfLeds, color);
   } else {
     for (auto map:mappingTable) {
       if (map.indexes)
         for (forUnsigned16 indexP:*map.indexes) {
-          fixture->ledsP[indexP] = blend(color, fixture->ledsP[indexP], fixture->globalBlend);
+          fixture->ledsP[indexP] = noBlend?color:blend(color, fixture->ledsP[indexP], fixture->globalBlend);
         }
     }
   }

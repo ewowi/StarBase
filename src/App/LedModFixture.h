@@ -57,7 +57,7 @@ public:
         // ui->setComment(var, "Click to enlarge");
         return true;
       case f_LoopFun: {
-        var["interval"] =  max(eff->fixture.nrOfLeds * web->ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
+        var["interval"] =  max(eff->fixture.nrOfLeds * web->ws->count()/80, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
 
         web->sendDataWs([this](AsyncWebSocketMessageBuffer * wsBuf) {
           byte* buffer;

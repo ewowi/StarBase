@@ -1069,7 +1069,7 @@ public:
   const char * tags() {return "💡♫";}
 
   void setup(Leds &leds) {
-    leds.fill_solid(CRGB::Black);
+    leds.fill_solid(CRGB::Black, true); //no blend
   }
 
   void loop(Leds &leds) {
@@ -1148,7 +1148,7 @@ public:
   const char * tags() {return "💡💫♫";}
 
   void setup(Leds &leds) {
-    leds.fill_solid(CRGB::Black);
+    leds.fill_solid(CRGB::Black, true); //no blend
   }
 
   void loop(Leds &leds) {

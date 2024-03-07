@@ -136,10 +136,10 @@ public:
         options.add("Default");
         options.add("Multiply");
         options.add("Rotate");
-        options.add("Distance from point");
+        options.add("Distance from point ⌛");
+        options.add("Preset (WIP)");
         options.add("None");
         options.add("Random");
-        options.add("Fun");
         options.add("Mirror WIP");
         options.add("Reverse WIP");
         options.add("Kaleidoscope WIP");
@@ -156,20 +156,25 @@ public:
           fixture.ledsList[rowNr]->projectionNr = proValue;
 
           mdl->varPreDetails(var, rowNr); //set all positive var N orders to negative
-          if (proValue == p_DistanceFromPoint) {
-            ui->initCoord3D(var, "proPoint", Coord3D{8,8,8}, 0, NUM_LEDS_Max);
-            // , [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-            //   case f_ValueFun:
-            //     mdl->setValue(var, eff->fixture.size);
-            //     return true;
-            //   case f_UIFun:
-            //     ui->setLabel(var, "Size");
-            //     return true;
-            //   default: return false;
-            // }});
+          if (proValue == p_DistanceFromPoint || proValue == p_Preset) {
+            ui->initCoord3D(var, "proCenter", Coord3D{8,8,8}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+              case f_UIFun:
+                ui->setLabel(var, "Center");
+                return true;
+              case f_ChangeFun:
+                //initiate projectAndMap
+                fixture.ledsList[rowNr]->doMap = true;
+                fixture.doMap = true;
+                // ui->setLabel(var, "Size");
+                return true;
+              default: return false;
+            }});
           }
-          if (proValue == p_Multiply) {
-            ui->initCoord3D(var, "proSplit", Coord3D{2,2,1}, 0, 10, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+          if (proValue == p_Multiply || proValue == p_Preset) {
+            ui->initCoord3D(var, "proMulti", Coord3D{2,2,1}, 0, 10, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+              case f_UIFun:
+                ui->setLabel(var, "Multiply");
+                return true;
               case f_ChangeFun:
                 fixture.ledsList[rowNr]->doMap = true;
                 fixture.doMap = true;
@@ -177,11 +182,13 @@ public:
               default: return false;
             }});
           }
-          if (proValue == p_Rotate) {
-            ui->initCoord3D(var, "proCenter", Coord3D{8,8,8}, 0, NUM_LEDS_Max);
-            ui->initSlider(var, "proSpeed", 128, 1, 255, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+          if (proValue == p_Rotate || proValue == p_Preset) {
+            ui->initSlider(var, "proRSpeed", 128, 1, 255, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+              case f_UIFun:
+                ui->setLabel(var, "Rotation speed");
+                return true;
               case f_ChangeFun:
-                fixture.ledsList[rowNr]->proSpeed = mdl->getValue(var, rowNr);
+                fixture.ledsList[rowNr]->proRSpeed = mdl->getValue(var, rowNr);
                 return true;
               default: return false;
             }});
@@ -358,21 +365,27 @@ public:
 
         char * token = strtok((char *)canvasData, ":");
         bool isStart = strcmp(token, "start") == 0;
+        bool isEnd = strcmp(token, "end") == 0;
 
-        Coord3D *startOrEndPos = isStart? &fixture.ledsList[0]->startPos: &fixture.ledsList[0]->endPos;
+        Coord3D midCoord; //placeHolder for mid
 
-        token = strtok(NULL, ",");
-        if (token != NULL) startOrEndPos->x = atoi(token) / 10; else startOrEndPos->x = 0; //should never happen
-        token = strtok(NULL, ",");
-        if (token != NULL) startOrEndPos->y = atoi(token) / 10; else startOrEndPos->y = 0;
-        token = strtok(NULL, ",");
-        if (token != NULL) startOrEndPos->z = atoi(token) / 10; else startOrEndPos->z = 0;
+        Coord3D *newCoord = isStart? &fixture.ledsList[0]->startPos: isEnd? &fixture.ledsList[0]->endPos : &midCoord;
 
-        mdl->setValue(isStart?"fxStart":"fxEnd", *startOrEndPos, 0); //assuming row 0 for the moment
+        if (newCoord) {
+          token = strtok(NULL, ",");
+          if (token != NULL) newCoord->x = atoi(token) / 10; else newCoord->x = 0; //should never happen
+          token = strtok(NULL, ",");
+          if (token != NULL) newCoord->y = atoi(token) / 10; else newCoord->y = 0;
+          token = strtok(NULL, ",");
+          if (token != NULL) newCoord->z = atoi(token) / 10; else newCoord->z = 0;
+
+          mdl->setValue(isStart?"fxStart":isEnd?"fxEnd":"proCenter", *newCoord, 0); //assuming row 0 for the moment
+
+          fixture.ledsList[0]->doMap = true; //recalc projection
+          fixture.doMap = true;
+        }
 
         var.remove("canvasData"); //convasdata has been processed
-        fixture.ledsList[0]->doMap = true; //recalc projection
-        fixture.doMap = true;
       }
     }
 

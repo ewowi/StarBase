@@ -1,4 +1,12 @@
 
+search range-based for loop
+===========================
+    ^(?=.*\bfor\b)(?=.*\b:\b).*$
+
+
+Make video from png and mov
+===========================
+
 1) Download ffmpeg and exiftool 
 copy to /usr/local/bin (macos)
 

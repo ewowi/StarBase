@@ -190,6 +190,7 @@ function preview3D(canvasNode, buffer) {
 
         gId("canvasButton1").innerText = "Set Start position";
         gId("canvasButton2").innerText = "Set End position";
+        gId("canvasButton3").innerText = "Set Mid position";
 
         //process canvas button click
         gId("canvasButton1").addEventListener("click", function(){
@@ -202,6 +203,12 @@ function preview3D(canvasNode, buffer) {
         gId("canvasButton2").addEventListener("click", function(){
           var command = {};
           command["canvasData"] = "end:" + gId("canvasData").innerText;
+          requestJson(command);
+          gId("canvasMenu").style.display = "none";
+        }, false);
+        gId("canvasButton3").addEventListener("click", function(){
+          var command = {};
+          command["canvasData"] = "mid:" + gId("canvasData").innerText;
           requestJson(command);
           gId("canvasMenu").style.display = "none";
         }, false);

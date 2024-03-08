@@ -393,7 +393,7 @@ class RainEffect: public Effect {
 
     stackUnsigned16 *aux0 = leds.sharedData.bind(aux0);
     stackUnsigned16 *aux1 = leds.sharedData.bind(aux1);
-    stackUnsigned8 *step = leds.sharedData.bind(step);
+    stackUnsigned16 *step = leds.sharedData.bind(step);
 
     // if(SEGENV.call == 0) {
       // SEGMENT.fill(BLACK);
@@ -447,7 +447,7 @@ struct Spark {
 class DripEffect: public Effect {
   const char * name() {return "Drip";}
   unsigned8 dim() {return _1D;}
-  const char * tags() {return "💡";}
+  const char * tags() {return "💡💫";}
 
   void loop(Leds &leds) {
 
@@ -459,7 +459,8 @@ class DripEffect: public Effect {
 
     Spark* drops = leds.sharedData.bind(drops, maxNumDrops);
 
-    leds.fadeToBlackBy(90);
+    // leds.fadeToBlackBy(90);
+    leds.fill_solid(CRGB::Black);
 
     float gravity = -0.0005 - (grav/25000.0); //increased gravity (50000 to 25000)
     gravity *= max(1, leds.nrOfLeds-1);
@@ -528,6 +529,51 @@ class DripEffect: public Effect {
     ui->initCheckBox(parentVar, "invert");
   }
 }; // DripEffect
+
+class HeartBeatEffect: public Effect {
+  const char * name() {return "HeartBeat";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡💫♥";}
+
+  void loop(Leds &leds) {
+
+    CRGBPalette16 pal = getPalette();
+    uint8_t speed = mdl->getValue("speed");
+    uint8_t intensity = mdl->getValue("intensity");
+
+    bool *isSecond = leds.sharedData.bind(isSecond);
+    uint16_t *bri_lower = leds.sharedData.bind(bri_lower);
+    unsigned long *step = leds.sharedData.bind(step);
+
+    uint8_t bpm = 40 + (speed);
+    uint32_t msPerBeat = (60000L / bpm);
+    uint32_t secondBeat = (msPerBeat / 3);
+    unsigned long beatTimer = now - *step;
+
+    *bri_lower = *bri_lower * 2042 / (2048 + intensity);
+
+    if ((beatTimer > secondBeat) && !*isSecond) { // time for the second beat?
+      *bri_lower = UINT16_MAX; //3/4 bri
+      *isSecond = true;
+    }
+
+    if (beatTimer > msPerBeat) { // time to reset the beat timer?
+      *bri_lower = UINT16_MAX; //full bri
+      *isSecond = false;
+      *step = now;
+    }
+
+    for (int i = 0; i < leds.nrOfLeds; i++) {
+      leds.setPixelColor(i, ColorFromPalette(pal, map(i, 0, leds.nrOfLeds, 0, 255), 255 - (*bri_lower >> 8)));
+    }
+  }
+  
+  void controls(JsonObject parentVar) {
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "speed", 15, 0, 31);
+    ui->initSlider(parentVar, "intensity", 128);
+  }
+}; // HeartBeatEffect
 
 class FreqMatrix: public Effect {
   const char * name() {return "FreqMatrix";}
@@ -1152,7 +1198,7 @@ class GEQEffect: public Effect {
   void loop(Leds &leds) {
 
     stackUnsigned16 *previousBarHeight = leds.sharedData.bind(previousBarHeight, leds.size.x); //array
-    stackUnsigned32 *step = leds.sharedData.bind(step);
+    unsigned long *step = leds.sharedData.bind(step);
 
     const int NUM_BANDS = NUM_GEQ_CHANNELS ; // map(SEGMENT.custom1, 0, 255, 1, 16);
 
@@ -1404,6 +1450,7 @@ public:
     effects.push_back(new BouncingBalls);
     effects.push_back(new RainEffect);
     effects.push_back(new DripEffect);
+    effects.push_back(new HeartBeatEffect);
 
     #ifdef STARMOD_USERMOD_WLEDAUDIO
       //1D Volume

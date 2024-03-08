@@ -138,33 +138,6 @@ public:
   }
 }; //Sinelon
 
-//https://www.perfectcircuit.com/signal/difference-between-waveforms
-class RunningEffect: public Effect {
-public:
-  const char * name() {return "Running";}
-  unsigned8 dim() {return _1D;}
-  const char * tags() {return "💫";}
-
-  void loop(Leds &leds) {
-    // a colored dot sweeping back and forth, with fading trails
-    leds.fadeToBlackBy(mdl->getValue("fade").as<int>()); //physical leds
-    int pos = map(beat16( mdl->getValue("BPM").as<int>()), 0, UINT16_MAX, 0, leds.nrOfLeds-1 ); //instead of call%leds.nrOfLeds
-    // int pos2 = map(beat16( mdl->getValue("BPM").as<int>(), 1000), 0, UINT16_MAX, 0, leds.nrOfLeds-1 ); //one second later
-    leds[pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
-    // leds[leds.nrOfLeds -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
-  }
-  void controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun:
-        ui->setComment(var, "in BPM!");
-        return true;
-      default: return false;
-    }});
-    //tbd: check if memory is freed!
-    ui->initSlider(parentVar, "fade", 128);
-  }
-};
-
 class ConfettiEffect: public Effect {
 public:
   const char * name() {return "Confetti";}
@@ -217,345 +190,64 @@ public:
   }
 };
 
-class RipplesEffect: public Effect {
+//https://www.perfectcircuit.com/signal/difference-between-waveforms
+class RunningEffect: public Effect {
 public:
-  const char * name() {return "Ripples";}
-  unsigned8 dim() {return _3D;}
+  const char * name() {return "Running";}
+  unsigned8 dim() {return _1D;}
   const char * tags() {return "💫";}
 
   void loop(Leds &leds) {
-    stackUnsigned8 interval = mdl->getValue("interval");
-    stackUnsigned8 speed = mdl->getValue("speed");
-
-    float ripple_interval = 1.3f * (interval/128.0f);
-
-    leds.fill_solid(CRGB::Black);
-
-    Coord3D pos = {0,0,0};
-    for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-      for (pos.y=0; pos.y<leds.size.y; pos.y++) {
-        float d = leds.fixture->distance(3.5f, 3.5f, 0.0f, (float)pos.x, (float)pos.z, 0.0f) / 9.899495f * leds.size.x;
-        stackUnsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
-        pos.x = floor(leds.size.x/2.0f + sinf(d/ripple_interval + time_interval) * leds.size.x/2.0f); //between 0 and leds.size.x
-
-        leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
-      }
-    }
+    // a colored dot sweeping back and forth, with fading trails
+    leds.fadeToBlackBy(mdl->getValue("fade").as<int>()); //physical leds
+    int pos = map(beat16( mdl->getValue("BPM").as<int>()), 0, UINT16_MAX, 0, leds.nrOfLeds-1 ); //instead of call%leds.nrOfLeds
+    // int pos2 = map(beat16( mdl->getValue("BPM").as<int>(), 1000), 0, UINT16_MAX, 0, leds.nrOfLeds-1 ); //one second later
+    leds[pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
+    // leds[leds.nrOfLeds -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
   void controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 50, 0, 99);
-    ui->initSlider(parentVar, "interval", 128);
+    ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+      case f_UIFun:
+        ui->setComment(var, "in BPM!");
+        return true;
+      default: return false;
+    }});
+    //tbd: check if memory is freed!
+    ui->initSlider(parentVar, "fade", 128);
   }
 };
 
-class SphereMoveEffect: public Effect {
+class RingEffect:public Effect {
+  protected:
+
+    void setRing(Leds &leds, int ring, CRGB colour) { //so britisch ;-)
+      leds[ring] = colour;
+    }
+
+};
+
+class RingRandomFlow:public RingEffect {
 public:
-  const char * name() {return "SphereMove";}
-  unsigned8 dim() {return _3D;}
+  const char * name() {return "RingRandomFlow";}
+  unsigned8 dim() {return _1D;}
   const char * tags() {return "💫";}
 
   void loop(Leds &leds) {
-    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 *hue = leds.sharedData.bind(hue, leds.nrOfLeds); //array
 
-    leds.fill_solid(CRGB::Black);
-
-    stackUnsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
-
-    Coord3D origin;
-    origin.x = 3.5f+sinf(time_interval)*2.5f;
-    origin.y = 3.5f+cosf(time_interval)*2.5f;
-    origin.z = 3.5f+cosf(time_interval)*2.0f;
-
-    float diameter = 2.0f+sinf(time_interval/3.0f);
-
-    // CRGBPalette256 pal;
-    Coord3D pos;
-    for (pos.x=0; pos.x<leds.size.x; pos.x++) {
-        for (pos.y=0; pos.y<leds.size.y; pos.y++) {
-            for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-                stackUnsigned16 d = leds.fixture->distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
-
-                if (d>diameter && d<diameter+1) {
-                  leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
-                }
-            }
-        }
+    hue[0] = random(0, 255);
+    for (int r = 0; r < leds.nrOfLeds; r++) {
+      setRing(leds, r, CHSV(hue[r], 255, 255));
     }
-  }
-  void controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 50, 0, 99);
-  }
-}; // SphereMove3DEffect
-
-//Frizzles2D inspired by WLED, Stepko, Andrew Tuline, https://editor.soulmatelights.com/gallery/640-color-frizzles
-class Frizzles: public Effect {
-public:
-  const char * name() {return "Frizzles";}
-  unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡";}
-
-  void loop(Leds &leds) {
-    leds.fadeToBlackBy(16);
-
-    stackUnsigned8 bpm = mdl->getValue("BPM");
-    stackUnsigned8 intensity = mdl->getValue("intensity");
-    CRGBPalette16 pal = getPalette();
-
-    for (int i = 8; i > 0; i--) {
-      Coord3D pos = {0,0,0};
-      pos.x = beatsin8(bpm/8 + i, 0, leds.size.x - 1);
-      pos.y = beatsin8(intensity/8 - i, 0, leds.size.y - 1);
-      CRGB color = ColorFromPalette(pal, beatsin8(12, 0, 255), 255);
-      leds[pos] = color;
+    for (int r = (leds.nrOfLeds - 1); r >= 1; r--) {
+      hue[r] = hue[(r - 1)]; // set this ruing based on the inner
     }
-    leds.blur2d(mdl->getValue("blur"));
+    // FastLED.delay(SPEED);
   }
+};
 
-  void controls(JsonObject parentVar) {
-    addPalette(parentVar, 4);
-    ui->initSlider(parentVar, "BPM", 60);
-    ui->initSlider(parentVar, "intensity", 128);
-    ui->initSlider(parentVar, "blur", 128);
-  }
-}; // Frizzles2D
-
-class Lines: public Effect {
-public:
-  const char * name() {return "Lines";}
-  unsigned8 dim() {return _2D;}
-  const char * tags() {return "💫";}
-
-  void loop(Leds &leds) {
-    leds.fadeToBlackBy(100);
-
-    Coord3D pos = {0,0,0};
-    if (mdl->getValue("Vertical").as<bool>()) {
-      pos.x = map(beat16( mdl->getValue("BPM").as<int>()), 0, UINT16_MAX, 0, leds.size.x-1 ); //instead of call%width
-
-      for (pos.y = 0; pos.y <  leds.size.y; pos.y++) {
-        leds[pos] = CHSV( gHue, 255, 192);
-      }
-    } else {
-      pos.y = map(beat16( mdl->getValue("BPM").as<int>()), 0, UINT16_MAX, 0, leds.size.y-1 ); //instead of call%height
-      for (pos.x = 0; pos.x <  leds.size.x; pos.x++) {
-        leds[pos] = CHSV( gHue, 255, 192);
-      }
-    }
-  }
-
-  void controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "BPM", 60);
-    ui->initCheckBox(parentVar, "Vertical", true);
-  }
-}; // Lines2D
-
-unsigned8 gamma8(unsigned8 b) { //we do nothing with gamma for now
-  return b;
-}
-
-//DistortionWaves2D inspired by WLED, ldirko and blazoncek, https://editor.soulmatelights.com/gallery/1089-distorsion-waves
-class DistortionWaves: public Effect {
-public:
-  const char * name() {return "DistortionWaves";}
-  unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡";}
-
-  void loop(Leds &leds) {
-
-    stackUnsigned8 speed = mdl->getValue("speed");
-    stackUnsigned8 scale = mdl->getValue("scale");
-
-    stackUnsigned8  w = 2;
-
-    stackUnsigned16 a  = now/32;
-    stackUnsigned16 a2 = a/2;
-    stackUnsigned16 a3 = a/3;
-
-    stackUnsigned16 cx =  beatsin8(10-speed,0,leds.size.x-1)*scale;
-    stackUnsigned16 cy =  beatsin8(12-speed,0,leds.size.y-1)*scale;
-    stackUnsigned16 cx1 = beatsin8(13-speed,0,leds.size.x-1)*scale;
-    stackUnsigned16 cy1 = beatsin8(15-speed,0,leds.size.y-1)*scale;
-    stackUnsigned16 cx2 = beatsin8(17-speed,0,leds.size.x-1)*scale;
-    stackUnsigned16 cy2 = beatsin8(14-speed,0,leds.size.y-1)*scale;
-    
-    stackUnsigned16 xoffs = 0;
-    Coord3D pos = {0,0,0};
-    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
-      xoffs += scale;
-      stackUnsigned16 yoffs = 0;
-
-      for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
-        yoffs += scale;
-
-        byte rdistort = cos8((cos8(((pos.x<<3)+a )&255)+cos8(((pos.y<<3)-a2)&255)+a3   )&255)>>1; 
-        byte gdistort = cos8((cos8(((pos.x<<3)-a2)&255)+cos8(((pos.y<<3)+a3)&255)+a+32 )&255)>>1; 
-        byte bdistort = cos8((cos8(((pos.x<<3)+a3)&255)+cos8(((pos.y<<3)-a) &255)+a2+64)&255)>>1; 
-
-        byte valueR = rdistort+ w*  (a- ( ((xoffs - cx)  * (xoffs - cx)  + (yoffs - cy)  * (yoffs - cy))>>7  ));
-        byte valueG = gdistort+ w*  (a2-( ((xoffs - cx1) * (xoffs - cx1) + (yoffs - cy1) * (yoffs - cy1))>>7 ));
-        byte valueB = bdistort+ w*  (a3-( ((xoffs - cx2) * (xoffs - cx2) + (yoffs - cy2) * (yoffs - cy2))>>7 ));
-
-        valueR = gamma8(cos8(valueR));
-        valueG = gamma8(cos8(valueG));
-        valueB = gamma8(cos8(valueB));
-
-        leds[pos] = CRGB(valueR, valueG, valueB);
-      }
-    }
-  }
-  void controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 4, 0, 8);
-    ui->initSlider(parentVar, "scale", 4, 0, 8);
-  }
-}; // DistortionWaves2D
-
-//Octopus2D inspired by WLED, Stepko and Sutaburosu and blazoncek 
-//Idea from https://www.youtube.com/watch?v=HsA-6KIbgto&ab_channel=GreatScott%21 (https://editor.soulmatelights.com/gallery/671-octopus)
-class Octopus: public Effect {
-public:
-  const char * name() {return "Octopus";}
-  unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡";}
-
-  typedef struct {
-    unsigned8 angle;
-    unsigned8 radius;
-  } map_t;
-
-  void loop(Leds &leds) {
-
-    const stackUnsigned8 mapp = 180 / max(leds.size.x,leds.size.y);
-
-    // stackUnsigned8 *speed2 = leds.sharedData.bind(speed2);
-    // // USER_PRINTF(" %d:%d", speed2, *speed2);
-    
-    stackUnsigned8 speed = mdl->getValue("speed");
-    stackUnsigned8 offsetX = mdl->getValue("Offset X");
-    stackUnsigned8 offsetY = mdl->getValue("Offset Y");
-    stackUnsigned8 legs = mdl->getValue("Legs");
-    CRGBPalette16 pal = getPalette();
-
-    map_t    *rMap = leds.sharedData.bind(rMap, leds.size.x * leds.size.y); //array
-    uint8_t *offsX = leds.sharedData.bind(offsX);
-    uint8_t *offsY = leds.sharedData.bind(offsY);
-    uint16_t *aux0 = leds.sharedData.bind(aux0);
-    uint16_t *aux1 = leds.sharedData.bind(aux1);
-    stackUnsigned32 *step = leds.sharedData.bind(step);
-
-    Coord3D pos = {0,0,0};
-
-    // re-init if SEGMENT dimensions or offset changed
-    if (*aux0 != leds.size.x || *aux1 != leds.size.y || offsetX != *offsX || offsetY != *offsY) {
-      // *step = 0;
-      *aux0 = leds.size.x;
-      *aux1 = leds.size.y;
-      *offsX = offsetX;
-      *offsY = offsetY;
-      const stackUnsigned8 C_X = leds.size.x / 2 + (offsetX - 128)*leds.size.x/255;
-      const stackUnsigned8 C_Y = leds.size.y / 2 + (offsetY - 128)*leds.size.y/255;
-      for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
-        for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
-          rMap[leds.XY(pos.x, pos.y)].angle = 40.7436f * atan2f(pos.y - C_Y, pos.x - C_X); // avoid 128*atan2()/PI
-          rMap[leds.XY(pos.x, pos.y)].radius = hypotf(pos.x - C_X, pos.y - C_Y) * mapp; //thanks Sutaburosu
-        }
-      }
-    }
-
-    *step = now * speed / 32 / 10;//mdl->getValue("realFps").as<int>();  // WLEDMM 40fps
-
-    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
-      for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
-        byte angle = rMap[leds.XY(pos.x,pos.y)].angle;
-        byte radius = rMap[leds.XY(pos.x,pos.y)].radius;
-        //CRGB c = CHSV(SEGENV.step / 2 - radius, 255, sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step) + radius - SEGENV.step * 2 + angle * (SEGMENT.custom3/3+1)));
-        uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + *step/2) + radius - *step + angle * legs);
-        intensity = map(intensity*intensity, 0, UINT16_MAX, 0, 255); // add a bit of non-linearity for cleaner display
-        CRGB color = ColorFromPalette(pal, *step / 2 - radius, intensity);
-        leds[pos] = color;
-      }
-    }
-  }
-  void controls(JsonObject parentVar) {
-
-    //bind the variables to sharedData...
-    // stackUnsigned8 *speed2 = leds.sharedData.bind(speed2);
-    // USER_PRINTF("(bind %d) %d %d\n", speed2, leds.sharedData.index, leds.sharedData.bytesAllocated);
-    // USER_PRINTF("bind %d->%d %d\n", index, newIndex, bytesAllocated);
-
-    //if changeValue then update the linked variable...
-
-    addPalette(parentVar, 4);
-
-    ui->initSlider(parentVar, "speed", 128, 1, 255);
-    // , false, [leds](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-    //   case f_ChangeFun: {
-    //       unsigned8 *speed2 = leds.sharedData.data+0;
-    //       USER_PRINTF("%s[%d] chFun = %s (bind %d)\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str(), speed2);
-    //       *speed2 = var["value"][rowNr];
-    //     return true; }
-    //   default: return false;
-    // }});
-    ui->initSlider(parentVar, "Offset X", 128);
-    ui->initSlider(parentVar, "Offset Y", 128);
-    ui->initSlider(parentVar, "Legs", 4, 1, 8);
-  }
-}; // Octopus2D
-
-//Lissajous2D inspired by WLED, Andrew Tuline 
-class Lissajous: public Effect {
-public:
-  const char * name() {return "Lissajous";}
-  unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡";}
-
-  void loop(Leds &leds) {
-
-    stackUnsigned8 freqX = mdl->getValue("X frequency");
-    stackUnsigned8 fadeRate = mdl->getValue("Fade rate");
-    stackUnsigned8 speed = mdl->getValue("speed");
-    bool smooth = mdl->getValue("Smooth");
-    CRGBPalette16 pal = getPalette();
-
-    leds.fadeToBlackBy(fadeRate);
-
-    uint_fast16_t phase = now * speed / 256;  // allow user to control rotation speed, speed between 0 and 255!
-
-    Coord3D locn = {0,0,0};
-    if (smooth) { // WLEDMM: this is the original "float" code featuring anti-aliasing
-        int maxLoops = max(192U, 4U*(leds.size.x+leds.size.y));
-        maxLoops = ((maxLoops / 128) +1) * 128; // make sure whe have half or full turns => multiples of 128
-        for (int i=0; i < maxLoops; i++) {
-          locn.x = float(sin8(phase/2 + (i* freqX)/64)) / 255.0f;  // WLEDMM align speed with original effect
-          locn.y = float(cos8(phase/2 + i*2)) / 255.0f;
-          //SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing
-          unsigned palIndex = (256*locn.y) + phase/2 + (i* freqX)/64;
-          // SEGMENT.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(palIndex, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing - color follows rotation
-          leds[locn] = ColorFromPalette(pal, palIndex);
-        }
-    } else
-    for (int i=0; i < 256; i ++) {
-      //WLEDMM: stick to the original calculations of xlocn and ylocn
-      locn.x = sin8(phase/2 + (i*freqX)/64);
-      locn.y = cos8(phase/2 + i*2);
-      locn.x = (leds.size.x < 2) ? 1 : (map(2*locn.x, 0,511, 0,2*(leds.size.x-1)) +1) /2;    // softhack007: "*2 +1" for proper rounding
-      locn.y = (leds.size.y < 2) ? 1 : (map(2*locn.y, 0,511, 0,2*(leds.size.y-1)) +1) /2;    // "leds.size.y > 2" is needed to avoid div/0 in map()
-      // SEGMENT.setPixelColorXY((unsigned8)xlocn, (unsigned8)ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0));
-      leds[locn] = ColorFromPalette(pal, now/100+i);
-    }
-  }
-  void controls(JsonObject parentVar) {
-    addPalette(parentVar, 4);
-    ui->initSlider(parentVar, "X frequency", 64);
-    ui->initSlider(parentVar, "Fade rate", 128);
-    ui->initSlider(parentVar, "speed", 128);
-    ui->initCheckBox(parentVar, "Smooth", false);
-  }
-}; // Lissajous2D
-
-
+//BouncingBalls inspired by WLED
 #define maxNumBalls 16
-
-//BouncingBalls1D  inspired by WLED
 //each needs 12 bytes
 typedef struct Ball {
   unsigned long lastBounceTime;
@@ -621,8 +313,8 @@ public:
       CRGB color = ColorFromPalette(pal, i*(256/max(numBalls, (stackUnsigned8)8)), 255);
 
       leds[pos] = color;
-      // if (SEGLEN<32) SEGMENT.setPixelColor(indexToVStrip(pos, stripNr), color); // encode virtual strip into index
-      // else           SEGMENT.setPixelColor(balls[i].height + (stripNr+1)*10.0f, color);
+      // if (leds.nrOfLeds<32) leds.setPixelColor(indexToVStrip(pos, stripNr), color); // encode virtual strip into index
+      // else           leds.setPixelColor(balls[i].height + (stripNr+1)*10.0f, color);
     } //balls
   }
 
@@ -631,117 +323,227 @@ public:
     ui->initSlider(parentVar, "gravity", 128);
     ui->initSlider(parentVar, "balls", 8, 1, 16);
   }
-}; // BouncingBalls2D
+}; // BouncingBalls
 
-class RingEffect:public Effect {
-  protected:
+void mode_fireworks(Leds &leds, stackUnsigned16 *aux0, stackUnsigned16 *aux1, uint8_t speed, uint8_t intensity, CRGBPalette16 pal, bool useAudio = false) {
+  // fade_out(0);
+  leds.fadeToBlackBy(10);
+  // if (SEGENV.call == 0) {
+  //   *aux0 = UINT16_MAX;
+  //   *aux1 = UINT16_MAX;
+  // }
+  bool valid1 = (*aux0 < leds.nrOfLeds);
+  bool valid2 = (*aux1 < leds.nrOfLeds);
+  CRGB sv1 = 0, sv2 = 0;
+  if (valid1) sv1 = leds.getPixelColor(*aux0);
+  if (valid2) sv2 = leds.getPixelColor(*aux1);
 
-    void setRing(Leds &leds, int ring, CRGB colour) { //so britisch ;-)
-      leds[ring] = colour;
+  // WLEDSR
+  uint8_t blurAmount   = 255 - speed;   // make parameter explicit
+  uint8_t my_intensity = 129 - (intensity >> 1);
+  bool addPixels = true;                        // false -> inhibit new pixels in silence
+  int soundColor = -1;                          // -1 = random color; 0..255 = use as palette index
+
+  // if (useAudio) {
+  //   if (FFT_MajorPeak < 100)    { blurAmount = 254;} // big blobs
+  //   else {
+  //     if (FFT_MajorPeak > 3200) { blurAmount = 1;}   // small blobs
+  //     else {                                         // blur + color depends on major frequency
+  //       float musicIndex = logf(FFT_MajorPeak);            // log scaling of peak freq
+  //       blurAmount = mapff(musicIndex, 4.60, 8.08, 253, 1);// map to blur range (low freq = more blur)
+  //       blurAmount = constrain(blurAmount, 1, 253);        // remove possible "overshot" results
+  //       soundColor = mapff(musicIndex, 4.6, 8.08, 0, 255); // pick color from frequency
+  //   } }
+  //   if (sampleAgc <= 1.0) {      // silence -> no new pixels, just blur
+  //     valid1 = valid2 = false;   // do not copy last pixels
+  //     addPixels = false;         
+  //     blurAmount = 128;
+  //   }
+  //   my_intensity = 129 - (SEGMENT.speed >> 1); // dirty hack: use "speed" slider value intensity (no idea how to _disable_ the first slider, but show the second one)
+  //   if (samplePeak == 1) my_intensity -= my_intensity / 4;    // inclease intensity at peaks
+  //   if (samplePeak > 1) my_intensity = my_intensity / 2;      // double intensity at main peaks
+  // }
+  // // WLEDSR end
+
+  leds.blur1d(blurAmount);
+  if (valid1) leds.setPixelColor(*aux0, sv1);
+  if (valid2) leds.setPixelColor(*aux1, sv2);
+
+  if (addPixels) {                                                                             // WLEDSR
+    for(uint16_t i=0; i<max(1, leds.nrOfLeds/20); i++) {
+      if(random8(my_intensity) == 0) {
+        uint16_t index = random(leds.nrOfLeds);
+        if (soundColor < 0)
+          leds.setPixelColor(index, ColorFromPalette(pal, random8()));
+        else
+          leds.setPixelColor(index, ColorFromPalette(pal, soundColor + random8(24))); // WLEDSR
+        *aux1 = *aux0;
+        *aux0 = index;
+      }
     }
+  }
+  // return FRAMETIME;
+}
 
-};
 
-class RingRandomFlow:public RingEffect {
+class RainEffect: public Effect {
 public:
-  const char * name() {return "RingRandomFlow";}
+  const char * name() {return "Rain";}
   unsigned8 dim() {return _1D;}
-  const char * tags() {return "💫";}
+  const char * tags() {return "💡";}
 
   void loop(Leds &leds) {
-    stackUnsigned8 *hue = leds.sharedData.bind(hue, leds.nrOfLeds); //array
 
-    hue[0] = random(0, 255);
-    for (int r = 0; r < leds.nrOfLeds; r++) {
-      setRing(leds, r, CHSV(hue[r], 255, 255));
-    }
-    for (int r = (leds.nrOfLeds - 1); r >= 1; r--) {
-      hue[r] = hue[(r - 1)]; // set this ruing based on the inner
-    }
-    // FastLED.delay(SPEED);
-  }
-};
-
-class ScrollingText: public Effect {
-public:
-  const char * name() {return "Scrolling Text";}
-  unsigned8 dim() {return _2D;}
-  const char * tags() {return "💫";}
-
-  void loop(Leds &leds) {
-    stackUnsigned8 speed = mdl->getValue("speed");
-    stackUnsigned8 font = mdl->getValue("font");
-    const char * text = mdl->getValue("text");
-
-    // text might be nullified by selecting other effects and if effect is selected, controls are run afterwards  
-    // tbd: this should be removed and setEffect must make sure this cannot happen!!
-    if (text && strlen(text)>0) {
-      leds.fadeToBlackBy();
-      leds.drawText(text, 0, 0, font, CRGB::Red, - (call*speed/256));
-    }
-
-  }
-  void controls(JsonObject parentVar) {
-    ui->initText(parentVar, "text", "StarMod");
-    ui->initSlider(parentVar, "speed", 128);
-    ui->initSelect(parentVar, "font", 0, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun: {
-        JsonArray options = ui->setOptions(var);
-        options.add("4x6");
-        options.add("5x8");
-        options.add("5x12");
-        options.add("6x8");
-        options.add("7x9");
-        return true;
-      }
-      default: return false;
-    }});
-  }
-};
-
-
-class Waverly: public Effect {
-public:
-  const char * name() {return "Waverly";}
-  unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡♪";}
-
-  void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
-    stackUnsigned8 amplification = mdl->getValue("Amplification");
-    stackUnsigned8 sensitivity = mdl->getValue("Sensitivity");
-    bool noClouds = mdl->getValue("No Clouds");
-    // bool soundPressure = mdl->getValue("Sound Pressure");
-    // bool agcDebug = mdl->getValue("AGC debug");
+    uint8_t speed = mdl->getValue("speed");
+    uint8_t intensity = mdl->getValue("intensity");
 
-    leds.fadeToBlackBy(amplification);
-    // if (agcDebug && soundPressure) soundPressure = false;                 // only one of the two at any time
-    // if ((soundPressure) && (wledAudioMod->sync.volumeSmth > 0.5f)) wledAudioMod->sync.volumeSmth = wledAudioMod->sync.soundPressure;    // show sound pressure instead of volume
-    // if (agcDebug) wledAudioMod->sync.volumeSmth = 255.0 - wledAudioMod->sync.agcSensitivity;                    // show AGC level instead of volume
+    stackUnsigned16 *aux0 = leds.sharedData.bind(aux0);
+    stackUnsigned16 *aux1 = leds.sharedData.bind(aux1);
+    stackUnsigned8 *step = leds.sharedData.bind(step);
 
-    long t = now / 2; 
-    Coord3D pos;
-    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
-      stackUnsigned16 thisVal = wledAudioMod->sync.volumeSmth*sensitivity/64 * inoise8(pos.x * 45 , t , t)/64;      // WLEDMM back to SR code
-      stackUnsigned16 thisMax = min(map(thisVal, 0, 512, 0, leds.size.y), (long)leds.size.x);
-
-      for (pos.y = 0; pos.y < thisMax; pos.y++) {
-        CRGB color = ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND);
-        if (!noClouds)
-          leds.addPixelColor(pos, color);
-        leds.addPixelColor(leds.XY((leds.size.x - 1) - pos.x, (leds.size.y - 1) - pos.y), color);
+    // if(SEGENV.call == 0) {
+      // SEGMENT.fill(BLACK);
+    // }
+    *step += 1000 / 40;// FRAMETIME;
+    if (*step > (5U + (50U*(255U - speed))/leds.nrOfLeds)) { //SPEED_FORMULA_L) {
+      *step = 1;
+      // if (strip.isMatrix) {
+      //   //uint32_t ctemp[leds.size.x];
+      //   //for (int i = 0; i<leds.size.x; i++) ctemp[i] = SEGMENT.getPixelColorXY(i, leds.size.y-1);
+      //   SEGMENT.move(6, 1, true);  // move all pixels down
+      //   //for (int i = 0; i<leds.size.x; i++) leds.setPixelColorXY(i, 0, ctemp[i]); // wrap around
+      //   *aux0 = (*aux0 % leds.size.x) + (*aux0 / leds.size.x + 1) * leds.size.x;
+      //   *aux1 = (*aux1 % leds.size.x) + (*aux1 / leds.size.x + 1) * leds.size.x;
+      // } else 
+      {
+        //shift all leds left
+        CRGB ctemp = leds.getPixelColor(0);
+        for (int i = 0; i < leds.nrOfLeds - 1; i++) {
+          leds.setPixelColor(i, leds.getPixelColor(i+1));
+        }
+        leds.setPixelColor(leds.nrOfLeds -1, ctemp); // wrap around
+        *aux0++;  // increase spark index
+        *aux1++;
       }
+      if (*aux0 == 0) *aux0 = UINT16_MAX; // reset previous spark position
+      if (*aux1 == 0) *aux0 = UINT16_MAX; // reset previous spark position
+      if (*aux0 >= leds.size.x*leds.size.y) *aux0 = 0;     // ignore
+      if (*aux1 >= leds.size.x*leds.size.y) *aux1 = 0;
     }
-    leds.blur2d(16);
-
+    mode_fireworks(leds, aux0, aux1, speed, intensity, pal);
   }
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
-    ui->initSlider(parentVar, "Amplification", 128);
-    ui->initSlider(parentVar, "Sensitivity", 128);
-    ui->initCheckBox(parentVar, "No Clouds");
-    // ui->initCheckBox(parentVar, "Sound Pressure");
-    // ui->initCheckBox(parentVar, "AGC debug");
+    ui->initSlider(parentVar, "speed", 128, 1, 255);
+    ui->initSlider(parentVar, "intensity", 128,1,255);
+  }
+}; // ExampleEffect
+
+class AudioRings:public RingEffect {
+public:
+  const char * name() {return "AudioRings";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💫♫";}
+
+  void loop(Leds &leds) {
+    CRGBPalette16 pal = getPalette();
+    for (int i = 0; i < 7; i++) { // 7 rings
+
+      byte val;
+      if(mdl->getValue("inWards").as<bool>()) {
+        val = wledAudioMod->fftResults[(i*2)];
+      }
+      else {
+        int b = 14 -(i*2);
+        val = wledAudioMod->fftResults[b];
+      }
+  
+      // Visualize leds to the beat
+      CRGB color = ColorFromPalette(pal, val, val);
+//      CRGB color = ColorFromPalette(currentPalette, val, 255, currentBlending);
+//      color.nscale8_video(val);
+      setRing(leds, i, color);
+//        setRingFromFtt((i * 2), i); 
+    }
+
+    setRingFromFtt(leds, pal, 2, 7); // set outer ring to bass
+    setRingFromFtt(leds, pal, 0, 8); // set outer ring to bass
+
+  }
+  void setRingFromFtt(Leds &leds, CRGBPalette16 pal, int index, int ring) {
+    byte val = wledAudioMod->fftResults[index];
+    // Visualize leds to the beat
+    CRGB color = ColorFromPalette(pal, val, 255);
+    color.nscale8_video(val);
+    setRing(leds, ring, color);
+  }
+
+  void controls(JsonObject parentVar) {
+    addPalette(parentVar, 4);
+    ui->initCheckBox(parentVar, "inWards", true);
+  }
+};
+
+class FreqMatrix:public Effect {
+public:
+  const char * name() {return "FreqMatrix";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡♪";}
+
+  void setup(Leds &leds) {
+    leds.fadeToBlackBy(16);
+  }
+
+  void loop(Leds &leds) {
+
+    stackUnsigned8 *aux0 = leds.sharedData.bind(aux0);
+
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 fx = mdl->getValue("Sound effect");
+    stackUnsigned8 lowBin = mdl->getValue("Low bin");
+    stackUnsigned8 highBin = mdl->getValue("High bin");
+    stackUnsigned8 sensitivity10 = mdl->getValue("Sensivity");
+
+    stackUnsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
+    if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
+      *aux0 = secondHand;
+
+      // Pixel brightness (value) based on volume * sensitivity * intensity
+      // uint_fast8_t sensitivity10 = map(sensitivity, 0, 31, 10, 100); // reduced resolution slider // WLEDMM sensitivity * 10, to avoid losing precision
+      int pixVal = wledAudioMod->sync.volumeSmth * (float)fx * (float)sensitivity10 / 2560.0f; // WLEDMM 2560 due to sensitivity * 10
+      if (pixVal > 255) pixVal = 255;  // make a brightness from the last avg
+
+      CRGB color = CRGB::Black;
+
+      if (wledAudioMod->sync.FFT_MajorPeak > MAX_FREQUENCY) wledAudioMod->sync.FFT_MajorPeak = 1;
+      // MajorPeak holds the freq. value which is most abundant in the last sample.
+      // With our sampling rate of 10240Hz we have a usable freq range from roughtly 80Hz to 10240/2 Hz
+      // we will treat everything with less than 65Hz as 0
+
+      if ((wledAudioMod->sync.FFT_MajorPeak > 80.0f) && (wledAudioMod->sync.volumeSmth > 0.25f)) { // WLEDMM
+        // Pixel color (hue) based on major frequency
+        int upperLimit = 80 + 42 * highBin;
+        int lowerLimit = 80 + 3 * lowBin;
+        //stackUnsigned8 i =  lowerLimit!=upperLimit ? map(FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : FFT_MajorPeak;  // (original formula) may under/overflow - so we enforce unsigned8
+        int freqMapped =  lowerLimit!=upperLimit ? map(wledAudioMod->sync.FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : wledAudioMod->sync.FFT_MajorPeak;  // WLEDMM preserve overflows
+        stackUnsigned8 i = abs(freqMapped) & 0xFF;  // WLEDMM we embrace overflow ;-) by "modulo 256"
+
+        color = CHSV(i, 240, (unsigned8)pixVal); // implicit conversion to RGB supplied by FastLED
+      }
+
+      // shift the pixels one pixel up
+      leds.setPixelColor(0, color);
+      for (int i = leds.nrOfLeds - 1; i > 0; i--) leds.setPixelColor(i, leds.getPixelColor(i-1));
+    }
+  }
+
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 255);
+    ui->initSlider(parentVar, "Sound effect", 128);
+    ui->initSlider(parentVar, "Low bin", 18);
+    ui->initSlider(parentVar, "High bin", 48);
+    ui->initSlider(parentVar, "Sensivity", 30, 10, 100);
   }
 };
 
@@ -829,7 +631,394 @@ public:
     ui->initCheckBox(parentVar, "useaudio");
     ui->initSlider(parentVar, "nrOfPopCorn", 10, 1, 21);
   }
-}; //PopCorn1D
+}; //PopCorn
+
+class DJLight:public Effect {
+public:
+
+  const char * name() {return "DJLight";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡♫";}
+
+  void setup(Leds &leds) {
+    leds.fill_solid(CRGB::Black, true); //no blend
+  }
+
+  void loop(Leds &leds) {
+
+    const int mid = leds.nrOfLeds / 2;
+
+    unsigned8 *aux0 = leds.sharedData.bind(aux0);
+
+    uint8_t *fftResult = wledAudioMod->fftResults;
+    float volumeSmth   = wledAudioMod->volumeSmth;
+
+    unsigned8 speed = mdl->getValue("speed");
+    bool candyFactory = mdl->getValue("candyFactory").as<bool>();
+    unsigned8 fade = mdl->getValue("fade");
+
+
+    unsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
+    if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
+      *aux0 = secondHand;
+
+      CRGB color = CRGB(0,0,0);
+      // color = CRGB(fftResult[15]/2, fftResult[5]/2, fftResult[0]/2);   // formula from 0.13.x (10Khz): R = 3880-5120, G=240-340, B=60-100
+      if (!candyFactory) {
+        color = CRGB(fftResult[12]/2, fftResult[3]/2, fftResult[1]/2);    // formula for 0.14.x  (22Khz): R = 3015-3704, G=216-301, B=86-129
+      } else {
+        // candy factory: an attempt to get more colors
+        color = CRGB(fftResult[11]/2 + fftResult[12]/4 + fftResult[14]/4, // red  : 2412-3704 + 4479-7106 
+                    fftResult[4]/2 + fftResult[3]/4,                     // green: 216-430
+                    fftResult[0]/4 + fftResult[1]/4 + fftResult[2]/4);   // blue:  46-216
+        if ((color.getLuma() < 96) && (volumeSmth >= 1.5f)) {             // enhance "almost dark" pixels with yellow, based on not-yet-used channels 
+          unsigned yello_g = (fftResult[5] + fftResult[6] + fftResult[7]) / 3;
+          unsigned yello_r = (fftResult[7] + fftResult[8] + fftResult[9] + fftResult[10]) / 4;
+          color.green += (uint8_t) yello_g / 2;
+          color.red += (uint8_t) yello_r / 2;
+        }
+      }
+
+      if (volumeSmth < 1.0f) color = CRGB(0,0,0); // silence = black
+
+      // make colors less "pastel", by turning up color saturation in HSV space
+      if (color.getLuma() > 32) {                                      // don't change "dark" pixels
+        CHSV hsvColor = rgb2hsv_approximate(color);
+        hsvColor.v = min(max(hsvColor.v, (uint8_t)48), (uint8_t)204);  // 48 < brightness < 204
+        if (candyFactory)
+          hsvColor.s = max(hsvColor.s, (uint8_t)204);                  // candy factory mode: strongly turn up color saturation (> 192)
+        else
+          hsvColor.s = max(hsvColor.s, (uint8_t)108);                  // normal mode: turn up color saturation to avoid pastels
+        color = hsvColor;
+      }
+      //if (color.getLuma() > 12) color.maximizeBrightness();          // for testing
+
+      //leds.setPixelColor(mid, color.fadeToBlackBy(map(fftResult[4], 0, 255, 255, 4)));     // 0.13.x  fade -> 180hz-260hz
+      uint8_t fadeVal = map(fftResult[3], 0, 255, 255, 4);                                      // 0.14.x  fade -> 216hz-301hz
+      if (candyFactory) fadeVal = constrain(fadeVal, 0, 176);  // "candy factory" mode - avoid complete fade-out
+      leds.setPixelColor(mid, color.fadeToBlackBy(fadeVal));
+
+      for (int i = leds.nrOfLeds - 1; i > mid; i--)   leds.setPixelColor(i, leds.getPixelColor(i-1)); // move to the left
+      for (int i = 0; i < mid; i++)            leds.setPixelColor(i, leds.getPixelColor(i+1)); // move to the right
+
+      leds.fadeToBlackBy(fade);
+
+    }
+  }
+
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 255);
+    ui->initCheckBox(parentVar, "candyFactory", true);
+    ui->initSlider(parentVar, "fade", 4, 0, 10);
+  }
+}; //DJLight
+
+
+
+
+//2D Effects
+//==========
+
+class Lines: public Effect {
+public:
+  const char * name() {return "Lines";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💫";}
+
+  void loop(Leds &leds) {
+    leds.fadeToBlackBy(100);
+
+    Coord3D pos = {0,0,0};
+    if (mdl->getValue("Vertical").as<bool>()) {
+      pos.x = map(beat16( mdl->getValue("BPM").as<int>()), 0, UINT16_MAX, 0, leds.size.x-1 ); //instead of call%width
+
+      for (pos.y = 0; pos.y <  leds.size.y; pos.y++) {
+        leds[pos] = CHSV( gHue, 255, 192);
+      }
+    } else {
+      pos.y = map(beat16( mdl->getValue("BPM").as<int>()), 0, UINT16_MAX, 0, leds.size.y-1 ); //instead of call%height
+      for (pos.x = 0; pos.x <  leds.size.x; pos.x++) {
+        leds[pos] = CHSV( gHue, 255, 192);
+      }
+    }
+  }
+
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "BPM", 60);
+    ui->initCheckBox(parentVar, "Vertical", true);
+  }
+}; // Lines
+
+//DistortionWaves inspired by WLED, ldirko and blazoncek, https://editor.soulmatelights.com/gallery/1089-distorsion-waves
+unsigned8 gamma8(unsigned8 b) { //we do nothing with gamma for now
+  return b;
+}
+class DistortionWaves: public Effect {
+public:
+  const char * name() {return "DistortionWaves";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
+
+  void loop(Leds &leds) {
+
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 scale = mdl->getValue("scale");
+
+    stackUnsigned8  w = 2;
+
+    stackUnsigned16 a  = now/32;
+    stackUnsigned16 a2 = a/2;
+    stackUnsigned16 a3 = a/3;
+
+    stackUnsigned16 cx =  beatsin8(10-speed,0,leds.size.x-1)*scale;
+    stackUnsigned16 cy =  beatsin8(12-speed,0,leds.size.y-1)*scale;
+    stackUnsigned16 cx1 = beatsin8(13-speed,0,leds.size.x-1)*scale;
+    stackUnsigned16 cy1 = beatsin8(15-speed,0,leds.size.y-1)*scale;
+    stackUnsigned16 cx2 = beatsin8(17-speed,0,leds.size.x-1)*scale;
+    stackUnsigned16 cy2 = beatsin8(14-speed,0,leds.size.y-1)*scale;
+    
+    stackUnsigned16 xoffs = 0;
+    Coord3D pos = {0,0,0};
+    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
+      xoffs += scale;
+      stackUnsigned16 yoffs = 0;
+
+      for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
+        yoffs += scale;
+
+        byte rdistort = cos8((cos8(((pos.x<<3)+a )&255)+cos8(((pos.y<<3)-a2)&255)+a3   )&255)>>1; 
+        byte gdistort = cos8((cos8(((pos.x<<3)-a2)&255)+cos8(((pos.y<<3)+a3)&255)+a+32 )&255)>>1; 
+        byte bdistort = cos8((cos8(((pos.x<<3)+a3)&255)+cos8(((pos.y<<3)-a) &255)+a2+64)&255)>>1; 
+
+        byte valueR = rdistort+ w*  (a- ( ((xoffs - cx)  * (xoffs - cx)  + (yoffs - cy)  * (yoffs - cy))>>7  ));
+        byte valueG = gdistort+ w*  (a2-( ((xoffs - cx1) * (xoffs - cx1) + (yoffs - cy1) * (yoffs - cy1))>>7 ));
+        byte valueB = bdistort+ w*  (a3-( ((xoffs - cx2) * (xoffs - cx2) + (yoffs - cy2) * (yoffs - cy2))>>7 ));
+
+        valueR = gamma8(cos8(valueR));
+        valueG = gamma8(cos8(valueG));
+        valueB = gamma8(cos8(valueB));
+
+        leds[pos] = CRGB(valueR, valueG, valueB);
+      }
+    }
+  }
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 4, 0, 8);
+    ui->initSlider(parentVar, "scale", 4, 0, 8);
+  }
+}; // DistortionWaves2D
+
+//Octopus inspired by WLED, Stepko and Sutaburosu and blazoncek 
+//Idea from https://www.youtube.com/watch?v=HsA-6KIbgto&ab_channel=GreatScott%21 (https://editor.soulmatelights.com/gallery/671-octopus)
+class Octopus: public Effect {
+public:
+  const char * name() {return "Octopus";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
+
+  typedef struct {
+    unsigned8 angle;
+    unsigned8 radius;
+  } map_t;
+
+  void loop(Leds &leds) {
+
+    const stackUnsigned8 mapp = 180 / max(leds.size.x,leds.size.y);
+
+    // stackUnsigned8 *speed2 = leds.sharedData.bind(speed2);
+    // // USER_PRINTF(" %d:%d", speed2, *speed2);
+    
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 offsetX = mdl->getValue("Offset X");
+    stackUnsigned8 offsetY = mdl->getValue("Offset Y");
+    stackUnsigned8 legs = mdl->getValue("Legs");
+    CRGBPalette16 pal = getPalette();
+
+    map_t    *rMap = leds.sharedData.bind(rMap, leds.size.x * leds.size.y); //array
+    uint8_t *offsX = leds.sharedData.bind(offsX);
+    uint8_t *offsY = leds.sharedData.bind(offsY);
+    uint16_t *aux0 = leds.sharedData.bind(aux0);
+    uint16_t *aux1 = leds.sharedData.bind(aux1);
+    stackUnsigned32 *step = leds.sharedData.bind(step);
+
+    Coord3D pos = {0,0,0};
+
+    // re-init if SEGMENT dimensions or offset changed
+    if (*aux0 != leds.size.x || *aux1 != leds.size.y || offsetX != *offsX || offsetY != *offsY) {
+      // *step = 0;
+      *aux0 = leds.size.x;
+      *aux1 = leds.size.y;
+      *offsX = offsetX;
+      *offsY = offsetY;
+      const stackUnsigned8 C_X = leds.size.x / 2 + (offsetX - 128)*leds.size.x/255;
+      const stackUnsigned8 C_Y = leds.size.y / 2 + (offsetY - 128)*leds.size.y/255;
+      for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
+        for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
+          rMap[leds.XY(pos.x, pos.y)].angle = 40.7436f * atan2f(pos.y - C_Y, pos.x - C_X); // avoid 128*atan2()/PI
+          rMap[leds.XY(pos.x, pos.y)].radius = hypotf(pos.x - C_X, pos.y - C_Y) * mapp; //thanks Sutaburosu
+        }
+      }
+    }
+
+    *step = now * speed / 32 / 10;//mdl->getValue("realFps").as<int>();  // WLEDMM 40fps
+
+    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
+      for (pos.y = 0; pos.y < leds.size.y; pos.y++) {
+        byte angle = rMap[leds.XY(pos.x,pos.y)].angle;
+        byte radius = rMap[leds.XY(pos.x,pos.y)].radius;
+        //CRGB c = CHSV(*step / 2 - radius, 255, sin8(sin8((angle * 4 - radius) / 4 + *step) + radius - *step * 2 + angle * (SEGMENT.custom3/3+1)));
+        uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + *step/2) + radius - *step + angle * legs);
+        intensity = map(intensity*intensity, 0, UINT16_MAX, 0, 255); // add a bit of non-linearity for cleaner display
+        CRGB color = ColorFromPalette(pal, *step / 2 - radius, intensity);
+        leds[pos] = color;
+      }
+    }
+  }
+  void controls(JsonObject parentVar) {
+
+    //bind the variables to sharedData...
+    // stackUnsigned8 *speed2 = leds.sharedData.bind(speed2);
+    // USER_PRINTF("(bind %d) %d %d\n", speed2, leds.sharedData.index, leds.sharedData.bytesAllocated);
+    // USER_PRINTF("bind %d->%d %d\n", index, newIndex, bytesAllocated);
+
+    //if changeValue then update the linked variable...
+
+    addPalette(parentVar, 4);
+
+    ui->initSlider(parentVar, "speed", 128, 1, 255);
+    // , false, [leds](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    //   case f_ChangeFun: {
+    //       unsigned8 *speed2 = leds.sharedData.data+0;
+    //       USER_PRINTF("%s[%d] chFun = %s (bind %d)\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str(), speed2);
+    //       *speed2 = var["value"][rowNr];
+    //     return true; }
+    //   default: return false;
+    // }});
+    ui->initSlider(parentVar, "Offset X", 128);
+    ui->initSlider(parentVar, "Offset Y", 128);
+    ui->initSlider(parentVar, "Legs", 4, 1, 8);
+  }
+}; // Octopus
+
+//Lissajous inspired by WLED, Andrew Tuline 
+class Lissajous: public Effect {
+public:
+  const char * name() {return "Lissajous";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
+
+  void loop(Leds &leds) {
+
+    stackUnsigned8 freqX = mdl->getValue("X frequency");
+    stackUnsigned8 fadeRate = mdl->getValue("Fade rate");
+    stackUnsigned8 speed = mdl->getValue("speed");
+    bool smooth = mdl->getValue("Smooth");
+    CRGBPalette16 pal = getPalette();
+
+    leds.fadeToBlackBy(fadeRate);
+
+    uint_fast16_t phase = now * speed / 256;  // allow user to control rotation speed, speed between 0 and 255!
+
+    Coord3D locn = {0,0,0};
+    if (smooth) { // WLEDMM: this is the original "float" code featuring anti-aliasing
+        int maxLoops = max(192U, 4U*(leds.size.x+leds.size.y));
+        maxLoops = ((maxLoops / 128) +1) * 128; // make sure whe have half or full turns => multiples of 128
+        for (int i=0; i < maxLoops; i++) {
+          locn.x = float(sin8(phase/2 + (i* freqX)/64)) / 255.0f;  // WLEDMM align speed with original effect
+          locn.y = float(cos8(phase/2 + i*2)) / 255.0f;
+          //leds.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing
+          unsigned palIndex = (256*locn.y) + phase/2 + (i* freqX)/64;
+          // leds.setPixelColorXY(xlocn, ylocn, SEGMENT.color_from_palette(palIndex, false, PALETTE_SOLID_WRAP, 0)); // draw pixel with anti-aliasing - color follows rotation
+          leds[locn] = ColorFromPalette(pal, palIndex);
+        }
+    } else
+    for (int i=0; i < 256; i ++) {
+      //WLEDMM: stick to the original calculations of xlocn and ylocn
+      locn.x = sin8(phase/2 + (i*freqX)/64);
+      locn.y = cos8(phase/2 + i*2);
+      locn.x = (leds.size.x < 2) ? 1 : (map(2*locn.x, 0,511, 0,2*(leds.size.x-1)) +1) /2;    // softhack007: "*2 +1" for proper rounding
+      locn.y = (leds.size.y < 2) ? 1 : (map(2*locn.y, 0,511, 0,2*(leds.size.y-1)) +1) /2;    // "leds.size.y > 2" is needed to avoid div/0 in map()
+      // leds.setPixelColorXY((unsigned8)xlocn, (unsigned8)ylocn, SEGMENT.color_from_palette(strip.now/100+i, false, PALETTE_SOLID_WRAP, 0));
+      leds[locn] = ColorFromPalette(pal, now/100+i);
+    }
+  }
+  void controls(JsonObject parentVar) {
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "X frequency", 64);
+    ui->initSlider(parentVar, "Fade rate", 128);
+    ui->initSlider(parentVar, "speed", 128);
+    ui->initCheckBox(parentVar, "Smooth", false);
+  }
+}; // Lissajous
+
+//Frizzles inspired by WLED, Stepko, Andrew Tuline, https://editor.soulmatelights.com/gallery/640-color-frizzles
+class Frizzles: public Effect {
+public:
+  const char * name() {return "Frizzles";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
+
+  void loop(Leds &leds) {
+    leds.fadeToBlackBy(16);
+
+    stackUnsigned8 bpm = mdl->getValue("BPM");
+    stackUnsigned8 intensity = mdl->getValue("intensity");
+    CRGBPalette16 pal = getPalette();
+
+    for (int i = 8; i > 0; i--) {
+      Coord3D pos = {0,0,0};
+      pos.x = beatsin8(bpm/8 + i, 0, leds.size.x - 1);
+      pos.y = beatsin8(intensity/8 - i, 0, leds.size.y - 1);
+      CRGB color = ColorFromPalette(pal, beatsin8(12, 0, 255), 255);
+      leds[pos] = color;
+    }
+    leds.blur2d(mdl->getValue("blur"));
+  }
+
+  void controls(JsonObject parentVar) {
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "BPM", 60);
+    ui->initSlider(parentVar, "intensity", 128);
+    ui->initSlider(parentVar, "blur", 128);
+  }
+}; // Frizzles
+
+class ScrollingText: public Effect {
+public:
+  const char * name() {return "Scrolling Text";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💫";}
+
+  void loop(Leds &leds) {
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 font = mdl->getValue("font");
+    const char * text = mdl->getValue("text");
+
+    // text might be nullified by selecting other effects and if effect is selected, controls are run afterwards  
+    // tbd: this should be removed and setEffect must make sure this cannot happen!!
+    if (text && strlen(text)>0) {
+      leds.fadeToBlackBy();
+      leds.drawText(text, 0, 0, font, CRGB::Red, - (call*speed/256));
+    }
+
+  }
+  void controls(JsonObject parentVar) {
+    ui->initText(parentVar, "text", "StarMod");
+    ui->initSlider(parentVar, "speed", 128);
+    ui->initSelect(parentVar, "font", 0, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+      case f_UIFun: {
+        JsonArray options = ui->setOptions(var);
+        options.add("4x6");
+        options.add("5x8");
+        options.add("5x12");
+        options.add("6x8");
+        options.add("7x9");
+        return true;
+      }
+      default: return false;
+    }});
+  }
+};
 
 
 #ifdef STARMOD_USERMOD_WLEDAUDIO
@@ -951,195 +1140,52 @@ public:
 
     // #endif
   }
-};
+}; //GEQ
 
-class AudioRings:public RingEffect {
+class Waverly: public Effect {
 public:
-  const char * name() {return "AudioRings";}
-  unsigned8 dim() {return _1D;}
-  const char * tags() {return "💫♫";}
+  const char * name() {return "Waverly";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡♪";}
 
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
-    for (int i = 0; i < 7; i++) { // 7 rings
+    stackUnsigned8 amplification = mdl->getValue("Amplification");
+    stackUnsigned8 sensitivity = mdl->getValue("Sensitivity");
+    bool noClouds = mdl->getValue("No Clouds");
+    // bool soundPressure = mdl->getValue("Sound Pressure");
+    // bool agcDebug = mdl->getValue("AGC debug");
 
-      byte val;
-      if(mdl->getValue("inWards").as<bool>()) {
-        val = wledAudioMod->fftResults[(i*2)];
+    leds.fadeToBlackBy(amplification);
+    // if (agcDebug && soundPressure) soundPressure = false;                 // only one of the two at any time
+    // if ((soundPressure) && (wledAudioMod->sync.volumeSmth > 0.5f)) wledAudioMod->sync.volumeSmth = wledAudioMod->sync.soundPressure;    // show sound pressure instead of volume
+    // if (agcDebug) wledAudioMod->sync.volumeSmth = 255.0 - wledAudioMod->sync.agcSensitivity;                    // show AGC level instead of volume
+
+    long t = now / 2; 
+    Coord3D pos;
+    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
+      stackUnsigned16 thisVal = wledAudioMod->sync.volumeSmth*sensitivity/64 * inoise8(pos.x * 45 , t , t)/64;      // WLEDMM back to SR code
+      stackUnsigned16 thisMax = min(map(thisVal, 0, 512, 0, leds.size.y), (long)leds.size.x);
+
+      for (pos.y = 0; pos.y < thisMax; pos.y++) {
+        CRGB color = ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND);
+        if (!noClouds)
+          leds.addPixelColor(pos, color);
+        leds.addPixelColor(leds.XY((leds.size.x - 1) - pos.x, (leds.size.y - 1) - pos.y), color);
       }
-      else {
-        int b = 14 -(i*2);
-        val = wledAudioMod->fftResults[b];
-      }
-  
-      // Visualize leds to the beat
-      CRGB color = ColorFromPalette(pal, val, val);
-//      CRGB color = ColorFromPalette(currentPalette, val, 255, currentBlending);
-//      color.nscale8_video(val);
-      setRing(leds, i, color);
-//        setRingFromFtt((i * 2), i); 
     }
-
-    setRingFromFtt(leds, pal, 2, 7); // set outer ring to bass
-    setRingFromFtt(leds, pal, 0, 8); // set outer ring to bass
+    leds.blur2d(16);
 
   }
-  void setRingFromFtt(Leds &leds, CRGBPalette16 pal, int index, int ring) {
-    byte val = wledAudioMod->fftResults[index];
-    // Visualize leds to the beat
-    CRGB color = ColorFromPalette(pal, val, 255);
-    color.nscale8_video(val);
-    setRing(leds, ring, color);
-  }
-
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
-    ui->initCheckBox(parentVar, "inWards", true);
+    ui->initSlider(parentVar, "Amplification", 128);
+    ui->initSlider(parentVar, "Sensitivity", 128);
+    ui->initCheckBox(parentVar, "No Clouds");
+    // ui->initCheckBox(parentVar, "Sound Pressure");
+    // ui->initCheckBox(parentVar, "AGC debug");
   }
-};
-
-class FreqMatrix:public Effect {
-public:
-  const char * name() {return "FreqMatrix";}
-  unsigned8 dim() {return _1D;}
-  const char * tags() {return "💡♪";}
-
-  void setup(Leds &leds) {
-    leds.fadeToBlackBy(16);
-  }
-
-  void loop(Leds &leds) {
-
-    stackUnsigned8 *aux0 = leds.sharedData.bind(aux0);
-
-    stackUnsigned8 speed = mdl->getValue("speed");
-    stackUnsigned8 fx = mdl->getValue("Sound effect");
-    stackUnsigned8 lowBin = mdl->getValue("Low bin");
-    stackUnsigned8 highBin = mdl->getValue("High bin");
-    stackUnsigned8 sensitivity10 = mdl->getValue("Sensivity");
-
-    stackUnsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
-    if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
-      *aux0 = secondHand;
-
-      // Pixel brightness (value) based on volume * sensitivity * intensity
-      // uint_fast8_t sensitivity10 = map(sensitivity, 0, 31, 10, 100); // reduced resolution slider // WLEDMM sensitivity * 10, to avoid losing precision
-      int pixVal = wledAudioMod->sync.volumeSmth * (float)fx * (float)sensitivity10 / 2560.0f; // WLEDMM 2560 due to sensitivity * 10
-      if (pixVal > 255) pixVal = 255;  // make a brightness from the last avg
-
-      CRGB color = CRGB::Black;
-
-      if (wledAudioMod->sync.FFT_MajorPeak > MAX_FREQUENCY) wledAudioMod->sync.FFT_MajorPeak = 1;
-      // MajorPeak holds the freq. value which is most abundant in the last sample.
-      // With our sampling rate of 10240Hz we have a usable freq range from roughtly 80Hz to 10240/2 Hz
-      // we will treat everything with less than 65Hz as 0
-
-      if ((wledAudioMod->sync.FFT_MajorPeak > 80.0f) && (wledAudioMod->sync.volumeSmth > 0.25f)) { // WLEDMM
-        // Pixel color (hue) based on major frequency
-        int upperLimit = 80 + 42 * highBin;
-        int lowerLimit = 80 + 3 * lowBin;
-        //stackUnsigned8 i =  lowerLimit!=upperLimit ? map(FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : FFT_MajorPeak;  // (original formula) may under/overflow - so we enforce unsigned8
-        int freqMapped =  lowerLimit!=upperLimit ? map(wledAudioMod->sync.FFT_MajorPeak, lowerLimit, upperLimit, 0, 255) : wledAudioMod->sync.FFT_MajorPeak;  // WLEDMM preserve overflows
-        stackUnsigned8 i = abs(freqMapped) & 0xFF;  // WLEDMM we embrace overflow ;-) by "modulo 256"
-
-        color = CHSV(i, 240, (unsigned8)pixVal); // implicit conversion to RGB supplied by FastLED
-      }
-
-      // shift the pixels one pixel up
-      leds.setPixelColor(0, color);
-      for (int i = leds.nrOfLeds - 1; i > 0; i--) leds.setPixelColor(i, leds.getPixelColor(i-1));
-    }
-  }
-
-  void controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 255);
-    ui->initSlider(parentVar, "Sound effect", 128);
-    ui->initSlider(parentVar, "Low bin", 18);
-    ui->initSlider(parentVar, "High bin", 48);
-    ui->initSlider(parentVar, "Sensivity", 30, 10, 100);
-  }
-};
-
-
-class DJLight:public Effect {
-public:
-
-  const char * name() {return "DJLight";}
-  unsigned8 dim() {return _1D;}
-  const char * tags() {return "💡♫";}
-
-  void setup(Leds &leds) {
-    leds.fill_solid(CRGB::Black, true); //no blend
-  }
-
-  void loop(Leds &leds) {
-
-    const int mid = leds.nrOfLeds / 2;
-
-    unsigned8 *aux0 = leds.sharedData.bind(aux0);
-
-    uint8_t *fftResult = wledAudioMod->fftResults;
-    float volumeSmth   = wledAudioMod->volumeSmth;
-
-    unsigned8 speed = mdl->getValue("speed");
-    bool candyFactory = mdl->getValue("candyFactory").as<bool>();
-    unsigned8 fade = mdl->getValue("fade");
-
-
-    unsigned8 secondHand = (speed < 255) ? (micros()/(256-speed)/500 % 16) : 0;
-    if((speed > 254) || (*aux0 != secondHand)) {   // WLEDMM allow run run at full speed
-      *aux0 = secondHand;
-
-      CRGB color = CRGB(0,0,0);
-      // color = CRGB(fftResult[15]/2, fftResult[5]/2, fftResult[0]/2);   // formula from 0.13.x (10Khz): R = 3880-5120, G=240-340, B=60-100
-      if (!candyFactory) {
-        color = CRGB(fftResult[12]/2, fftResult[3]/2, fftResult[1]/2);    // formula for 0.14.x  (22Khz): R = 3015-3704, G=216-301, B=86-129
-      } else {
-        // candy factory: an attempt to get more colors
-        color = CRGB(fftResult[11]/2 + fftResult[12]/4 + fftResult[14]/4, // red  : 2412-3704 + 4479-7106 
-                    fftResult[4]/2 + fftResult[3]/4,                     // green: 216-430
-                    fftResult[0]/4 + fftResult[1]/4 + fftResult[2]/4);   // blue:  46-216
-        if ((color.getLuma() < 96) && (volumeSmth >= 1.5f)) {             // enhance "almost dark" pixels with yellow, based on not-yet-used channels 
-          unsigned yello_g = (fftResult[5] + fftResult[6] + fftResult[7]) / 3;
-          unsigned yello_r = (fftResult[7] + fftResult[8] + fftResult[9] + fftResult[10]) / 4;
-          color.green += (uint8_t) yello_g / 2;
-          color.red += (uint8_t) yello_r / 2;
-        }
-      }
-
-      if (volumeSmth < 1.0f) color = CRGB(0,0,0); // silence = black
-
-      // make colors less "pastel", by turning up color saturation in HSV space
-      if (color.getLuma() > 32) {                                      // don't change "dark" pixels
-        CHSV hsvColor = rgb2hsv_approximate(color);
-        hsvColor.v = min(max(hsvColor.v, (uint8_t)48), (uint8_t)204);  // 48 < brightness < 204
-        if (candyFactory)
-          hsvColor.s = max(hsvColor.s, (uint8_t)204);                  // candy factory mode: strongly turn up color saturation (> 192)
-        else
-          hsvColor.s = max(hsvColor.s, (uint8_t)108);                  // normal mode: turn up color saturation to avoid pastels
-        color = hsvColor;
-      }
-      //if (color.getLuma() > 12) color.maximizeBrightness();          // for testing
-
-      //SEGMENT.setPixelColor(mid, color.fadeToBlackBy(map(fftResult[4], 0, 255, 255, 4)));     // 0.13.x  fade -> 180hz-260hz
-      uint8_t fadeVal = map(fftResult[3], 0, 255, 255, 4);                                      // 0.14.x  fade -> 216hz-301hz
-      if (candyFactory) fadeVal = constrain(fadeVal, 0, 176);  // "candy factory" mode - avoid complete fade-out
-      leds.setPixelColor(mid, color.fadeToBlackBy(fadeVal));
-
-      for (int i = leds.nrOfLeds - 1; i > mid; i--)   leds.setPixelColor(i, leds.getPixelColor(i-1)); // move to the left
-      for (int i = 0; i < mid; i++)            leds.setPixelColor(i, leds.getPixelColor(i+1)); // move to the right
-
-      leds.fadeToBlackBy(fade);
-
-    }
-  }
-
-  void controls(JsonObject parentVar) {
-    ui->initSlider(parentVar, "speed", 255);
-    ui->initCheckBox(parentVar, "candyFactory", true);
-    ui->initSlider(parentVar, "fade", 4, 0, 10);
-  }
-};
+}; //Waverly
 
 class FunkyPlank:public Effect {
 public:
@@ -1188,10 +1234,84 @@ public:
     ui->initSlider(parentVar, "speed", 255);
     ui->initSlider(parentVar, "bands", NUM_GEQ_CHANNELS, 1, NUM_GEQ_CHANNELS);
   }
-};
+}; //FunkyPlank
 
 
 #endif // End Audio Effects
+
+
+//3D Effects
+//==========
+
+class RipplesEffect: public Effect {
+public:
+  const char * name() {return "Ripples";}
+  unsigned8 dim() {return _3D;}
+  const char * tags() {return "💫";}
+
+  void loop(Leds &leds) {
+    stackUnsigned8 interval = mdl->getValue("interval");
+    stackUnsigned8 speed = mdl->getValue("speed");
+
+    float ripple_interval = 1.3f * (interval/128.0f);
+
+    leds.fill_solid(CRGB::Black);
+
+    Coord3D pos = {0,0,0};
+    for (pos.z=0; pos.z<leds.size.z; pos.z++) {
+      for (pos.y=0; pos.y<leds.size.y; pos.y++) {
+        float d = leds.fixture->distance(3.5f, 3.5f, 0.0f, (float)pos.x, (float)pos.z, 0.0f) / 9.899495f * leds.size.x;
+        stackUnsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
+        pos.x = floor(leds.size.x/2.0f + sinf(d/ripple_interval + time_interval) * leds.size.x/2.0f); //between 0 and leds.size.x
+
+        leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+      }
+    }
+  }
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 50, 0, 99);
+    ui->initSlider(parentVar, "interval", 128);
+  }
+};
+
+class SphereMoveEffect: public Effect {
+public:
+  const char * name() {return "SphereMove";}
+  unsigned8 dim() {return _3D;}
+  const char * tags() {return "💫";}
+
+  void loop(Leds &leds) {
+    stackUnsigned8 speed = mdl->getValue("speed");
+
+    leds.fill_solid(CRGB::Black);
+
+    stackUnsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
+
+    Coord3D origin;
+    origin.x = 3.5f+sinf(time_interval)*2.5f;
+    origin.y = 3.5f+cosf(time_interval)*2.5f;
+    origin.z = 3.5f+cosf(time_interval)*2.0f;
+
+    float diameter = 2.0f+sinf(time_interval/3.0f);
+
+    // CRGBPalette256 pal;
+    Coord3D pos;
+    for (pos.x=0; pos.x<leds.size.x; pos.x++) {
+        for (pos.y=0; pos.y<leds.size.y; pos.y++) {
+            for (pos.z=0; pos.z<leds.size.z; pos.z++) {
+                stackUnsigned16 d = leds.fixture->distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
+
+                if (d>diameter && d<diameter+1) {
+                  leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
+                }
+            }
+        }
+    }
+  }
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "speed", 50, 0, 99);
+  }
+}; // SphereMove3DEffect
 
 class Effects {
 public:
@@ -1199,34 +1319,50 @@ public:
 
   Effects() {
     //create effects before fx.chFun is called
+
+    //1D Basis
     effects.push_back(new SolidEffect);
+    // 1D FastLed
     effects.push_back(new RainbowEffect);
     effects.push_back(new RainbowWithGlitterEffect);
     effects.push_back(new SinelonEffect);
-    effects.push_back(new RunningEffect);
     effects.push_back(new ConfettiEffect);
     effects.push_back(new BPMEffect);
     effects.push_back(new JuggleEffect);
-    effects.push_back(new RipplesEffect);
-    effects.push_back(new SphereMoveEffect);
-    effects.push_back(new Frizzles);
+    //1D StarMod
+    effects.push_back(new RunningEffect);
+    effects.push_back(new RingRandomFlow);
+    // 1D WLED
+    effects.push_back(new BouncingBalls);
+    effects.push_back(new RainEffect);
+
+    #ifdef STARMOD_USERMOD_WLEDAUDIO
+      //1D StarMod
+      effects.push_back(new AudioRings);
+      //1D WLED
+      effects.push_back(new FreqMatrix);
+      effects.push_back(new PopCorn);
+      effects.push_back(new DJLight);
+    #endif
+
+    //2D StarMod
     effects.push_back(new Lines);
+    //2D WLED
     effects.push_back(new DistortionWaves);
     effects.push_back(new Octopus);
     effects.push_back(new Lissajous);
-    effects.push_back(new BouncingBalls);
-    effects.push_back(new RingRandomFlow);
+    effects.push_back(new Frizzles);
     effects.push_back(new ScrollingText);
-    effects.push_back(new Waverly);
-    effects.push_back(new PopCorn);
     #ifdef STARMOD_USERMOD_WLEDAUDIO
+      //2D WLED
       effects.push_back(new GEQEffect);
-      effects.push_back(new AudioRings);
-      effects.push_back(new FreqMatrix);
-      effects.push_back(new DJLight);
+      effects.push_back(new Waverly);
       effects.push_back(new FunkyPlank);
     #endif
-  }
+    //3D
+    effects.push_back(new RipplesEffect);
+    effects.push_back(new SphereMoveEffect);
+}
 
   void setup() {
     //check of no local variables (should be only 4 bytes): tbd: can we loop over effects (sizeof(effect does not work))
@@ -1240,14 +1376,14 @@ public:
     // USER_PRINTF("Size of %s is %d\n", "ConfettiEffect", sizeof(ConfettiEffect));
     // USER_PRINTF("Size of %s is %d\n", "BPMEffect", sizeof(BPMEffect));
     // USER_PRINTF("Size of %s is %d\n", "JuggleEffect", sizeof(JuggleEffect));
-    // USER_PRINTF("Size of %s is %d\n", "Ripples3DEffect", sizeof(Ripples3DEffect));
-    // USER_PRINTF("Size of %s is %d\n", "SphereMove3DEffect", sizeof(SphereMove3DEffect));
-    // USER_PRINTF("Size of %s is %d\n", "Frizzles2D", sizeof(Frizzles2D));
-    // USER_PRINTF("Size of %s is %d\n", "Lines2D", sizeof(Lines2D));
-    // USER_PRINTF("Size of %s is %d\n", "DistortionWaves2D", sizeof(DistortionWaves2D));
-    // USER_PRINTF("Size of %s is %d\n", "Octopus2D", sizeof(Octopus2D));
-    // USER_PRINTF("Size of %s is %d\n", "Lissajous2D", sizeof(Lissajous2D));
-    // USER_PRINTF("Size of %s is %d\n", "BouncingBalls1D", sizeof(BouncingBalls1D));
+    // USER_PRINTF("Size of %s is %d\n", "RipplesEffect", sizeof(RipplesEffect));
+    // USER_PRINTF("Size of %s is %d\n", "SphereMoveEffect", sizeof(SphereMoveEffect));
+    // USER_PRINTF("Size of %s is %d\n", "Frizzles", sizeof(Frizzles));
+    // USER_PRINTF("Size of %s is %d\n", "Lines", sizeof(Lines));
+    // USER_PRINTF("Size of %s is %d\n", "DistortionWaves", sizeof(DistortionWaves));
+    // USER_PRINTF("Size of %s is %d\n", "Octopus", sizeof(Octopus));
+    // USER_PRINTF("Size of %s is %d\n", "Lissajous", sizeof(Lissajous));
+    // USER_PRINTF("Size of %s is %d\n", "BouncingBalls", sizeof(BouncingBalls));
     // USER_PRINTF("Size of %s is %d\n", "RingRandomFlow", sizeof(RingRandomFlow));
     // #ifdef STARMOD_USERMOD_WLEDAUDIO
     //   USER_PRINTF("Size of %s is %d\n", "GEQEffect", sizeof(GEQEffect));

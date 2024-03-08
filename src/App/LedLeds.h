@@ -251,6 +251,25 @@ public:
   void fadeToBlackBy(unsigned8 fadeBy = 255);
   void fill_solid(const struct CRGB& color, bool noBlend = false);
   void fill_rainbow(unsigned8 initialhue, unsigned8 deltahue);
+
+
+  void blur1d(fract8 blur_amount)
+  {
+    uint8_t keep = 255 - blur_amount;
+    uint8_t seep = blur_amount >> 1;
+    CRGB carryover = CRGB::Black;
+    for( uint16_t i = 0; i < nrOfLeds; ++i) {
+        CRGB cur = getPixelColor(i);
+        CRGB part = cur;
+        part.nscale8( seep);
+        cur.nscale8( keep);
+        cur += carryover;
+        if( i) addPixelColor(i-1, part);
+        setPixelColor(i, cur);
+        carryover = part;
+    }
+  }
+
   void blur2d(fract8 blur_amount)
   {
       blurRows(size.x, size.y, blur_amount);

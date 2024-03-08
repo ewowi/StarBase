@@ -20,7 +20,7 @@
 void Fixture::projectAndMap() {
   char fileName[32] = "";
 
-  if (files->seqNrToName(fileName, fixtureNr)) {
+  if (files->seqNrToName(fileName, fixtureNr)) { // get the fixture.json
     StarModJson starModJson(fileName); //open fileName for deserialize
 
     // reset leds
@@ -362,8 +362,9 @@ void Fixture::projectAndMap() {
 
     if (starModJson.deserialize(false)) { //this will call above function parameter for each led
 
+      //after processing each led
       stackUnsigned8 rowNr = 0;
-      // for (std::vector<Leds *>::iterator leds=ledsList.begin(); leds!=ledsList.end() && leds->doMap; ++leds) {
+
       for (Leds *leds: ledsList) {
         if (leds->doMap) {
           USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
@@ -389,22 +390,23 @@ void Fixture::projectAndMap() {
 
             leds->nrOfLeds = leds->mappingTable.size();
 
+            //debug info + summary values
             stackUnsigned16 indexV = 0;
             for (auto map:leds->mappingTable) {
               if (map.indexes && map.indexes->size()) {
                 // if (nrOfMappings < 10 || map.indexes->size() - indexV < 10) //first 10 and last 10
-                if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
+                // if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
                   USER_PRINTF("ledV %d mapping: #ledsP (%d):", indexV, nrOfMappings, map.indexes->size());
 
                 for (forUnsigned16 indexP:*map.indexes) {
                   // if (nrOfPixels < 10 || map.indexes->size() - indexV < 10)
-                  if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
+                  // if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
                     USER_PRINTF(" %d", indexP);
                   nrOfPixels++;
                 }
 
                 // if (nrOfPixels < 10 || map.indexes->size() - indexV < 10)
-                if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
+                // if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
                   USER_PRINTF("\n");
               }
               nrOfMappings++;
@@ -418,7 +420,7 @@ void Fixture::projectAndMap() {
 
           // mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
           char buf[32];
-          print->fFormat(buf, sizeof(buf)-1,"%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
+          print->fFormat(buf, sizeof(buf)-1,"%d x %d x %d -> %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
           mdl->setValue("fxSize", JsonString(buf, JsonString::Copied), rowNr);
           // web->sendResponseObject();
 

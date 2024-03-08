@@ -49,6 +49,8 @@ void SysModModel::setup() {
     default: return false;
   }});
 
+  #ifdef STARMOD_DEVMODE
+
   ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setComment(var, "Show in UI (refresh)");
@@ -71,6 +73,8 @@ void SysModModel::setup() {
     //   return true;
     default: return false;
   }});
+
+  #endif //STARMOD_DEVMODE
 }
 
   void SysModModel::loop() {

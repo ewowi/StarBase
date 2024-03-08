@@ -91,6 +91,9 @@ public:
     return initVarAndUpdate<const char *>(parent, id, "text", value, 0, max, readOnly, varFun);
   }
 
+  JsonObject initFile(JsonObject parent, const char * id, const char * value = nullptr, unsigned16 max = 32, bool readOnly = false, VarFun varFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "file", value, 0, max, readOnly, varFun);
+  }
   JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, unsigned8 max = 32, bool readOnly = false, VarFun varFun = nullptr) {
     return initVarAndUpdate<const char *>(parent, id, "password", value, 0, 0, readOnly, varFun);
   }

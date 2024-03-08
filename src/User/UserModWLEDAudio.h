@@ -15,10 +15,10 @@
 
 #define MAX_FREQUENCY   11025          // sample frequency / 2 (as per Nyquist criterion)
 
-typedef enum UM_SoundSimulations {
+enum UM_SoundSimulations {
   UMS_BeatSin = 0,
   UMS_WeWillRockYou
-} um_soundSimulations_t;
+};
 
 
 class UserModWLEDAudio:public SysModule {

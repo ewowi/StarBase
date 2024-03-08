@@ -137,7 +137,7 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initNumber(parentVar, "queueLength", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
+  ui->initNumber(parentVar, "maxQueue", WS_MAX_QUEUED_MESSAGES, 0, WS_MAX_QUEUED_MESSAGES, true);
 
   ui->initText(parentVar, "wsSend", nullptr, 16, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

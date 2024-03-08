@@ -77,6 +77,8 @@ void SysModPins::setup() {
     default: return false;
   }});
 
+  #ifdef STARMOD_DEVMODE
+
   ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Board layout");
@@ -106,6 +108,7 @@ void SysModPins::setup() {
     default: return false;
   }});
 
+  #endif //STARMOD_DEVMODE
   // ui->initCheckBox(parentVar, "pin2", true, UINT8_MAX, false, nullptr, updateGPIO);
   // ui->initCheckBox(parentVar, "pin4");
 #if CONFIG_IDF_TARGET_ESP32

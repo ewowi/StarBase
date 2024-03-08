@@ -70,7 +70,6 @@ public:
 };
 
 class SolidEffect: public Effect {
-public:
   const char * name() {return "Solid";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "💡";}
@@ -83,6 +82,7 @@ public:
     CRGB color = CRGB(red, green, blue);
     leds.fill_solid(color);
   }
+  
   void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "Red", 182);
     ui->initSlider(parentVar, "Green", 15);
@@ -102,8 +102,7 @@ public:
   }
 };
 
-class RainbowWithGlitterEffect:public RainbowEffect {
-public:
+class RainbowWithGlitterEffect: public RainbowEffect {
   const char * name() {return "Rainbow with glitter";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "⚡";}
@@ -122,7 +121,6 @@ public:
 };
 
 class SinelonEffect: public Effect {
-public:
   const char * name() {return "Sinelon";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "⚡";}
@@ -133,13 +131,13 @@ public:
     int pos = beatsin16( mdl->getValue("BPM").as<int>(), 0, leds.nrOfLeds-1 );
     leds[pos] = leds.getPixelColor(pos) + CHSV( gHue, 255, 192);
   }
+  
   void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "BPM", 60);
   }
 }; //Sinelon
 
 class ConfettiEffect: public Effect {
-public:
   const char * name() {return "Confetti";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "⚡";}
@@ -153,7 +151,6 @@ public:
 };
 
 class BPMEffect: public Effect {
-public:
   const char * name() {return "Beats per minute";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "⚡";}
@@ -168,13 +165,13 @@ public:
       leds[i] = ColorFromPalette(pal, gHue+(i*2), beat-gHue+(i*10));
     }
   }
+  
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
   }
 };
 
 class JuggleEffect: public Effect {
-public:
   const char * name() {return "Juggle";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "⚡";}
@@ -192,7 +189,6 @@ public:
 
 //https://www.perfectcircuit.com/signal/difference-between-waveforms
 class RunningEffect: public Effect {
-public:
   const char * name() {return "Running";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "💫";}
@@ -205,6 +201,7 @@ public:
     leds[pos] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
     // leds[leds.nrOfLeds -1 - pos2] = CHSV( gHue, 255, 192); //make sure the right physical leds get their value
   }
+
   void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "BPM", 60, 0, 255, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
@@ -217,17 +214,16 @@ public:
   }
 };
 
-class RingEffect:public Effect {
+class RingEffect: public Effect {
   protected:
 
-    void setRing(Leds &leds, int ring, CRGB colour) { //so britisch ;-)
-      leds[ring] = colour;
-    }
+  void setRing(Leds &leds, int ring, CRGB colour) { //so britisch ;-)
+    leds[ring] = colour;
+  }
 
 };
 
-class RingRandomFlow:public RingEffect {
-public:
+class RingRandomFlow: public RingEffect {
   const char * name() {return "RingRandomFlow";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "💫";}
@@ -249,14 +245,13 @@ public:
 //BouncingBalls inspired by WLED
 #define maxNumBalls 16
 //each needs 12 bytes
-typedef struct Ball {
+struct Ball {
   unsigned long lastBounceTime;
   float impactVelocity;
   float height;
-} ball;
+};
 
 class BouncingBalls: public Effect {
-public:
   const char * name() {return "Bouncing Balls";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "💡";}
@@ -359,7 +354,7 @@ void mode_fireworks(Leds &leds, stackUnsigned16 *aux0, stackUnsigned16 *aux1, ui
   //     addPixels = false;         
   //     blurAmount = 128;
   //   }
-  //   my_intensity = 129 - (SEGMENT.speed >> 1); // dirty hack: use "speed" slider value intensity (no idea how to _disable_ the first slider, but show the second one)
+  //   my_intensity = 129 - (speed >> 1); // dirty hack: use "speed" slider value intensity (no idea how to _disable_ the first slider, but show the second one)
   //   if (samplePeak == 1) my_intensity -= my_intensity / 4;    // inclease intensity at peaks
   //   if (samplePeak > 1) my_intensity = my_intensity / 2;      // double intensity at main peaks
   // }
@@ -385,9 +380,7 @@ void mode_fireworks(Leds &leds, stackUnsigned16 *aux0, stackUnsigned16 *aux1, ui
   // return FRAMETIME;
 }
 
-
 class RainEffect: public Effect {
-public:
   const char * name() {return "Rain";}
   unsigned8 dim() {return _1D;}
   const char * tags() {return "💡";}
@@ -396,7 +389,7 @@ public:
 
     CRGBPalette16 pal = getPalette();
     uint8_t speed = mdl->getValue("speed");
-    uint8_t intensity = mdl->getValue("intensity");
+    uint8_t spawnRate = mdl->getValue("spawnRate");
 
     stackUnsigned16 *aux0 = leds.sharedData.bind(aux0);
     stackUnsigned16 *aux1 = leds.sharedData.bind(aux1);
@@ -431,65 +424,115 @@ public:
       if (*aux0 >= leds.size.x*leds.size.y) *aux0 = 0;     // ignore
       if (*aux1 >= leds.size.x*leds.size.y) *aux1 = 0;
     }
-    mode_fireworks(leds, aux0, aux1, speed, intensity, pal);
+    mode_fireworks(leds, aux0, aux1, speed, spawnRate, pal);
   }
+  
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "speed", 128, 1, 255);
-    ui->initSlider(parentVar, "intensity", 128,1,255);
+    ui->initSlider(parentVar, "spawnRate", 128, 1, 255);
   }
-}; // ExampleEffect
+}; // RainEffect
 
-class AudioRings:public RingEffect {
-public:
-  const char * name() {return "AudioRings";}
-  unsigned8 dim() {return _1D;}
-  const char * tags() {return "💫♫";}
-
-  void loop(Leds &leds) {
-    CRGBPalette16 pal = getPalette();
-    for (int i = 0; i < 7; i++) { // 7 rings
-
-      byte val;
-      if(mdl->getValue("inWards").as<bool>()) {
-        val = wledAudioMod->fftResults[(i*2)];
-      }
-      else {
-        int b = 14 -(i*2);
-        val = wledAudioMod->fftResults[b];
-      }
-  
-      // Visualize leds to the beat
-      CRGB color = ColorFromPalette(pal, val, val);
-//      CRGB color = ColorFromPalette(currentPalette, val, 255, currentBlending);
-//      color.nscale8_video(val);
-      setRing(leds, i, color);
-//        setRingFromFtt((i * 2), i); 
-    }
-
-    setRingFromFtt(leds, pal, 2, 7); // set outer ring to bass
-    setRingFromFtt(leds, pal, 0, 8); // set outer ring to bass
-
-  }
-  void setRingFromFtt(Leds &leds, CRGBPalette16 pal, int index, int ring) {
-    byte val = wledAudioMod->fftResults[index];
-    // Visualize leds to the beat
-    CRGB color = ColorFromPalette(pal, val, 255);
-    color.nscale8_video(val);
-    setRing(leds, ring, color);
-  }
-
-  void controls(JsonObject parentVar) {
-    addPalette(parentVar, 4);
-    ui->initCheckBox(parentVar, "inWards", true);
-  }
+//each needs 19 bytes
+//Spark type is used for popcorn, 1D fireworks, and drip
+struct Spark {
+  float pos, posX;
+  float vel, velX;
+  unsigned16 col;
+  unsigned8 colIndex;
 };
 
-class FreqMatrix:public Effect {
-public:
+#define maxNumDrops 6
+class DripEffect: public Effect {
+  const char * name() {return "Drip";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "💡";}
+
+  void loop(Leds &leds) {
+
+    CRGBPalette16 pal = getPalette();
+    uint8_t grav = mdl->getValue("gravity");
+    uint8_t drips = mdl->getValue("drips");
+    uint8_t swell = mdl->getValue("swell");
+    bool invert = mdl->getValue("invert");
+
+    Spark* drops = leds.sharedData.bind(drops, maxNumDrops);
+
+    leds.fadeToBlackBy(90);
+
+    float gravity = -0.0005 - (grav/25000.0); //increased gravity (50000 to 25000)
+    gravity *= max(1, leds.nrOfLeds-1);
+    int sourcedrop = 12;
+
+    for (int j=0;j<drips;j++) {
+      if (drops[j].colIndex == 0) { //init
+        drops[j].pos = leds.nrOfLeds-1;    // start at end
+        drops[j].vel = 0;           // speed
+        drops[j].col = sourcedrop;  // brightness
+        drops[j].colIndex = 1;      // drop state (0 init, 1 forming, 2 falling, 5 bouncing)
+        drops[j].velX = (uint32_t)ColorFromPalette(pal, random8()); // random color
+      }
+      CRGB dropColor = drops[j].velX;
+
+      leds.setPixelColor(invert?0:leds.nrOfLeds-1, blend(CRGB::Black, dropColor, sourcedrop));// water source
+      if (drops[j].colIndex==1) {
+        if (drops[j].col>255) drops[j].col=255;
+        leds.setPixelColor(invert?leds.nrOfLeds-1-drops[j].pos:drops[j].pos, blend(CRGB::Black, dropColor, drops[j].col));
+
+        drops[j].col += swell; // swelling
+
+        if (random16() <= drops[j].col * swell * swell / 10) {               // random drop
+          drops[j].colIndex=2;               //fall
+          drops[j].col=255;
+        }
+      }
+      if (drops[j].colIndex > 1) {           // falling
+        if (drops[j].pos > 0) {              // fall until end of segment
+          drops[j].pos += drops[j].vel;
+          if (drops[j].pos < 0) drops[j].pos = 0;
+          drops[j].vel += gravity;           // gravity is negative
+
+          for (int i=1;i<7-drops[j].colIndex;i++) { // some minor math so we don't expand bouncing droplets
+            uint16_t pos = constrain(uint16_t(drops[j].pos) +i, 0, leds.nrOfLeds-1); //this is BAD, returns a pos >= leds.nrOfLeds occasionally
+            leds.setPixelColor(invert?leds.nrOfLeds-1-pos:pos, blend(CRGB::Black, dropColor, drops[j].col/i)); //spread pixel with fade while falling
+          }
+
+          if (drops[j].colIndex > 2) {       // during bounce, some water is on the floor
+            leds.setPixelColor(invert?leds.nrOfLeds-1:0, blend(dropColor, CRGB::Black, drops[j].col));
+          }
+        } else {                             // we hit bottom
+          if (drops[j].colIndex > 2) {       // already hit once, so back to forming
+            drops[j].colIndex = 0;
+            // drops[j].col = sourcedrop;
+
+          } else {
+
+            if (drops[j].colIndex==2) {      // init bounce
+              drops[j].vel = -drops[j].vel/4;// reverse velocity with damping
+              drops[j].pos += drops[j].vel;
+            }
+            drops[j].col = sourcedrop*2;
+            drops[j].colIndex = 5;           // bouncing
+          }
+        }
+      }
+    }
+  }
+  
+  void controls(JsonObject parentVar) {
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "gravity", 128, 1, 255);
+    ui->initSlider(parentVar, "drips", 3, 1, 6);
+    ui->initSlider(parentVar, "swell", 3, 1, 6);
+    ui->initCheckBox(parentVar, "invert");
+  }
+}; // DripEffect
+
+class FreqMatrix: public Effect {
   const char * name() {return "FreqMatrix";}
   unsigned8 dim() {return _1D;}
-  const char * tags() {return "💡♪";}
+  const char * tags() {return "♪💡";}
 
   void setup(Leds &leds) {
     leds.fadeToBlackBy(16);
@@ -550,21 +593,10 @@ public:
 #define maxNumPopcorn 21 // max 21 on 16 segment ESP8266
 #define NUM_COLORS       3 /* number of colors per segment */
 
-//each needs 19 bytes
-//Spark type is used for popcorn, 1D fireworks, and drip
-typedef struct Spark {
-  float pos, posX;
-  float vel, velX;
-  unsigned16 col;
-  unsigned8 colIndex;
-} spark;
-
-
 class PopCorn: public Effect {
-public:
   const char * name() {return "PopCorn";}
   unsigned8 dim() {return _1D;}
-  const char * tags() {return "💡♪";}
+  const char * tags() {return "♪💡";}
 
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
@@ -622,8 +654,8 @@ public:
         if (ledIndex < leds.nrOfLeds) leds.setPixelColor(ledIndex, col);
       }
     }
-
   }
+  
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "speed", 128);
@@ -633,12 +665,54 @@ public:
   }
 }; //PopCorn
 
-class DJLight:public Effect {
-public:
+class AudioRings: public RingEffect {
+  const char * name() {return "AudioRings";}
+  unsigned8 dim() {return _1D;}
+  const char * tags() {return "♫💫";}
 
+  void loop(Leds &leds) {
+    CRGBPalette16 pal = getPalette();
+    for (int i = 0; i < 7; i++) { // 7 rings
+
+      byte val;
+      if(mdl->getValue("inWards").as<bool>()) {
+        val = wledAudioMod->fftResults[(i*2)];
+      }
+      else {
+        int b = 14 -(i*2);
+        val = wledAudioMod->fftResults[b];
+      }
+  
+      // Visualize leds to the beat
+      CRGB color = ColorFromPalette(pal, val, val);
+//      CRGB color = ColorFromPalette(currentPalette, val, 255, currentBlending);
+//      color.nscale8_video(val);
+      setRing(leds, i, color);
+//        setRingFromFtt((i * 2), i); 
+    }
+
+    setRingFromFtt(leds, pal, 2, 7); // set outer ring to bass
+    setRingFromFtt(leds, pal, 0, 8); // set outer ring to bass
+
+  }
+  void setRingFromFtt(Leds &leds, CRGBPalette16 pal, int index, int ring) {
+    byte val = wledAudioMod->fftResults[index];
+    // Visualize leds to the beat
+    CRGB color = ColorFromPalette(pal, val, 255);
+    color.nscale8_video(val);
+    setRing(leds, ring, color);
+  }
+
+  void controls(JsonObject parentVar) {
+    addPalette(parentVar, 4);
+    ui->initCheckBox(parentVar, "inWards", true);
+  }
+};
+
+class DJLight: public Effect {
   const char * name() {return "DJLight";}
   unsigned8 dim() {return _1D;}
-  const char * tags() {return "💡♫";}
+  const char * tags() {return "♫💡";}
 
   void setup(Leds &leds) {
     leds.fill_solid(CRGB::Black, true); //no blend
@@ -720,7 +794,6 @@ public:
 //==========
 
 class Lines: public Effect {
-public:
   const char * name() {return "Lines";}
   unsigned8 dim() {return _2D;}
   const char * tags() {return "💫";}
@@ -754,7 +827,6 @@ unsigned8 gamma8(unsigned8 b) { //we do nothing with gamma for now
   return b;
 }
 class DistortionWaves: public Effect {
-public:
   const char * name() {return "DistortionWaves";}
   unsigned8 dim() {return _2D;}
   const char * tags() {return "💡";}
@@ -802,6 +874,7 @@ public:
       }
     }
   }
+  
   void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 4, 0, 8);
     ui->initSlider(parentVar, "scale", 4, 0, 8);
@@ -811,15 +884,14 @@ public:
 //Octopus inspired by WLED, Stepko and Sutaburosu and blazoncek 
 //Idea from https://www.youtube.com/watch?v=HsA-6KIbgto&ab_channel=GreatScott%21 (https://editor.soulmatelights.com/gallery/671-octopus)
 class Octopus: public Effect {
-public:
   const char * name() {return "Octopus";}
   unsigned8 dim() {return _2D;}
   const char * tags() {return "💡";}
 
-  typedef struct {
+  struct Map_t {
     unsigned8 angle;
     unsigned8 radius;
-  } map_t;
+  };
 
   void loop(Leds &leds) {
 
@@ -834,7 +906,7 @@ public:
     stackUnsigned8 legs = mdl->getValue("Legs");
     CRGBPalette16 pal = getPalette();
 
-    map_t    *rMap = leds.sharedData.bind(rMap, leds.size.x * leds.size.y); //array
+    Map_t    *rMap = leds.sharedData.bind(rMap, leds.size.x * leds.size.y); //array
     uint8_t *offsX = leds.sharedData.bind(offsX);
     uint8_t *offsY = leds.sharedData.bind(offsY);
     uint16_t *aux0 = leds.sharedData.bind(aux0);
@@ -874,6 +946,7 @@ public:
       }
     }
   }
+  
   void controls(JsonObject parentVar) {
 
     //bind the variables to sharedData...
@@ -902,7 +975,6 @@ public:
 
 //Lissajous inspired by WLED, Andrew Tuline 
 class Lissajous: public Effect {
-public:
   const char * name() {return "Lissajous";}
   unsigned8 dim() {return _2D;}
   const char * tags() {return "💡";}
@@ -942,6 +1014,7 @@ public:
       leds[locn] = ColorFromPalette(pal, now/100+i);
     }
   }
+  
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "X frequency", 64);
@@ -953,7 +1026,6 @@ public:
 
 //Frizzles inspired by WLED, Stepko, Andrew Tuline, https://editor.soulmatelights.com/gallery/640-color-frizzles
 class Frizzles: public Effect {
-public:
   const char * name() {return "Frizzles";}
   unsigned8 dim() {return _2D;}
   const char * tags() {return "💡";}
@@ -984,7 +1056,6 @@ public:
 }; // Frizzles
 
 class ScrollingText: public Effect {
-public:
   const char * name() {return "Scrolling Text";}
   unsigned8 dim() {return _2D;}
   const char * tags() {return "💫";}
@@ -1002,6 +1073,7 @@ public:
     }
 
   }
+  
   void controls(JsonObject parentVar) {
     ui->initText(parentVar, "text", "StarMod");
     ui->initSlider(parentVar, "speed", 128);
@@ -1023,13 +1095,55 @@ public:
 
 #ifdef STARMOD_USERMOD_WLEDAUDIO
 
-class GEQEffect:public Effect {
+class Waverly: public Effect {
+  const char * name() {return "Waverly";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "♪💡";}
 
-public:
+  void loop(Leds &leds) {
+    CRGBPalette16 pal = getPalette();
+    stackUnsigned8 amplification = mdl->getValue("Amplification");
+    stackUnsigned8 sensitivity = mdl->getValue("Sensitivity");
+    bool noClouds = mdl->getValue("No Clouds");
+    // bool soundPressure = mdl->getValue("Sound Pressure");
+    // bool agcDebug = mdl->getValue("AGC debug");
 
+    leds.fadeToBlackBy(amplification);
+    // if (agcDebug && soundPressure) soundPressure = false;                 // only one of the two at any time
+    // if ((soundPressure) && (wledAudioMod->sync.volumeSmth > 0.5f)) wledAudioMod->sync.volumeSmth = wledAudioMod->sync.soundPressure;    // show sound pressure instead of volume
+    // if (agcDebug) wledAudioMod->sync.volumeSmth = 255.0 - wledAudioMod->sync.agcSensitivity;                    // show AGC level instead of volume
+
+    long t = now / 2; 
+    Coord3D pos;
+    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
+      stackUnsigned16 thisVal = wledAudioMod->sync.volumeSmth*sensitivity/64 * inoise8(pos.x * 45 , t , t)/64;      // WLEDMM back to SR code
+      stackUnsigned16 thisMax = min(map(thisVal, 0, 512, 0, leds.size.y), (long)leds.size.x);
+
+      for (pos.y = 0; pos.y < thisMax; pos.y++) {
+        CRGB color = ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND);
+        if (!noClouds)
+          leds.addPixelColor(pos, color);
+        leds.addPixelColor(leds.XY((leds.size.x - 1) - pos.x, (leds.size.y - 1) - pos.y), color);
+      }
+    }
+    leds.blur2d(16);
+
+  }
+  
+  void controls(JsonObject parentVar) {
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "Amplification", 128);
+    ui->initSlider(parentVar, "Sensitivity", 128);
+    ui->initCheckBox(parentVar, "No Clouds");
+    // ui->initCheckBox(parentVar, "Sound Pressure");
+    // ui->initCheckBox(parentVar, "AGC debug");
+  }
+}; //Waverly
+
+class GEQEffect: public Effect {
   const char * name() {return "GEQ";}
   unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡♫";}
+  const char * tags() {return "♫💡";}
 
   void setup(Leds &leds) {
     leds.fadeToBlackBy(16);
@@ -1142,56 +1256,10 @@ public:
   }
 }; //GEQ
 
-class Waverly: public Effect {
-public:
-  const char * name() {return "Waverly";}
-  unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡♪";}
-
-  void loop(Leds &leds) {
-    CRGBPalette16 pal = getPalette();
-    stackUnsigned8 amplification = mdl->getValue("Amplification");
-    stackUnsigned8 sensitivity = mdl->getValue("Sensitivity");
-    bool noClouds = mdl->getValue("No Clouds");
-    // bool soundPressure = mdl->getValue("Sound Pressure");
-    // bool agcDebug = mdl->getValue("AGC debug");
-
-    leds.fadeToBlackBy(amplification);
-    // if (agcDebug && soundPressure) soundPressure = false;                 // only one of the two at any time
-    // if ((soundPressure) && (wledAudioMod->sync.volumeSmth > 0.5f)) wledAudioMod->sync.volumeSmth = wledAudioMod->sync.soundPressure;    // show sound pressure instead of volume
-    // if (agcDebug) wledAudioMod->sync.volumeSmth = 255.0 - wledAudioMod->sync.agcSensitivity;                    // show AGC level instead of volume
-
-    long t = now / 2; 
-    Coord3D pos;
-    for (pos.x = 0; pos.x < leds.size.x; pos.x++) {
-      stackUnsigned16 thisVal = wledAudioMod->sync.volumeSmth*sensitivity/64 * inoise8(pos.x * 45 , t , t)/64;      // WLEDMM back to SR code
-      stackUnsigned16 thisMax = min(map(thisVal, 0, 512, 0, leds.size.y), (long)leds.size.x);
-
-      for (pos.y = 0; pos.y < thisMax; pos.y++) {
-        CRGB color = ColorFromPalette(pal, map(pos.y, 0, thisMax, 250, 0), 255, LINEARBLEND);
-        if (!noClouds)
-          leds.addPixelColor(pos, color);
-        leds.addPixelColor(leds.XY((leds.size.x - 1) - pos.x, (leds.size.y - 1) - pos.y), color);
-      }
-    }
-    leds.blur2d(16);
-
-  }
-  void controls(JsonObject parentVar) {
-    addPalette(parentVar, 4);
-    ui->initSlider(parentVar, "Amplification", 128);
-    ui->initSlider(parentVar, "Sensitivity", 128);
-    ui->initCheckBox(parentVar, "No Clouds");
-    // ui->initCheckBox(parentVar, "Sound Pressure");
-    // ui->initCheckBox(parentVar, "AGC debug");
-  }
-}; //Waverly
-
-class FunkyPlank:public Effect {
-public:
+class FunkyPlank: public Effect {
   const char * name() {return "Funky Plank";}
   unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡💫♫";}
+  const char * tags() {return "♫💡💫";}
 
   void setup(Leds &leds) {
     leds.fill_solid(CRGB::Black, true); //no blend
@@ -1244,7 +1312,6 @@ public:
 //==========
 
 class RipplesEffect: public Effect {
-public:
   const char * name() {return "Ripples";}
   unsigned8 dim() {return _3D;}
   const char * tags() {return "💫";}
@@ -1268,6 +1335,7 @@ public:
       }
     }
   }
+  
   void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 50, 0, 99);
     ui->initSlider(parentVar, "interval", 128);
@@ -1275,7 +1343,6 @@ public:
 };
 
 class SphereMoveEffect: public Effect {
-public:
   const char * name() {return "SphereMove";}
   unsigned8 dim() {return _3D;}
   const char * tags() {return "💫";}
@@ -1308,6 +1375,7 @@ public:
         }
     }
   }
+  
   void controls(JsonObject parentVar) {
     ui->initSlider(parentVar, "speed", 50, 0, 99);
   }
@@ -1335,13 +1403,14 @@ public:
     // 1D WLED
     effects.push_back(new BouncingBalls);
     effects.push_back(new RainEffect);
+    effects.push_back(new DripEffect);
 
     #ifdef STARMOD_USERMOD_WLEDAUDIO
-      //1D StarMod
-      effects.push_back(new AudioRings);
-      //1D WLED
+      //1D Volume
       effects.push_back(new FreqMatrix);
       effects.push_back(new PopCorn);
+      //1D frequency
+      effects.push_back(new AudioRings);
       effects.push_back(new DJLight);
     #endif
 
@@ -1355,8 +1424,8 @@ public:
     effects.push_back(new ScrollingText);
     #ifdef STARMOD_USERMOD_WLEDAUDIO
       //2D WLED
-      effects.push_back(new GEQEffect);
       effects.push_back(new Waverly);
+      effects.push_back(new GEQEffect);
       effects.push_back(new FunkyPlank);
     #endif
     //3D

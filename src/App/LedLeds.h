@@ -153,12 +153,17 @@ public:
   unsigned8 fx = -1;
   unsigned8 projectionNr = -1;
   unsigned8 effectDimension = -1;
+
   Coord3D startPos = {0,0,0}, endPos = {UINT16_MAX,UINT16_MAX,UINT16_MAX}; //default
   unsigned8 proRSpeed = 128;
 
   SharedData sharedData;
 
   std::vector<PhysMap> mappingTable;
+
+  unsigned16 indexVLocal = 0; //set in operator[], used by operator=
+
+  bool doMap = false;
 
   unsigned16 XY(unsigned16 x, unsigned16 y) {
     return XYZ(x, y, 0);
@@ -176,10 +181,6 @@ public:
     else
       return x + y * size.x + z * size.x * size.y;
   }
-
-  unsigned16 indexVLocal = 0; //set in operator[], used by operator=
-
-  bool doMap = false;
 
   Leds(Fixture &fixture) {
     USER_PRINTF("Leds[%d] constructor %d\n", UINT8_MAX, sizeof(PhysMap));
@@ -251,7 +252,6 @@ public:
   void fadeToBlackBy(unsigned8 fadeBy = 255);
   void fill_solid(const struct CRGB& color, bool noBlend = false);
   void fill_rainbow(unsigned8 initialhue, unsigned8 deltahue);
-
 
   void blur1d(fract8 blur_amount)
   {

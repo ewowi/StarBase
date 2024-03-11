@@ -84,12 +84,28 @@ void SysModSystem::setup() {
     }});
   }
 
-  ui->initProgress(parentVar, "stack", UINT16_MAX, 0, 4096, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initProgress(parentVar, "mainStack", UINT16_MAX, 0, getArduinoLoopTaskStackSize(), true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
       mdl->setValue(var, uxTaskGetStackHighWaterMark(NULL));
       return true;
+    case f_UIFun:
+      ui->setLabel(var, "Main stack");
+      return true;
     case f_ChangeFun:
-      web->addResponseV(var["id"], "comment", "%d / 4096 B", uxTaskGetStackHighWaterMark(NULL));
+      web->addResponseV(var["id"], "comment", "%d of %d B", uxTaskGetStackHighWaterMark(NULL), getArduinoLoopTaskStackSize());
+      return true;
+    default: return false;
+  }});
+
+  ui->initProgress(parentVar, "tcpStack", UINT16_MAX, 0, CONFIG_ASYNC_TCP_TASK_STACK_SIZE, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    case f_ValueFun:
+      mdl->setValue(var, uxTaskGetStackHighWaterMark(xTaskGetHandle("async_tcp")));
+      return true;
+    case f_UIFun:
+      ui->setLabel(var, "TCP stack");
+      return true;
+    case f_ChangeFun:
+      web->addResponseV(var["id"], "comment", "%d of %d B", uxTaskGetStackHighWaterMark(xTaskGetHandle("async_tcp")), CONFIG_ASYNC_TCP_TASK_STACK_SIZE);
       return true;
     default: return false;
   }});
@@ -169,7 +185,8 @@ void SysModSystem::loop1s() {
 }
 void SysModSystem::loop10s() {
   ui->callVarFun(mdl->findVar("heap"));
-  ui->callVarFun(mdl->findVar("stack"));
+  ui->callVarFun(mdl->findVar("mainStack"));
+  ui->callVarFun(mdl->findVar("tcpStack"));
 
   if (psramFound()) {
     ui->callVarFun(mdl->findVar("psram"));

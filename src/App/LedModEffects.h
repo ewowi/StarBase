@@ -136,13 +136,13 @@ public:
         options.add("Default");
         options.add("Multiply");
         options.add("Rotate");
-        options.add("Distance from point ⌛");
+        options.add("Distance ⌛");
         options.add("Preset (WIP)");
         options.add("None");
         options.add("Random");
         options.add("Mirror WIP");
         options.add("Reverse WIP");
-        options.add("Kaleidoscope WIP");
+        // options.add("Kaleidoscope WIP");
         return true;
       }
       case f_ChangeFun:

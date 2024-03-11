@@ -577,7 +577,6 @@ public:
             options.add("CubeBox");
             options.add("Cube3D");
             options.add("Sticks");
-            options.add("Great Plains");
             return true; }
           case f_ChangeFun: {
             stackUnsigned8 optionNr = 1; // 0 is none, maintain the same order here as the options
@@ -620,9 +619,9 @@ public:
             else if (var["value"] == optionNr++) { //Cube 3D
               stackUnsigned8 length = 8; stackUnsigned8 size = length -1;
               for (forUnsigned8 panel=0; panel < length; panel++) {
-                mdl->setValue("pnlFirst", Coord3D{0,0,panel}, panel);
-                mdl->setValue("mrxRowEnd", Coord3D{0,size,panel}, panel);
-                mdl->setValue("mrxColEnd", Coord3D{size,size,panel}, panel);
+                mdl->setValue("pnlFirst", Coord3D{0,0,(unsigned16)panel}, panel);
+                mdl->setValue("mrxRowEnd", Coord3D{0,size,(unsigned16)panel}, panel);
+                mdl->setValue("mrxColEnd", Coord3D{size,size,(unsigned16)panel}, panel);
                 mdl->setValue("fixPin", 12, panel);
               }
             }
@@ -635,9 +634,6 @@ public:
                 mdl->setValue("mrxColEnd", Coord3D{(unsigned16)(panel*5), 0, 0}, panel);
                 mdl->setValue("fixPin", 12, panel);
               }
-            }
-            else if (var["value"] == optionNr++) { //Great plains
-              //tbd
             }
             return true; }
           default: return false; 

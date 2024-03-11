@@ -17,6 +17,7 @@
 		--h-color: #b60f62;
 		--border-color: #666;
 		--select-color: #FFFFFF; /*used for view buttons*/
+		--font-size: 10px;
 	}
     :root.wled {
 		--bg-color: #121212;
@@ -25,6 +26,7 @@
 		--h-color: rgb(255, 160, 0);
 		--border-color: rgb(255, 160, 0);
 		--select-color: rgb(255, 160, 0);
+		--font-size: 10px;
 	}
 	:root.grayeen {
 		--bg-color: linear-gradient(to bottom, #979294 0%, #474542 100%);
@@ -33,6 +35,8 @@
 		--h-color: #21482b;
 		--border-color: #21482b;
 		--select-color: #21482b; /*used for view buttons*/
+		--font-size: 10px;
+		--font-size-s: 8px; /*var(--font-size-s) not working for some reason */
 	}
 	:root.dev {
 		--bg-color: #121212;
@@ -43,6 +47,7 @@
 		--select-color: #1a8aff; /*used for view buttons*/
 		--label-color: #83c5eb;
 		--comment-color: #598a43;
+		--font-size: 10px;
 	}
 	:root.light {
 		--bg-color: #fff;
@@ -114,6 +119,22 @@
 	--bmt: 0px;
 }
 
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	background: black;
+	color: var(--text-color);
+	font-size: var(--font-size);
+}
+
+h1,h2 {
+	color: var(--h-color);
+	line-height: 5px;
+}
+
+div {
+	line-height: 2; /* 1.6 is recommended height */
+}
+
 /* default nodes */
 label {
   margin-right: 6px; /*space after*/
@@ -121,15 +142,42 @@ label {
 }
 
 comment {
-  font-size: 10px;
+  /* font-size: 10px; */
   font-style: italic;
   margin-left: 6px; /*space before*/
   color: var(--comment-color);
 }
 
-text { /*currently only for buttonSaveNode and buttonCancelNode*/
-	font-size: 10px;
+input {
+	background: transparent;
+	color: var(--text-color);
+	font-size: 8px; /*var(--font-size-s) not working for some reason */
 }
+
+/* input[type="button"] {
+	padding: 7px;
+}
+*/
+
+ select {
+	background: transparent;
+	color: var(--text-color);
+	font-size: 8px; /*var(--font-size-s) not working for some reason */
+}
+
+option {
+	color: var(--text-color);
+	background: var(--bg-color);
+}
+
+a {
+	color: var(--h-color); 
+	text-decoration: none;
+}
+
+/* text { /*currently only for buttonSaveNode and buttonCancelNode
+	font-size: 10px;
+} */
 
 /* For textarea variables */
 textarea {
@@ -147,17 +195,6 @@ canvas {
 	border: 1px solid black;
 	background: transparent;
 	cursor: default;
-}
-
-body {
-	font-family: Arial, Helvetica, sans-serif;
-	background: black;
-	color: var(--text-color);
-}
-
-input {
-	background: transparent;
-	color: var(--text-color);
 }
 
 /* https://blog.openreplay.com/how-to-customize-checkboxes-with-css/ */
@@ -185,34 +222,6 @@ input {
 }
 */
 
-select {
-	background: transparent;
-	color: var(--text-color);
-}
-
-option {
-	color: var(--text-color);
-	background: var(--bg-color);
-}
-
-input[type="button"] {
-	padding: 7px;
-}
-
-h1,h2 {
-	color: var(--h-color);
-	line-height: 5px;
-}
-
-a {
-	color: var(--h-color); 
-	text-decoration: none;
-}
-
-div {
-	line-height: 2; /* 1.6 is recommended height */
-}
-
 /* for toggleModal */
 .modal {
 	position:fixed;
@@ -226,7 +235,7 @@ div {
 	transform: translateY(100%);
 	transition: transform 0.4s;
 	padding: 8px;
-	font-size: 18px; /* WLEDMM: smaller is better (was 20px)*/
+	/* font-size: 18px; WLEDMM: smaller is better (was 20px) */
 	overflow: auto;
 	border-radius: 42px;
 }
@@ -279,12 +288,12 @@ div {
 }
 
 .module, .appmod, .sysmod, .usermod {
-  border: 3px solid var(--border-color);
+  border: 2px solid var(--border-color);
   /* background-color: #ddd; */
   /* background: linear-gradient(to bottom, #33ccff 0%, #ff99cc 100%); */
   background: var(--bg-color); /* linear-gradient(to bottom, #ffbe33 0%, #b60f62 100%); */
-  border-radius: 21px; /* from .5em */
-  padding: 10px;
+  border-radius: 10px; /* from .5em */
+  padding: 5px;
   margin: 10px; /*space around modules */
   cursor: move;
 }
@@ -294,17 +303,18 @@ div {
 }
 
 .mdlColumn {
-  border: 3px solid var(--border-color);
+  border: 2px solid var(--border-color);
   /* border-radius: .5em; */
-  border-radius: 21px;
-  padding: 10px;
+  border-radius: 10px;
+  /* padding: 5px; */
   /* cursor: move; */
 }
 
 .module.over, .appmod.over, .sysmod.over, .usermod.over, .mdlColumn.over {
-  border: 3px dotted var(--border-color);
+  border: 2px dotted var(--border-color);
 }
 
+/*Connection indicator*/
 #connind {
 	position: fixed;
 	bottom: calc(var(--bh) + 5px);
@@ -334,7 +344,7 @@ div {
 	text-align: center;
 	padding: 5px 0;
 	border-radius: 6px;
-	font-size: 10px; /*SM*/
+	/* font-size: 10px; SM */
 
 	/* Position the tooltip text */
 	position: absolute;

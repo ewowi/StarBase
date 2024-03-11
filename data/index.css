@@ -294,21 +294,21 @@ canvas {
   background: var(--bg-color); /* linear-gradient(to bottom, #ffbe33 0%, #b60f62 100%); */
   border-radius: 10px; /* from .5em */
   padding: 5px;
-  margin: 10px; /*space around modules */
+  margin: 5px; /*space around modules */
   cursor: move;
 }
 
-.module.over, .appmod.over, .sysmod.over, .usermod.over {
+/* .module.over, .appmod.over, .sysmod.over, .usermod.over {
   background-color: #00BFFF;
-}
+} */
 
-.mdlColumn {
-  border: 2px solid var(--border-color);
+/* .mdlColumn { */
+  /* border: 2px solid var(--border-color); */
   /* border-radius: .5em; */
-  border-radius: 10px;
+  /* border-radius: 10px; */
   /* padding: 5px; */
   /* cursor: move; */
-}
+/* } */
 
 .module.over, .appmod.over, .sysmod.over, .usermod.over, .mdlColumn.over {
   border: 2px dotted var(--border-color);

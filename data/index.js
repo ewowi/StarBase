@@ -227,8 +227,6 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       //otherwise next node is not positioned right. Improvements welcome on this hack
       varNode.appendChild(cE("br"));
       varNode.appendChild(cE("br"));
-
-      setupModule(varNode); //enable drag and drop of modules
     }
     else if (variable.type == "table") {
       ndivNeeded = false;
@@ -413,8 +411,9 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
     
     //disable drag of parent module
     if (["appmod", "usermod", "sysmod"].includes(variable.type)) {
-      varNode.draggable = true;
-      varNode.addEventListener('dragstart', (event) => {event.preventDefault(); event.stopPropagation();});
+      setupModule(varNode.parentNode); //enable drag and drop of (the div of modules
+      varNode.parentNode.draggable = true; //div of module
+      // varNode.parentNode.addEventListener('dragstart', (event) => {event.preventDefault(); event.stopPropagation();});
     }
 
     if (variable.n && parentNodeType != "table") { //multiple details, not for table header
@@ -1220,9 +1219,9 @@ function removeDragStyle(item) {
   columns.forEach(function(column) {
     let modules = column.childNodes;
     modules.forEach(function(module) {
-      module.classList.remove('over');
+      if (module.classList) module.classList.remove('over'); //bug? dragLeave is called immediate so over has been removed already
     });
-    column.classList.remove('over');
+    if (column.classList) column.classList.remove('over');
   });
 }
 

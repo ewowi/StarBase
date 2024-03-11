@@ -792,8 +792,18 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
       let max = Math.max(valueLength, trNodes.length);
       for (let newRowNr = 0; newRowNr<max;newRowNr++) {
         let newValue; // if not array then use the value for each row
-        if (Array.isArray(commandJson.value))
+        if (Array.isArray(commandJson.value)) {
           newValue = commandJson.value[newRowNr];
+          //hide/show disabled/enabled modules
+          if (variable.id == "mdlEnabled") {
+            let mdlNode = gId(findVar("mdlName").value[newRowNr]);
+            // console.log("mdlEnabled", variable, node, newValue, newRowNr, mdlNameVar.value[newRowNr], mdlNode);
+            if (mdlNode) {
+              if  (mdlNode.hidden && newValue) mdlNode.hidden = false;
+              if  (!mdlNode.hidden && !newValue) mdlNode.hidden = true;
+            }
+          }
+        }
         else
           newValue = commandJson.value;
 

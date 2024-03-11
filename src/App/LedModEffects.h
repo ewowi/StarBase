@@ -137,7 +137,7 @@ public:
         options.add("Multiply");
         options.add("Rotate");
         options.add("Distance ⌛");
-        options.add("Preset (WIP)");
+        options.add("Preset 1");
         options.add("None");
         options.add("Random");
         options.add("Mirror WIP");
@@ -156,7 +156,7 @@ public:
           fixture.ledsList[rowNr]->projectionNr = proValue;
 
           mdl->varPreDetails(var, rowNr); //set all positive var N orders to negative
-          if (proValue == p_DistanceFromPoint || proValue == p_Preset) {
+          if (proValue == p_DistanceFromPoint || proValue == p_Preset1) {
             ui->initCoord3D(var, "proCenter", Coord3D{8,8,8}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
               case f_UIFun:
                 ui->setLabel(var, "Center");
@@ -170,7 +170,7 @@ public:
               default: return false;
             }});
           }
-          if (proValue == p_Multiply || proValue == p_Preset) {
+          if (proValue == p_Multiply || proValue == p_Preset1) {
             ui->initCoord3D(var, "proMulti", Coord3D{2,2,1}, 0, 10, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
               case f_UIFun:
                 ui->setLabel(var, "Multiply");
@@ -182,7 +182,7 @@ public:
               default: return false;
             }});
           }
-          if (proValue == p_Rotate || proValue == p_Preset) {
+          if (proValue == p_Rotate || proValue == p_Preset1) {
             ui->initSlider(var, "proRSpeed", 128, 1, 255, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
               case f_UIFun:
                 ui->setLabel(var, "Rotation speed");

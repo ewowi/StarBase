@@ -334,8 +334,8 @@ void mode_fireworks(Leds &leds, stackUnsigned16 *aux0, stackUnsigned16 *aux1, ui
   if (valid2) sv2 = leds.getPixelColor(*aux1);
 
   // WLEDSR
-  uint8_t blurAmount   = 255 - speed;   // make parameter explicit
-  uint8_t my_intensity = 129 - (intensity >> 1);
+  uint8_t blurAmount   = 255 - speed;
+  uint8_t my_intensity = 129 - intensity;
   bool addPixels = true;                        // false -> inhibit new pixels in silence
   int soundColor = -1;                          // -1 = random color; 0..255 = use as palette index
 
@@ -389,7 +389,7 @@ class RainEffect: public Effect {
 
     CRGBPalette16 pal = getPalette();
     uint8_t speed = mdl->getValue("speed");
-    uint8_t spawnRate = mdl->getValue("spawnRate");
+    uint8_t intensity = mdl->getValue("intensity");
 
     stackUnsigned16 *aux0 = leds.sharedData.bind(aux0);
     stackUnsigned16 *aux1 = leds.sharedData.bind(aux1);
@@ -424,13 +424,13 @@ class RainEffect: public Effect {
       if (*aux0 >= leds.size.x*leds.size.y) *aux0 = 0;     // ignore
       if (*aux1 >= leds.size.x*leds.size.y) *aux1 = 0;
     }
-    mode_fireworks(leds, aux0, aux1, speed, spawnRate, pal);
+    mode_fireworks(leds, aux0, aux1, speed, intensity, pal);
   }
   
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "speed", 128, 1, 255);
-    ui->initSlider(parentVar, "spawnRate", 128, 1, 255);
+    ui->initSlider(parentVar, "intensity", 64, 1, 128);
   }
 }; // RainEffect
 
@@ -524,8 +524,8 @@ class DripEffect: public Effect {
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "gravity", 128, 1, 255);
-    ui->initSlider(parentVar, "drips", 3, 1, 6);
-    ui->initSlider(parentVar, "swell", 3, 1, 6);
+    ui->initSlider(parentVar, "drips", 4, 1, 6);
+    ui->initSlider(parentVar, "swell", 4, 1, 6);
     ui->initCheckBox(parentVar, "invert");
   }
 }; // DripEffect

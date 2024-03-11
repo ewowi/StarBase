@@ -86,8 +86,14 @@ struct Coord3D {
     return Coord3D{unsigned16(x / rhs.x), unsigned16(y / rhs.y), unsigned16(z / rhs.z)};
     // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
+  Coord3D operator%(Coord3D rhs) {
+    return Coord3D{unsigned16(x % rhs.x), unsigned16(y % rhs.y), unsigned16(z % rhs.z)};
+  }
   Coord3D minimum(Coord3D rhs) {
     return Coord3D{min(x, rhs.x), min(y, rhs.y), min(z, rhs.z)};
+  }
+  Coord3D maximum(Coord3D rhs) {
+    return Coord3D{max(x, rhs.x), max(y, rhs.y), max(z, rhs.z)};
   }
   Coord3D operator*(unsigned8 rhs) {
     return Coord3D{unsigned16(x * rhs), unsigned16(y * rhs), unsigned16(z * rhs)};

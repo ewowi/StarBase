@@ -34,7 +34,7 @@ enum Projections
   p_Multiply,
   p_Rotate,
   p_DistanceFromPoint,
-  p_Preset,
+  p_Preset1,
   p_None,
   p_Random,
   p_Reverse,
@@ -169,13 +169,17 @@ public:
     return XYZ(x, y, 0);
   }
 
+  unsigned16 XYZNoSpin(Coord3D coord) {
+    return coord.x + coord.y * size.x + coord.z * size.x * size.y;
+  }
+
   unsigned16 XYZ(Coord3D coord) {
     return XYZ(coord.x, coord.y, coord.z);
   }
 
   unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
-    if (projectionNr == p_Rotate || projectionNr == p_Preset) {
-      Coord3D result = spinXY(x,y, size.x, size.y, proRSpeed);
+    if (projectionNr == p_Rotate || projectionNr == p_Preset1) {
+      Coord3D result = spinXY(x, y, size.x, size.y, proRSpeed);
       return result.x + result.y * size.x + result.z * size.x * size.y;
     }
     else

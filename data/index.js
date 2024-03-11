@@ -797,7 +797,7 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
           //hide/show disabled/enabled modules
           if (variable.id == "mdlEnabled") {
             let mdlNode = gId(findVar("mdlName").value[newRowNr]);
-            // console.log("mdlEnabled", variable, node, newValue, newRowNr, mdlNameVar.value[newRowNr], mdlNode);
+            // console.log("mdlEnabled", variable, node, newValue, newRowNr, mdlNode);
             if (mdlNode) {
               if  (mdlNode.hidden && newValue) mdlNode.hidden = false;
               if  (!mdlNode.hidden && !newValue) mdlNode.hidden = true;

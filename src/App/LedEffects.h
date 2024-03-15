@@ -875,6 +875,36 @@ class Lines: public Effect {
   }
 }; // Lines
 
+// dna originally by by ldirko at https://pastebin.com/pCkkkzcs. Updated by Preyy. WLED conversion by Andrew Tuline.
+class DNA: public Effect {
+  const char * name() {return "DNA";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
+
+  void loop(Leds &leds) {
+
+    CRGBPalette16 pal = getPalette();
+    stackUnsigned8 speed = mdl->getValue("speed");
+    stackUnsigned8 blur = mdl->getValue("blur");
+
+    leds.fadeToBlackBy(64);
+
+    for (int i = 0; i < leds.size.x; i++) {
+      leds.setPixelColor(leds.XY(i, beatsin8(speed, 0, leds.size.y-1, 0, i*4    )), ColorFromPalette(pal, i*5+now/17, beatsin8(5, 55, 255, 0, i*10), LINEARBLEND));
+      leds.setPixelColor(leds.XY(i, beatsin8(speed, 0, leds.size.y-1, 0, i*4+128)), ColorFromPalette(pal, i*5+128+now/17, beatsin8(5, 55, 255, 0, i*10+128), LINEARBLEND));
+    }
+    leds.blur2d(blur);
+
+  }
+  
+  void controls(JsonObject parentVar) {
+    addPalette(parentVar, 4);
+    ui->initSlider(parentVar, "speed", 16, 0, 32);
+    ui->initSlider(parentVar, "blur", 128);
+  }
+}; // DNA
+
+
 //DistortionWaves inspired by WLED, ldirko and blazoncek, https://editor.soulmatelights.com/gallery/1089-distorsion-waves
 unsigned8 gamma8(unsigned8 b) { //we do nothing with gamma for now
   return b;
@@ -932,7 +962,7 @@ class DistortionWaves: public Effect {
     ui->initSlider(parentVar, "speed", 4, 0, 8);
     ui->initSlider(parentVar, "scale", 4, 0, 8);
   }
-}; // DistortionWaves2D
+}; // DistortionWaves
 
 //Octopus inspired by WLED, Stepko and Sutaburosu and blazoncek 
 //Idea from https://www.youtube.com/watch?v=HsA-6KIbgto&ab_channel=GreatScott%21 (https://editor.soulmatelights.com/gallery/671-octopus)
@@ -1471,6 +1501,7 @@ public:
     //2D StarMod
     effects.push_back(new Lines);
     //2D WLED
+    effects.push_back(new DNA);
     effects.push_back(new DistortionWaves);
     effects.push_back(new Octopus);
     effects.push_back(new Lissajous);

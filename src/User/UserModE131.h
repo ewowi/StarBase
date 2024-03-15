@@ -147,10 +147,10 @@ public:
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
 
-      for (auto varToWatch=varsToWatch.begin(); varToWatch!=varsToWatch.end(); ++varToWatch) {
+      for (VarToWatch &varToWatch : varsToWatch) {
         for (int i=0; i < maxChannels; i++) {
-          if (i == varToWatch->channel) {
-            if (packet.property_values[i] != varToWatch->savedValue) {
+          if (i == varToWatch.channel) {
+            if (packet.property_values[i] != varToWatch.savedValue) {
 
               USER_PRINTF("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u",
                       htons(packet.universe),                 // The Universe for this packet
@@ -158,14 +158,14 @@ public:
                       e131.stats.num_packets,                 // Packet counter
                       e131.stats.packet_errors,               // Packet error counter
                       i,
-                      varToWatch->savedValue,
+                      varToWatch.savedValue,
                       packet.property_values[i]);             // Dimmer data for Channel i
 
-              varToWatch->savedValue = packet.property_values[i];
+              varToWatch.savedValue = packet.property_values[i];
 
-              if (varToWatch->id != nullptr && varToWatch->max != 0) {
-                USER_PRINTF(" varsToWatch: %s\n", varToWatch->id);
-                mdl->setValue(varToWatch->id, varToWatch->savedValue%(varToWatch->max+1)); // TODO: ugly to have magic string 
+              if (varToWatch.id != nullptr && varToWatch.max != 0) {
+                USER_PRINTF(" varsToWatch: %s\n", varToWatch.id);
+                mdl->setValue(varToWatch.id, varToWatch.savedValue%(varToWatch.max+1)); // TODO: ugly to have magic string 
               }
               else
                 USER_PRINTF("\n");

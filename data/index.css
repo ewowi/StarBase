@@ -242,8 +242,8 @@ canvas {
 
 .ndiv {
 	/* border: 2px solid black; */
-	margin-left: 25px;
-	border-radius: 12px;
+	margin-left: 10px;
+	/* border-radius: 12px; */
 }
 
 /*table layout */

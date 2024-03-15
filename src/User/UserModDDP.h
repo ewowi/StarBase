@@ -56,14 +56,14 @@ public:
         JsonArray instanceObject = options.add<JsonArray>();
         instanceObject.add(0);
         instanceObject.add("no sync");
-        for (auto node=instances->instances.begin(); node!=instances->instances.end(); ++node) {
-          if (node->ip != WiFi.localIP()) {
+        for (InstanceInfo &instance : instances->instances) {
+          if (instance.ip != WiFi.localIP()) {
             char option[64] = { 0 };
-            strncpy(option, node->name, sizeof(option)-1);
+            strncpy(option, instance.name, sizeof(option)-1);
             strncat(option, " ", sizeof(option)-1);
-            strncat(option, node->ip.toString().c_str(), sizeof(option)-1);
+            strncat(option, instance.ip.toString().c_str(), sizeof(option)-1);
             instanceObject = options.add<JsonArray>();
-            instanceObject.add(node->ip[3]);
+            instanceObject.add(instance.ip[3]);
             instanceObject.add(option);
           }
         }

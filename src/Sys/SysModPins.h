@@ -37,7 +37,7 @@ public:
   //temporary functions until we refactored the PinObject
   PinObject getNthAllocatedPinObject(unsigned8 rowNr) {
     stackUnsigned8 n = 0;
-    for (PinObject pinObject:pinObjects) {
+    for (PinObject &pinObject:pinObjects) {
       if (strcmp(pinObject.owner, "") != 0) {
         if (n == rowNr)
           return pinObject;
@@ -48,7 +48,7 @@ public:
   }
   unsigned8 getNrOfAllocatedPins() {
     stackUnsigned8 n = 0;
-    for (PinObject pinObject:pinObjects) {
+    for (PinObject &pinObject:pinObjects) {
       if (strcmp(pinObject.owner, "") != 0) {
         n++;
       }
@@ -58,7 +58,7 @@ public:
   unsigned8 getPinNr(unsigned8 rowNr) {
     stackUnsigned8 pinNr = 0;
     stackUnsigned8 n = 0;
-    for (PinObject pinObject:pinObjects) {
+    for (PinObject &pinObject:pinObjects) {
       if (strcmp(pinObject.owner, "") != 0) {
         if (n == rowNr)
           return pinNr;

@@ -55,16 +55,4 @@ public:
   //load fixture json file, parse it and depending on the projection, create a mapping for it
   void projectAndMap();
 
-  float distance(float x1, float y1, float z1, float x2, float y2, float z2) {
-    return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-  }
-  float distance(unsigned16 x1, unsigned16 y1, unsigned16 z1, unsigned16 x2, unsigned16 y2, unsigned16 z2) {
-    return distance(Coord3D{x1, y1, z1}, Coord3D{x2,y2,z2});
-    // return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
-  }
-  float distance(Coord3D c1, Coord3D c2) {
-    Coord3D delta = (c1-c2);
-    return sqrtf((delta.x)*(delta.x) + (delta.y)*(delta.y) + (delta.z)*(delta.z));
-  }
-
 };

@@ -131,7 +131,7 @@ void SysModules::add(SysModule* module) {
 }
 
 void SysModules::connectedChanged() {
-  for (SysModule * module:modules) {
+  for (SysModule *module:modules) {
     module->connectedChanged();
   }
 }

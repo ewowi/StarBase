@@ -61,13 +61,13 @@ void SysModUI::setup() {
 void SysModUI::loop() {
   // SysModule::loop();
 
-  for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
-    if (millis() - varLoop->lastMillis >= varLoop->var["interval"].as<int>()) {
-      varLoop->lastMillis = millis();
+  for (VarLoop &varLoop : loopFunctions) {
+    if (millis() - varLoop.lastMillis >= varLoop.var["interval"].as<int>()) {
+      varLoop.lastMillis = millis();
 
-      varLoop->loopFun(varLoop->var, 1, f_LoopFun); //rowNr..
+      varLoop.loopFun(varLoop.var, 1, f_LoopFun); //rowNr..
 
-      varLoop->counter++;
+      varLoop.counter++;
       // USER_PRINTF("%s %u %u %d %d\n", varLoop->mdl->varID(var), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
     }
   }
@@ -76,8 +76,8 @@ void SysModUI::loop() {
 void SysModUI::loop1s() {
   //if something changed in vloops
   ui->callVarFun("vlLoopps", UINT8_MAX, f_ValueFun);
-  for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop)
-    varLoop->counter = 0;
+  for (VarLoop &varLoop : loopFunctions)
+    varLoop.counter = 0;
 }
 
 JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, VarFun varFun) {

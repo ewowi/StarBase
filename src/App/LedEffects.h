@@ -20,6 +20,11 @@ unsigned8 gHue = 0; // rotating "base color" used by many of the patterns
 unsigned long call = 0; //not used at the moment (don't use in effect calculations)
 unsigned long now = millis();
 
+//utility function
+float distance(float x1, float y1, float z1, float x2, float y2, float z2) {
+  return sqrtf((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) + (z1-z2)*(z1-z2));
+}
+
 //should not contain variables/bytes to keep mem as small as possible!!
 class Effect {
 public:
@@ -651,6 +656,8 @@ class PopCorn: public Effect {
     bool useaudio = mdl->getValue("useaudio");
 
     Spark *popcorn = leds.sharedData.bind(popcorn, maxNumPopcorn); //array
+
+    leds.fill_solid(CRGB::Black);
 
     float gravity = -0.0001 - (speed/200000.0); // m/s/s
     gravity *= leds.nrOfLeds;
@@ -1373,7 +1380,7 @@ class RipplesEffect: public Effect {
     Coord3D pos = {0,0,0};
     for (pos.z=0; pos.z<leds.size.z; pos.z++) {
       for (pos.y=0; pos.y<leds.size.y; pos.y++) {
-        float d = leds.fixture->distance(3.5f, 3.5f, 0.0f, (float)pos.x, (float)pos.z, 0.0f) / 9.899495f * leds.size.x;
+        float d = distance(3.5f, 3.5f, 0.0f, (float)pos.x, (float)pos.z, 0.0f) / 9.899495f * leds.size.x;
         stackUnsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
         pos.x = floor(leds.size.x/2.0f + sinf(d/ripple_interval + time_interval) * leds.size.x/2.0f); //between 0 and leds.size.x
 
@@ -1412,7 +1419,7 @@ class SphereMoveEffect: public Effect {
     for (pos.x=0; pos.x<leds.size.x; pos.x++) {
         for (pos.y=0; pos.y<leds.size.y; pos.y++) {
             for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-                stackUnsigned16 d = leds.fixture->distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
+                stackUnsigned16 d = distance(pos.x, pos.y, pos.z, origin.x, origin.y, origin.z);
 
                 if (d>diameter && d<diameter+1) {
                   leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
@@ -1513,16 +1520,6 @@ public:
     leds.sharedData.loop(); //sets the sharedData pointer back to 0 so loop effect can go through it
     effects[leds.fx%effects.size()]->loop(leds);
 
-    #ifdef STARMOD_USERMOD_WLEDAUDIO
-
-      if (mdl->getValue("mHead") ) {
-        leds.fixture->head.x = wledAudioMod->fftResults[3];
-        leds.fixture->head.y = wledAudioMod->fftResults[8];
-        leds.fixture->head.z = wledAudioMod->fftResults[13];
-      }
-
-    #endif
-
     call++;
 
     EVERY_N_MILLISECONDS( 20 ) { gHue++; } // slowly cycle the "base color" through the rainbow
@@ -1549,17 +1546,6 @@ public:
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 
       print->printJson("control", var);
-        // if (mdl->varOrder(var) >= 0) { //post init
-        //   var["o"] = -mdl->varOrder(var); //make positive again
-        //set unused vars to inactive 
-        // if (mdl->varOrder(var) >=0)
-        //   mdl->setValue(var, UINT16_MAX, rowNr);
-      // }
-      // for (JsonObject var: var["n"].as<JsonArray>()) {
-      //   if (mdl->varOrder(var) <0)
-      //     var["o"] = -mdl->varOrder(var);
-      // }
-      //remove vars with all values -99
 
       if (effects[leds.fx]->dim() != leds.effectDimension) {
         leds.effectDimension = effects[leds.fx]->dim();

@@ -129,12 +129,12 @@ void Fixture::projectAndMap() {
               switch (leds->effectDimension) {
                 case _1D: //1DxD
                   if (leds->size == Coord3D{0,0,0}) { // first
-                    leds->size.x = distance(sizeAdjusted, proCenter);
+                    leds->size.x = sizeAdjusted.distance(proCenter);
                     leds->size.y = 1;
                     leds->size.z = 1;
                   }
 
-                  mapped.x = distance(pixelAdjusted, proCenter);
+                  mapped.x = pixelAdjusted.distance(proCenter);
                   mapped.y = 0;
                   mapped.z = 0;
 

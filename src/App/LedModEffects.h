@@ -24,10 +24,6 @@
 #include "LedFixture.h"
 #include "LedEffects.h"
 
-// #ifdef STARMOD_USERMOD_E131
-//   #include "../User/UserModE131.h"
-// #endif
-
 // #define FASTLED_RGBW
 
 //https://www.partsnotincluded.com/fastled-rgbw-neopixels-sk6812/
@@ -50,6 +46,8 @@ public:
   Effects effects;
 
   Fixture fixture = Fixture();
+
+  bool fShow = true;
 
   LedModEffects() :SysModule("Effects") {
   };
@@ -346,7 +344,18 @@ public:
         }
       }
 
-      FastLED.show();  
+      #ifdef STARMOD_USERMOD_WLEDAUDIO
+
+        if (mdl->getValue("mHead") ) {
+          fixture.head.x = wledAudioMod->fftResults[3];
+          fixture.head.y = wledAudioMod->fftResults[8];
+          fixture.head.z = wledAudioMod->fftResults[13];
+        }
+
+      #endif
+
+      if (fShow)
+        FastLED.show();
 
       frameCounter++;
     }

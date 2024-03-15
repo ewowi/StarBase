@@ -285,13 +285,13 @@ public:
         JsonArray instanceObject = options.add<JsonArray>();
         instanceObject.add(0);
         instanceObject.add("no sync");
-        for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
+        for (InstanceInfo &instance : instances) {
           char option[64] = { 0 };
-          strncpy(option, instance->name, sizeof(option)-1);
+          strncpy(option, instance.name, sizeof(option)-1);
           strncat(option, " ", sizeof(option)-1);
-          strncat(option, instance->ip.toString().c_str(), sizeof(option)-1);
+          strncat(option, instance.ip.toString().c_str(), sizeof(option)-1);
           instanceObject = options.add<JsonArray>();
-          instanceObject.add(instance->ip[3]);
+          instanceObject.add(instance.ip[3]);
           instanceObject.add(option);
         }
         return true;
@@ -449,7 +449,7 @@ public:
 
         USER_PRINTF("   %d %d p:%d\n", wledSyncMessage.bri, wledSyncMessage.mainsegMode, packetSize);
 
-        std::vector<InstanceInfo>::iterator instance = findNode(remoteIp); //if not exist, created
+        InstanceInfo *instance = findInstance(remoteIp); //if not exist, created
 
         instance->sys.upTime = (wledSyncMessage.timebase[0] * 256*256*256 + 256*256*wledSyncMessage.timebase[1] + 256*wledSyncMessage.timebase[2] + wledSyncMessage.timebase[3]) / 1000;
         instance->sys.syncMaster = wledSyncMessage.syncGroups; //tbd: change
@@ -496,7 +496,7 @@ public:
 
           starModMessage.sys.type = 0; //WLED
 
-          updateNode(starModMessage);
+          updateInstance(starModMessage);
         }
         else if (packetSize == sizeof(UDPStarModMessage)) {
           UDPStarModMessage starModMessage;
@@ -504,7 +504,7 @@ public:
           instanceUDP.read(udpIn, packetSize);
           starModMessage.sys.type = 1; //Starmod
 
-          updateNode(starModMessage);
+          updateInstance(starModMessage);
         }
         else {
           //read the rest of the data (flush)
@@ -586,7 +586,7 @@ public:
         starModMessage.app.setVar(var["id"], valArray[0].as<byte>()); //set the first value (tbd: add multiple)
     });
 
-    updateNode(starModMessage); //temp? to show own instance in list as instance is not catching it's own udp message...
+    updateInstance(starModMessage); //temp? to show own instance in list as instance is not catching it's own udp message...
 
     IPAddress broadcastIP(255, 255, 255, 255);
     if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
@@ -606,17 +606,16 @@ public:
     }
   }
 
-  void updateNode( UDPStarModMessage udpStarMessage) {
+  void updateInstance( UDPStarModMessage udpStarMessage) {
     IPAddress messageIP = IPAddress(udpStarMessage.header.ip0, udpStarMessage.header.ip1, udpStarMessage.header.ip2, udpStarMessage.header.ip3);
 
     bool instanceFound = false;
-    for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
-    {
-      if (instance->ip == messageIP)
+    for (InstanceInfo &instance : instances) {
+      if (instance.ip == messageIP)
         instanceFound = true;
     }
 
-    // USER_PRINTF("updateNode Instance: ...%d n:%s found:%d\n", messageIP[3], udpStarMessage.header.name, instanceFound);
+    // USER_PRINTF("updateInstance Instance: ...%d n:%s found:%d\n", messageIP[3], udpStarMessage.header.name, instanceFound);
 
     if (!instanceFound) { //new instance
       InstanceInfo instance;
@@ -639,13 +638,13 @@ public:
 
     //iterate vector pointers so we can update the instances
     // stackUnsigned8 rowNr = 0;
-    for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
-      if (instance->ip == messageIP) {
-        instance->timeStamp = millis(); //update timestamp
-        strncpy(instance->name, udpStarMessage.header.name, sizeof(instance->name)-1);
-        instance->version = udpStarMessage.header.version;
+    for (InstanceInfo &instance: instances) {
+      if (instance.ip == messageIP) {
+        instance.timeStamp = millis(); //update timestamp
+        strncpy(instance.name, udpStarMessage.header.name, sizeof(instance.name)-1);
+        instance.version = udpStarMessage.header.version;
         if (udpStarMessage.sys.type == 1) {//StarMod only
-          instance->sys = udpStarMessage.sys;
+          instance.sys = udpStarMessage.sys;
 
           //check for syncing
           stackUnsigned8 syncMaster = mdl->getValue("sma");
@@ -657,17 +656,17 @@ public:
 
               VarData newVar = udpStarMessage.app.vars[i];
 
-              if (!instance->app.str3cmp(newVar.id, "-")) {
+              if (!instance.app.str3cmp(newVar.id, "-")) {
 
-                int value = instance->app.getVar(newVar.id);
+                int value = instance.app.getVar(newVar.id);
 
                 //if no value found or value has changed
                 if (value == -1 || value != newVar.value) {
                   char varID[4];
-                  instance->app.str3cpy(varID, newVar.id);
+                  instance.app.str3cpy(varID, newVar.id);
                   varID[3]='\0';
 
-                  USER_PRINTF("AppData3 %s %s %d\n", instance->name, varID, newVar.value);
+                  USER_PRINTF("AppData3 %s %s %d\n", instance.name, varID, newVar.value);
                   mdl->setValue(varID, newVar.value);
                 }
               }
@@ -676,7 +675,7 @@ public:
 
           //set values to instance
           for (int i=0; i< nrOfAppVars; i++)
-            instance->app.vars[i] = udpStarMessage.app.vars[i];
+            instance.app.vars[i] = udpStarMessage.app.vars[i];
         }
 
         //only update cell in instbl!
@@ -694,7 +693,7 @@ public:
 
           // web->sendResponseObject();
 
-          // USER_PRINTF("updateNode updRow[%d] %s\n", instance - instances.begin(), instances[instance - instances.begin()].name);
+          // USER_PRINTF("updateInstance updRow[%d] %s\n", instance - instances.begin(), instances[instance - instances.begin()].name);
 
           for (JsonObject childVar: mdl->varChildren("insTbl"))
             ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //rowNr instance - instances.begin()
@@ -707,7 +706,7 @@ public:
     } // for instances
 
     if (!instanceFound) {
-      USER_PRINTF("insTbl new instance node %s\n", messageIP.toString().c_str());
+      USER_PRINTF("insTbl new instance %s\n", messageIP.toString().c_str());
       
       ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun); //UiFun as select changes
       ui->callVarFun("artInst", UINT8_MAX, f_UIFun);
@@ -725,32 +724,30 @@ public:
     }
   }
 
-  std::vector<InstanceInfo>::iterator findNode(IPAddress nodeIP) {
+  InstanceInfo * findInstance(IPAddress ip) {
 
     bool instanceFound = false;
-    for (auto instance=instances.begin(); instance!=instances.end(); ++instance)
-    {
-      if (instance->ip == nodeIP)
+    for (InstanceInfo &instance : instances) {
+      if (instance.ip == ip)
         instanceFound = true;
     }
 
     if (!instanceFound) { //instance always found
       InstanceInfo instance;
-      instance.ip = nodeIP;
+      instance.ip = ip;
       instances.push_back(instance);
       std::sort(instances.begin(),instances.end(), [](InstanceInfo &a, InstanceInfo &b){ return a.ip < b.ip; });//Sorting the vector strcmp(a.name,b.name);
     }
 
-    std::vector<InstanceInfo>::iterator foundNode;
+    // InstanceInfo foundInstance;
     //iterate vector pointers so we can update the instances
-    for (auto instance=instances.begin(); instance!=instances.end(); ++instance) {
-      if (instance->ip == nodeIP) {
-        foundNode = instance;
+    for (InstanceInfo &instance : instances) {
+      if (instance.ip == ip) {
+        return &instance;
       }
     }
 
-    return foundNode;
-
+    return nullptr;
   }
 
   private:

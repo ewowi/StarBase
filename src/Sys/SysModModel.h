@@ -110,6 +110,10 @@ struct Coord3D {
     if (z != goal.z) z += (z<goal.z)?1:-1;
     return *this;
   }
+  unsigned distance(Coord3D rhs) {
+    Coord3D delta = (*this-rhs);
+    return sqrt((delta.x)*(delta.x) + (delta.y)*(delta.y) + (delta.z)*(delta.z));
+  }
 };
 
 //used to sort keys of jsonobjects

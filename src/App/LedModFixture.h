@@ -53,7 +53,7 @@ public:
     ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "Preview");
-        ui->setComment(var, "Shows the fixture");
+        // ui->setComment(var, "Shows the fixture");
         // ui->setComment(var, "Click to enlarge");
         return true;
       case f_LoopFun: {
@@ -146,6 +146,17 @@ public:
         return true;
       case f_ChangeFun:
         eff->fps = var["value"];
+        return true;
+      default: return false; 
+    }});
+
+    ui->initCheckBox(parentVar, "fShow", eff->fShow, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+      case f_UIFun:
+        ui->setLabel(var, "FastLed show");
+        ui->setComment(var, "dev performance tuning");
+        return true;
+      case f_ChangeFun:
+        eff->fShow = var["value"];
         return true;
       default: return false; 
     }});

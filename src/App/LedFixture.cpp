@@ -114,10 +114,11 @@ void Fixture::projectAndMap() {
                 //promultu can be 0,0,0 but /= protects from /div0
                 sizeAdjusted /= proMulti; sizeAdjusted = sizeAdjusted.maximum(Coord3D{1,1,1}); //size min 1,1,1
                 proCenter /= proMulti;
-                mirrors = pixelAdjusted / sizeAdjusted;
+                mirrors = pixelAdjusted / sizeAdjusted; //place the pixel in the right quadrant
                 pixelAdjusted = pixelAdjusted%sizeAdjusted; // pixel % size
                 // USER_PRINTF("Multiply %d,%d,%d\n", leds->size.x, leds->size.y, leds->size.z);
               }
+              bool mirror = mdl->getValue("mirror", rowNr);
 
               // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, projectionDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], size.x, size.y, size.z);
 
@@ -137,14 +138,19 @@ void Fixture::projectAndMap() {
                     leds->size.z = 1;
                   }
 
-                  mapped.x = pixelAdjusted.distance(proCenter);
+                  mapped = pixelAdjusted;
+
+                  if (mirror) {
+                    if (mirrors.x %2 != 0) mapped.x = sizeAdjusted.x - 1 - mapped.x;
+                    if (mirrors.y %2 != 0) mapped.y = sizeAdjusted.y - 1 - mapped.y;
+                    if (mirrors.z %2 != 0) mapped.z = sizeAdjusted.z - 1 - mapped.z;
+                  }
+
+                  mapped.x = mapped.distance(proCenter);
                   mapped.y = 0;
                   mapped.z = 0;
 
-                  //reversed
-                  if (mirrors.x %2 != 0) mapped.x = leds->size.x - 1 - mapped.x; // x mirrored
-                  if (mirrors.y %2 != 0) mapped.y = leds->size.y - 1 - mapped.y; // y mirrored
-                  if (mirrors.z %2 != 0) mapped.z = leds->size.z - 1 - mapped.z; // z mirrored
+                  // if mirrored find the indexV of the mirrored pixel
 
                   indexV = leds->XYZNoSpin(mapped);
                   break;
@@ -159,8 +165,7 @@ void Fixture::projectAndMap() {
                       mapped.x = (pixelAdjusted.x + pixelAdjusted.y + pixelAdjusted.z) % leds->size.x; // only one > 0
                       mapped.y = (pixelAdjusted.x + pixelAdjusted.y + pixelAdjusted.z) / leds->size.x; // all rows next to each other
                       mapped.z = 0;
-                      if (mirrors.x %2 != 0) mapped.x = leds->size.x - 1 - mapped.x; // x mirrored
-                      if (mirrors.y %2 != 0) mapped.y = leds->size.y - 1 - mapped.y; // y mirrored
+
                       indexV = leds->XYZNoSpin(mapped);
                       break;
                     case _2D: //2D2D
@@ -184,6 +189,12 @@ void Fixture::projectAndMap() {
                         mapped.y = pixelAdjusted.z;
                       }
                       mapped.z = 0;
+
+                      if (mirror) {
+                        if (mirrors.x %2 != 0) mapped.x = sizeAdjusted.x - 1 - mapped.x;
+                        if (mirrors.y %2 != 0) mapped.y = sizeAdjusted.y - 1 - mapped.y;
+                        if (mirrors.z %2 != 0) mapped.z = sizeAdjusted.z - 1 - mapped.z;
+                      }
 
                       indexV = leds->XYZNoSpin(mapped);
                       // USER_PRINTF("2Dto2D %d-%d p:%d,%d,%d m:%d,%d,%d\n", indexV, indexP, pixelAdjusted.x, pixelAdjusted.y, pixelAdjusted.z, mapped.x, mapped.y, mapped.z

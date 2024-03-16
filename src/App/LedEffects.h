@@ -281,7 +281,7 @@ class BouncingBalls: public Effect {
     // }
 
     for (size_t i = 0; i < numBalls; i++) {
-      float timeSinceLastBounce = (time - balls[i].lastBounceTime)/((255-grav)/64 +1);
+      float timeSinceLastBounce = (time - balls[i].lastBounceTime)/((255-grav)/64 + 1);
       float timeSec = timeSinceLastBounce/1000.0f;
       balls[i].height = (0.5f * gravity * timeSec + balls[i].impactVelocity) * timeSec; // avoid use pow(x, 2) - its extremely slow !
 
@@ -467,7 +467,7 @@ class DripEffect: public Effect {
     // leds.fadeToBlackBy(90);
     leds.fill_solid(CRGB::Black);
 
-    float gravity = -0.0005 - (grav/25000.0); //increased gravity (50000 to 25000)
+    float gravity = -0.0005f - (grav/25000.0f); //increased gravity (50000 to 25000)
     gravity *= max(1, leds.nrOfLeds-1);
     int sourcedrop = 12;
 
@@ -652,17 +652,16 @@ class PopCorn: public Effect {
   void loop(Leds &leds) {
     CRGBPalette16 pal = getPalette();
     stackUnsigned8 speed = mdl->getValue("speed");
-    stackUnsigned8 intensity = mdl->getValue("intensity");
+    stackUnsigned8 numPopcorn = mdl->getValue("corns");
     bool useaudio = mdl->getValue("useaudio");
 
     Spark *popcorn = leds.sharedData.bind(popcorn, maxNumPopcorn); //array
 
     leds.fill_solid(CRGB::Black);
 
-    float gravity = -0.0001 - (speed/200000.0); // m/s/s
+    float gravity = -0.0001f - (speed/200000.0f); // m/s/s
     gravity *= leds.nrOfLeds;
 
-    stackUnsigned8 numPopcorn = intensity*maxNumPopcorn/255;
     if (numPopcorn == 0) numPopcorn = 1;
 
     for (int i = 0; i < numPopcorn; i++) {
@@ -712,9 +711,8 @@ class PopCorn: public Effect {
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "speed", 128);
-    ui->initSlider(parentVar, "intensity", 128);
-    ui->initCheckBox(parentVar, "useaudio");
-    ui->initSlider(parentVar, "nrOfPopCorn", 10, 1, 21);
+    ui->initSlider(parentVar, "corns", 10, 1, maxNumPopcorn);
+    ui->initCheckBox(parentVar, "useaudio", false);
   }
 }; //PopCorn
 

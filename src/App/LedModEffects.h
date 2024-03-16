@@ -174,6 +174,13 @@ public:
                 ui->setLabel(var, "Multiply");
                 return true;
               case f_ChangeFun:
+                ui->initCheckBox(var, "mirror", false, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+                  case f_ChangeFun:
+                    fixture.projections[rowNr]->doMap = true;
+                    fixture.doMap = true;
+                    return true;
+                  default: return false;
+                }});
                 fixture.projections[rowNr]->doMap = true;
                 fixture.doMap = true;
                 return true;
@@ -186,7 +193,8 @@ public:
                 ui->setLabel(var, "Rotation speed");
                 return true;
               case f_ChangeFun:
-                fixture.projections[rowNr]->proRSpeed = mdl->getValue(var, rowNr);
+                if (rowNr < fixture.projections.size())
+                  fixture.projections[rowNr]->proRSpeed = mdl->getValue(var, rowNr);
                 return true;
               default: return false;
             }});

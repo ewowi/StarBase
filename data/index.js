@@ -1337,7 +1337,6 @@ function changeHTMLView(value) {
 
   // console.log("changeHTMLView", node, node.value, node.id, mdlContainerNode, mdlContainerNode.childNodes);
   
-  gId("vAI").classList.remove("selected");
   gId("vApp").classList.remove("selected");
   gId("vDash").classList.remove("selected");
   gId("vUser").classList.remove("selected");
@@ -1357,8 +1356,6 @@ function changeHTMLView(value) {
       else {
         for (let moduleNode of divNode.childNodes) {
           if (moduleNode.className) {
-            if (value=="vAI" && moduleNode.id == "AI")
-              found = true;
             if (value=="vApp" && moduleNode.className == "appmod")
               found = true;
             if (value=="vSys" && moduleNode.className == "sysmod")

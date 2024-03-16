@@ -259,6 +259,7 @@ canvas {
 .table td, .table th {
   border: 1px solid #000000;
   padding: 6px;
+  vertical-align: top;
 }
 
 /* .table tr:nth-child(even){background-color: #f2f2f2;} */

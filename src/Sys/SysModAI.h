@@ -30,7 +30,7 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initUserMod(parentVar, name, 5100);
+    parentVar = ui->initAppMod(parentVar, name, 5100);
 
     JsonObject tableVar = ui->initTable(parentVar, "aiTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:

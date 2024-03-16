@@ -65,9 +65,9 @@ struct Coord3D {
     return *this;
   }
   Coord3D operator/=(Coord3D rhs) {
-    x /= rhs.x;
-    y /= rhs.y;
-    z /= rhs.z;
+    if (rhs.x) x /= rhs.x;
+    if (rhs.y) y /= rhs.y;
+    if (rhs.z) z /= rhs.z;
     return *this;
   }
   //Minus / delta (abs)

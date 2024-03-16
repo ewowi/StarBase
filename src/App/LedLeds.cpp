@@ -59,7 +59,7 @@ void Leds::fadeToBlackBy(unsigned8 fadeBy) {
   if (projectionNr == p_None || projectionNr == p_Random) {
     fastled_fadeToBlackBy(fixture->ledsP, fixture->nrOfLeds, fadeBy);
   } else {
-    for (auto map:mappingTable) {
+    for (PhysMap &map:mappingTable) {
       if (map.indexes)
         for (forUnsigned16 indexP:*map.indexes) {
           CRGB oldValue = fixture->ledsP[indexP];
@@ -74,7 +74,7 @@ void Leds::fill_solid(const struct CRGB& color, bool noBlend) {
   if (projectionNr == p_None || projectionNr == p_Random) {
     fastled_fill_solid(fixture->ledsP, fixture->nrOfLeds, color);
   } else {
-    for (auto map:mappingTable) {
+    for (PhysMap &map:mappingTable) {
       if (map.indexes)
         for (forUnsigned16 indexP:*map.indexes) {
           fixture->ledsP[indexP] = noBlend?color:blend(color, fixture->ledsP[indexP], fixture->globalBlend);
@@ -92,7 +92,7 @@ void Leds::fill_rainbow(unsigned8 initialhue, unsigned8 deltahue) {
     hsv.val = 255;
     hsv.sat = 240;
 
-    for (auto map:mappingTable) {
+    for (PhysMap &map:mappingTable) {
       if (map.indexes)
         for (forUnsigned16 indexP:*map.indexes) {
           fixture->ledsP[indexP] = blend(hsv, fixture->ledsP[indexP], fixture->globalBlend);

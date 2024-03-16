@@ -879,28 +879,34 @@ class Lines: public Effect {
 class DNA: public Effect {
   const char * name() {return "DNA";}
   unsigned8 dim() {return _2D;}
-  const char * tags() {return "💡";}
+  const char * tags() {return "💡💫";}
 
   void loop(Leds &leds) {
-
     CRGBPalette16 pal = getPalette();
     stackUnsigned8 speed = mdl->getValue("speed");
     stackUnsigned8 blur = mdl->getValue("blur");
+    stackUnsigned8 phases = mdl->getValue("phases");
 
     leds.fadeToBlackBy(64);
 
     for (int i = 0; i < leds.size.x; i++) {
-      leds.setPixelColor(leds.XY(i, beatsin8(speed, 0, leds.size.y-1, 0, i*4    )), ColorFromPalette(pal, i*5+now/17, beatsin8(5, 55, 255, 0, i*10), LINEARBLEND));
-      leds.setPixelColor(leds.XY(i, beatsin8(speed, 0, leds.size.y-1, 0, i*4+128)), ColorFromPalette(pal, i*5+128+now/17, beatsin8(5, 55, 255, 0, i*10+128), LINEARBLEND));
+      //256 is a complete phase
+      // half a phase is dna is 128
+      uint8_t phase = leds.size.x * i / 8; 
+      //32: 4 * i
+      //16: 8 * i
+      phase = i * 127 / (leds.size.x-1) * phases / 64;
+      leds.setPixelColor(leds.XY(i, beatsin8(speed, 0, leds.size.y-1, 0, phase    )), ColorFromPalette(pal, i*5+now/17, beatsin8(5, 55, 255, 0, i*10), LINEARBLEND));
+      leds.setPixelColor(leds.XY(i, beatsin8(speed, 0, leds.size.y-1, 0, phase+128)), ColorFromPalette(pal, i*5+128+now/17, beatsin8(5, 55, 255, 0, i*10+128), LINEARBLEND));
     }
     leds.blur2d(blur);
-
   }
   
   void controls(JsonObject parentVar) {
     addPalette(parentVar, 4);
     ui->initSlider(parentVar, "speed", 16, 0, 32);
     ui->initSlider(parentVar, "blur", 128);
+    ui->initSlider(parentVar, "phases", 64);
   }
 }; // DNA
 

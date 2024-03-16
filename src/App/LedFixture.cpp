@@ -25,14 +25,14 @@ void Fixture::projectAndMap() {
 
     // reset leds
     stackUnsigned8 rowNr = 0;
-    for (Leds *leds: ledsList) {
+    for (Leds *leds: projections) {
       if (leds->doMap) {
         leds->fill_solid(CRGB::Black, true); //no blend
 
-        USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
+        USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, projections.size());
         leds->size = Coord3D{0,0,0};
         //vectors really gone now?
-        for (auto map:leds->mappingTable) {
+        for (PhysMap &map:leds->mappingTable) {
           if (map.indexes) {
             map.indexes->clear();
             delete map.indexes;
@@ -78,7 +78,7 @@ void Fixture::projectAndMap() {
         // USER_PRINTF("led %d,%d,%d start %d,%d,%d end %d,%d,%d\n",x,y,z, startPos.x, startPos.y, startPos.z, endPos.x, endPos.y, endPos.z);
 
         stackUnsigned8 rowNr = 0;
-        for (Leds *leds: ledsList) {
+        for (Leds *leds: projections) {
           if (leds->doMap) { //add pixel in leds mappingtable
 
             //set start and endPos between bounderies of fixture
@@ -107,12 +107,15 @@ void Fixture::projectAndMap() {
               else 
                 proCenter = Coord3D{0,0,0};
 
+              Coord3D mirrors = Coord3D{0,0,0}; // no mirrors
               if (leds->projectionNr == p_Multiply || leds->projectionNr == p_Preset1) {
                 Coord3D proMulti;
                 proMulti = mdl->getValue("proMulti", rowNr);
+                //promultu can be 0,0,0 but /= protects from /div0
                 sizeAdjusted /= proMulti; sizeAdjusted = sizeAdjusted.maximum(Coord3D{1,1,1}); //size min 1,1,1
                 proCenter /= proMulti;
-                pixelAdjusted = pixelAdjusted%sizeAdjusted;
+                mirrors = pixelAdjusted / sizeAdjusted;
+                pixelAdjusted = pixelAdjusted%sizeAdjusted; // pixel % size
                 // USER_PRINTF("Multiply %d,%d,%d\n", leds->size.x, leds->size.y, leds->size.z);
               }
 
@@ -127,7 +130,7 @@ void Fixture::projectAndMap() {
 
               Coord3D mapped;
               switch (leds->effectDimension) {
-                case _1D: //1DxD
+                case _1D: //effectDimension 1DxD
                   if (leds->size == Coord3D{0,0,0}) { // first
                     leds->size.x = sizeAdjusted.distance(proCenter);
                     leds->size.y = 1;
@@ -137,6 +140,11 @@ void Fixture::projectAndMap() {
                   mapped.x = pixelAdjusted.distance(proCenter);
                   mapped.y = 0;
                   mapped.z = 0;
+
+                  //reversed
+                  if (mirrors.x %2 != 0) mapped.x = leds->size.x - 1 - mapped.x; // x mirrored
+                  if (mirrors.y %2 != 0) mapped.y = leds->size.y - 1 - mapped.y; // y mirrored
+                  if (mirrors.z %2 != 0) mapped.z = leds->size.z - 1 - mapped.z; // z mirrored
 
                   indexV = leds->XYZNoSpin(mapped);
                   break;
@@ -148,12 +156,15 @@ void Fixture::projectAndMap() {
                         leds->size.y = sizeAdjusted.x * sizeAdjusted.y * sizeAdjusted.z / leds->size.x;
                         leds->size.z = 1;
                       }
-                      mapped.x = (pixelAdjusted.x + pixelAdjusted.y + pixelAdjusted.z) % leds->size.x;
-                      mapped.y = (pixelAdjusted.x + pixelAdjusted.y + pixelAdjusted.z) / leds->size.x;
+                      mapped.x = (pixelAdjusted.x + pixelAdjusted.y + pixelAdjusted.z) % leds->size.x; // only one > 0
+                      mapped.y = (pixelAdjusted.x + pixelAdjusted.y + pixelAdjusted.z) / leds->size.x; // all rows next to each other
                       mapped.z = 0;
+                      if (mirrors.x %2 != 0) mapped.x = leds->size.x - 1 - mapped.x; // x mirrored
+                      if (mirrors.y %2 != 0) mapped.y = leds->size.y - 1 - mapped.y; // y mirrored
                       indexV = leds->XYZNoSpin(mapped);
                       break;
                     case _2D: //2D2D
+                      //find the 2 axis 
                       if (leds->size == Coord3D{0,0,0}) { // first
                         if (sizeAdjusted.x > 1) {
                           leds->size.x = sizeAdjusted.x;
@@ -304,7 +315,7 @@ void Fixture::projectAndMap() {
             } //if x,y,z between start and endpos
           } //leds->doMap
           rowNr++;
-        } //ledsList
+        } //projections
         indexP++; //also increase if no buffer created
       } //if 1D-3D pixel
       else { // end of leds array
@@ -346,9 +357,9 @@ void Fixture::projectAndMap() {
       //after processing each led
       stackUnsigned8 rowNr = 0;
 
-      for (Leds *leds: ledsList) {
+      for (Leds *leds: projections) {
         if (leds->doMap) {
-          USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, ledsList.size());
+          USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, projections.size());
 
           stackUnsigned16 nrOfMappings = 0;
           stackUnsigned16 nrOfPixels = 0;
@@ -373,7 +384,7 @@ void Fixture::projectAndMap() {
 
             //debug info + summary values
             stackUnsigned16 indexV = 0;
-            for (auto map:leds->mappingTable) {
+            for (PhysMap &map:leds->mappingTable) {
               if (map.indexes && map.indexes->size()) {
                 // if (nrOfMappings < 10 || map.indexes->size() - indexV < 10) //first 10 and last 10
                 // if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)

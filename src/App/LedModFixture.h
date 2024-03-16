@@ -57,7 +57,7 @@ public:
         // ui->setComment(var, "Click to enlarge");
         return true;
       case f_LoopFun: {
-        var["interval"] =  max(eff->fixture.nrOfLeds * web->ws->count()/80, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
+        var["interval"] =  max(eff->fixture.nrOfLeds * web->ws->count()/200, 16U)*10; //interval in ms * 10, not too fast //from cs to ms
 
         web->sendDataWs([this](AsyncWebSocketMessageBuffer * wsBuf) {
           byte* buffer;
@@ -104,8 +104,8 @@ public:
         eff->fixture.doAllocPins = true;
 
         //remap all leds
-        // for (std::vector<Leds *>::iterator leds=eff->fixture.ledsList.begin(); leds!=eff->fixture.ledsList.end(); ++leds) {
-        for (Leds *leds: eff->fixture.ledsList) {
+        // for (std::vector<Leds *>::iterator leds=eff->fixture.projections.begin(); leds!=eff->fixture.projections.end(); ++leds) {
+        for (Leds *leds: eff->fixture.projections) {
           leds->doMap = true;
         }
 

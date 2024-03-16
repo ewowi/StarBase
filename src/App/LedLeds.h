@@ -195,7 +195,7 @@ public:
     USER_PRINTF("Leds[%d] destructor\n", UINT8_MAX);
     fadeToBlackBy(100);
     doMap = true; // so loop is not running while deleting
-    for (auto map:mappingTable) {
+    for (PhysMap &map:mappingTable) {
       if (map.indexes) {
         map.indexes->clear();
         delete map.indexes;

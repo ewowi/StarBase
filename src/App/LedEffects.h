@@ -874,6 +874,50 @@ class Lines: public Effect {
 }; // Lines
 
 // dna originally by by ldirko at https://pastebin.com/pCkkkzcs. Updated by Preyy. WLED conversion by Andrew Tuline.
+class BlackHole: public Effect {
+  const char * name() {return "BlackHole";}
+  unsigned8 dim() {return _2D;}
+  const char * tags() {return "💡";}
+
+  void loop(Leds &leds) {
+    stackUnsigned8 fade = mdl->getValue("fade");
+    stackUnsigned8 outX = mdl->getValue("outX");
+    stackUnsigned8 outY = mdl->getValue("outY");
+    stackUnsigned8 inX = mdl->getValue("inX");
+    stackUnsigned8 inY = mdl->getValue("inY");
+
+    uint16_t x, y;
+
+    leds.fadeToBlackBy(16 + (fade)); // create fading trails
+    unsigned long t = now/128;                 // timebase
+    // outer stars
+    for (size_t i = 0; i < 8; i++) {
+      x = beatsin8(outX,   0, leds.size.x - 1, 0, ((i % 2) ? 128 : 0) + t * i);
+      y = beatsin8(outY, 0, leds.size.y - 1, 0, ((i % 2) ? 192 : 64) + t * i);
+      leds.addPixelColor(leds.XY(x, y), CHSV(i*32, 255, 255));
+    }
+    // inner stars
+    for (size_t i = 0; i < 4; i++) {
+      x = beatsin8(inX, leds.size.x/4, leds.size.x - 1 - leds.size.x/4, 0, ((i % 2) ? 128 : 0) + t * i);
+      y = beatsin8(inY, leds.size.y/4, leds.size.y - 1 - leds.size.y/4, 0, ((i % 2) ? 192 : 64) + t * i);
+      leds.addPixelColor(leds.XY(x, y), CHSV(i*32, 255, 255));
+    }
+    // central white dot
+    leds.setPixelColor(leds.XY(leds.size.x/2, leds.size.y/2), CHSV(0, 0, 255));
+    // blur everything a bit
+    leds.blur2d(16);
+
+  }
+  
+  void controls(JsonObject parentVar) {
+    ui->initSlider(parentVar, "fade", 16, 0, 32);
+    ui->initSlider(parentVar, "outX", 16, 0, 32);
+    ui->initSlider(parentVar, "outY", 16, 0, 32);
+    ui->initSlider(parentVar, "inX", 16, 0, 32);
+    ui->initSlider(parentVar, "inY", 16, 0, 32);
+  }
+}; // BlackHole
+
 class DNA: public Effect {
   const char * name() {return "DNA";}
   unsigned8 dim() {return _2D;}
@@ -1505,6 +1549,7 @@ public:
     //2D StarMod
     effects.push_back(new Lines);
     //2D WLED
+    effects.push_back(new BlackHole);
     effects.push_back(new DNA);
     effects.push_back(new DistortionWaves);
     effects.push_back(new Octopus);

@@ -415,6 +415,7 @@ enum Fixtures
   f_Cone,
   f_Cloud,
   f_Wall,
+  f_Human,
   f_Globe,
   f_GeodesicDome,
   fixtureCount
@@ -445,6 +446,7 @@ public:
         options.add("Cone");
         options.add("Cloud");
         options.add("Wall");
+        options.add("Human");
         options.add("Globe WIP");
         options.add("GeodesicDome WIP");
         return true;
@@ -728,6 +730,21 @@ public:
           default: return false; 
         }});
       }
+    }
+    else if (fgValue == f_Human) {
+
+      if (panelVar["value"].as<bool>()) {
+
+        ui->initSelect(fixtureGenVar, "fixPreset", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+          case f_UIFun: {
+            ui->setLabel(var, "Preset");
+            JsonArray options = ui->setOptions(var);
+            options.add("Body1");
+            options.add("Body2");
+            return true; }
+          default: return false; 
+        }});
+      }
 
     }
     else if (fgValue == f_Cone) {
@@ -927,7 +944,7 @@ public:
     } else if (fgValue == f_Wall) {
 
       getPanels("F_Wall", [](GenFix * genFix, unsigned8 rowNr) {
-        genFix->rings241(Coord3D{0,0,0}, 9, true, UINT8_MAX, 2);
+        genFix->rings241(Coord3D{0,0,0}, 9, true, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
 
         genFix->matrix (Coord3D{19,0,0}, Coord3D{19,8,0}, Coord3D{27,0,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
         genFix->matrix (Coord3D{0,19,0}, Coord3D{0,25,0}, Coord3D{50,19,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -935,6 +952,30 @@ public:
         genFix->ring(Coord3D{19,8,0}, 48, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
 
         // genFix.spiral(240, 0, 0, 48);
+      });
+
+    } else if (fgValue == f_Human) {
+
+      getPanels("F_Human", [](GenFix * genFix, unsigned8 rowNr) {
+
+        //total dimensions width: 10 + 18 + 10
+        // height 18 + 5 + 
+        Coord3D headSize = {18, 18, 1};
+        Coord3D armSize = {12, 5, 1};
+        Coord3D legSize = {5, 20, 1};
+
+        // head
+        genFix->rings241({armSize.x-2,0,0}, 9, true, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+
+        //arms
+        genFix->matrix (Coord3D{0,headSize.y + 2,0}, Coord3D{0,headSize.y + 2 + armSize.y,0}, Coord3D{armSize.x,headSize.y + 2,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+        genFix->matrix (Coord3D{armSize.x + 14,headSize.y + 2,0}, Coord3D{armSize.x + 14,headSize.y + 2 + armSize.y,0}, Coord3D{38,headSize.y + 2,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+
+        //legs
+        genFix->matrix (Coord3D{10, 28, 0}, Coord3D{10, 50, 0}, Coord3D{15,28,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+        genFix->matrix (Coord3D{23, 28, 0}, Coord3D{23, 50, 0}, Coord3D{28,28,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
+
+
       });
 
     } else if (fgValue == f_Globe) {

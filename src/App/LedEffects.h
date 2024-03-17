@@ -873,7 +873,7 @@ class Lines: public Effect {
   }
 }; // Lines
 
-// dna originally by by ldirko at https://pastebin.com/pCkkkzcs. Updated by Preyy. WLED conversion by Andrew Tuline.
+// By: Stepko https://editor.soulmatelights.com/gallery/1012 , Modified by: Andrew Tuline
 class BlackHole: public Effect {
   const char * name() {return "BlackHole";}
   unsigned8 dim() {return _2D;}
@@ -904,6 +904,7 @@ class BlackHole: public Effect {
     }
     // central white dot
     leds.setPixelColor(leds.XY(leds.size.x/2, leds.size.y/2), CHSV(0, 0, 255));
+
     // blur everything a bit
     leds.blur2d(16);
 
@@ -918,6 +919,7 @@ class BlackHole: public Effect {
   }
 }; // BlackHole
 
+// dna originally by by ldirko at https://pastebin.com/pCkkkzcs. Updated by Preyy. WLED conversion by Andrew Tuline.
 class DNA: public Effect {
   const char * name() {return "DNA";}
   unsigned8 dim() {return _2D;}
@@ -1457,10 +1459,10 @@ class RipplesEffect: public Effect {
 
     Coord3D pos = {0,0,0};
     for (pos.z=0; pos.z<leds.size.z; pos.z++) {
-      for (pos.y=0; pos.y<leds.size.y; pos.y++) {
-        float d = distance(3.5f, 3.5f, 0.0f, (float)pos.x, (float)pos.z, 0.0f) / 9.899495f * leds.size.x;
+      for (pos.x=0; pos.x<leds.size.x; pos.x++) {
+        float d = distance(3.5f, 3.5f, 0.0f, (float)pos.y, (float)pos.z, 0.0f) / 9.899495f * leds.size.y;
         stackUnsigned32 time_interval = now/(100 - speed)/((256.0f-128.0f)/20.0f);
-        pos.x = floor(leds.size.x/2.0f + sinf(d/ripple_interval + time_interval) * leds.size.x/2.0f); //between 0 and leds.size.x
+        pos.y = floor(leds.size.y/2.0f + sinf(d/ripple_interval + time_interval) * leds.size.y/2.0f); //between 0 and leds.size.y
 
         leds[pos] = CHSV( gHue + random8(64), 200, 255);// ColorFromPalette(pal,call, bri, LINEARBLEND);
       }
@@ -1619,9 +1621,11 @@ public:
 
       // effect->loop(leds); //do a loop to set sharedData right
       // leds.sharedData.loop();
+      leds.doMap = true; // avoid effects loop to set contextRowNr
       mdl->varPreDetails(var, rowNr);
       effect->controls(var);
       mdl->varPostDetails(var, rowNr);
+      leds.doMap = false;
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 

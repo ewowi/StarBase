@@ -223,7 +223,7 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
   }
   else { 
     USER_PRINTF(PSTR("File %s open to read, size %d bytes\n"), path, (int)f.size());
-    DeserializationError error = deserializeJson(*dest, f);
+    DeserializationError error = deserializeJson(*dest, f, DeserializationOption::NestingLimit(20)); //StarMod requires more then 10
     if (error) {
       print->printJDocInfo("readObjectFromFile", *dest);
       USER_PRINTF("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());

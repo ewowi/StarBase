@@ -140,6 +140,7 @@ void Fixture::projectAndMap() {
 
                   mapped = pixelAdjusted;
 
+                  // if mirrored find the indexV of the mirrored pixel
                   if (mirror) {
                     if (mirrors.x %2 != 0) mapped.x = sizeAdjusted.x - 1 - mapped.x;
                     if (mirrors.y %2 != 0) mapped.y = sizeAdjusted.y - 1 - mapped.y;
@@ -149,8 +150,6 @@ void Fixture::projectAndMap() {
                   mapped.x = mapped.distance(proCenter);
                   mapped.y = 0;
                   mapped.z = 0;
-
-                  // if mirrored find the indexV of the mirrored pixel
 
                   indexV = leds->XYZNoSpin(mapped);
                   break;
@@ -165,8 +164,6 @@ void Fixture::projectAndMap() {
                       mapped.x = (pixelAdjusted.x + pixelAdjusted.y + pixelAdjusted.z) % leds->size.x; // only one > 0
                       mapped.y = (pixelAdjusted.x + pixelAdjusted.y + pixelAdjusted.z) / leds->size.x; // all rows next to each other
                       mapped.z = 0;
-
-                      indexV = leds->XYZNoSpin(mapped);
                       break;
                     case _2D: //2D2D
                       //find the 2 axis 
@@ -190,31 +187,32 @@ void Fixture::projectAndMap() {
                       }
                       mapped.z = 0;
 
-                      if (mirror) {
-                        if (mirrors.x %2 != 0) mapped.x = sizeAdjusted.x - 1 - mapped.x;
-                        if (mirrors.y %2 != 0) mapped.y = sizeAdjusted.y - 1 - mapped.y;
-                        if (mirrors.z %2 != 0) mapped.z = sizeAdjusted.z - 1 - mapped.z;
-                      }
-
-                      indexV = leds->XYZNoSpin(mapped);
                       // USER_PRINTF("2Dto2D %d-%d p:%d,%d,%d m:%d,%d,%d\n", indexV, indexP, pixelAdjusted.x, pixelAdjusted.y, pixelAdjusted.z, mapped.x, mapped.y, mapped.z
                       break;
                     case _3D: //2D3D
                       if (leds->size == Coord3D{0,0,0}) { // first
-                        leds->size.x = sizeAdjusted.x + sizeAdjusted.y;
-                        leds->size.y = sizeAdjusted.z;
+                        leds->size.x = sizeAdjusted.x + sizeAdjusted.y / 2;
+                        leds->size.y = sizeAdjusted.y / 2 + sizeAdjusted.z;
                         leds->size.z = 1;
                       }
-                      mapped.x = pixelAdjusted.x + pixelAdjusted.y;
-                      mapped.y = pixelAdjusted.z;
+                      mapped.x = pixelAdjusted.x + pixelAdjusted.y / 2;
+                      mapped.y = pixelAdjusted.y / 2 + pixelAdjusted.z;
                       mapped.z = 0;
 
-                      indexV = leds->XYZNoSpin(mapped);
                       // USER_PRINTF("2D to 3D indexV %d %d\n", indexV, size.x);
                       break;
                   }
+
+                  if (mirror) {
+                    if (mirrors.x %2 != 0) mapped.x = sizeAdjusted.x - 1 - mapped.x;
+                    if (mirrors.y %2 != 0) mapped.y = sizeAdjusted.y - 1 - mapped.y;
+                    if (mirrors.z %2 != 0) mapped.z = sizeAdjusted.z - 1 - mapped.z;
+                  }
+                  indexV = leds->XYZNoSpin(mapped);
                   break;
                 case _3D: //effectDimension
+                  mapped = pixelAdjusted;
+                  
                   switch(projectionDimension) {
                     case _1D:
                       if (leds->size == Coord3D{0,0,0}) { // first
@@ -238,6 +236,12 @@ void Fixture::projectAndMap() {
                       }
                       break;
                   }
+                  if (mirror) {
+                    if (mirrors.x %2 != 0) mapped.x = sizeAdjusted.x - 1 - mapped.x;
+                    if (mirrors.y %2 != 0) mapped.y = sizeAdjusted.y - 1 - mapped.y;
+                    if (mirrors.z %2 != 0) mapped.z = sizeAdjusted.z - 1 - mapped.z;
+                  }
+                  indexV = leds->XYZNoSpin(mapped);
                   
                   break; //effectDimension _3D
               } //effectDimension

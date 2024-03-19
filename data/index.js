@@ -17,6 +17,7 @@ let uiFunCommands = [];
 let model = []; //model.json (as send by the server), used by FindVar
 let savedView = null;
 const UINT8_MAX = 255;
+const UINT16_MAX = 256*256-1;
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -43,7 +44,14 @@ function makeWS() {
   ws.binaryType = "arraybuffer";
   ws.onmessage = (e)=>{
     if (e.data instanceof ArrayBuffer) { // preview packet
-      userFun(e.data);
+      let buffer = new Uint8Array(e.data);
+      if (buffer[0]==0) {
+        let pviewNode = gId("board");
+        // console.log(buffer, pviewNode);
+        previewBoard(pviewNode, buffer);
+      }
+      else 
+        userFun(buffer);
     } 
     else {
       // console.log("onmessage", e.data);
@@ -241,7 +249,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       let tbodyNode = cE("tbody");
       varNode.appendChild(tbodyNode);
 
-      if (!variable.ro) {
+      if (!variable.ro && variable.id != "fileTbl") { //fileTbl has upload file
         let buttonNode = cE("input");
         buttonNode.type = "button";
         buttonNode.value = "+";
@@ -368,6 +376,32 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       varNode = cE("progress");
       varNode.min = variable.min?variable.min:0; //if not specified then unsigned value (min=0)
       if (variable.max) varNode.max = variable.max;
+    } else if (variable.type == "file") {
+      //https://github.com/smford/esp32-asyncwebserver-fileupload-example/blob/master/example-01/example-01.ino
+
+      varNode = cE("span");
+
+      inputNode = cE("input");
+      inputNode.type = variable.type;
+      inputNode.addEventListener('change', (event) => {
+        let fileNode = event.target;
+        let file = fileNode.files[0];
+        let formData = new FormData();
+        console.log("file " + variable.id, file, formData, file.size);
+        fileNode.parentNode.querySelector("progress").max = Math.round(file.size / 10000); //set progress max in blocks of 10K
+             
+        formData.append("file", file);
+        fetch('/' + variable.id, {method: "POST", body: formData});
+      });
+      varNode.appendChild(inputNode);
+
+      let progressNode = cE("progress");
+      // if (variable.max) progressNode.max = variable.max;
+      progressNode.hidden = true;
+      varNode.appendChild(progressNode);
+
+      let spanNode = cE("span"); //fail or success
+      varNode.appendChild(spanNode);
     } else {
       //input types: text, search, tel, url, email, and password.
 
@@ -903,7 +937,34 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
           node.value = commandJson.value;
       }
     }
-    else {//inputs and progress type
+    else if (node.className == "file") {
+      if (variable.ro) { //text and numbers read only
+        // console.log("changeHTML value span not select", variable, node, commandJson, rowNr);
+      } else {
+        // console.log("file update", node.id, commandJson.value);
+        let inputNode = node.querySelector("input");
+        let progressNode = node.querySelector("progress");
+        let spanNode = node.querySelector("span");
+        if (commandJson.value == UINT16_MAX - 10) {
+          progressNode.hidden = true;
+          spanNode.innerText = "🟢";
+          inputNode.value = null;
+          console.log("succes");
+        }
+        else if (commandJson.value == UINT16_MAX - 20) {
+          progressNode.hidden = true;
+          spanNode.innerText = "🔴";
+          inputNode.value = null;
+          console.log("fail");
+        }
+        else {
+          spanNode.innerText = "";
+          progressNode.hidden = false;
+          progressNode.value = commandJson.value;
+        }
+        //You cannot set it to a client side disk file system path, due to security reasons.
+      }
+    } else {//inputs and progress type
       if (variable.ro && nodeType == "span") { //text and numbers read only
         // console.log("changeHTML value span not select", variable, node, commandJson, rowNr);
         node.textContent = commandJson.value;
@@ -1416,4 +1477,24 @@ function setTheme(node) {
 function getTheme() {
   let value = localStorage.getItem('theme');
   if (value && value != "null") changeHTMLTheme(value);
+}
+
+function previewBoard(canvasNode, buffer) {
+  let ctx = canvasNode.getContext('2d');
+  //assuming 20 pins
+  let mW = 10; // matrix width
+  let mH = 2; // matrix height
+  let pPL = Math.min(canvasNode.width / mW, canvasNode.height / mH); // pixels per LED (width of circle)
+  let lOf = Math.floor((canvasNode.width - pPL*mW)/2); //left offeset (to center matrix)
+  let i = 5;
+  ctx.clearRect(0, 0, canvasNode.width, canvasNode.height);
+  for (let y=0.5;y<mH;y++) for (let x=0.5; x<mW; x++) {
+    if (buffer[i] + buffer[i+1] + buffer[i+2] > 20) { //do not show nearly blacks
+      ctx.fillStyle = `rgb(${buffer[i]},${buffer[i+1]},${buffer[i+2]})`;
+      ctx.beginPath();
+      ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    i+=3;
+  }
 }

@@ -11,8 +11,7 @@ function appName() {
   return "Led";
 }
 
-function userFun(data) {
-  let buffer = new Uint8Array(data);
+function userFun(buffer) {
   if (buffer[0]==1 && jsonValues.pview) {
     let pviewNode = gId("pview");
 
@@ -42,11 +41,6 @@ function userFun(data) {
       preview3D(pviewNode, buffer);
 
     return true;
-  }
-  else if (buffer[0]==0) {
-    let pviewNode = gId("board");
-    // console.log(buffer, pviewNode);
-    previewBoard(pviewNode, buffer);
   }
   return false;
 }
@@ -332,23 +326,3 @@ function preview3D(canvasNode, buffer) {
     }); //import OrbitControl
   }); //import Three
 } //preview3D
-
-function previewBoard(canvasNode, buffer) {
-  let ctx = canvasNode.getContext('2d');
-  //assuming 20 pins
-  let mW = 10; // matrix width
-  let mH = 2; // matrix height
-  let pPL = Math.min(canvasNode.width / mW, canvasNode.height / mH); // pixels per LED (width of circle)
-  let lOf = Math.floor((canvasNode.width - pPL*mW)/2); //left offeset (to center matrix)
-  let i = 5;
-  ctx.clearRect(0, 0, canvasNode.width, canvasNode.height);
-  for (let y=0.5;y<mH;y++) for (let x=0.5; x<mW; x++) {
-    if (buffer[i] + buffer[i+1] + buffer[i+2] > 20) { //do not show nearly blacks
-      ctx.fillStyle = `rgb(${buffer[i]},${buffer[i+1]},${buffer[i+2]})`;
-      ctx.beginPath();
-      ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
-      ctx.fill();
-    }
-    i+=3;
-  }
-}

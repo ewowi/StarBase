@@ -490,7 +490,11 @@ void SysModWeb::serveIndex(WebRequest *request) {
 void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  USER_PRINT_Async("handleUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+  USER_PRINT_Async("serveUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+
+  mdl->setValue("upload", index/10000);
+  web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+
   if (!index) {
     String finalname = filename;
     if (finalname.charAt(0) != '/') {
@@ -507,18 +511,12 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
   }
   if (final) {
     request->_tempFile.close();
-    // USER_PRINT("File uploaded: ");  // WLEDMM
-    // USER_PRINTLN(filename);            // WLEDMM
-    // if (filename.equalsIgnoreCase("/cfg.json") || filename.equalsIgnoreCase("cfg.json")) { // WLEDMM
-    //   request->send(200, "text/plain", F("Configuration restore successful.\nRebooting..."));
-    //   doReboot = true;
-    // } else {
-    //   if (filename.equals("/presets.json") || filename.equals("presets.json")) {  // WLEDMM
-    //     request->send(200, "text/plain", F("Presets File Uploaded!"));
-    //   } else
-        request->send(200, "text/plain", F("File Uploaded!"));
-    // }
-    // cacheInvalidate++;
+
+    mdl->setValue("upload", UINT16_MAX - 10); //success
+    web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+
+    request->send(200, "text/plain", F("File Uploaded!"));
+
     files->filesChanged = true;
   }
 }
@@ -526,20 +524,35 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
 void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  USER_PRINT_Async("handleUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
-  if(!index){
+  // USER_PRINT_Async("serveUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+  
+  mdl->setValue("update", index/10000);
+  web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+
+  if (!index) {
     USER_PRINTF("OTA Update Start\n");
     // WLED::instance().disableWatchdog();
     // usermods.onUpdateBegin(true); // notify usermods that update is about to begin (some may require task de-init)
     // lastEditTime = millis(); // make sure PIN does not lock during update
     Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000);
   }
-  if (!Update.hasError()) Update.write(data, len);
+
+  if (!Update.hasError()) 
+    Update.write(data, len);
+  else {
+    mdl->setValue("update", UINT16_MAX - 20); //fail
+    web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+  }
+
   if (final) {
+    bool success = Update.end(true);
+    mdl->setValue("update", success?UINT16_MAX - 10:UINT16_MAX - 20);
+    web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+
     char message[64];
     const char * serverName = mdl->getValue("serverName");
 
-    print->fFormat(message, sizeof(message)-1, "Update of %s (...%d) %s", serverName, WiFi.localIP()[3], Update.end(true)?"Successful":"Failed");
+    print->fFormat(message, sizeof(message)-1, "Update of %s (...%d) %s", serverName, WiFi.localIP()[3], success?"Successful":"Failed");
 
     USER_PRINTF("%s\n", message);
     request->send(200, "text/plain", message);

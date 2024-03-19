@@ -91,6 +91,12 @@ void SysModFiles::setup() {
     default: return false;
   }});
 
+  ui->initFile(parentVar, "upload", nullptr, UINT16_MAX, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    case f_UIFun:
+      ui->setLabel(var, "Upload File");
+    default: return false;
+  }});
+
   ui->initProgress(parentVar, "drsize", UINT16_MAX, 0, files->totalBytes(), true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
       mdl->setValue(var, files->usedBytes());

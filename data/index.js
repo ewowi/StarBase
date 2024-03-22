@@ -586,7 +586,7 @@ function receiveData(json) {
       else if (key == "addRow") { //update the row of a table
         console.log("receiveData", key, value);
 
-        if (value.id && value.rowNr) {
+        if (value.id && value.rowNr != null) {
           let tableId = value.id;
           let rowNr = value.rowNr;
 
@@ -600,7 +600,8 @@ function receiveData(json) {
 
           genTableRowHTML(tableVar, tableNode, newRowNr);
         }
-          else console.log("dev receiveData addRow no id and/or rowNr specified", key, value);
+        else 
+          console.log("dev receiveData addRow no id and/or rowNr specified", key, value);
 
       } else if (key == "delRow") { //update the row of a table
 

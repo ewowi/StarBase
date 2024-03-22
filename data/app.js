@@ -289,9 +289,9 @@ function preview3D(canvasNode, buffer) {
 
       // controls.rotateSpeed = 0.4;
       //moving heads rotation
-      scene.rotation.x = buffer[1];
-      scene.rotation.y = buffer[2];
-      scene.rotation.z = buffer[3];
+      scene.rotation.x = buffer[1] / 255 * Math.PI * 2;
+      scene.rotation.y = buffer[2] / 255 * Math.PI * 2;
+      scene.rotation.z = buffer[3] / 255 * Math.PI * 2;
 
       controls.update(); // apply orbit controls
 

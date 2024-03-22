@@ -13,6 +13,8 @@ class LedModFixture:public SysModule {
 
 public:
 
+  uint8_t viewRotation = 0;
+
   LedModFixture() :SysModule("Fixture") {};
 
   void setup() {
@@ -50,7 +52,7 @@ public:
     currentVar["log"] = true; //logarithmic
     currentVar["dash"] = true; //these values override model.json???
 
-    ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    currentVar = ui->initCanvas(parentVar, "pview", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "Preview");
         // ui->setComment(var, "Shows the fixture");
@@ -73,9 +75,20 @@ public:
           }
           //new values
           buffer[0] = 1; //userFun id
-          buffer[1] = eff->fixture.head.x;
-          buffer[2] = eff->fixture.head.y;
-          buffer[3] = eff->fixture.head.y;
+          //rotations
+          if (viewRotation == 0) {
+            buffer[1] = 0;
+            buffer[2] = 0;
+            buffer[3] = 0;
+          } else  if (viewRotation == 1) {
+            buffer[1] = 0;//beatsin8(4, 250, 5); //tilt
+            buffer[2] = beat8(1);//, 0, 255); //pan
+            buffer[3] = 0;//beatsin8(6, 255, 5); //roll
+          } else if (viewRotation == 2) {
+            buffer[1] = eff->fixture.head.x;
+            buffer[2] = eff->fixture.head.y;
+            buffer[3] = eff->fixture.head.y;
+          }
 
         }, eff->fixture.nrOfLeds * 3 + 5, true);
         return true;
@@ -83,7 +96,26 @@ public:
       default: return false;
     }});
 
-    ui->initSelect(parentVar, "fixture", eff->fixture.fixtureNr, false ,[](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initSelect(currentVar, "viewRot", viewRotation, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+      case f_UIFun: {
+        ui->setLabel(var, "Rotation");
+        // ui->setComment(var, "View rotation");
+        JsonArray options = ui->setOptions(var);
+        options.add("None");
+        options.add("Pan");
+        #ifdef STARMOD_USERMOD_WLEDAUDIO
+          options.add("Moving heads GEQ");
+        #endif
+        return true; }
+      case f_ChangeFun:
+        this->viewRotation = var["value"];
+        // if (!var["value"])
+        //   eff->fixture.head = {0,0,0};
+        return true;
+      default: return false; 
+    }});
+
+    currentVar = ui->initSelect(parentVar, "fixture", eff->fixture.fixtureNr, false ,[](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
       {
         // ui->setComment(var, "Fixture to display effect on");
@@ -119,7 +151,7 @@ public:
       default: return false; 
     }}); //fixture
 
-    ui->initCoord3D(parentVar, "fixSize", eff->fixture.size, 0, NUM_LEDS_Max, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initCoord3D(currentVar, "fixSize", eff->fixture.size, 0, NUM_LEDS_Max, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
         mdl->setValue(var, eff->fixture.size);
         return true;
@@ -129,7 +161,7 @@ public:
       default: return false;
     }});
 
-    ui->initNumber(parentVar, "fixCount", eff->fixture.nrOfLeds, 0, UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initNumber(currentVar, "fixCount", eff->fixture.nrOfLeds, 0, UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
         mdl->setValue(var, eff->fixture.nrOfLeds);
         return true;
@@ -150,6 +182,13 @@ public:
       default: return false; 
     }});
 
+    ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+      case f_UIFun:
+        web->addResponseV(var["id"], "comment", "f(%d leds)", eff->fixture.nrOfLeds);
+        return true;
+      default: return false;
+    }});
+
     ui->initCheckBox(parentVar, "fShow", eff->fShow, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "FastLed show");
@@ -160,27 +199,6 @@ public:
         return true;
       default: return false; 
     }});
-
-    ui->initText(parentVar, "realFps", nullptr, 10, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun:
-        web->addResponseV(var["id"], "comment", "f(%d leds)", eff->fixture.nrOfLeds);
-        return true;
-      default: return false;
-    }});
-
-    #ifdef STARMOD_USERMOD_WLEDAUDIO
-      ui->initCheckBox(parentVar, "mHead", false, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-        case f_UIFun:
-          ui->setLabel(var, "Moving heads");
-          ui->setComment(var, "Move on GEQ");
-          return true;
-        case f_ChangeFun:
-          if (!var["value"])
-            eff->fixture.head = {0,0,0};
-          return true;
-        default: return false; 
-      }});
-    #endif
 
   }
 };

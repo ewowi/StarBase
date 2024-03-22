@@ -43,6 +43,71 @@ enum Projections
   p_count
 };
 
+#define trigoInt8 0
+#define trigoInt16 1 //default
+#define trigoFloat 2
+//     sin8/cos8   sin16/cos16
+//0:   128, 255    0 32645
+//64:  255, 128    32645 0
+//128: 128, 1      0 -32645
+//192: 1, 127      -32645 0
+
+struct Trigo {
+  float sinValue; uint16_t sinAngle = UINT16_MAX; //caching of sinValue=sin(sinAngle)
+  float cosValue; uint16_t cosAngle = UINT16_MAX; //caching of cosValue=cos(cosAngle)
+  uint8_t type = trigoInt16;
+  Trigo(uint8_t type = trigoInt16) {
+    this->type = type;
+  }
+  int16_t sin(int16_t factor, uint16_t angle, uint16_t period = 360) {
+    if (sinAngle != angle) {
+      sinAngle = angle;
+      sinValue = type==trigoInt16?sin16(65536.0f * angle / period) / 32645.0f:
+                 type==trigoInt8?(sin8(256.0f * angle / period) - 128) / 127.0f:
+                 sinf(DEG_TO_RAD * 360 * angle / period);
+    } else USER_PRINTF("%d", type); //debug show cache efficiency
+    return factor * sinValue;
+  }
+  int16_t cos(int16_t factor, uint16_t angle, uint16_t period = 360) {
+    if (cosAngle != angle) {
+      cosAngle = angle;
+      cosValue = type==trigoInt16?cos16(65536.0f * angle / period) / 32645.0f:
+                 type==trigoInt8?(cos8(256.0f * angle / period) - 128) / 127.0f:
+                 cosf(DEG_TO_RAD * 360 * angle / period);
+    } else USER_PRINTF("%d", type); //debug show cache efficiency
+    return factor * cosValue;
+  }
+  // https://msl.cs.uiuc.edu/planning/node102.html
+  Coord3D rotateRoll(Coord3D in, Coord3D middle, uint16_t roll) {
+    Coord3D inM = in - middle;
+    Coord3D out;
+    out.x = cos(inM.x, roll) - sin(inM.y, roll);
+    out.y = sin(inM.x, roll) + cos(inM.y, roll);
+    out.z = inM.z;
+    return out + middle;
+  }
+  Coord3D rotatePan(Coord3D in, Coord3D middle, uint16_t pan) {
+    Coord3D inM = in - middle;
+    Coord3D out;
+    out.x = cos(inM.x, pan) + sin(inM.z, pan);
+    out.y = inM.y;
+    out.z = - sin(inM.x, pan) + cos(inM.z, pan);
+    return out + middle;
+  }
+  Coord3D rotateTilt(Coord3D in, Coord3D middle, uint16_t tilt) {
+    Coord3D inM = in - middle;
+    Coord3D out;
+    out.x = inM.x;
+    out.y = cos(inM.y, tilt) - sin(inM.z, tilt);
+    out.z = sin(inM.y, tilt) + cos(inM.z, tilt);
+    return out + middle;
+  }
+  Coord3D rotate(Coord3D in, Coord3D middle, uint16_t pan, uint16_t tilt, uint16_t roll) {
+    return rotateRoll(rotateTilt(rotatePan(in, middle, pan), middle, tilt), middle, roll);
+  }
+};
+
+
 class Fixture; //forward
 
 

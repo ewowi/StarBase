@@ -59,9 +59,9 @@ void Fixture::projectAndMap() {
     unsigned16 currPin; //lookFor needs u16
 
     //what to deserialize
-    starModJson.lookFor("width", &size.x);
-    starModJson.lookFor("height", &size.y);
-    starModJson.lookFor("depth", &size.z);
+    starModJson.lookFor("width", (unsigned16 *)&size.x);
+    starModJson.lookFor("height", (unsigned16 *)&size.y);
+    starModJson.lookFor("depth", (unsigned16 *)&size.z);
     starModJson.lookFor("nrOfLeds", &nrOfLeds);
     starModJson.lookFor("pin", &currPin);
 
@@ -252,6 +252,7 @@ void Fixture::projectAndMap() {
                   USER_PRINTF("dev pre [%d] indexV too high %d>=%d or %d (m:%d p:%d) p:%d,%d,%d s:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z, leds->size.x, leds->size.y, leds->size.z);
                 }
                 else {
+                  Trigo trigo(trigoInt8);
                   //post processing: 
                   switch(leds->projectionNr) {
                   case p_DistanceFromPoint:
@@ -261,36 +262,38 @@ void Fixture::projectAndMap() {
                       case _2D: //2D2D: inverse mapping
                         float minDistance = 10;
                         // USER_PRINTF("checking indexV %d\n", indexV);
-                        for (forUnsigned16 y=0; y<leds->size.y && minDistance > 0.5f; y++)
                         for (forUnsigned16 x=0; x<leds->size.x && minDistance > 0.5f; x++) {
+                          // float xFactor = x * TWO_PI / (float)(leds->size.x-1); //between 0 .. 2PI
 
-                          float xFactor = x * TWO_PI / (float)(leds->size.x-1); //between 0 .. 2PI
+                          float xNew = trigo.sin(leds->size.x, x, leds->size.x-1);
+                          float yNew = trigo.cos(leds->size.y, x, leds->size.x-1);
 
-                          float xNew = sinf(xFactor) * leds->size.x; //between - .. + size.x
-                          float yNew = cosf(xFactor) * leds->size.y; //between - .. + size.y
+                          for (forUnsigned16 y=0; y<leds->size.y && minDistance > 0.5f; y++) {
 
-                          float yFactor = (leds->size.y-1.0f-y) / (leds->size.y-1.0f); // between 1 .. 0
+                            // float yFactor = (leds->size.y-1.0f-y) / (leds->size.y-1.0f); // between 1 .. 0
+                            float yFactor = 1 - y / (leds->size.y-1.0f); // between 1 .. 0
 
-                          xNew = round((yFactor * xNew + leds->size.x) / 2.0f); // 0 .. size.x
-                          yNew = round((yFactor * yNew + leds->size.y) / 2.0f); //  0 .. size.y
+                            float x2New = round((yFactor * xNew + leds->size.x) / 2.0f); // 0 .. size.x
+                            float y2New = round((yFactor * yNew + leds->size.y) / 2.0f); //  0 .. size.y
 
-                          // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sinf(x * TWO_PI / (float)(size.x-1)), cosf(x * TWO_PI / (float)(size.x-1)), xNew, yNew);
+                            // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sinf(x * TWO_PI / (float)(size.x-1)), cosf(x * TWO_PI / (float)(size.x-1)), xNew, yNew);
 
-                          //this should work (better) but needs more testing
-                          // float distance = abs(indexV - xNew - yNew * size.x);
-                          // if (distance < minDistance) {
-                          //   minDistance = distance;
-                          //   indexV = x+y*size.x;
-                          // }
+                            //this should work (better) but needs more testing
+                            // float distance = abs(indexV - xNew - yNew * size.x);
+                            // if (distance < minDistance) {
+                            //   minDistance = distance;
+                            //   indexV = x+y*size.x;
+                            // }
 
-                          // if the new XY i
-                          if (indexV == leds->XY(xNew, yNew)) { //(unsigned8)xNew + (unsigned8)yNew * size.x) {
-                            // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", indexV, x+y*size.x, x,y, size.x, xNew, yNew, size.x, distance);
-                            indexV = leds->XY(x, y);
+                            // if the new XY i
+                            if (indexV == leds->XY(x2New, y2New)) { //(unsigned8)xNew + (unsigned8)yNew * size.x) {
+                              // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", indexV, x+y*size.x, x,y, size.x, xNew, yNew, size.x, distance);
+                              indexV = leds->XY(x, y);
 
-                            if (indexV%10 == 0) USER_PRINTF("."); //show some progress as this projection is slow (Need S007 to optimize ;-)
-                                                        
-                            minDistance = 0.0f; // stop looking further
+                              if (indexV%10 == 0) USER_PRINTF("."); //show some progress as this projection is slow (Need S007 to optimize ;-)
+                                                          
+                              minDistance = 0.0f; // stop looking further
+                            }
                           }
                         }
                         if (minDistance > 0.5f) indexV = UINT16_MAX;

@@ -1622,6 +1622,7 @@ public:
       // effect->loop(leds); //do a loop to set sharedData right
       // leds.sharedData.loop();
       leds.doMap = true; // avoid effects loop to set contextRowNr
+      delay(100); // give looptask the time to stop the effect tbd: this is a bit of a hack
       mdl->varPreDetails(var, rowNr);
       effect->controls(var);
       mdl->varPostDetails(var, rowNr);

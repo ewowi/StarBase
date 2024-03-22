@@ -19,9 +19,9 @@ typedef std::function<void(JsonObject)> FindFun;
 typedef std::function<void(JsonObject, size_t)> ChangeFun;
 
 struct Coord3D {
-  unsigned16 x;
-  unsigned16 y;
-  unsigned16 z;
+  int x;
+  int y;
+  int z;
 
   // Coord3D() {
   //   x = 0;
@@ -73,18 +73,19 @@ struct Coord3D {
   //Minus / delta (abs)
   Coord3D operator-(Coord3D rhs) {
     Coord3D result;
-    result.x = x > rhs.x? x - rhs.x : rhs.x - x;
-    result.y = y > rhs.y? y - rhs.y : rhs.y - y;
-    result.z = z > rhs.z? z - rhs.z : rhs.z - z;
+    // result.x = x > rhs.x? x - rhs.x : rhs.x - x;
+    // result.y = y > rhs.y? y - rhs.y : rhs.y - y;
+    // result.z = z > rhs.z? z - rhs.z : rhs.z - z;
+    result.x = x - rhs.x;
+    result.y = y - rhs.y;
+    result.z = z - rhs.z;
     return result;
   }
   Coord3D operator+(Coord3D rhs) {
     return Coord3D{unsigned16(x + rhs.x), unsigned16(y + rhs.y), unsigned16(z + rhs.z)};
-    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   Coord3D operator/(Coord3D rhs) {
     return Coord3D{unsigned16(x / rhs.x), unsigned16(y / rhs.y), unsigned16(z / rhs.z)};
-    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   Coord3D operator%(Coord3D rhs) {
     return Coord3D{unsigned16(x % rhs.x), unsigned16(y % rhs.y), unsigned16(z % rhs.z)};
@@ -97,11 +98,9 @@ struct Coord3D {
   }
   Coord3D operator*(unsigned8 rhs) {
     return Coord3D{unsigned16(x * rhs), unsigned16(y * rhs), unsigned16(z * rhs)};
-    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   Coord3D operator/(unsigned8 rhs) {
     return Coord3D{unsigned16(x / rhs), unsigned16(y / rhs), unsigned16(z / rhs)};
-    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   //move the coordinate one step closer to the goal, if difference in coordinates (used in GenFix)
   Coord3D advance(Coord3D goal) {

@@ -151,8 +151,11 @@ public:
                 return true;
               case f_ChangeFun:
                 //initiate projectAndMap
-                fixture.projections[rowNr]->doMap = true; //Guru Meditation Error: Core  1 panic'ed (StoreProhibited). Exception was unhandled.
-                fixture.doMap = true;
+                USER_PRINTF("proCenter %d %d\n", rowNr, fixture.projections.size());
+                if (rowNr < fixture.projections.size()) {
+                  fixture.projections[rowNr]->doMap = true; //Guru Meditation Error: Core  1 panic'ed (StoreProhibited). Exception was unhandled.
+                  fixture.doMap = true;
+                }
                 // ui->setLabel(var, "Size");
                 return true;
               default: return false;

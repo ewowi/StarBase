@@ -252,7 +252,7 @@ void Fixture::projectAndMap() {
                   USER_PRINTF("dev pre [%d] indexV too high %d>=%d or %d (m:%d p:%d) p:%d,%d,%d s:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z, leds->size.x, leds->size.y, leds->size.z);
                 }
                 else {
-                  Trigo trigo(trigoInt8);
+                  Trigo trigo(leds->size.x-1); // 8 bits trigo with period leds->size.x-1 (currentl Float trigo as same performance)
                   //post processing: 
                   switch(leds->projectionNr) {
                   case p_DistanceFromPoint:
@@ -265,8 +265,8 @@ void Fixture::projectAndMap() {
                         for (forUnsigned16 x=0; x<leds->size.x && minDistance > 0.5f; x++) {
                           // float xFactor = x * TWO_PI / (float)(leds->size.x-1); //between 0 .. 2PI
 
-                          float xNew = trigo.sin(leds->size.x, x, leds->size.x-1);
-                          float yNew = trigo.cos(leds->size.y, x, leds->size.x-1);
+                          float xNew = trigo.sin(leds->size.x, x);
+                          float yNew = trigo.cos(leds->size.y, x);
 
                           for (forUnsigned16 y=0; y<leds->size.y && minDistance > 0.5f; y++) {
 

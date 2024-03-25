@@ -228,11 +228,12 @@ public:
 
     for (int i=0; i<ledCount; i++) {
       Coord3D pixel;
-      pixel.x = middle.x + trigo.sin(ringDiam, i, ledCount);
-      pixel.y = middle.y + trigo.cos(ringDiam, i, ledCount);
+      trigo.period = ledCount; //rotate uses period 360 so set to ledCount
+      pixel.x = middle.x + trigo.sin(ringDiam, i);
+      pixel.y = middle.y + trigo.cos(ringDiam, i);
       pixel.z = middle.z;
 
-      write3D( trigo.rotate(pixel, middle, pan, tilt, roll));
+      write3D( trigo.rotate(pixel, middle, pan, tilt, roll, 360));
     }
     closePin();
   }

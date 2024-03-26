@@ -39,7 +39,6 @@ public:
   virtual void controls(JsonObject parentVar) {}
 
   void addPalette(JsonObject parentVar, unsigned8 value) {
-    //currentVar["value"][contextRowNr] will be set to value parameter
     JsonObject currentVar = ui->initSelect(parentVar, "pal", value, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {
         ui->setLabel(var, "Palette");
@@ -1621,12 +1620,9 @@ public:
 
       // effect->loop(leds); //do a loop to set sharedData right
       // leds.sharedData.loop();
-      leds.doMap = true; // avoid effects loop to set contextRowNr
-      delay(100); // give looptask the time to stop the effect tbd: this is a bit of a hack
       mdl->varPreDetails(var, rowNr);
       effect->controls(var);
       mdl->varPostDetails(var, rowNr);
-      leds.doMap = false;
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 

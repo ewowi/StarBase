@@ -177,10 +177,10 @@ public:
         // print->printJson("initVarAndUpdate varFun value is null", var);
       } else if (var["value"].is<JsonArray>()) {
         JsonArray valueArray = var["value"].as<JsonArray>();
-        if (mdl->contextRowNr != UINT8_MAX) { // if var in table
-          if (mdl->contextRowNr >= valueArray.size())
+        if (mdl->setValueRowNr != UINT8_MAX) { // if var in table
+          if (mdl->setValueRowNr >= valueArray.size())
             valueNeedsUpdate = true;
-          else if (valueArray[mdl->contextRowNr].isNull())
+          else if (valueArray[mdl->setValueRowNr].isNull())
             valueNeedsUpdate = true;
         }
       }
@@ -189,10 +189,10 @@ public:
     if (valueNeedsUpdate) {
       bool valueFunExists = false;
       if (varFun) {
-        valueFunExists = varFun(var, mdl->contextRowNr, f_ValueFun);
+        valueFunExists = varFun(var, mdl->setValueRowNr, f_ValueFun);
       }
       if (!valueFunExists) { //setValue provided (if not null)
-        mdl->setValue(var, value, mdl->contextRowNr); //does changefun if needed, if var in table, update the table row
+        mdl->setValue(var, value, mdl->setValueRowNr); //does changefun if needed, if var in table, update the table row
       }
     }
     else { //do changeFun on existing value

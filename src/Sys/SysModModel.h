@@ -49,6 +49,12 @@ struct Coord3D {
   bool operator<=(Coord3D rhs) {
     return x <= rhs.x && y <= rhs.y && z <= rhs.z;
   }
+  bool operator<(Coord3D rhs) {
+    return x < rhs.x && y < rhs.y && z < rhs.z;
+  }
+  bool operator>=(uint16_t rhs) {
+    return x >= rhs && y >= rhs && z >= rhs;
+  }
 
   //assignments
   Coord3D operator=(Coord3D rhs) {
@@ -178,7 +184,8 @@ public:
 
   bool doWriteModel = false;
 
-  static unsigned8 contextRowNr;
+  static unsigned8 setValueRowNr;
+  static unsigned8 getValueRowNr;
 
   SysModModel();
   void setup();
@@ -298,7 +305,7 @@ public:
   JsonVariant getValue(JsonObject var, unsigned8 rowNr = UINT8_MAX) {
     if (var["value"].is<JsonArray>()) {
       JsonArray valueArray = var["value"].as<JsonArray>();
-      if (rowNr == UINT8_MAX) rowNr = contextRowNr;
+      if (rowNr == UINT8_MAX) rowNr = getValueRowNr;
       if (rowNr != UINT8_MAX && rowNr < valueArray.size())
         return valueArray[rowNr];
       else if (valueArray.size())
@@ -367,13 +374,13 @@ public:
         varOrder(var, -varOrder(var)); // set all negative
       }
     }
-    contextRowNr = rowNr;
+    setValueRowNr = rowNr;
     print->printJson("varPreDetails post", var);
   }
 
   void varPostDetails(JsonObject var, unsigned8 rowNr) {
 
-    contextRowNr = UINT8_MAX;
+    setValueRowNr = UINT8_MAX;
     if (rowNr != UINT8_MAX) {
 
       print->printJson("varPostDetails pre", var);

@@ -33,6 +33,7 @@ enum Projections
   p_Default,
   p_Multiply,
   p_Rotate,
+  p_PanTiltRoll,
   p_DistanceFromPoint,
   p_Preset1,
   p_None,
@@ -49,21 +50,22 @@ enum Projections
 //128: 128, 1      0 -32645
 //192: 1, 127      -32645 0
 
+static unsigned trigoCached = 1;
+static unsigned trigoUnCached = 1;
+
 struct Trigo {
-  uint16_t period = 360; //default
-  Trigo(uint16_t period = 360) {
-    this->period = period;
-  }
+  uint16_t period = 360; //default period 360
+  Trigo(uint16_t period = 360) {this->period = period;}
   float sinValue[3]; uint16_t sinAngle[3] = {UINT16_MAX,UINT16_MAX,UINT16_MAX}; //caching of sinValue=sin(sinAngle) for pan, tilt and roll
   float cosValue[3]; uint16_t cosAngle[3] = {UINT16_MAX,UINT16_MAX,UINT16_MAX}; //caching of cosValue=cos(cosAngle) for pan, tilt and roll
   virtual float sinBase(uint16_t angle) {return sinf(M_TWOPI * angle / period);}
   virtual float cosBase(uint16_t angle) {return cosf(M_TWOPI * angle / period);}
   int16_t sin(int16_t factor, uint16_t angle, uint8_t index = 0) {
-    if (sinAngle[index] != angle) {sinAngle[index] = angle; sinValue[index] = sinBase(angle);} else USER_PRINTF("s");
+    if (sinAngle[index] != angle) {sinAngle[index] = angle; sinValue[index] = sinBase(angle);trigoUnCached++;} else trigoCached++;
     return factor * sinValue[index];
   };
   int16_t cos(int16_t factor, uint16_t angle, uint8_t index = 0) {
-    if (cosAngle[index] != angle) {cosAngle[index] = angle; cosValue[index] = cosBase(angle);} else USER_PRINTF("c");
+    if (cosAngle[index] != angle) {cosAngle[index] = angle; cosValue[index] = cosBase(angle);trigoUnCached++;} else trigoCached++;
     return factor * cosValue[index];
   };
   // https://msl.cs.uiuc.edu/planning/node102.html
@@ -93,22 +95,22 @@ struct Trigo {
   }
   Coord3D rotate(Coord3D in, Coord3D middle, uint16_t panAngle, uint16_t tiltAngle, uint16_t rollAngle, uint16_t period = 360) {
     this->period = period;
-    for (int i=0; i<3;i++) sinAngle[i] = UINT16_MAX;
     return roll(tilt(pan(in, middle, panAngle), middle, tiltAngle), middle, rollAngle);
   }
 };
 
-struct Trigo16: Trigo { //FastLed sin16 and cos16
-  using Trigo::Trigo;
-  float sinBase(uint16_t angle) {return sin16(65536.0f * angle / period) / 32645.0f;}
-  float cosBase(uint16_t angle) {return cos16(65536.0f * angle / period) / 32645.0f;}
-};
 struct Trigo8: Trigo { //FastLed sin8 and cos8
   using Trigo::Trigo;
   float sinBase(uint16_t angle) {return (sin8(256.0f * angle / period) - 128) / 127.0f;}
   float cosBase(uint16_t angle) {return (cos8(256.0f * angle / period) - 128) / 127.0f;}
 };
+struct Trigo16: Trigo { //FastLed sin16 and cos16
+  using Trigo::Trigo;
+  float sinBase(uint16_t angle) {return sin16(65536.0f * angle / period) / 32645.0f;}
+  float cosBase(uint16_t angle) {return cos16(65536.0f * angle / period) / 32645.0f;}
+};
 
+static Trigo trigoPanTiltRoll(255); // Trigo8 is hardly any faster (27 vs 28 fps) (spanXY=28)
 
 class Fixture; //forward
 
@@ -178,10 +180,10 @@ static Coord3D spinXY(uint_fast16_t x, uint_fast16_t y, uint_fast16_t width, uin
     cosrot = cosf(now);
     last_millis = millis()/12;
     // scale to fit - comment out the next lines to disable
-    float maxProj = max(abs(width/2 * sinrot), abs(height/2 * cosrot));
-    int maxdim = max(width/2, height/2);
-    float newScaling = maxProj / float(maxdim);
-    projScale = max(min(newScaling, projScaleMax), projScaleMin);
+    // float maxProj = max(abs(width/2 * sinrot), abs(height/2 * cosrot));
+    // int maxdim = max(width/2, height/2);
+    // float newScaling = maxProj / float(maxdim);
+    // projScale = max(min(newScaling, projScaleMax), projScaleMin);
   }
   // center
   int x1 = int(x) - width/2;
@@ -222,7 +224,9 @@ public:
   unsigned8 effectDimension = -1;
 
   Coord3D startPos = {0,0,0}, endPos = {UINT16_MAX,UINT16_MAX,UINT16_MAX}; //default
-  unsigned8 proRSpeed = 128;
+  unsigned8 proPanSpeed = 128;
+  unsigned8 proTiltSpeed = 128;
+  unsigned8 proRollSpeed = 128;
 
   SharedData sharedData;
 
@@ -244,14 +248,7 @@ public:
     return XYZ(coord.x, coord.y, coord.z);
   }
 
-  unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
-    if (projectionNr == p_Rotate || projectionNr == p_Preset1) {
-      Coord3D result = spinXY(x, y, size.x, size.y, proRSpeed);
-      return result.x + result.y * size.x + result.z * size.x * size.y;
-    }
-    else
-      return x + y * size.x + z * size.x * size.y;
-  }
+  unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z);
 
   Leds(Fixture &fixture) {
     USER_PRINTF("Leds[%d] constructor %d\n", UINT8_MAX, sizeof(PhysMap));
@@ -410,8 +407,9 @@ public:
     Coord3D chrPixel;
     for (chrPixel.y = 0; chrPixel.y<fontSize.y; chrPixel.y++) { // character height
       Coord3D pixel;
+      pixel.z = 0;
       pixel.y = y + chrPixel.y;
-      if (pixel.y >=0 && pixel.y < size.y) {
+      if (pixel.y >= 0 && pixel.y < size.y) {
         byte bits = 0;
         switch (font%5) {
           case 0: bits = pgm_read_byte_near(&console_font_4x6[(chr * fontSize.y) + chrPixel.y]); break;

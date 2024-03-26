@@ -22,6 +22,26 @@ void fastled_fill_rainbow(struct CRGB * targetArray, int numToFill, unsigned8 in
   fill_rainbow(targetArray, numToFill, initialhue, deltahue);
 }
 
+unsigned16 Leds::XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
+  if (projectionNr == p_Rotate) {
+    Coord3D result = spinXY(x, y, size.x, size.y, proRollSpeed);
+    return result.x + result.y * size.x + result.z * size.x * size.y;
+  }
+  else if (projectionNr == p_PanTiltRoll || projectionNr == p_Preset1) {
+    Coord3D result = Coord3D{x, y, z};
+    if (proPanSpeed) result = trigoPanTiltRoll.pan(result, size/2, millis() * 5 / (255 - proPanSpeed));
+    if (proTiltSpeed) result = trigoPanTiltRoll.tilt(result, size/2, millis() * 5 / (255 - proTiltSpeed));
+    if (proRollSpeed) result = trigoPanTiltRoll.roll(result, size/2, millis() * 5 / (255 - proRollSpeed));
+    if (fixture->size.z == 1) result.z = 0; // 3d effects will be flattened on 2D fixtures
+    if (result >= 0 && result < size)
+      return result.x + result.y * size.x + result.z * size.x * size.y;
+    else 
+      return UINT16_MAX;
+  }
+  else
+    return x + y * size.x + z * size.x * size.y;
+}
+
 // maps the virtual led to the physical led(s) and assign a color to it
 void Leds::setPixelColor(unsigned16 indexV, CRGB color, unsigned8 blendAmount) {
   if (indexV < mappingTable.size()) {
@@ -36,7 +56,7 @@ void Leds::setPixelColor(unsigned16 indexV, CRGB color, unsigned8 blendAmount) {
   }
   else if (indexV < NUM_LEDS_Max) //no projection
     fixture->ledsP[projectionNr==p_Random?random(fixture->nrOfLeds):indexV] = color;
-  else
+  else if (indexV != UINT16_MAX) //assuming UINT16_MAX is set explicitly (e.g. in XYZ)
     USER_PRINTF(" dev sPC V:%d >= %d", indexV, NUM_LEDS_Max);
 }
 

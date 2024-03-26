@@ -17,7 +17,8 @@
 
 JsonDocument * SysModModel::model = nullptr;
 JsonObject SysModModel::modelParentVar;
-unsigned8 SysModModel::contextRowNr = UINT8_MAX;
+unsigned8 SysModModel::setValueRowNr = UINT8_MAX;
+unsigned8 SysModModel::getValueRowNr = UINT8_MAX;
 int SysModModel::varCounter = 1; //start with 1 so it can be negative, see var["o"]
 
 SysModModel::SysModModel() :SysModule("Model") {

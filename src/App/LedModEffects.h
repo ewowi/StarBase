@@ -124,6 +124,7 @@ public:
         options.add("Default");
         options.add("Multiply");
         options.add("Rotate");
+        options.add("PanTiltRoll");
         options.add("Distance ⌛");
         options.add("Preset 1");
         options.add("None");
@@ -169,25 +170,45 @@ public:
               case f_ChangeFun:
                 ui->initCheckBox(var, "mirror", false, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
                   case f_ChangeFun:
-                    fixture.projections[rowNr]->doMap = true;
-                    fixture.doMap = true;
+                    if (rowNr < fixture.projections.size()) {
+                      fixture.projections[rowNr]->doMap = true;
+                      fixture.doMap = true;
+                    }
                     return true;
                   default: return false;
                 }});
-                fixture.projections[rowNr]->doMap = true;
-                fixture.doMap = true;
+                if (rowNr < fixture.projections.size()) {
+                  fixture.projections[rowNr]->doMap = true;
+                  fixture.doMap = true;
+                }
                 return true;
               default: return false;
             }});
           }
-          if (proValue == p_Rotate || proValue == p_Preset1) {
-            ui->initSlider(var, "proRSpeed", 128, 1, 255, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+          if (proValue == p_PanTiltRoll || proValue == p_Preset1) {
+            ui->initSlider(var, "proPan", 128, 0, 254, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+              case f_ChangeFun:
+                if (rowNr < fixture.projections.size())
+                  fixture.projections[rowNr]->proPanSpeed = mdl->getValue(var, rowNr);
+                return true;
+              default: return false;
+            }});
+            ui->initSlider(var, "proTilt", 128, 0, 254, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+              case f_ChangeFun:
+                if (rowNr < fixture.projections.size())
+                  fixture.projections[rowNr]->proTiltSpeed = mdl->getValue(var, rowNr);
+                return true;
+              default: return false;
+            }});
+          }
+          if (proValue == p_Rotate || proValue == p_Preset1 || proValue == p_PanTiltRoll) {
+            ui->initSlider(var, "proRoll", 128, 0, 254, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
               case f_UIFun:
-                ui->setLabel(var, "Rotation speed");
+                ui->setLabel(var, "Roll speed");
                 return true;
               case f_ChangeFun:
                 if (rowNr < fixture.projections.size())
-                  fixture.projections[rowNr]->proRSpeed = mdl->getValue(var, rowNr);
+                  fixture.projections[rowNr]->proRollSpeed = mdl->getValue(var, rowNr);
                 return true;
               default: return false;
             }});
@@ -333,17 +354,15 @@ public:
 
       //for each programmed effect
       //  run the next frame of the effect
-      // vector iteration on classes is faster!!! (22 vs 30 fps !!!!)
-      // for (std::vector<Leds *>::iterator leds=fixture.projections.begin(); leds!=fixture.projections.end(); ++leds) {
-      if (mdl->contextRowNr == UINT8_MAX) {
-        stackUnsigned8 rowNr = 0;
-        for (Leds *leds: fixture.projections) {
-          if (!leds->doMap) { // don't run effect while remapping
-            // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
-            mdl->contextRowNr = rowNr++;
-            effects.loop(*leds);
-            mdl->contextRowNr = UINT8_MAX;
-          }
+      stackUnsigned8 rowNr = 0;
+      for (Leds *leds: fixture.projections) {
+        if (!leds->doMap) { // don't run effect while remapping
+          // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
+          mdl->getValueRowNr = rowNr++;
+          effects.loop(*leds);
+          mdl->getValueRowNr = UINT8_MAX;
+          if (leds->projectionNr == p_PanTiltRoll || leds->projectionNr == p_Rotate || leds->projectionNr == p_Preset1)
+            leds->fadeToBlackBy(50);
         }
       }
 
@@ -638,6 +657,12 @@ public:
   void loop1s() {
     mdl->setUIValueV("realFps", "%lu /s", frameCounter);
     frameCounter = 0;
+  }
+
+  void loop10s() {
+    USER_PRINTF("caching %u %u\n", trigoCached, trigoUnCached); //not working for some reason!!
+    // trigoCached = 0;
+    // trigoUnCached = 0;
   }
 
 private:

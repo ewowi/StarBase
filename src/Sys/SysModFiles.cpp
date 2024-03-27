@@ -14,7 +14,7 @@
 #include "SysModWeb.h"
 #include "SysModPrint.h"
 #include "SysModModel.h"
-#include "SysModAI.h"
+#include "SysModWorkFlow.h"
 
 // #include <FS.h>
 
@@ -31,7 +31,7 @@ SysModFiles::SysModFiles() :SysModule("Files") {
 //setup filesystem
 void SysModFiles::setup() {
   SysModule::setup();
-  parentVar = ui->initSysMod(parentVar, name, 2000);
+  parentVar = ui->initSysMod(parentVar, name, 2101);
 
   JsonObject tableVar = ui->initTable(parentVar, "fileTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -134,8 +134,8 @@ void SysModFiles::loop() {
     }
     root.close();
 
-    // ai->addIntelligence("No fixture found", "FixtureGen");
-    // ai->addIntelligence("No model found", "Model");
+    // wf->addAction("Define fixture", "FixtureGen");
+    // wf->addAction("Save model", "Model");
 
     ui->callVarFun(mdl->findVar("drsize")); //valueFun
 

@@ -71,8 +71,8 @@ public:
 
   static bool updateGPIO(JsonObject var, unsigned8 rowNr, unsigned8 funType);
 
-private:
   static bool pinsChanged; //update pins table if pins changed
+private:
 };
 
 static SysModPins *pins;

@@ -10,7 +10,6 @@
 let d = document;
 let ws = null;
 
-let mdlColumnNr = 0;
 let nrOfMdlColumns = 4;
 let jsonValues = {};
 let uiFunCommands = [];
@@ -177,8 +176,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
 
     //if root (type module) add the html to one of the mdlColumns
     if (parentNode == null) {
-      parentNode = gId("mdlColumn" + mdlColumnNr);
-      mdlColumnNr = (mdlColumnNr +1)%nrOfMdlColumns; //distribute over columns (tbd: configure)
+      parentNode = gId("mdlColumn" + variable.o%nrOfMdlColumns);
     }
     let parentNodeType = parentNode.nodeName.toLocaleLowerCase();
 
@@ -879,11 +877,17 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
     else if (node.className == "canvas")
       console.log("not called anymore");
     else if (node.className == "checkbox") {
-      node.querySelector("input").checked = commandJson.value;
-      node.querySelector("input").indeterminate = (commandJson.value == null); //set the false if it has a non null value
+      let value = commandJson.value;
+      if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX)
+        value = commandJson.value[rowNr];
+      node.querySelector("input").checked = value;
+      node.querySelector("input").indeterminate = (value == null); //set the false if it has a non null value
     }
     else if (node.className == "button") {
-      if (commandJson.value) node.value = commandJson.value; //else the id / label is used as button label
+      let value = commandJson.value;
+      if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX)
+        value = commandJson.value[rowNr];
+      if (value) node.value = value; //else the id / label is used as button label
     }
     else if (node.className == "coord3D") {
       // console.log("chHTML value coord3D", node, commandJson.value, rowNr);
@@ -1440,9 +1444,9 @@ function changeHTMLView(value) {
     }
   }
 
-  if (value=="vApp")
-    mdlContainerNode.className = "mdlContainer2";
-  else
+  // if (value=="vApp")
+  //   mdlContainerNode.className = "mdlContainer2";
+  // else
     mdlContainerNode.className = "mdlContainer" + columnCounter; //1..4
 
   setInstanceTableColumns();

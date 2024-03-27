@@ -1,6 +1,6 @@
 [
   {
-    "id": "AI",
+    "id": "WorkFlow",
     "type": "appmod",
     "ro": true,
     "o": 6100,
@@ -13,14 +13,14 @@
         "o": 1,
         "n": [
           {
-            "id": "aiIntel",
+            "id": "wfAction",
             "type": "text",
             "ro": true,
             "o": 2,
             "max": 32
           },
           {
-            "id": "aiButton",
+            "id": "wfButton",
             "type": "button",
             "ro": false,
             "o": 3

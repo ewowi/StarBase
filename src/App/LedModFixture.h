@@ -28,6 +28,11 @@ public:
         return true;
       case f_ChangeFun:
         ui->callVarFun("bri", UINT8_MAX, f_ChangeFun); //set FastLed brightness
+
+        //WIP!!!
+        wf->addAction("Define fixture", "FixtureGen");
+        wf->addAction("Save model", "Model");
+
         return true;
       default: return false;
     }});

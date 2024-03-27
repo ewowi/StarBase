@@ -54,7 +54,7 @@ SysModPrint::SysModPrint() :SysModule("Print") {
 void SysModPrint::setup() {
   SysModule::setup();
 
-  parentVar = ui->initSysMod(parentVar, name, 2300);
+  parentVar = ui->initSysMod(parentVar, name, 2302);
 
   ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

@@ -1,7 +1,7 @@
 # StarMod
 
 Headstart for building ESP32 applications: printing, file management, persistent data, Wifi, Web, UI and system management works out of the box.
-StarMod will integrate with major iot/network devices and applications (Work in progress).
+StarMod will integrate with major IOT/network devices and applications.
 
 Everything is a module.
 
@@ -16,19 +16,21 @@ System modules:
 * System: Show and manage ESP32 system
 
 User Modules
+
 * E131/DMX support
 * Home Assistant (planned)
-* WLED (planned)
+* LEDs
 * ...
 
 Build apps on top of this
+
 * Led apps
 * IO control apps
 * IOT apps 
 * Any app
 
 By [MoonModules](https://github.com/MoonModules)
-Inspired by [WLED](https://github.com/MoonModules/WLED)
+LED module inspired by [WLED MM](https://github.com/MoonModules/WLED)
 
 Disclaimer:
 

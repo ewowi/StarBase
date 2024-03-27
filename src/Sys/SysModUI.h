@@ -67,6 +67,7 @@ public:
   void loop();
   void loop1s();
 
+  //order: order%4 determines the column (WIP)
   JsonObject initAppMod(JsonObject parent, const char * id, int order = 0) {
     JsonObject var = initVarAndUpdate<const char *>(parent, id, "appmod", (const char *)nullptr);
     if (order) mdl->varSetDefaultOrder(var, order + 1000);

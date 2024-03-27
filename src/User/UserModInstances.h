@@ -195,7 +195,7 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initSysMod(parentVar, name, 4200);
+    parentVar = ui->initSysMod(parentVar, name, 3000);
 
     JsonObject tableVar = ui->initTable(parentVar, "insTbl", nullptr, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {

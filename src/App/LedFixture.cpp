@@ -356,6 +356,7 @@ void Fixture::projectAndMap() {
               //tbd: more check
 
               strncpy(pins->pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
+              pins->pinsChanged = true;
             }
           }
           else {//allocate new pin

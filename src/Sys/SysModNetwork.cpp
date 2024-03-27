@@ -15,7 +15,7 @@
 #include "SysModWeb.h"
 #include "SysModUI.h"
 #include "SysModModel.h"
-#include "SysModAI.h"
+#include "SysModWorkFlow.h"
 
 SysModNetwork::SysModNetwork() :SysModule("Network") {};
 
@@ -23,7 +23,7 @@ SysModNetwork::SysModNetwork() :SysModule("Network") {};
 void SysModNetwork::setup() {
   SysModule::setup();
 
-  parentVar = ui->initSysMod(parentVar, name, 2500);
+  parentVar = ui->initSysMod(parentVar, name, 3502);
 
   // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { //varFun ro false: create and delete row possible
   //   ui->setLabel(var, "Wifi");
@@ -68,7 +68,7 @@ void SysModNetwork::setup() {
     default: return false;
   }});
 
-  // ai->addIntelligence("Enter credentials", "Network");
+  // wf->addAction("Enter credentials", "Network");
 }
 
 void SysModNetwork::loop() {

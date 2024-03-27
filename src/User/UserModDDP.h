@@ -45,7 +45,7 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initUserMod(parentVar, name, 3000);
+    parentVar = ui->initUserMod(parentVar, name, 6000);
 
     ui->initIP(parentVar, "ddpInst", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     

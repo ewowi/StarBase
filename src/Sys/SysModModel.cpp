@@ -38,7 +38,7 @@ SysModModel::SysModModel() :SysModule("Model") {
 void SysModModel::setup() {
   SysModule::setup();
 
-  parentVar = ui->initSysMod(parentVar, name, 4000);
+  parentVar = ui->initSysMod(parentVar, name, 4303);
 
   ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -96,6 +96,7 @@ void SysModModel::setup() {
     StarModJson starModJson("/model.json", "w"); //open fileName for deserialize
     starModJson.addExclusion("fun");
     starModJson.addExclusion("dash");
+    starModJson.addExclusion("o");
     starModJson.writeJsonDocToFile(model);
 
     // print->printJson("Write model", *model); //this shows the model before exclusion

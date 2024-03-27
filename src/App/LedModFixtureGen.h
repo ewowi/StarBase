@@ -445,7 +445,7 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initUserMod(parentVar, name, 1300); //created as a usermod, not an appmod to have it in the usermods tab
+    parentVar = ui->initUserMod(parentVar, name, 6302); //created as a usermod, not an appmod to have it in the usermods tab
 
     ui->initSelect(parentVar, "fixtureGen", 0, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {

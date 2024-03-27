@@ -27,6 +27,7 @@
 #include "Sys/SysModModel.h"
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
+#include "Sys/SysModWorkFlow.h" // before modules using it
 #include "User/UserModInstances.h"
 #include "User/UserModMDNS.h"
 #ifdef STARMOD_APPMOD_LEDS
@@ -49,7 +50,6 @@
 #ifdef STARMOD_USERMOD_WLEDAUDIO
   #include "User/UserModWLEDAudio.h"
 #endif
-#include "Sys/SysModAI.h"
 
 //setup all modules
 void setup() {
@@ -58,7 +58,7 @@ void setup() {
 
   mdls = new SysModules();
   
-  ai = new SysModAI();
+  wf = new SysModWorkFlow();
   print = new SysModPrint();
   files = new SysModFiles();
   mdl = new SysModModel();
@@ -90,9 +90,10 @@ void setup() {
     wledAudioMod = new UserModWLEDAudio();
   #endif
 
-  //Reorder with care! If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
+  //Reorder with care! this is the order in which setup and loop is executed
+  //If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
   //Default: add below, not in between
-  mdls->add(ai);
+  mdls->add(wf);
   #ifdef STARMOD_APPMOD_LEDS
     mdls->add(fix);
     mdls->add(eff);

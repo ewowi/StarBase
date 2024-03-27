@@ -34,7 +34,7 @@ SysModPins::SysModPins() :SysModule("Pins") {
 
 void SysModPins::setup() {
   SysModule::setup();
-  parentVar = ui->initSysMod(parentVar, name, 2200);
+  parentVar = ui->initSysMod(parentVar, name, 2202);
 
   //show table of allocated pins
   JsonObject tableVar = ui->initTable(parentVar, "pinTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
@@ -69,6 +69,7 @@ void SysModPins::setup() {
   ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
       for (forUnsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+        USER_PRINTF("pinDetails[%d] d1:%s d2:%s\n", rowNr, getNthAllocatedPinObject(rowNr).details, pinObjects[0].details);
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
       return true;
     case f_UIFun:

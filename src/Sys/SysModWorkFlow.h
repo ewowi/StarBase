@@ -11,6 +11,9 @@
 
 #pragma once
 
+#include "SysModModel.h"
+#include "SysModUI.h"
+
 struct Action {
   char description[32];
   char module[32];
@@ -20,9 +23,8 @@ class SysModWorkFlow: public SysModule {
 
 public:
 
-  std::vector<Action> actions;
-
   bool rebuildTable = false;
+  std::vector<Action> actions;
 
   SysModWorkFlow() :SysModule("Workflow") {
   };
@@ -51,7 +53,7 @@ public:
       default: return false;
     }});
 
-    ui->initButton(tableVar, "wfButton", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initButton(tableVar, "wfButton", true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
         for (forUnsigned8 rowNr = 0; rowNr < actions.size(); rowNr++)
           mdl->setValue(var, JsonString(actions[rowNr].module, JsonString::Copied), rowNr);
@@ -67,25 +69,24 @@ public:
       default: return false;
     }});
 
-    addAction("Hello","World");
-    addAction("Create fixture","Fixture Generator");
+    // addAction("Hello","World");
+    // addAction("Create fixture","Fixture Generator");
   }
 
   void loop() {
     // SysModule::loop();
     if (rebuildTable) {
       rebuildTable = false;
-    for (JsonObject childVar: mdl->varChildren("wfTbl"))
-      ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
-
+      for (JsonObject childVar: mdl->varChildren("wfTbl"))
+        ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
     }
   } //loop
 
   void addAction(const char *description, const char *module) {
     Action action;
-    strncpy(action.description, description, 32-1);
-    strncpy(action.module, module, 32-1);
-    USER_PRINTF("addAction %s %s\n", description, module);
+    strcpy(action.description, description);
+    strcpy(action.module, module);
+    USER_PRINTF("addAction %s %s %d\n", description, module, actions.size());
     actions.push_back(action);
 
     rebuildTable = true;
@@ -97,4 +98,4 @@ public:
 
 };
 
-static SysModWorkFlow *wf;
+extern SysModWorkFlow *wfl;

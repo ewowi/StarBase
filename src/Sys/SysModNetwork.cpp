@@ -30,11 +30,14 @@ void SysModNetwork::setup() {
   //   ui->setComment(var, "List of defined and available Wifi APs");
   // });
 
-  ui->initText(parentVar, "ssid", "", 32, false);
-  // , nullptr
-  // , nullptr, nullptr, 1, [this](JsonObject var, unsigned8 rowNr) { //valueFun
-  //   var["value"][0] = "";
-  // });
+  ui->initText(parentVar, "ssid", "", 32, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    case f_ChangeFun:
+      USER_PRINTF("ssid wfl %u\n", wfl);
+      if (wfl)
+        wfl->addAction("Enter ssid", "Network");
+      return true;
+    default: return false;
+  }});
 
   ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -67,8 +70,6 @@ void SysModNetwork::setup() {
       return true;
     default: return false;
   }});
-
-  // wf->addAction("Enter credentials", "Network");
 }
 
 void SysModNetwork::loop() {
@@ -113,7 +114,7 @@ void SysModNetwork::handleConnection() {
 
     interfacesInited = true;
 
-    SysModules::newConnection = true; // send all modules connect notification
+    mdls->newConnection = true; // send all modules connect notification
 
     // shut down AP
     if (apActive) { //apBehavior != AP_BEHAVIOR_ALWAYS
@@ -170,6 +171,6 @@ void SysModNetwork::initAP() {
     dnsServer.start(53, "*", WiFi.softAPIP());
     apActive = true;
 
-    SysModules::newConnection = true; // send all modules connect notification
+    mdls->newConnection = true; // send all modules connect notification
   }
 }

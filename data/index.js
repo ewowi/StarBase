@@ -981,9 +981,9 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
         node.dispatchEvent(new Event("input")); // triggers addEventListener('input',...). now only used for input type range (slider), needed e.g. for qlc+ input
       }
 
-      //'hack' show the serverName on top of the page
-      if (variable.id == "serverName") {
-        gId("instanceName").innerText = commandJson.value;
+      //'hack' show the instanceName on top of the page
+      if (variable.id == "instanceName") {
+        gId("serverName").innerText = commandJson.value;
         document.title = commandJson.value;
       }
     }

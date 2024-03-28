@@ -30,25 +30,45 @@
 #include "Sys/SysModWorkFlow.h" // before modules using it
 #include "User/UserModInstances.h"
 #include "User/UserModMDNS.h"
+SysModules *mdls;
+SysModPrint *print;
+SysModWeb *web;
+SysModUI *ui;
+SysModSystem *sys;
+SysModFiles *files;
+SysModModel *mdl;
+SysModNetwork *net;
+SysModPins *pins;
+SysModWorkFlow *wfl;
+UserModInstances *instances;
+UserModMDNS *mdns;
 #ifdef STARMOD_APPMOD_LEDS
   #include "App/LedModEffects.h"
   #include "App/LedModFixture.h"
   #include "App/LedModFixtureGen.h"
+  LedModFixture *fix;
+  LedModFixtureGen *lfg;
+  LedModEffects *eff;
   #ifdef STARMOD_USERMOD_ARTNET
     #include "User/UserModArtNet.h"
+    UserModArtNet *artnetmod;
   #endif
   #ifdef STARMOD_USERMOD_DDP
     #include "User/UserModDDP.h"
+    UserModDDP *ddpmod;
   #endif
 #endif
 #ifdef STARMOD_USERMOD_E131
   #include "User/UserModE131.h"
+  UserModE131 *e131mod;
 #endif
 #ifdef STARMOD_USERMOD_HA
   #include "User/UserModHA.h"
+  UserModHA *hamod;
 #endif
 #ifdef STARMOD_USERMOD_WLEDAUDIO
   #include "User/UserModWLEDAudio.h"
+  UserModWLEDAudio *wledAudioMod;
 #endif
 
 //setup all modules
@@ -58,7 +78,6 @@ void setup() {
 
   mdls = new SysModules();
   
-  wf = new SysModWorkFlow();
   print = new SysModPrint();
   files = new SysModFiles();
   mdl = new SysModModel();
@@ -67,6 +86,7 @@ void setup() {
   ui = new SysModUI();
   sys = new SysModSystem();
   pins = new SysModPins();
+  wfl = new SysModWorkFlow();
   instances = new UserModInstances();
   mdns = new UserModMDNS();
   #ifdef STARMOD_APPMOD_LEDS
@@ -93,7 +113,7 @@ void setup() {
   //Reorder with care! this is the order in which setup and loop is executed
   //If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
   //Default: add below, not in between
-  mdls->add(wf);
+  mdls->add(wfl);
   #ifdef STARMOD_APPMOD_LEDS
     mdls->add(fix);
     mdls->add(eff);

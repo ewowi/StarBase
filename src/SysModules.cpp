@@ -15,9 +15,6 @@
 #include "Sys/SysModWeb.h"
 #include "Sys/SysModModel.h"
 
-bool SysModules::newConnection = false;
-bool SysModules::isConnected = false;
-
 SysModules::SysModules() {
 };
 

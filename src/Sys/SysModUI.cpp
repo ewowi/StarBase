@@ -13,11 +13,6 @@
 #include "SysModWeb.h"
 #include "SysModModel.h"
 
-//init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-std::vector<VarFun> SysModUI::varFunctions;
-std::vector<VarLoop> SysModUI::loopFunctions;
-bool SysModUI::dashVarChanged = false;
-
 SysModUI::SysModUI() :SysModule("UI") {
 };
 
@@ -35,7 +30,7 @@ void SysModUI::setup() {
     default: return false;
   }});
 
-  initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  initText(tableVar, "vlVar", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
       for (forUnsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
         mdl->setValue(var, JsonString(loopFunctions[rowNr].var["id"], JsonString::Copied), rowNr);
@@ -46,7 +41,7 @@ void SysModUI::setup() {
     default: return false;
   }});
 
-  initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
       for (forUnsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
         mdl->setValue(var, loopFunctions[rowNr].counter, rowNr);

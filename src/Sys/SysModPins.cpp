@@ -14,9 +14,6 @@
 #include "SysModUI.h"
 #include "SysModWeb.h"
 
-PinObject SysModPins::pinObjects[NUM_DIGITAL_PINS];
-bool SysModPins::pinsChanged = false;
-
 SysModPins::SysModPins() :SysModule("Pins") {
 #if CONFIG_IDF_TARGET_ESP32
   // softhack007: configuring these pins on S3/C3/S2 may cause major problems (crashes included)

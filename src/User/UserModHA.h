@@ -21,21 +21,21 @@ public:
     isEnabled = false;
   };
 
-  static void onStateCommand(bool state, HALight* sender) {
+  void onStateCommand(bool state, HALight* sender) {
       Serial.print("State: ");
       Serial.println(state);
 
       sender->setState(state); // report state back to the Home Assistant
   }
 
-  static void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
+  void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
       Serial.print("Brightness: ");
       Serial.println(brightness);
 
       sender->setBrightness(brightness); // report brightness back to the Home Assistant
   }
 
-  static void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
+  void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
       Serial.print("Red: ");
       Serial.println(color.red);
       Serial.print("Green: ");
@@ -47,7 +47,7 @@ public:
   }
 
   void connectedChanged() {
-    if (SysModules::isConnected) {
+    if (mdls->isConnected) {
       // set device's details (optional)
       device.setName("StarMod");
       device.setSoftwareVersion("0.0.1");
@@ -86,4 +86,4 @@ public:
     HALight* light = new HALight("starmod", HALight::BrightnessFeature | HALight::RGBFeature);
 };
 
-static UserModHA *hamod;
+extern UserModHA *hamod;

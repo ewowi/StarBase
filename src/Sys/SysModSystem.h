@@ -34,4 +34,4 @@ private:
 
 };
 
-static SysModSystem *sys;
+extern SysModSystem *sys;

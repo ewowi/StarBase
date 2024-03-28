@@ -30,8 +30,10 @@ public:
         ui->callVarFun("bri", UINT8_MAX, f_ChangeFun); //set FastLed brightness
 
         //WIP!!!
-        wf->addAction("Define fixture", "FixtureGen");
-        wf->addAction("Save model", "Model");
+        USER_PRINTF("on wfl %u\n", wfl);
+        if (!var["value"].as<bool>() && wfl) {
+          wfl->addAction("Set on", "Fixture");
+        }
 
         return true;
       default: return false;
@@ -46,7 +48,7 @@ public:
       case f_ChangeFun: {
         stackUnsigned8 bri = var["value"];
 
-        stackUnsigned8 result = mdl->getValue("on").as<bool>()?linearToLogarithm(var, bri):0;
+        stackUnsigned8 result = mdl->getValue("on").as<bool>()?mdl->varLinearToLogarithm(var, bri):0;
 
         FastLED.setBrightness(result);
 
@@ -208,4 +210,4 @@ public:
   }
 };
 
-static LedModFixture *fix;
+extern LedModFixture *fix;

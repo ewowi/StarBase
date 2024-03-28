@@ -42,4 +42,4 @@ private:
   bool setupsDone = false;
 };
 
-static SysModPrint *print;
+extern SysModPrint *print;

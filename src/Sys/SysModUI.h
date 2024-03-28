@@ -27,8 +27,6 @@ enum FunIDs
 
 // https://stackoverflow.com/questions/59111610/how-do-you-declare-a-lambda-function-using-typedef-and-then-use-it-by-passing-to
 typedef std::function<unsigned8(JsonObject, unsigned8, unsigned8)> VarFun;
-// typedef void(*LoopFun)(JsonObject, unsigned8*); //std::function is crashing...
-// typedef std::function<void(JsonObject, unsigned8)> LoopFun;
 
 struct VarLoop {
   JsonObject var;
@@ -37,27 +35,11 @@ struct VarLoop {
   unsigned long counter = 0;
 };
 
-static unsigned8 linearToLogarithm(JsonObject var, unsigned8 value) {
-  if (value == 0) return 0;
-
-  float minp = var["min"].isNull()?var["min"]:0;
-  float maxp = var["max"].isNull()?var["max"]:255;
-
-  // The result should be between 100 an 10000000
-  float minv = minp?log(minp):0;
-  float maxv = log(maxp);
-
-  // calculate adjustment factor
-  float scale = (maxv-minv) / (maxp-minp);
-
-  return round(exp(minv + scale*((float)value-minp)));
-}
-
-class SysModUI:public SysModule {
+class SysModUI: public SysModule {
 
 public:
-  static bool dashVarChanged;// = false; //tbd: move mechanism to UserModInstances as there it will be used
-  static std::vector<VarFun> varFunctions; //static because of static functions callChangeFun, processJson...
+  bool dashVarChanged = false; //tbd: move mechanism to UserModInstances as there it will be used
+  std::vector<VarFun> varFunctions;
 
   SysModUI();
 
@@ -257,7 +239,7 @@ public:
   }
 
   //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
-  void processJson(JsonVariant json); //static for jsonHandler, must be Variant, not object for jsonhandler
+  void processJson(JsonVariant json); //must be Variant, not object for jsonhandler
 
   //called to rebuild selects and tables (tbd: also label and comments is done again, that is not needed)
   // void processUiFun(const char * id);
@@ -281,8 +263,8 @@ public:
   }
 
 private:
-  static std::vector<VarLoop> loopFunctions; //non static crashing ...
+  std::vector<VarLoop> loopFunctions;
 
 };
 
-static SysModUI *ui;
+extern SysModUI *ui;

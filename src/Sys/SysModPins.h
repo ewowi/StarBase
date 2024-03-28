@@ -22,7 +22,7 @@ class SysModPins:public SysModule {
 
 public:
 
-  static PinObject pinObjects[NUM_DIGITAL_PINS]; //all pins
+  PinObject pinObjects[NUM_DIGITAL_PINS]; //all pins
 
   SysModPins();
   void setup();
@@ -71,8 +71,7 @@ public:
 
   static bool updateGPIO(JsonObject var, unsigned8 rowNr, unsigned8 funType);
 
-  static bool pinsChanged; //update pins table if pins changed
-private:
+  bool pinsChanged = false; //update pins table if pins changed
 };
 
-static SysModPins *pins;
+extern SysModPins *pins;

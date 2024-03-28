@@ -47,7 +47,7 @@ public:
   }
 
   void onOffChanged() {
-    if (SysModules::isConnected && isEnabled) {
+    if (mdls->isConnected && isEnabled) {
       sync.begin();
     } else {
       // sync.end();???
@@ -60,7 +60,7 @@ public:
 
   void loop() {
     // SysModule::loop();
-    if (SysModules::isConnected && sync.read()) {
+    if (mdls->isConnected && sync.read()) {
       lastData = millis();
       if(debug) USER_PRINTF("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
@@ -103,13 +103,13 @@ public:
 
     void simulateSound(uint8_t simulationId)
     {
-      static uint8_t samplePeak;
-      static float   FFT_MajorPeak;
-      static uint8_t maxVol;
-      static uint8_t binNum;
+      uint8_t samplePeak;
+      float   FFT_MajorPeak;
+      uint8_t maxVol;
+      uint8_t binNum;
 
-      static uint16_t volumeRaw;
-      static float    my_magnitude;
+      uint16_t volumeRaw;
+      float    my_magnitude;
 
       uint32_t ms = millis();
 
@@ -168,4 +168,4 @@ public:
 
 };
 
-static UserModWLEDAudio *wledAudioMod;
+extern UserModWLEDAudio *wledAudioMod;

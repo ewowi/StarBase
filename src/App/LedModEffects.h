@@ -94,8 +94,7 @@ public:
           strcat(buf, effect->tags());
           options.add(JsonString(buf, JsonString::Copied)); //copy!
         }
-        return true;
-      }
+        return true; }
       case f_ChangeFun:
 
         if (rowNr == UINT8_MAX) rowNr = 0; // in case fx without a rowNr
@@ -107,6 +106,10 @@ public:
         }
         if (rowNr < fixture.projections.size())
           effects.setEffect(*fixture.projections[rowNr], var, rowNr);
+
+        USER_PRINTF("fx wfl %u\n", wfl);
+        if (wfl)
+          wfl->addAction("Choose effect", "Effects");
         return true;
       default: return false;
     }});
@@ -286,7 +289,7 @@ public:
         stackUnsigned8 rowNr = 0;
         for (Leds *leds: fixture.projections) {
           char message[32];
-          print->fFormat(message, sizeof(message)-1, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
+          print->fFormat(message, sizeof(message)-1, "%d x %d x %d -> %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
           USER_PRINTF("valueFun fxSize[%d](of %d) = %s\n", rowNr, fixture.projections.size(), message);
           mdl->setValue(var, JsonString(message, JsonString::Copied), rowNr); //rowNr
           rowNr++;
@@ -671,4 +674,4 @@ private:
 
 };
 
-static LedModEffects *eff;
+extern LedModEffects *eff;

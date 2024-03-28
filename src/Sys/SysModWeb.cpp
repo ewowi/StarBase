@@ -26,12 +26,9 @@
 //https://techtutorialsx.com/2018/08/24/esp32-web-server-serving-html-from-file-system/
 //https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
 
-
 WebServer * SysModWeb::server = nullptr;
 WebSocket * SysModWeb::ws = nullptr;
 
-JsonDocument * SysModWeb::responseDocLoopTask = nullptr;
-JsonDocument * SysModWeb::responseDocAsyncTCP = nullptr;
 bool SysModWeb::clientsChanged = false;
 
 unsigned8 SysModWeb::sendWsCounter = 0;
@@ -75,7 +72,7 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initNumber(tableVar, "clNr", UINT16_MAX, 0, 999, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
       unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, client->id(), rowNr++);
@@ -86,7 +83,7 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initText(tableVar, "clIp", nullptr, 16, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initText(tableVar, "clIp", nullptr, 16, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
       unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr++);
@@ -97,7 +94,7 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initCheckBox(tableVar, "clIsFull", UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
       unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, client->queueIsFull(), rowNr++);
@@ -108,7 +105,7 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initSelect(tableVar, "clStatus", UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
       unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, client->status(), rowNr++);
@@ -126,7 +123,7 @@ void SysModWeb::setup() {
     default: return false;
   }});
 
-  ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initNumber(tableVar, "clLength", UINT16_MAX, 0, WS_MAX_QUEUED_MESSAGES, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun: {
       unsigned8 rowNr = 0; for (auto client:ws->getClients())
         mdl->setValue(var, client->queueLength(), rowNr++);
@@ -215,7 +212,7 @@ void SysModWeb::loop1s() {
 }
 
 void SysModWeb::reboot() {
-  USER_PRINTF("SysModWeb reboot\n"); //and this not causes crash ??? whats with name?
+  USER_PRINTF("SysModWeb reboot\n");
   ws->closeAll(1012);
 }
 
@@ -249,7 +246,7 @@ void SysModWeb::connectedChanged() {
     server->on("/upload", HTTP_POST, [](WebRequest *request) {}, serveUpload);
 
     // USER_PRINTF("%s server (re)started\n", name); //causes crash for some reason...
-    USER_PRINTF("server (re)started\n"); //and this not causes crash ??? whats with name?
+    USER_PRINTF("server (re)started\n");
   }
   //else remove handlers...
 }
@@ -448,7 +445,7 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
             }
           }
           else {
-            printClient("sendDataWs client full or not connected", loopClient); //causes crash
+            printClient("sendDataWs client full or not connected", loopClient);
             // USER_PRINTF("sendDataWs client full or not connected\n");
             ws->cleanupClients(); //only if above threshold
             ws->_cleanBuffers();
@@ -550,9 +547,9 @@ void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t 
     web->sendResponseObject(); //otherwise not send in asyn_tcp thread
 
     char message[64];
-    const char * serverName = mdl->getValue("serverName");
+    const char * instanceName = mdl->getValue("instanceName");
 
-    print->fFormat(message, sizeof(message)-1, "Update of %s (...%d) %s", serverName, WiFi.localIP()[3], success?"Successful":"Failed");
+    print->fFormat(message, sizeof(message)-1, "Update of %s (...%d) %s", instanceName, WiFi.localIP()[3], success?"Successful":"Failed");
 
     USER_PRINTF("%s\n", message);
     request->send(200, "text/plain", message);
@@ -666,7 +663,7 @@ void SysModWeb::serveJson(WebRequest *request) {
 
     root["state"]["bri"] = mdl->getValue("bri");
     root["state"]["on"] = mdl->getValue("on").as<bool>();
-    root["info"]["name"] = mdl->getValue("serverName");
+    root["info"]["name"] = mdl->getValue("instanceName");
     root["info"]["arch"] = "esp32"; //platformName
 
     root["info"]["rel"] = "StarMod";

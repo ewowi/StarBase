@@ -26,11 +26,11 @@ public:
   }
 
   void onOffChanged() {
-    if (SysModules::isConnected && isEnabled) {
+    if (mdls->isConnected && isEnabled) {
     } else {
     }
   }
 
 };
 
-static UserModExample *example;
+extern UserModExample *example;

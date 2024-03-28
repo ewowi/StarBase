@@ -175,17 +175,15 @@ class SysModModel:public SysModule {
 
 public:
 
-  // StaticJsonDocument<24576> model; //not static as that blows up the stack. Use extern??
-  // static JsonDocument<DefaultAllocator> *model; //needs to be static as loopTask and asyncTask is using it...
   RAM_Allocator allocator;
-  static JsonDocument *model; //needs to be static as loopTask and asyncTask is using it...
+  JsonDocument *model = nullptr;
 
-  static JsonObject modelParentVar;
+  JsonObject modelParentVar;
 
   bool doWriteModel = false;
 
-  static unsigned8 setValueRowNr;
-  static unsigned8 getValueRowNr;
+  unsigned8 setValueRowNr = UINT8_MAX;
+  unsigned8 getValueRowNr = UINT8_MAX;
 
   SysModModel();
   void setup();
@@ -320,14 +318,14 @@ public:
   }
 
   //returns the var defined by id (parent to recursively call findVar)
-  static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
+  JsonObject findVar(const char * id, JsonArray parent = JsonArray());
   void findVars(const char * id, bool value, FindFun fun, JsonArray parent = JsonArray());
 
   //recursively add values in  a variant
   void varToValues(JsonObject var, JsonArray values);
 
   //run the change function and send response to all? websocket clients
-  static void callChangeFun(JsonObject var, unsigned8 rowNr = UINT8_MAX);
+  void callChangeFun(JsonObject var, unsigned8 rowNr = UINT8_MAX);
 
   //pseudo VarObject: public JsonObject functions
   const char * varID(JsonObject var) {return var["id"];}
@@ -428,11 +426,28 @@ public:
     web->addResponse("details", "var", var);
   }
 
+  unsigned8 varLinearToLogarithm(JsonObject var, unsigned8 value) {
+    if (value == 0) return 0;
+
+    float minp = var["min"].isNull()?var["min"]:0;
+    float maxp = var["max"].isNull()?var["max"]:255;
+
+    // The result should be between 100 an 10000000
+    float minv = minp?log(minp):0;
+    float maxv = log(maxp);
+
+    // calculate adjustment factor
+    float scale = (maxv-minv) / (maxp-minp);
+
+    return round(exp(minv + scale*((float)value-minp)));
+  }
+
+
 private:
   bool doShowObsolete = false;
   bool cleanUpModelDone = false;
-  static int varCounter; //not static crashes ??? (not called async...?)
+  int varCounter = 1; //start with 1 so it can be negative, see var["o"]
 
 };
 
-static SysModModel *mdl;
+extern SysModModel *mdl;

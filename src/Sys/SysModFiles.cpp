@@ -18,8 +18,6 @@
 
 // #include <FS.h>
 
-bool SysModFiles::filesChanged = true; //init fileTbl
-
 SysModFiles::SysModFiles() :SysModule("Files") {
   if (!LittleFS.begin(true)) { //true: formatOnFail
     USER_PRINTF(" An Error has occurred while mounting File system");
@@ -134,8 +132,11 @@ void SysModFiles::loop() {
     }
     root.close();
 
-    // wf->addAction("Define fixture", "FixtureGen");
-    // wf->addAction("Save model", "Model");
+    USER_PRINTF("filesChanged wfl %u, %u, %u\n", wfl, ui, web);
+    if (wfl) {
+      wfl->addAction("Define fixture", "FixtureGen"); // if no F_*.json found
+      wfl->addAction("Save model", "Model"); // if model.json not found
+    }
 
     ui->callVarFun(mdl->findVar("drsize")); //valueFun
 

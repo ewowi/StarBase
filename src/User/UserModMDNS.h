@@ -37,7 +37,7 @@ public:
   }
 
   void onOffChanged() {
-    if (SysModules::isConnected && isEnabled) {
+    if (mdls->isConnected && isEnabled) {
 
       // print->fFormat(cmDNS, sizeof(cmDNS)-1, "wled-%*s", WiFi.macAddress().c_str() + 6);
 
@@ -55,4 +55,4 @@ public:
 
 };
 
-static UserModMDNS *mdns;
+extern UserModMDNS *mdns;

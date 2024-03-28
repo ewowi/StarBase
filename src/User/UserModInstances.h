@@ -392,7 +392,7 @@ public:
   }
 
   void onOffChanged() {
-    if (SysModules::isConnected && isEnabled) {
+    if (mdls->isConnected && isEnabled) {
       udpConnected = notifierUdp.begin(notifierUDPPort); //sync
       udp2Connected = instanceUDP.begin(instanceUDPPort); //instances
     } else {
@@ -424,7 +424,7 @@ public:
 
   void handleNotifications()
   {
-    if(!SysModules::isConnected) return;
+    if(!mdls->isConnected) return;
 
     // instanceUDP.flush(); //tbd: test if needed
 
@@ -541,7 +541,7 @@ public:
 
   void sendSysInfoUDP()
   {
-    if(!SysModules::isConnected) return;
+    if(!mdls->isConnected) return;
     if (!udp2Connected) return;
 
     IPAddress localIP = WiFi.localIP();
@@ -554,8 +554,8 @@ public:
     starModMessage.header.ip1 = localIP[1];
     starModMessage.header.ip2 = localIP[2];
     starModMessage.header.ip3 = localIP[3];
-    const char * serverName = mdl->getValue("serverName");
-    strncpy(starModMessage.header.name, serverName?serverName:"StarMod", sizeof(starModMessage.header.name)-1);
+    const char * instanceName = mdl->getValue("instanceName");
+    strncpy(starModMessage.header.name, instanceName?instanceName:"StarMod", sizeof(starModMessage.header.name)-1);
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
     starModMessage.header.insId = localIP[3]; //WLED: used in map of instances as index!
     starModMessage.header.version = atoi(sys->version);
@@ -763,4 +763,4 @@ public:
 
 };
 
-static UserModInstances *instances;
+extern UserModInstances *instances;

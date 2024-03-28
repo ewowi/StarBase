@@ -37,18 +37,18 @@
 class SysModWeb:public SysModule {
 
 public:
-  static WebSocket *ws;
-  static SemaphoreHandle_t wsMutex;
+  static WebSocket *ws;// = nullptr;
+  static SemaphoreHandle_t wsMutex;// = xSemaphoreCreateMutex();
 
-  static unsigned8 sendWsCounter;
-  static unsigned16 sendWsTBytes;
-  static unsigned16 sendWsBBytes;
-  static unsigned8 recvWsCounter;
-  static unsigned16 recvWsBytes;
-  static unsigned8 sendUDPCounter;
-  static unsigned16 sendUDPBytes;
-  static unsigned8 recvUDPCounter;
-  static unsigned16 recvUDPBytes;
+  static unsigned8 sendWsCounter;// = 0;
+  static unsigned16 sendWsTBytes;// = 0;
+  static unsigned16 sendWsBBytes;// = 0;
+  static unsigned8 recvWsCounter;// = 0;
+  static unsigned16 recvWsBytes;// = 0;
+  static unsigned8 sendUDPCounter;// = 0;
+  static unsigned16 sendUDPBytes;// = 0;
+  static unsigned8 recvUDPCounter;// = 0;
+  static unsigned16 recvUDPBytes;// = 0;
 
   SysModWeb();
 
@@ -166,13 +166,13 @@ public:
 private:
   bool modelUpdated = false;
 
-  static bool clientsChanged;
+  static bool clientsChanged;// = false;;
 
-  static WebServer *server;
+  static WebServer *server;// = nullptr;
 
-  static JsonDocument *responseDocLoopTask;
-  static JsonDocument *responseDocAsyncTCP;
+  JsonDocument *responseDocLoopTask = nullptr;
+  JsonDocument *responseDocAsyncTCP = nullptr;
 
 };
 
-static SysModWeb *web;
+extern SysModWeb *web;

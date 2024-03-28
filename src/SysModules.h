@@ -14,8 +14,8 @@
 
 class SysModules {
 public:
-  static bool newConnection;// = false; //need to be static otherwise crash
-  static bool isConnected;// = false; //need to be static otherwise crash
+  bool newConnection = false;
+  bool isConnected = false;
 
   SysModules();
 
@@ -35,4 +35,4 @@ private:
   // unsigned long tenSecondMillis = millis() - 4500;
 };
 
-static SysModules *mdls;
+extern SysModules *mdls;

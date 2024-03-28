@@ -24,7 +24,7 @@ class SysModFiles: public SysModule {
 public:
 
   std::vector<FileDetails> fileList;
-  static bool filesChanged;
+  bool filesChanged = true; //init fileTbl;
 
   SysModFiles();
   void setup();
@@ -61,4 +61,4 @@ public:
 
 };
 
-static SysModFiles *files;
+extern SysModFiles *files;

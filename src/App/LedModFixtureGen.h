@@ -1062,4 +1062,4 @@ public:
 
 };
 
-static LedModFixtureGen *lfg;
+extern LedModFixtureGen *lfg;

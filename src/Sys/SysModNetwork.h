@@ -46,4 +46,4 @@ private:
   bool forceReconnect = false;
 };
   
-static SysModNetwork *net;
+extern SysModNetwork *net;

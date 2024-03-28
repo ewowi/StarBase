@@ -15,6 +15,7 @@
 #include "SysModWeb.h"
 #include "SysModModel.h"
 #include "esp32Tools.h"
+#include "SysModWorkFlow.h"
 
 // #include <Esp.h>
 #include <rom/rtc.h>
@@ -25,10 +26,15 @@ void SysModSystem::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name, 2000);
 
-  ui->initText(parentVar, "serverName", "StarMod", 32, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "instanceName", "StarMod", 32, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Name");
       ui->setComment(var, "Instance name");
+      return true;
+    case f_ChangeFun:
+      USER_PRINTF("instanceName wfl %u\n", wfl);
+      if (wfl) //var["value"] == "StarMod" &&
+        wfl->addAction("Instance name", "System");
       return true;
     default: return false;
   }});

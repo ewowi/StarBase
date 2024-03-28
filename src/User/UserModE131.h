@@ -33,6 +33,9 @@ public:
         return true;
       case f_ChangeFun:
         universe = var["value"];
+        USER_PRINTF("dun wfl %u\n", wfl);
+        if (wfl)
+          wfl->addAction("DMX universe", "E131");
         return true;
       default: return false;
     }});
@@ -113,7 +116,7 @@ public:
 
   void onOffChanged() {
 
-    if (SysModules::isConnected && isEnabled) {
+    if (mdls->isConnected && isEnabled) {
       USER_PRINTF("UserModE131::connected && enabled\n");
 
       if (e131Created) { // TODO: crashes here - no idea why!
@@ -212,4 +215,4 @@ public:
 
 };
 
-static UserModE131 *e131mod;
+extern UserModE131 *e131mod;

@@ -84,7 +84,7 @@ public:
   void loop() {
     // SysModule::loop();
 
-    if(!SysModules::isConnected) return;
+    if(!mdls->isConnected) return;
 
     if(!targetIp) return;
 
@@ -162,4 +162,4 @@ public:
 
 };
 
-static UserModDDP *ddpmod;
+extern UserModDDP *ddpmod;

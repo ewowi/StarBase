@@ -221,10 +221,16 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       h2Node.innerText = initCap(variable.id);
       hgroupNode.appendChild(h2Node);
 
+      let minusNode = cE("span");
+      minusNode.innerText = "🟡";
+      minusNode.style="float: right;"
+      minusNode.addEventListener('click', (event) => {console.log("minus click", event.target); event.target.parentNode.parentNode.parentNode.hidden = true;});
+      hgroupNode.appendChild(minusNode);
+
       let helpNode = cE("a");
       helpNode.innerText = "ⓘ";
       helpNode.style="float: right;"
-      let initCapVarType = variable.type=="appmod"?appName() + "Mod":variable.type=="usermod"?"UserMod":"SysMod"; 
+      let initCapVarType = variable.id=="Workflow"?"SysMod":variable.type=="appmod"?appName() + "Mod":variable.type=="usermod"?"UserMod":"SysMod"; 
       helpNode.setAttribute('href', "https://ewowi.github.io/StarDocs/" + initCapVarType + "/" + initCapVarType + initCap(variable.id));
       hgroupNode.appendChild(helpNode);
 
@@ -668,7 +674,7 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
 
   if (!node) {
     //we should find all nodes
-    let rowNodes = document.querySelectorAll(`${variable.type}[id^="${variable.id}#"]`); //find nodes from the right class with id + #nr (^: starting with)
+    let rowNodes = document.querySelectorAll(`${variable.type}[id^="${variable.id}#"]`); //find nodes from variable.type class with id + #nr (^: starting with)
     for (let subNode of rowNodes) {
       let rowNr = parseInt(subNode.id.substring(variable.id.length + 1));
       // console.log("changeHTML found row nodes !", variable.id, subNode.id, commandJson, rowNr);
@@ -885,8 +891,14 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
     }
     else if (node.className == "button") {
       let value = commandJson.value;
-      if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX)
+      // console.log("change button", variable, node, value);
+      //show modules which are in workflow table
+      if (variable.id == "wfButton") { //and tab is App
+        if (gId(value+"_d")) gId(value+"_d").hidden = false;
+      }
+      if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX) {
         value = commandJson.value[rowNr];
+      }
       if (value) node.value = value; //else the id / label is used as button label
     }
     else if (node.className == "coord3D") {
@@ -1399,7 +1411,7 @@ function setInstanceTableColumns() {
   if (gId("sma")) gId("sma").parentNode.hidden = isDashView; //hide sync master label field and comment
 }
 
-function changeHTMLView(value) {
+function changeHTMLView(viewName) {
 
   // console.log("changeHTMLView", node, node.value, node.id, mdlContainerNode, mdlContainerNode.childNodes);
   
@@ -1408,7 +1420,7 @@ function changeHTMLView(value) {
   gId("vUser").classList.remove("selected");
   gId("vSys").classList.remove("selected");
   gId("vAll").classList.remove("selected");
-  gId(value).classList.add("selected");
+  gId(viewName).classList.add("selected");
 
   let mdlContainerNode = gId("mdlContainer"); //class mdlContainer
 
@@ -1417,18 +1429,28 @@ function changeHTMLView(value) {
     let mdlFound = false;
     for (let divNode of mdlColumnNode.childNodes) {
       let found = false;
-      if (value == "vAll")
+      if (viewName == "vAll")
         found = true;
       else {
         for (let moduleNode of divNode.childNodes) {
           if (moduleNode.className) {
-            if (value=="vApp" && moduleNode.className == "appmod")
+            if (viewName=="vApp") { //} && moduleNode.className == "appmod")
+              if (moduleNode.id == "Workflow" || moduleNode.id == "Fixture")
+                found = true;
+              else {
+                //loop over workflow
+                let wfNodes = document.querySelectorAll(`[id^="wfButton#"]`); //find nodes from variable.type class with id + #nr (^: starting with)
+                for (node of wfNodes) {
+                  if (node.value == moduleNode.id)
+                    found = true;
+                }
+              }
+            }
+            if (viewName=="vSys" && moduleNode.className == "sysmod")
               found = true;
-            if (value=="vSys" && moduleNode.className == "sysmod")
+            if (viewName=="vUser" && moduleNode.className == "usermod")
               found = true;
-            if (value=="vUser" && moduleNode.className == "usermod")
-              found = true;
-            if (value=="vDash" && moduleNode.id == "Instances")
+            if (viewName=="vDash" && moduleNode.id == "Instances")
               found = true;
           }
           // console.log(mdlColumnNode, moduleNode, moduleNode.className);
@@ -1444,7 +1466,7 @@ function changeHTMLView(value) {
     }
   }
 
-  // if (value=="vApp")
+  // if (viewName=="vApp")
   //   mdlContainerNode.className = "mdlContainer2";
   // else
     mdlContainerNode.className = "mdlContainer" + columnCounter; //1..4
@@ -1454,11 +1476,11 @@ function changeHTMLView(value) {
 } //changeHTMLView
 
 //https://webdesign.tutsplus.com/color-schemes-with-css-variables-and-javascript--cms-36989t
-function changeHTMLTheme(value) {
-  localStorage.setItem('theme', value);
-  document.documentElement.className = value;
-  if (gId("theme-select").value != value)
-    gId("theme-select").value = value;
+function changeHTMLTheme(themeName) {
+  localStorage.setItem('theme', themeName);
+  document.documentElement.className = themeName;
+  if (gId("theme-select").value != themeName)
+    gId("theme-select").value = themeName;
 }
 
 function saveModel(node) {

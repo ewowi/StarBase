@@ -15,7 +15,7 @@ class UserModMDNS:public SysModule {
 
 public:
   String escapedMac;
-  char cmDNS[64] = "";
+  char cmDNS[64] = ""; //not 33?
 
   UserModMDNS() :SysModule("MDNS") {
   };
@@ -28,7 +28,7 @@ public:
     escapedMac.replace(":", "");
     escapedMac.toLowerCase();
 
-    sprintf(cmDNS, PSTR("wled-%*s"), 6, escapedMac.c_str() + 6);
+    sprintf(cmDNS, PSTR("star-%*s"), 6, escapedMac.c_str() + 6);
     // strncpy(cmDNS, "wled-98765", sizeof(cmDNS) -1);
   }
 
@@ -46,8 +46,8 @@ public:
 
       USER_PRINTF("mDNS started %s -> %s -> %s\n", WiFi.macAddress().c_str(), escapedMac.c_str(), cmDNS);
       MDNS.addService("http", "tcp", 80);
-      MDNS.addService("wled", "tcp", 80);
-      MDNS.addServiceTxt("wled", "tcp", "mac", escapedMac.c_str());
+      MDNS.addService("star", "tcp", 80);
+      MDNS.addServiceTxt("star", "tcp", "mac", escapedMac.c_str());
     } else {
       MDNS.end();
     }

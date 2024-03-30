@@ -22,28 +22,47 @@ public:
   //setup wifi an async webserver
   void setup();
 
-  void loop();
   void loop1s();
 
-  void handleConnection();
+  //tbd: utility function ...
+  void prepareHostname(char* hostname, const char *in)
+  {
+    const char *pC = in;
+    uint8_t pos = 0;
+    while (*pC && pos < 24) { // while !null and not over length
+      if (isalnum(*pC)) {     // if the current char is alpha-numeric append it to the hostname
+        hostname[pos] = *pC;
+        pos++;
+      } else if (*pC == ' ' || *pC == '_' || *pC == '-' || *pC == '+' || *pC == '!' || *pC == '?' || *pC == '*') {
+        hostname[pos] = '-';
+        pos++;
+      }
+      // else do nothing - no leading hyphens and do not include hyphens for all other characters.
+      pC++;
+    }
+    //last character must not be hyphen
+    if (pos > 5) {
+      while (pos > 4 && hostname[pos -1] == '-') pos--;
+      hostname[pos] = '\0'; // terminate string (leave at least "wled")
+    }
+  }
 
+  void handleConnection();
   void initConnection();
 
+  void handleAP();
   void initAP();
+  void stopAP();
   
 private:
   bool apActive = false;
   unsigned32 lastReconnectAttempt = 0;
-  char apSSID[33] = "StarMod AP";
-  char apPass[65] = "star1234";
   byte apChannel = 1; // 2.4GHz WiFi AP channel (1-13)
-  byte apHide    = 0; // hidden AP SSID
-  bool interfacesInited = false;
+  bool isConfirmedConnection = false;
   DNSServer dnsServer;
-  bool noWifiSleep = true;
+  byte stacO = 0; //stationCount
 
   //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-  bool forceReconnect = false;
 };
   
 extern SysModNetwork *net;

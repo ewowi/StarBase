@@ -18,7 +18,7 @@ class UserModE131:public SysModule {
 
 public:
 
-  UserModE131() :SysModule("e131-sACN") {
+  UserModE131() :SysModule("E131") {
   };
 
   //setup filesystem

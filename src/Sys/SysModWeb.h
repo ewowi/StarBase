@@ -106,22 +106,7 @@ public:
     return true;
   }
 
-  bool captivePortal(WebRequest *request)
-  {
-    if (ON_STA_FILTER(request)) return false; //only serve captive in AP mode
-    String hostH;
-    if (!request->hasHeader("Host")) return false;
-    hostH = request->getHeader("Host")->value();
-
-    if (!isIp(hostH)) {// && hostH.indexOf("wled.me") < 0 && hostH.indexOf(cmDNS) < 0) {
-      USER_PRINTF("Captive portal\n");
-      WebResponse *response = request->beginResponse(302);
-      response->addHeader(F("Location"), F("http://4.3.2.1"));
-      request->send(response);
-      return true;
-    }
-    return false;
-  }
+  bool captivePortal(WebRequest *request);
 
   template <typename Type>
   void addResponse(const char * id, const char * key, Type value, unsigned8 rowNr = UINT8_MAX) {

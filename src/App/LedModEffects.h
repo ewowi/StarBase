@@ -663,7 +663,7 @@ public:
   }
 
   void loop10s() {
-    USER_PRINTF("caching %u %u\n", trigoCached, trigoUnCached); //not working for some reason!!
+    // USER_PRINTF("caching %u %u\n", trigoCached, trigoUnCached); //not working for some reason!!
     // trigoCached = 0;
     // trigoUnCached = 0;
   }

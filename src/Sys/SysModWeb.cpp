@@ -220,6 +220,12 @@ void SysModWeb::connectedChanged() {
     server.on("/file", HTTP_GET, [this](WebRequest *request) {serveFiles(request);});
     server.on("/upload", HTTP_POST, nullptr, [this](WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {serveUpload(request, filename, index, data, len, final);});
 
+    server.onNotFound([this](AsyncWebServerRequest *request){
+      USER_PRINTF("Not-Found HTTP call: URI: %s\n", request->url().c_str()); ///hotspot-detect.html
+      if (this->captivePortal(request)) return;
+    });
+
+
     // USER_PRINTF("%s server (re)started\n", name); //causes crash for some reason...
     USER_PRINTF("server (re)started\n");
   }
@@ -442,15 +448,15 @@ void SysModWeb::serveIndex(WebRequest *request) {
 
   USER_PRINT_Async("Webserver: server.on serveIndex csdata %d-%d (%s)", PAGE_index, PAGE_index_L, request->url().c_str());
 
-    // if (captivePortal(request)) return;
+  if (captivePortal(request)) return;
 
-    // if (handleIfNoneMatchCacheHeader(request)) return;
+  // if (handleIfNoneMatchCacheHeader(request)) return;
 
-    WebResponse *response;
-    response = request->beginResponse_P(200, "text/html", PAGE_index, PAGE_index_L);
-    response->addHeader(FPSTR("Content-Encoding"),"gzip");
-    // setStaticContentCacheHeaders(response);
-    request->send(response);
+  WebResponse *response;
+  response = request->beginResponse_P(200, "text/html", PAGE_index, PAGE_index_L);
+  response->addHeader(FPSTR("Content-Encoding"),"gzip");
+  // setStaticContentCacheHeaders(response);
+  request->send(response);
 
   USER_PRINT_Async("!\n");
 }
@@ -586,6 +592,25 @@ void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filte
   }
 }
 
+bool SysModWeb::captivePortal(WebRequest *request)
+{
+  USER_PRINTF("captivePortal %d %d\n", WiFi.localIP()[3], request->client()->localIP()[3]);
+
+  if (ON_STA_FILTER(request)) return false; //only serve captive in AP mode
+  String hostH;
+  if (!request->hasHeader("Host")) return false;
+  hostH = request->getHeader("Host")->value();
+
+  if (!isIp(hostH) && hostH.indexOf(mdns->cmDNS) < 0) { //&& hostH.indexOf("wled.me") < 0
+    USER_PRINTF("Captive portal\n");
+    WebResponse *response = request->beginResponse(302);
+    response->addHeader(F("Location"), F("http://4.3.2.1"));
+    request->send(response);
+    return true;
+  }
+  return false;
+}
+
 JsonDocument * SysModWeb::getResponseDoc() {
   // USER_PRINTF("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
 
@@ -645,11 +670,7 @@ void SysModWeb::serveJson(WebRequest *request) {
     root["info"]["leds"]["fps"] = mdl->getValue("fps"); //tbd: should be realFps but is ro var
     root["info"]["wifi"]["rssi"] = WiFi.RSSI();// mdl->getValue("rssi"); (ro)
 
-    String escapedMac;
-    escapedMac = WiFi.macAddress();
-    escapedMac.replace(":", "");
-    escapedMac.toLowerCase();
-    root["info"]["mac"] = JsonString(escapedMac.c_str(), JsonString::Copied); //copy mdns->escapedMac gives LoadProhibited crash, tbd: find out why
+    root["info"]["mac"] = JsonString(mdns->escapedMac.c_str(), JsonString::Copied);
     root["info"]["ip"] = JsonString(WiFi.localIP().toString().c_str(), JsonString::Copied);
     // print->printJson("serveJson", root);
   }

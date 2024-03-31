@@ -156,8 +156,4 @@ void setup() {
 //loop all modules
 void loop() {
   mdls->loop();
-
-  // static bool onoff = false;
-  // onoff = !onoff;
-  // digitalWrite(LED_BUILTIN, onoff? HIGH:LOW);
 }

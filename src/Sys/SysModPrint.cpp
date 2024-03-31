@@ -14,7 +14,7 @@
 #include "SysModUI.h"
 #include "SysModModel.h"
 #include "SysModWeb.h"
-#include "esp32Tools.h"
+#include "SysModSystem.h"
 
 SysModPrint::SysModPrint() :SysModule("Print") {
 
@@ -42,9 +42,9 @@ SysModPrint::SysModPrint() :SysModule("Print") {
   delay(3000); // this extra delay avoids repeating disconnects on -s2 "Disconnected (ClearCommError failed"
   Serial.println("   **** COMMODORE BASIC V2 ****   ");
 #endif
-  if (!sysTools_normal_startup() && Serial) { // only print if Serial is connected, and startup was not normal
+  if (!sys->sysTools_normal_startup() && Serial) { // only print if Serial is connected, and startup was not normal
     Serial.print("\nWARNING - possible crash: ");
-    Serial.println(sysTools_getRestartReason());
+    Serial.println(sys->sysTools_getRestartReason());
     Serial.println("");
   }
   Serial.println("Ready.\n");

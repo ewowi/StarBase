@@ -23,11 +23,7 @@ void fastled_fill_rainbow(struct CRGB * targetArray, int numToFill, unsigned8 in
 }
 
 unsigned16 Leds::XYZ(unsigned16 x, unsigned16 y, unsigned16 z) {
-  if (projectionNr == p_Rotate) {
-    Coord3D result = spinXY(x, y, size.x, size.y, proRollSpeed);
-    return result.x + result.y * size.x + result.z * size.x * size.y;
-  }
-  else if (projectionNr == p_PanTiltRoll || projectionNr == p_Preset1) {
+  if (projectionNr == p_PanTiltRoll || projectionNr == p_Preset1) {
     Coord3D result = Coord3D{x, y, z};
     if (proPanSpeed) result = trigoPanTiltRoll.pan(result, size/2, millis() * 5 / (255 - proPanSpeed));
     if (proTiltSpeed) result = trigoPanTiltRoll.tilt(result, size/2, millis() * 5 / (255 - proTiltSpeed));

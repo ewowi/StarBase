@@ -126,7 +126,6 @@ public:
         JsonArray options = ui->setOptions(var); // see enum Projections in LedFixture.h and keep the same order !
         options.add("Default");
         options.add("Multiply");
-        options.add("Rotate");
         options.add("PanTiltRoll");
         options.add("Distance ⌛");
         options.add("Preset 1");
@@ -204,7 +203,7 @@ public:
               default: return false;
             }});
           }
-          if (proValue == p_Rotate || proValue == p_Preset1 || proValue == p_PanTiltRoll) {
+          if (proValue == p_Preset1 || proValue == p_PanTiltRoll) {
             ui->initSlider(var, "proRoll", 128, 0, 254, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
               case f_UIFun:
                 ui->setLabel(var, "Roll speed");
@@ -364,7 +363,7 @@ public:
           mdl->getValueRowNr = rowNr++;
           effects.loop(*leds);
           mdl->getValueRowNr = UINT8_MAX;
-          if (leds->projectionNr == p_PanTiltRoll || leds->projectionNr == p_Rotate || leds->projectionNr == p_Preset1)
+          if (leds->projectionNr == p_PanTiltRoll || leds->projectionNr == p_Preset1)
             leds->fadeToBlackBy(50);
         }
       }

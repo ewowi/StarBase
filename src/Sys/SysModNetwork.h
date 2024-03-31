@@ -61,8 +61,6 @@ private:
   bool isConfirmedConnection = false;
   DNSServer dnsServer;
   byte stacO = 0; //stationCount
-
-  //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
 };
   
 extern SysModNetwork *net;

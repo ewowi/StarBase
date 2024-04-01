@@ -33,9 +33,6 @@ public:
         return true;
       case f_ChangeFun:
         universe = var["value"];
-        USER_PRINTF("dun wfl %u\n", wfl);
-        if (wfl)
-          wfl->addAction("DMX universe", "E131");
         return true;
       default: return false;
     }});

@@ -28,13 +28,6 @@ public:
         return true;
       case f_ChangeFun:
         ui->callVarFun("bri", UINT8_MAX, f_ChangeFun); //set FastLed brightness
-
-        //WIP!!!
-        USER_PRINTF("on wfl %u\n", wfl);
-        if (!var["value"].as<bool>() && wfl) {
-          wfl->addAction("Set on", "Fixture");
-        }
-
         return true;
       default: return false;
     }});

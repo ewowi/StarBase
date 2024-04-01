@@ -33,6 +33,7 @@ void SysModModel::setup() {
   SysModule::setup();
 
   parentVar = ui->initSysMod(parentVar, name, 4303);
+  parentVar["s"] = true; //setup
 
   ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

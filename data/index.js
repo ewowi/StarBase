@@ -89,7 +89,9 @@ function makeWS() {
             }
 
             //rerun after each module added
-            if (savedView)
+            if (window.location.href.includes("4.3.2.1")) //captive portal
+              changeHTMLView("vSetup"); //captive portal shows setup screen
+            else if (savedView)
               changeHTMLView(savedView);
             else
               changeHTMLView("vApp"); //default
@@ -892,10 +894,6 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
     else if (node.className == "button") {
       let value = commandJson.value;
       // console.log("change button", variable, node, value);
-      //show modules which are in workflow table
-      if (variable.id == "wfButton") { //and tab is App
-        if (gId(value+"_d")) gId(value+"_d").hidden = false;
-      }
       if (Array.isArray(commandJson.value) && rowNr != UINT8_MAX) {
         value = commandJson.value[rowNr];
       }
@@ -1415,6 +1413,7 @@ function changeHTMLView(viewName) {
 
   // console.log("changeHTMLView", node, node.value, node.id, mdlContainerNode, mdlContainerNode.childNodes);
   
+  gId("vSetup").classList.remove("selected");
   gId("vApp").classList.remove("selected");
   gId("vDash").classList.remove("selected");
   gId("vUser").classList.remove("selected");
@@ -1434,18 +1433,10 @@ function changeHTMLView(viewName) {
       else {
         for (let moduleNode of divNode.childNodes) {
           if (moduleNode.className) {
-            if (viewName=="vApp") { //} && moduleNode.className == "appmod")
-              if (moduleNode.id == "Workflow" || moduleNode.id == "Fixture")
-                found = true;
-              else {
-                //loop over workflow
-                let wfNodes = document.querySelectorAll(`[id^="wfButton#"]`); //find nodes from variable.type class with id + #nr (^: starting with)
-                for (node of wfNodes) {
-                  if (node.value == moduleNode.id)
-                    found = true;
-                }
-              }
-            }
+            if (viewName=="vSetup" && findVar(moduleNode.id).s) // show all module with setup variable (s) set to true
+              found = true;
+            if (viewName=="vApp" && moduleNode.className == "appmod")
+              found = true;
             if (viewName=="vSys" && moduleNode.className == "sysmod")
               found = true;
             if (viewName=="vUser" && moduleNode.className == "usermod")

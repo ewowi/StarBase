@@ -15,7 +15,7 @@
 #include "SysModWeb.h"
 #include "SysModUI.h"
 #include "SysModModel.h"
-#include "SysModWorkFlow.h"
+// #include "SysModWorkFlow.h"
 #include "User/UserModMDNS.h"
 
 SysModNetwork::SysModNetwork() :SysModule("Network") {};
@@ -25,20 +25,14 @@ void SysModNetwork::setup() {
   SysModule::setup();
 
   parentVar = ui->initSysMod(parentVar, name, 3502);
+  parentVar["s"] = true; //setup
 
   // JsonObject tableVar = ui->initTable(parentVar, "wfTbl", nullptr, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { //varFun ro false: create and delete row possible
   //   ui->setLabel(var, "Wifi");
   //   ui->setComment(var, "List of defined and available Wifi APs");
   // });
 
-  ui->initText(parentVar, "ssid", "", 32, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-    case f_ChangeFun:
-      USER_PRINTF("ssid wfl %u\n", wfl);
-      if (wfl)
-        wfl->addAction("Enter ssid", "Network");
-      return true;
-    default: return false;
-  }});
+  ui->initText(parentVar, "ssid", "", 32, false);
 
   ui->initPassword(parentVar, "pw", "", 32, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:

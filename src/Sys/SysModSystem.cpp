@@ -14,7 +14,6 @@
 #include "SysModUI.h"
 #include "SysModWeb.h"
 #include "SysModModel.h"
-#include "SysModWorkFlow.h"
 
 // #include <Esp.h>
 
@@ -38,16 +37,12 @@ SysModSystem::SysModSystem() :SysModule("System") {};
 void SysModSystem::setup() {
   SysModule::setup();
   parentVar = ui->initSysMod(parentVar, name, 2000);
+  parentVar["s"] = true; //setup
 
   ui->initText(parentVar, "instanceName", "StarMod", 32, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Name");
       ui->setComment(var, "Instance name");
-      return true;
-    case f_ChangeFun:
-      USER_PRINTF("instanceName wfl %u\n", wfl);
-      if (wfl) //var["value"] == "StarMod" &&
-        wfl->addAction("Instance name", "System");
       return true;
     default: return false;
   }});

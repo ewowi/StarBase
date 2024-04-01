@@ -106,10 +106,6 @@ public:
         }
         if (rowNr < fixture.projections.size())
           effects.setEffect(*fixture.projections[rowNr], var, rowNr);
-
-        USER_PRINTF("fx wfl %u\n", wfl);
-        if (wfl)
-          wfl->addAction("Choose effect", "Effects");
         return true;
       default: return false;
     }});

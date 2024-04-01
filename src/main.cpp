@@ -27,7 +27,6 @@
 #include "Sys/SysModModel.h"
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
-#include "Sys/SysModWorkFlow.h" // before modules using it
 #include "User/UserModInstances.h"
 #include "User/UserModMDNS.h"
 SysModules *mdls;
@@ -39,7 +38,6 @@ SysModFiles *files;
 SysModModel *mdl;
 SysModNetwork *net;
 SysModPins *pins;
-SysModWorkFlow *wfl;
 UserModInstances *instances;
 UserModMDNS *mdns;
 #ifdef STARMOD_APPMOD_LEDS
@@ -86,7 +84,6 @@ void setup() {
   ui = new SysModUI();
   sys = new SysModSystem();
   pins = new SysModPins();
-  wfl = new SysModWorkFlow();
   instances = new UserModInstances();
   mdns = new UserModMDNS();
   #ifdef STARMOD_APPMOD_LEDS
@@ -113,7 +110,6 @@ void setup() {
   //Reorder with care! this is the order in which setup and loop is executed
   //If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
   //Default: add below, not in between
-  mdls->add(wfl);
   #ifdef STARMOD_APPMOD_LEDS
     mdls->add(fix);
     mdls->add(eff);

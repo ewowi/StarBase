@@ -14,7 +14,6 @@
 #include "SysModWeb.h"
 #include "SysModPrint.h"
 #include "SysModModel.h"
-#include "SysModWorkFlow.h"
 
 // #include <FS.h>
 
@@ -131,12 +130,6 @@ void SysModFiles::loop() {
       file = root.openNextFile();
     }
     root.close();
-
-    USER_PRINTF("filesChanged wfl %u, %u, %u\n", wfl, ui, web);
-    if (wfl) {
-      wfl->addAction("Define fixture", "FixtureGen"); // if no F_*.json found
-      wfl->addAction("Save model", "Model"); // if model.json not found
-    }
 
     ui->callVarFun(mdl->findVar("drsize")); //valueFun
 

@@ -205,23 +205,25 @@ public:
     closePin();
   }
 
-  void ring(Coord3D middle, unsigned16 ledCount, unsigned8 ip, unsigned8 pin, uint16_t pan = 0, uint16_t tilt = 0, uint16_t roll = 0) {
+  void ring(Coord3D middle, unsigned16 ledCount, unsigned8 ip, unsigned8 pin, uint16_t pan = 0, uint16_t tilt = 0, uint16_t roll = 0, bool preDiam = false) {
 
     openPin(pin);
 
-    uint8_t ringDiam;
-    //check for rings241 rings which have a specific diameter
-    switch (ledCount) {
-      case 1: ringDiam = 0; break;
-      case 8: ringDiam = 13; break;
-      case 12: ringDiam = 23; break;
-      case 16: ringDiam = 33; break;
-      case 24: ringDiam = 43; break;
-      case 32: ringDiam = 53; break;
-      case 40: ringDiam = 63; break;
-      case 48: ringDiam = 73; break;
-      case 60: ringDiam = 83; break;
-      default: ringDiam = 10 * ledCount / 2 / M_PI; //in mm
+    uint8_t ringDiam = 10 * ledCount / 2 / M_PI; //in mm;
+    if (preDiam) {
+      //check for rings241 rings which have a specific diameter
+      switch (ledCount) {
+        case 1: ringDiam = 0; break;
+        case 8: ringDiam = 13; break;
+        case 12: ringDiam = 23; break;
+        case 16: ringDiam = 33; break;
+        case 24: ringDiam = 43; break;
+        case 32: ringDiam = 53; break;
+        case 40: ringDiam = 63; break;
+        case 48: ringDiam = 73; break;
+        case 60: ringDiam = 83; break;
+        default: ringDiam = 10 * ledCount / 2 / M_PI; //in mm
+      }
     }
 
     Trigo trigo;
@@ -254,7 +256,7 @@ public:
     // stackUnsigned16 size = ringDiams[nrOfRings-1]; //size if the biggest ring
     for (int j=0; j<nrOfRings; j++) {
       stackUnsigned8 ringNrOfLeds = in2out?ringsNrOfLeds[j]:ringsNrOfLeds[nrOfRings - 1 - j];
-      ring(middle, ringNrOfLeds, ip, pin, pan, tilt, roll);
+      ring(middle, ringNrOfLeds, ip, pin, pan, tilt, roll, true); //use predefined diameters
     }
   }
 
@@ -300,7 +302,7 @@ public:
 
     float radius = ledsPerSide; //or float if it needs to be tuned
 
-    Coord3D center = (first + Coord3D{(unsigned16)radius, (unsigned16)radius, 0}) * 10; //in mm
+    Coord3D middle = (first + Coord3D{(unsigned16)radius, (unsigned16)radius, 0}) * 10; //in mm
 
     const float y = sqrtf(3)/2; // = sin(60°)
     float hexaX[7] = {1.0, 0.5, -0.5, -1.0, -0.5, 0.5, 1.0};
@@ -312,11 +314,11 @@ public:
       offset = offset - (float)edgenum; // Retain fractional part only: offset on that edge
 
       // Use interpolation to get coordinates of that point on that edge
-      float x = (float)center.x + radius*10.0f * (hexaX[edgenum] + offset * (hexaX[edgenum + 1] - hexaX[edgenum]));
-      float y = (float)center.y + radius*10.0f * (hexaY[edgenum] + offset * (hexaY[edgenum + 1] - hexaY[edgenum]));
+      float x = (float)middle.x + radius*10.0f * (hexaX[edgenum] + offset * (hexaX[edgenum + 1] - hexaX[edgenum]));
+      float y = (float)middle.y + radius*10.0f * (hexaY[edgenum] + offset * (hexaY[edgenum + 1] - hexaY[edgenum]));
       // USER_PRINTF(" %d %f: %f,%f", edgenum, offset, x, y);
 
-      write3D(x,y, first.z*10);
+      write3D(x, y, first.z*10);
 
     }
 
@@ -328,12 +330,12 @@ public:
     float width = nrOfRings * 1.5f / M_PI + 1;
 
     Coord3D middle;
-    middle.x = first.x + width;
-    middle.z = first.z + width;
+    middle.x = first.x*10 + width*10;
+    middle.z = first.z*10 + width*10;
 
     for (int j=0; j<nrOfRings; j++) {
       stackUnsigned8 ringNrOfLeds = (j+1) * 3;
-      middle.y = first.y + j;
+      middle.y = first.y*10 + j*10;
 
       USER_PRINTF("Cone %d %d %d %d,%d,%d\n", j, nrOfRings, ringNrOfLeds, middle.x, middle.y, middle.z);
       ring(middle, ringNrOfLeds, ip, pin, 0, 90, 0); //tilt 90
@@ -381,8 +383,8 @@ public:
   void globe(Coord3D first, unsigned8 width, unsigned8 ip, unsigned8 pin) {
 
     Coord3D middle;
-    middle.x = first.x + width / 2;
-    middle.z = first.z + width / 2;
+    middle.x = first.x*10 + width*10 / 2;
+    middle.z = first.z*10 + width*10 / 2;
 
     // loop over latitudes -> sin 0 to pi
     for (uint8_t lat = 0; lat <= width; lat++) {
@@ -391,7 +393,7 @@ public:
 
       uint8_t ledCount = ringDiam * 2 * M_PI; 
 
-      middle.y = first.y + lat;
+      middle.y = first.y*10 + lat*10;
 
       // Coord3D start = first;
       // start.y = first.y + lat;
@@ -508,7 +510,7 @@ public:
 
     ui->initButton(parentVar, "generate", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ChangeFun: {
-        
+
         char fileName[32]; 
         generateChFun(var, fileName);
         ui->callVarFun("fixture", UINT8_MAX, f_UIFun); //reload fixture select
@@ -719,7 +721,7 @@ public:
       ui->initNumber(parentVar, "ledsPerSpoke", 24, 1, 360);
     }
     else if (fgValue == f_Hexagon) {
-      ui->initNumber(parentVar, "ledsPerSide", 36, 1, 255);
+      ui->initNumber(parentVar, "ledsPerSide", 12, 1, 255);
 
       if (panelVar["value"].as<bool>()) {
 

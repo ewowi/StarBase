@@ -507,11 +507,17 @@ public:
 //     }});
 
     ui->initButton(parentVar, "generate", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_ChangeFun:
-        generateChFun(var);
-        //reload fixture select
-        ui->callVarFun("fixture", UINT8_MAX, f_UIFun);
-        return true;
+      case f_ChangeFun: {
+        
+        char fileName[32]; 
+        generateChFun(var, fileName);
+        ui->callVarFun("fixture", UINT8_MAX, f_UIFun); //reload fixture select
+
+        uint8_t value = ui->selectOptionToValue("fixture", fileName);
+        if (value != UINT8_MAX)
+          mdl->setValue("fixture", value);
+
+        return true; }
       default: return false;
     }});
 
@@ -894,14 +900,14 @@ public:
     genFix.closeHeader();
   }
  
-  void generateChFun(JsonObject var) {
+  void generateChFun(JsonObject var, char * fileName) {
 
     stackUnsigned8 fgValue = mdl->getValue("fixtureGen");
 
     if (fgValue == f_Matrix) {
 
       Coord3D size = (mdl->getValue("mrxColEnd").as<Coord3D>() - mdl->getValue("pnlFirst").as<Coord3D>()) + Coord3D{1,1,1};
-      char fileName[32]; print->fFormat(fileName, 31, "F_Matrix%d%d%d", size.x, size.y, size.z);
+      print->fFormat(fileName, 31, "F_Matrix%d%d%d", size.x, size.y, size.z);
 
       getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->matrix(mdl->getValue("pnlFirst", rowNr), mdl->getValue("mrxRowEnd", rowNr), mdl->getValue("mrxColEnd", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -909,7 +915,7 @@ public:
 
     } else if (fgValue == f_Ring) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Ring%d", mdl->getValue("fixLeds").as<unsigned8>());
+      print->fFormat(fileName, 31, "F_Ring%d", mdl->getValue("fixLeds").as<unsigned8>());
 
       getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         Coord3D middle = mdl->getValue("pnlFirst", rowNr);
@@ -923,7 +929,7 @@ public:
 
     } else if (fgValue == f_Rings241) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Rings241-%d", mdl->getValue("nrOfRings").as<unsigned8>());
+      print->fFormat(fileName, 31, "F_Rings241-%d", mdl->getValue("nrOfRings").as<unsigned8>());
 
       getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         Coord3D middle = mdl->getValue("pnlFirst", rowNr);
@@ -936,7 +942,7 @@ public:
 
     } else if (fgValue == f_Spiral) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Spiral%d", mdl->getValue("fixLeds").as<unsigned8>());
+      print->fFormat(fileName, 31, "F_Spiral%d", mdl->getValue("fixLeds").as<unsigned8>());
 
       getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->spiral(mdl->getValue("pnlFirst", rowNr), mdl->getValue("fixLeds", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -944,7 +950,7 @@ public:
 
     } else if (fgValue == f_Wheel) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Wheel%d%d", mdl->getValue("nrOfSpokes").as<unsigned8>(), mdl->getValue("ledsPerSpoke").as<unsigned8>());
+      print->fFormat(fileName, 31, "F_Wheel%d%d", mdl->getValue("nrOfSpokes").as<unsigned8>(), mdl->getValue("ledsPerSpoke").as<unsigned8>());
       
       getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->wheel(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfSpokes", rowNr), mdl->getValue("ledsPerSpoke", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -952,13 +958,14 @@ public:
 
     } else if (fgValue == f_Hexagon) {
 
-      getPanels("F_Hexagon", [](GenFix * genFix, unsigned8 rowNr) {
+      strcpy(fileName, "F_Hexagon");
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->hexagon(mdl->getValue("pnlFirst", rowNr), mdl->getValue("ledsPerSide", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Cone) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Cone%d", mdl->getValue("nrOfRings").as<unsigned8>());
+      print->fFormat(fileName, 31, "F_Cone%d", mdl->getValue("nrOfRings").as<unsigned8>());
 
       getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->cone(mdl->getValue("pnlFirst", rowNr), mdl->getValue("nrOfRings", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -966,13 +973,15 @@ public:
 
     } else if (fgValue == f_Cloud) {
 
-      getPanels("F_Cloud5416", [](GenFix * genFix, unsigned8 rowNr) {
+      strcpy(fileName, "F_Cloud5416");
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->cloud(mdl->getValue("pnlFirst", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 
     } else if (fgValue == f_Wall) {
 
-      getPanels("F_Wall", [](GenFix * genFix, unsigned8 rowNr) {
+      strcpy(fileName, "F_Wall");
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->rings241(Coord3D{110,110,0}, 9, true, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
 
         genFix->matrix(Coord3D{19,0,0}, Coord3D{19,8,0}, Coord3D{27,0,0}, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -985,7 +994,8 @@ public:
 
     } else if (fgValue == f_6Rings) {
 
-      getPanels("F_6Rings", [](GenFix * genFix, unsigned8 rowNr) {
+      strcpy(fileName, "F_6Rings");
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->rings241(Coord3D{110,110,0}, 9, true, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
         genFix->rings241(Coord3D{0,110,110}, 9, true, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr), 90); //pan 90
         genFix->rings241(Coord3D{110,110,220}, 9, true, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -996,7 +1006,8 @@ public:
 
     } else if (fgValue == f_SpaceStation) {
 
-      getPanels("F_SpaceStation", [](GenFix * genFix, unsigned8 rowNr) {
+      strcpy(fileName, "F_SpaceStation");
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         Trigo trigo;
         for (int i=0; i<360; i+=20) {
           uint8_t ringDiam = 50;
@@ -1008,7 +1019,8 @@ public:
 
     } else if (fgValue == f_Human) {
 
-      getPanels("F_Human", [](GenFix * genFix, unsigned8 rowNr) {
+      strcpy(fileName, "F_Human");
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
 
         //total dimensions width: 10 + 18 + 10
         // height 18 + 5 + 
@@ -1032,7 +1044,7 @@ public:
 
     } else if (fgValue == f_Globe) {
 
-      char fileName[32]; print->fFormat(fileName, 31, "F_Globe%d", mdl->getValue("width").as<unsigned8>());
+      print->fFormat(fileName, 31, "F_Globe%d", mdl->getValue("width").as<unsigned8>());
 
       getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->globe(mdl->getValue("pnlFirst", rowNr), mdl->getValue("width", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
@@ -1040,7 +1052,8 @@ public:
 
     } else if (fgValue == f_GeodesicDome) {
 
-      getPanels("F_GeodesicDome", [](GenFix * genFix, unsigned8 rowNr) {
+      strcpy(fileName, "F_GeodesicDome");
+      getPanels(fileName, [](GenFix * genFix, unsigned8 rowNr) {
         genFix->geodesicDome(mdl->getValue("pnlFirst", rowNr), mdl->getValue("width", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 

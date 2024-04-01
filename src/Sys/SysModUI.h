@@ -238,6 +238,20 @@ public:
     return result;
   }
 
+  // assuming ui->callVarFun(varID, UINT8_MAX, f_UIFun); has been called before
+  uint8_t selectOptionToValue(const char *varID, const char *label) {
+    JsonArray options = web->getResponseObject()[varID]["options"];
+    // USER_PRINTF("selectOptionToValue fileName %s %s\n", label, options[0].as<String>().c_str());
+    uint8_t value = 0;
+    for (JsonVariant option: options) {
+      // USER_PRINTF("selectOptionToValue fileName2 %s %s\n", label, option.as<String>().c_str());
+      if (strstr(option, label) != nullptr) //if label part of value
+        return value;
+      value++;
+    }
+    return UINT8_MAX; //not found
+  }
+
   //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
   void processJson(JsonVariant json); //must be Variant, not object for jsonhandler
 

@@ -79,9 +79,9 @@ public:
     g.print("{");
     g.printf("\"name\":\"%s\"", name);
     g.printf(",\"nrOfLeds\":%d", nrOfLeds);
-    g.printf(",\"width\":%d", (fixSize.x+5)/10+1); //effects run on 1 led is 1 cm mode.
-    g.printf(",\"height\":%d", (fixSize.y+5)/10+1);
-    g.printf(",\"depth\":%d", (fixSize.z+5)/10+1);
+    g.printf(",\"width\":%d", (fixSize.x+9)/10+1); //effects run on 1 led is 1 cm mode.
+    g.printf(",\"height\":%d", (fixSize.y+9)/10+1); //e.g. (110+9)/10 +1 = 11+1 = 12, (111+9)/10 +1 = 12+1 = 13
+    g.printf(",\"depth\":%d", (fixSize.z+9)/10+1);
 
     byte character;
     f.read(&character, sizeof(byte));
@@ -189,7 +189,7 @@ public:
       Coord3D rowPixel = cRowStart;
       while (true) {
         USER_PRINTF(" %d,%d,%d", rowPixel.x, rowPixel.y, rowPixel.z);
-        write3D( rowPixel.x * 10, rowPixel.y * 10, rowPixel.z * 10);
+        write3D(rowPixel.x*10, rowPixel.y*10, rowPixel.z*10);
         
         if (rowPixel == cRowEnd) break; //end condition row
         rowPixel.advance(cRowEnd);
@@ -235,7 +235,7 @@ public:
       pixel.y = middle.y + trigo.cos(ringDiam, i);
       pixel.z = middle.z;
 
-      write3D( trigo.rotate(pixel, middle, pan, tilt, roll, 360));
+      write3D(trigo.rotate(pixel, middle, pan, tilt, roll, 360));
     }
     closePin();
   }
@@ -302,7 +302,7 @@ public:
 
     float radius = ledsPerSide; //or float if it needs to be tuned
 
-    Coord3D middle = (first + Coord3D{(unsigned16)radius, (unsigned16)radius, 0}) * 10; //in mm
+    Coord3D middle = (first + Coord3D{(unsigned16)radius, (unsigned16)radius, 0})*10; //in mm
 
     const float y = sqrtf(3)/2; // = sin(60°)
     float hexaX[7] = {1.0, 0.5, -0.5, -1.0, -0.5, 0.5, 1.0};
@@ -923,8 +923,8 @@ public:
         Coord3D middle = mdl->getValue("pnlFirst", rowNr);
         uint16_t ledCount = mdl->getValue("fixLeds", rowNr);
         uint8_t ringDiam = 10 * ledCount / 2 / M_PI + 10; //in mm
-        middle.x = middle.x * 10 + ringDiam;
-        middle.y = middle.y * 10 + ringDiam;
+        middle.x = middle.x*10 + ringDiam;
+        middle.y = middle.y*10 + ringDiam;
         
         genFix->ring(middle, ledCount, mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
@@ -937,8 +937,8 @@ public:
         Coord3D middle = mdl->getValue("pnlFirst", rowNr);
         uint16_t nrOfLeds = mdl->getValue("fixLeds", rowNr);
         uint8_t ringDiam = 10 * 60 / 2 / M_PI; //in mm
-        middle.x = middle.x * 10 + ringDiam;
-        middle.y = middle.y * 10 + ringDiam;
+        middle.x = middle.x*10 + ringDiam;
+        middle.y = middle.y*10 + ringDiam;
         genFix->rings241(middle, mdl->getValue("nrOfRings", rowNr), mdl->getValue("in2out", rowNr), mdl->getValue("fixIP", rowNr), mdl->getValue("fixPin", rowNr));
       });
 

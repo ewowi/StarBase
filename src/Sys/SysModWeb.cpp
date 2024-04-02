@@ -216,11 +216,11 @@ void SysModWeb::connectedChanged() {
 
     server.addHandler(new AsyncCallbackJsonWebHandler("/json", [this](WebRequest *request, JsonVariant &json){jsonHandler(request, json);}));
 
-    server.on("/update", HTTP_POST, nullptr, [this](WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {serveUpdate(request, filename, index, data, len, final);});
+    server.on("/update", HTTP_POST, [](WebRequest *) {}, [this](WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {serveUpdate(request, filename, index, data, len, final);});
     server.on("/file", HTTP_GET, [this](WebRequest *request) {serveFiles(request);});
-    server.on("/upload", HTTP_POST, nullptr, [this](WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {serveUpload(request, filename, index, data, len, final);});
+    server.on("/upload", HTTP_POST, [](WebRequest *) {}, [this](WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {serveUpload(request, filename, index, data, len, final);});
 
-    server.onNotFound([this](AsyncWebServerRequest *request){
+    server.onNotFound([this](AsyncWebServerRequest *request) {
       USER_PRINTF("Not-Found HTTP call: URI: %s\n", request->url().c_str()); ///hotspot-detect.html
       if (this->captivePortal(request)) return;
     });

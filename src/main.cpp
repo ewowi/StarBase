@@ -71,9 +71,6 @@ UserModMDNS *mdns;
 
 //setup all modules
 void setup() {
-  // pinMode(LED_BUILTIN, OUTPUT);
-  // digitalWrite(LED_BUILTIN, HIGH);
-
   mdls = new SysModules();
   
   print = new SysModPrint();
@@ -145,8 +142,6 @@ void setup() {
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();
-
-  // digitalWrite(LED_BUILTIN, LOW);
 }
 
 //loop all modules

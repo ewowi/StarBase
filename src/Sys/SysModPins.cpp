@@ -90,7 +90,7 @@ void SysModPins::setup() {
 
         buffer = wsBuf->get();
 
-        // send leds preview to clients
+        // send pins to clients
         for (size_t i = 0; i < 20; i++)
         {
           buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;

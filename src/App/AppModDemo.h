@@ -1,6 +1,6 @@
 /*
    @title     StarMod
-   @file      UserModExample.h
+   @file      AppModDemo.h
    @date      20240114
    @repo      https://github.com/ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
@@ -9,16 +9,21 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-class UserModExample: public SysModule {
+class AppModDemo: public SysModule {
 
 public:
 
-  UserModExample() :SysModule("Usermod example") {
+  AppModDemo() :SysModule("AppMod Demo") {
   };
 
   //setup filesystem
   void setup() {
     SysModule::setup();
+
+    parentVar = ui->initAppMod(parentVar, name, 1100);
+
+    ui->initText(parentVar, "textField");
+
   }
 
   void loop() {
@@ -33,4 +38,4 @@ public:
 
 };
 
-extern UserModExample *example;
+extern AppModDemo *appModDemo;

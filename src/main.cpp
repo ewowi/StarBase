@@ -40,22 +40,26 @@ SysModNetwork *net;
 SysModPins *pins;
 UserModInstances *instances;
 UserModMDNS *mdns;
-#ifdef STARMOD_APPMOD_LEDS
-  #include "App/LedModEffects.h"
-  #include "App/LedModFixture.h"
-  #include "App/LedModFixtureGen.h"
-  LedModFixture *fix;
-  LedModFixtureGen *lfg;
-  LedModEffects *eff;
-  #ifdef STARMOD_USERMOD_ARTNET
-    #include "User/UserModArtNet.h"
-    UserModArtNet *artnetmod;
-  #endif
-  #ifdef STARMOD_USERMOD_DDP
-    #include "User/UserModDDP.h"
-    UserModDDP *ddpmod;
-  #endif
-#endif
+// #ifdef STARMOD_APPMOD_LEDS
+//   #include "App/LedModEffects.h"
+//   #include "App/LedModFixture.h"
+//   #include "App/LedModFixtureGen.h"
+//   LedModFixture *fix;
+//   LedModFixtureGen *lfg;
+//   LedModEffects *eff;
+//   #ifdef STARMOD_USERMOD_ARTNET
+//     #include "User/UserModArtNet.h"
+//     UserModArtNet *artnetmod;
+//   #endif
+//   #ifdef STARMOD_USERMOD_DDP
+//     #include "User/UserModDDP.h"
+//     UserModDDP *ddpmod;
+//   #endif
+// #endif
+
+#include "App/AppModDemo.h"
+AppModDemo *appModDemo;
+
 #ifdef STARMOD_USERMOD_E131
   #include "User/UserModE131.h"
   UserModE131 *e131mod;
@@ -64,10 +68,10 @@ UserModMDNS *mdns;
   #include "User/UserModHA.h"
   UserModHA *hamod;
 #endif
-#ifdef STARMOD_USERMOD_WLEDAUDIO
-  #include "User/UserModWLEDAudio.h"
-  UserModWLEDAudio *wledAudioMod;
-#endif
+// #ifdef STARMOD_USERMOD_WLEDAUDIO
+//   #include "User/UserModWLEDAudio.h"
+//   UserModWLEDAudio *wledAudioMod;
+// #endif
 
 //setup all modules
 void setup() {
@@ -86,49 +90,53 @@ void setup() {
   pins = new SysModPins();
   instances = new UserModInstances();
   mdns = new UserModMDNS();
-  #ifdef STARMOD_APPMOD_LEDS
-    eff= new LedModEffects();
-    fix = new LedModFixture();
-    lfg = new LedModFixtureGen();
-    #ifdef STARMOD_USERMOD_ARTNET
-      artnetmod = new UserModArtNet();
-    #endif
-    #ifdef STARMOD_USERMOD_DDP
-      ddpmod = new UserModDDP();
-    #endif
-  #endif
+  appModDemo = new AppModDemo();
+  // #ifdef STARMOD_APPMOD_LEDS
+  //   eff= new LedModEffects();
+  //   fix = new LedModFixture();
+  //   lfg = new LedModFixtureGen();
+  //   #ifdef STARMOD_USERMOD_ARTNET
+  //     artnetmod = new UserModArtNet();
+  //   #endif
+  //   #ifdef STARMOD_USERMOD_DDP
+  //     ddpmod = new UserModDDP();
+  //   #endif
+  // #endif
   #ifdef STARMOD_USERMOD_E131
     e131mod = new UserModE131();
   #endif
   #ifdef STARMOD_USERMOD_HA
     hamod = new UserModHA();
   #endif
-  #ifdef STARMOD_USERMOD_WLEDAUDIO
-    wledAudioMod = new UserModWLEDAudio();
-  #endif
+  // #ifdef STARMOD_USERMOD_WLEDAUDIO
+  //   wledAudioMod = new UserModWLEDAudio();
+  // #endif
 
   //Reorder with care! this is the order in which setup and loop is executed
   //If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
   //Default: add below, not in between
-  #ifdef STARMOD_APPMOD_LEDS
-    mdls->add(fix);
-    mdls->add(eff);
-    mdls->add(lfg);
-  #endif
+  // #ifdef STARMOD_APPMOD_LEDS
+  //   mdls->add(fix);
+  //   mdls->add(eff);
+  //   mdls->add(lfg);
+  // #endif
+
+  mdls->add(appModDemo);
+
   mdls->add(files);
   mdls->add(sys);
   mdls->add(pins);
   mdls->add(print);
   mdls->add(web);
   mdls->add(net);
-  #ifdef STARMOD_APPMOD_LEDS
-    #ifdef STARMOD_USERMOD_DDP
-      mdls->add(ddpmod);
-    #endif
-    #ifdef STARMOD_USERMOD_ARTNET
-      mdls->add(artnetmod);
-    #endif
-  #endif
+  // #ifdef STARMOD_APPMOD_LEDS
+  //   #ifdef STARMOD_USERMOD_DDP
+  //     mdls->add(ddpmod);
+  //   #endif
+  //   #ifdef STARMOD_USERMOD_ARTNET
+  //     mdls->add(artnetmod);
+  //   #endif
+  // #endif
   #ifdef STARMOD_USERMOD_E131
     mdls->add(e131mod);
   #endif
@@ -137,9 +145,9 @@ void setup() {
   #endif
   mdls->add(mdl);
   mdls->add(ui);
-  #ifdef STARMOD_USERMOD_WLEDAUDIO
-    mdls->add(wledAudioMod); //no ui
-  #endif
+  // #ifdef STARMOD_USERMOD_WLEDAUDIO
+  //   mdls->add(wledAudioMod); //no ui
+  // #endif
   mdls->add(mdns); //no ui
   mdls->add(instances);
 

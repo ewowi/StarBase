@@ -17,6 +17,9 @@
 #warning ********** STARMOD IS LICENSED UNDER GPL-V3. BY INSTALLING STARMOD YOU IMPLICITLY ACCEPT THE TERMS AND CONDITIONS  ********
 #warning ******************************************************************************************************************************
 
+#include <gpio_viewer.h> // Must me the first include in your project
+GPIOViewer gpio_viewer;
+
 #include "SysModule.h"
 #include "SysModules.h"
 #include "Sys/SysModPrint.h"
@@ -105,4 +108,6 @@ void setup() {
 //loop all modules
 void loop() {
   mdls->loop();
+  if (mdls->newConnection)
+    gpio_viewer.begin();
 }

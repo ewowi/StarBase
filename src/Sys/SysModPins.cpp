@@ -113,6 +113,8 @@ void SysModPins::setup() {
   ui->initCheckBox(parentVar, "pin19", true, false, updateGPIO);
 #endif
   // ui->initCheckBox(parentVar, "pin33", true);
+
+  ui->initURL(parentVar, "gpioViewer", "<ip>:8080", true);
 }
 
 void SysModPins::loop1s() {

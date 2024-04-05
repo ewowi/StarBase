@@ -880,7 +880,10 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
     } 
     else if (node.className == "url") { //url links
       node.innerText = "🔍";
-      node.setAttribute('href', commandJson.value);
+      if (commandJson.value.includes("<ip>"))
+        node.setAttribute('href', commandJson.value.replace("<ip>", "http://" + window.location.hostname));
+      else
+        node.setAttribute('href', commandJson.value);
     } 
     else if (node.className == "canvas")
       console.log("not called anymore");

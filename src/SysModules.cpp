@@ -82,6 +82,12 @@ void SysModules::setup() {
 }
 
 void SysModules::loop() {
+  if (newConnection) {
+    newConnection = false;
+    isConnected = true;
+    connectedChanged();
+  }
+  
   // bool oneSec = false;
   bool tenSec = false;
   // if (millis() - oneSecondMillis >= 1000) {
@@ -108,11 +114,6 @@ void SysModules::loop() {
       // module->dataSizeManager();
       // module->codeSizeManager();
     }
-  }
-  if (newConnection) {
-    newConnection = false;
-    isConnected = true;
-    connectedChanged();
   }
 
 }

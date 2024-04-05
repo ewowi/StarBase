@@ -28,8 +28,6 @@ public:
     escapedMac.replace(":", "");
     escapedMac.toLowerCase();
 
-    sprintf(cmDNS, PSTR("star-%*s"), 6, escapedMac.c_str() + 6);
-    // strncpy(cmDNS, "wled-98765", sizeof(cmDNS) -1);
   }
 
   void loop() {
@@ -39,18 +37,29 @@ public:
   void onOffChanged() {
     if (mdls->isConnected && isEnabled) {
 
-      // print->fFormat(cmDNS, sizeof(cmDNS)-1, "wled-%*s", WiFi.macAddress().c_str() + 6);
+      resetMDNS();
 
-      MDNS.end();
-      MDNS.begin(cmDNS);
-
-      USER_PRINTF("mDNS started %s -> %s -> %s\n", WiFi.macAddress().c_str(), escapedMac.c_str(), cmDNS);
-      MDNS.addService("http", "tcp", 80);
-      MDNS.addService("star", "tcp", 80);
-      MDNS.addServiceTxt("star", "tcp", "mac", escapedMac.c_str());
     } else {
       MDNS.end();
     }
+  }
+
+  void resetMDNS() {
+    
+    //reset cmDNS
+    const char * instanceName = mdl->getValue("instanceName");
+    if (strcmp(instanceName, "StarMod") == 0 )
+      sprintf(cmDNS, "star-%*s", 6, escapedMac.c_str() + 6);
+    else
+      strcpy(cmDNS, instanceName);
+
+    MDNS.end();
+    MDNS.begin(cmDNS);
+
+    USER_PRINTF("mDNS started %s -> %s\n", WiFi.macAddress().c_str(), cmDNS);
+    MDNS.addService("http", "tcp", 80);
+    MDNS.addService("star", "tcp", 80);
+    MDNS.addServiceTxt("star", "tcp", "mac", escapedMac.c_str());
   }
 
 };

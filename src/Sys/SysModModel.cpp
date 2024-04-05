@@ -60,7 +60,7 @@ void SysModModel::setup() {
   ui->initButton(parentVar, "deleteObsolete", false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Delete obsolete variables");
-      ui->setComment(var, "WIP");
+      ui->setComment(var, "🚧");
       return true;
     // case f_ChangeFun:
     //   model->to<JsonArray>(); //create

@@ -558,7 +558,7 @@ public:
     strncpy(starModMessage.header.name, instanceName?instanceName:"StarMod", sizeof(starModMessage.header.name)-1);
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
     starModMessage.header.insId = localIP[3]; //WLED: used in map of instances as index!
-    starModMessage.header.version = atoi(sys->version);
+    starModMessage.header.version = VERSION;
     starModMessage.sys.type = 1; //StarMod
     starModMessage.sys.upTime = millis()/1000;
     starModMessage.sys.syncMaster = mdl->getValue("sma");

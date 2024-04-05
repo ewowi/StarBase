@@ -60,7 +60,7 @@ void SysModPrint::setup() {
     case f_UIFun:
     {
       ui->setLabel(var, "Output");
-      ui->setComment(var, "System log to Serial or Net print (WIP)");
+      ui->setComment(var, "🚧");
 
       JsonArray options = ui->setOptions(var);
       options.add("No");
@@ -73,7 +73,7 @@ void SysModPrint::setup() {
     default: return false;
   }});
 
-  ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initTextArea(parentVar, "log", "🚧", true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setComment(var, "Show the printed log");
       return true;

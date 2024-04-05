@@ -132,10 +132,7 @@ void SysModNetwork::initConnection() {
       WiFi.setTxPower(WIFI_POWER_8_5dBm );
     #endif
     WiFi.setSleep(false);
-    char hostname[25];
-    prepareHostname(hostname, mdl->getValue("instanceName"));
-    USER_PRINTF("hostname %s\n", hostname);
-    WiFi.setHostname(hostname);
+    WiFi.setHostname(mdns->cmDNS); //use the mdns name (instance name or star-mac)
   }
   else
     USER_PRINTF("No SSID");

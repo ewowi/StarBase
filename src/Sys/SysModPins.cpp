@@ -80,7 +80,7 @@ void SysModPins::setup() {
   ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Board layout");
-      ui->setComment(var, "WIP");
+      ui->setComment(var, "🚧");
       return true;
     case f_LoopFun:
       var["interval"] = 10*10*10; //every 10 sec from cs to ms

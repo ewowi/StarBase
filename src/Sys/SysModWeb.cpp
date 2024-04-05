@@ -454,7 +454,7 @@ void SysModWeb::serveIndex(WebRequest *request) {
 
   WebResponse *response;
   response = request->beginResponse_P(200, "text/html", PAGE_index, PAGE_index_L);
-  response->addHeader(FPSTR("Content-Encoding"),"gzip");
+  response->addHeader("Content-Encoding","gzip");
   // setStaticContentCacheHeaders(response);
   request->send(response);
 

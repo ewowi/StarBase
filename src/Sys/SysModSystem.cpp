@@ -14,6 +14,8 @@
 #include "SysModUI.h"
 #include "SysModWeb.h"
 #include "SysModModel.h"
+#include "SysModNetwork.h"
+#include "User/UserModMDNS.h"
 
 // #include <Esp.h>
 
@@ -43,6 +45,13 @@ void SysModSystem::setup() {
     case f_UIFun:
       ui->setLabel(var, "Name");
       ui->setComment(var, "Instance name");
+      return true;
+    case f_ChangeFun:
+      char instanceName[25];
+      removeInvalidCharacters(instanceName, var["value"]);
+      USER_PRINTF("instanceName stripped %s\n", instanceName);
+      mdl->setValue(mdl->varID(var), JsonString(instanceName, JsonString::Copied));
+      mdns->resetMDNS(); // set the new name for mdns
       return true;
     default: return false;
   }});
@@ -154,16 +163,16 @@ void SysModSystem::setup() {
 
   //calculate version in format YYMMDDHH
   //https://forum.arduino.cc/t/can-you-format-__date__/200818/10
-  int month, day, year, hour, minute, second;
-  const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
-  sscanf(__DATE__, "%s %d %d", version, &day, &year); // Mon dd yyyy
-  month = (strstr(month_names, version)-month_names)/3+1;
-  sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //hh:mm:ss
-  print->fFormat(version, sizeof(version)-1, "%02d%02d%02d%02d", year-2000, month, day, hour);
+  // int month, day, year, hour, minute, second;
+  // const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+  // sscanf(__DATE__, "%s %d %d", version, &day, &year); // Mon dd yyyy
+  // month = (strstr(month_names, version)-month_names)/3+1;
+  // sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //hh:mm:ss
+  // print->fFormat(version, sizeof(version)-1, "%02d%02d%02d%02d", year-2000, month, day, hour);
 
-  USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
+  // USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
-  ui->initText(parentVar, "version", version, 16, true);
+  ui->initNumber(parentVar, "version", VERSION, UINT16_MAX, UINT16_MAX, true);
   // ui->initText(parentVar, "date", __DATE__, 16, true);
   // ui->initText(parentVar, "time", __TIME__, 16, true);
 

@@ -1510,19 +1510,67 @@ function getTheme() {
 function previewBoard(canvasNode, buffer) {
   let ctx = canvasNode.getContext('2d');
   //assuming 20 pins
-  let mW = 10; // matrix width
-  let mH = 2; // matrix height
-  let pPL = Math.min(canvasNode.width / mW, canvasNode.height / mH); // pixels per LED (width of circle)
-  let lOf = Math.floor((canvasNode.width - pPL*mW)/2); //left offeset (to center matrix)
-  let i = 5;
+  let mW = 2; // matrix width
+  let mH = 20; // matrix height
+  let pPL = Math.min(canvasNode.width / mW, canvasNode.height / (mH+2)); // pixels per LED (width of circle)
+  let bW = pPL*10;
+  let bH = mH * pPL;
+  let lOf = Math.floor((canvasNode.width - bW) / 2); //left offset (to center matrix)
+  // let i = 5;
+
+  let pos = {};
+
   ctx.clearRect(0, 0, canvasNode.width, canvasNode.height);
-  for (let y=0.5;y<mH;y++) for (let x=0.5; x<mW; x++) {
-    if (buffer[i] + buffer[i+1] + buffer[i+2] > 20) { //do not show nearly blacks
-      ctx.fillStyle = `rgb(${buffer[i]},${buffer[i+1]},${buffer[i+2]})`;
+
+  pos.x = lOf; pos.y = pPL;
+  //board
+  ctx.beginPath();
+  ctx.fillStyle = "green";
+  ctx.fillRect(pos.x, pos.y, bW, bH);
+
+  //wifi
+  ctx.fillStyle = "darkBlue";
+  ctx.fillRect(pos.x + 1.5*pPL, 0, pPL * 7, pPL * 3);
+
+  //cpu
+  ctx.fillStyle = "gray";
+  ctx.fillRect(pos.x + 1.5*pPL, pos.y + 3*pPL, pPL * 7, pPL * 7);
+
+  //esp32 text
+  ctx.beginPath();
+  ctx.font = pPL *1.5 + "px serif";
+  ctx.fillStyle = "black";
+  ctx.textAlign = "center";
+  ctx.fillText("ESP32", pos.x + 5*pPL, pos.y + 6 * pPL);
+
+  //chip
+  ctx.fillStyle = "black";
+  ctx.fillRect(pos.x + 6 * pPL, pos.y + 12*pPL, pPL * 2, pPL * 5);
+  
+  //usb
+  ctx.fillStyle = "grey";
+  ctx.fillRect(pos.x + 3.5 * pPL, bH - pPL, pPL * 3, pPL * 3);
+  
+  let index = 0;
+  for (let x = 0.5; x < mW; x++) {
+    for (let y = 0.5; y < mH; y++) {
+      ctx.fillStyle = `rgb(${buffer[index*3 + 5]},${buffer[index*3 + 6]},${buffer[index*3 + 7]})`;
+      pos.y = y*pPL + pPL;
       ctx.beginPath();
-      ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
+      if (x == 0.5)
+        pos.x = x*pPL + lOf;
+      else
+        pos.x = lOf + bW - pPL / 2;
+      ctx.arc(pos.x, pos.y, pPL * 0.4, 0, 2 * Math.PI);
       ctx.fill();
+
+      ctx.beginPath();
+      ctx.font = pPL*0.5 + "px serif";
+      ctx.fillStyle = "black";
+      ctx.textAlign = "center";
+      ctx.fillText(index+1, pos.x, pos.y + pPL / 4);
+
+      index++;
     }
-    i+=3;
   }
 }

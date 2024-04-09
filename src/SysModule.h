@@ -11,7 +11,7 @@
 
 #pragma once
 
-#define VERSION 2024040511 //update for each build
+#define VERSION 2024040918 //update for each build. Time in GMT !!!
 
 //conventional (works)
 // #define unsigned8 uint8_t

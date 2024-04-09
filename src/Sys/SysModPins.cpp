@@ -79,11 +79,11 @@ void SysModPins::setup() {
 
   ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
-      ui->setLabel(var, "Board layout");
+      ui->setLabel(var, "Pin viewer");
       ui->setComment(var, "🚧");
       return true;
     case f_LoopFun:
-      var["interval"] = 10*10*10; //every 10 sec from cs to ms
+      var["interval"] = 100; //every 100 ms
 
       web->sendDataWs([](AsyncWebSocketMessageBuffer * wsBuf) {
         byte* buffer;
@@ -91,7 +91,7 @@ void SysModPins::setup() {
         buffer = wsBuf->get();
 
         // send pins to clients
-        for (size_t i = 0; i < 20; i++)
+        for (size_t i = 0; i < 40; i++) //assuming 40 pins
         {
           buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
           buffer[i*3+5+1] = random(256);
@@ -100,7 +100,7 @@ void SysModPins::setup() {
         //new values
         buffer[0] = 0; //userFun id
 
-      }, 20 * 3 + 5, true);
+      }, 40 * 3 + 5, true);
       return true;
 
     default: return false;

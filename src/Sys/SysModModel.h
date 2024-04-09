@@ -307,10 +307,10 @@ public:
       if (rowNr != UINT8_MAX && rowNr < valueArray.size())
         return valueArray[rowNr];
       else if (valueArray.size())
-        return valueArray[0];
+        return valueArray[0]; //return the first element
       else {
         USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", varID(var), var["value"].as<String>().c_str(), rowNr);
-        return JsonVariant();
+        return JsonVariant(); // return null
       }
     }
     else

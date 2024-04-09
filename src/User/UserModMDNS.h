@@ -45,6 +45,8 @@ public:
   }
 
   void resetMDNS() {
+
+    if (!mdls->isConnected) return;
     
     //reset cmDNS
     const char * instanceName = mdl->getValue("instanceName");

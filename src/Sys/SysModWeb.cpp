@@ -289,8 +289,8 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
           USER_PRINT_Async("pong\n");
           client->text("pong");
         } else {
-          JsonDocument *responseDoc = web->getResponseDoc(); //we need the doc for deserializeJson
-          JsonObject responseObject = web->getResponseObject();
+          JsonDocument *responseDoc = getResponseDoc(); //we need the doc for deserializeJson
+          JsonObject responseObject = getResponseObject();
 
           DeserializationError error = deserializeJson(*responseDoc, data, len); //data to responseDoc
 
@@ -302,7 +302,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
             ui->processJson(responseObject); //adds to responseDoc / responseObject
 
             if (responseObject.size()) {
-              web->sendResponseObject(isUiFun?client:nullptr); //uiFun only send to requesting client async response
+              sendResponseObject(isUiFun?client:nullptr); //uiFun only send to requesting client async response
             }
             else {
               USER_PRINT_Async("WS_EVT_DATA no responseDoc\n");
@@ -467,7 +467,7 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
   USER_PRINT_Async("serveUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
 
   mdl->setValue("upload", index/10000);
-  web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+  sendResponseObject(); //otherwise not send in asyn_tcp thread
 
   if (!index) {
     String finalname = filename;
@@ -487,7 +487,7 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
     request->_tempFile.close();
 
     mdl->setValue("upload", UINT16_MAX - 10); //success
-    web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+    sendResponseObject(); //otherwise not send in asyn_tcp thread
 
     request->send(200, "text/plain", F("File Uploaded!"));
 
@@ -501,7 +501,7 @@ void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t 
   // USER_PRINT_Async("serveUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
   
   mdl->setValue("update", index/10000);
-  web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+  sendResponseObject(); //otherwise not send in asyn_tcp thread
 
   if (!index) {
     USER_PRINTF("OTA Update Start\n");
@@ -515,13 +515,13 @@ void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t 
     Update.write(data, len);
   else {
     mdl->setValue("update", UINT16_MAX - 20); //fail
-    web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+    sendResponseObject(); //otherwise not send in asyn_tcp thread
   }
 
   if (final) {
     bool success = Update.end(true);
     mdl->setValue("update", success?UINT16_MAX - 10:UINT16_MAX - 20);
-    web->sendResponseObject(); //otherwise not send in asyn_tcp thread
+    sendResponseObject(); //otherwise not send in asyn_tcp thread
 
     char message[64];
     const char * instanceName = mdl->getValue("instanceName");
@@ -550,7 +550,7 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
 
   print->printJson("jsonHandler", json);
 
-  JsonObject responseObject = web->getResponseObject();
+  JsonObject responseObject = getResponseObject();
 
   ui->processJson(json);
 
@@ -573,7 +573,7 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
       request->send(200, "application/json", F("{\"success\":true}"));
   }
 
-  web->sendResponseObject();
+  sendResponseObject();
 }
 
 void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {
@@ -614,7 +614,7 @@ bool SysModWeb::captivePortal(WebRequest *request)
 JsonDocument * SysModWeb::getResponseDoc() {
   // USER_PRINTF("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(NULL));
 
-  return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?web->responseDocLoopTask:web->responseDocAsyncTCP;
+  return strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?responseDocLoopTask:responseDocAsyncTCP;
 }
 
 JsonObject SysModWeb::getResponseObject() {
@@ -628,7 +628,7 @@ void SysModWeb::sendResponseObject(WebClient * client) {
       print->printJson("sendResponseObject", responseObject);
       print->printJDocInfo("  info", responseObject);
     }
-    web->sendDataWs(responseObject, client);
+    sendDataWs(responseObject, client);
     getResponseDoc()->to<JsonObject>(); //recreate!
   }
 }

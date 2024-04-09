@@ -19,6 +19,7 @@ class UserModE131:public SysModule {
 public:
 
   UserModE131() :SysModule("E131") {
+    isEnabled = false; //default not enabled
   };
 
   //setup filesystem

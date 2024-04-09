@@ -70,7 +70,7 @@ void SysModUI::loop() {
 
 void SysModUI::loop1s() {
   //if something changed in vloops
-  ui->callVarFun("vlLoopps", UINT8_MAX, f_ValueFun);
+  callVarFun("vlLoopps", UINT8_MAX, f_ValueFun);
   for (VarLoop &varLoop : loopFunctions)
     varLoop.counter = 0;
 }
@@ -229,7 +229,7 @@ void SysModUI::processJson(JsonVariant json) {
         {
           //a button never sets the value
           if (var["type"] == "button") { //button always
-            ui->callVarFun(var, rowNr, f_ChangeFun);
+            callVarFun(var, rowNr, f_ChangeFun);
             if (rowNr != UINT8_MAX) web->getResponseObject()[mdl->varID(var)]["rowNr"] = rowNr;
           }
           else {

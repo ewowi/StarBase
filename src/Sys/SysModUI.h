@@ -238,7 +238,7 @@ public:
     return result;
   }
 
-  // assuming ui->callVarFun(varID, UINT8_MAX, f_UIFun); has been called before
+  // assuming callVarFun(varID, UINT8_MAX, f_UIFun); has been called before
   uint8_t selectOptionToValue(const char *varID, const char *label) {
     JsonArray options = web->getResponseObject()[varID]["options"];
     // USER_PRINTF("selectOptionToValue fileName %s %s\n", label, options[0].as<String>().c_str());

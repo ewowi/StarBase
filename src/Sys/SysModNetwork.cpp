@@ -137,7 +137,7 @@ void SysModNetwork::initConnection() {
   else
     USER_PRINTF("No SSID");
 
-  isConfirmedConnection = false; //neet to test if really connected in handleConnection
+  isConfirmedConnection = false; //need to test if really connected in handleConnection
 }
 
 void SysModNetwork::initAP() {

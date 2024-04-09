@@ -215,6 +215,15 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       ndivNeeded = false;
 
       varNode = cE("div");
+      let mdlName = findVar("mdlName");
+      if (mdlName) {
+        let index = mdlName.value.indexOf(variable.id); //find this module
+        if (index != -1) {
+          let mdlEnabled = findVar("mdlEnabled");
+          if (mdlEnabled)
+            varNode.hidden = !mdlEnabled.value[index]; //hidden if not enabled
+        }
+      }
 
       let hgroupNode = cE("hgroup");
 
@@ -837,8 +846,9 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
           newValue = commandJson.value[newRowNr];
           //hide/show disabled/enabled modules
           if (variable.id == "mdlEnabled") {
-            let mdlNode = gId(findVar("mdlName").value[newRowNr]);
-            // console.log("mdlEnabled", variable, node, newValue, newRowNr, mdlNode);
+            let nameVar = findVar("mdlName");
+            let mdlNode = gId(nameVar.value[newRowNr]);
+            // console.log("mdlEnabled", variable, node, newValue, newRowNr, nameVar, mdlNode);
             if (mdlNode) {
               if  (mdlNode.hidden && newValue) mdlNode.hidden = false;
               if  (!mdlNode.hidden && !newValue) mdlNode.hidden = true;

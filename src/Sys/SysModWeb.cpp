@@ -14,6 +14,7 @@
 #include "SysModUI.h"
 #include "SysModFiles.h"
 #include "SysModules.h"
+#include "SysModPins.h"
 
 #include "User/UserModMDNS.h"
 
@@ -246,6 +247,17 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
   // }
   if (type == WS_EVT_CONNECT) {
     printClient("WS client connected", client);
+
+    //send system constants
+    getResponseObject()["sysInfo"]["board"] = CONFIG_IDF_TARGET;
+    getResponseObject()["sysInfo"]["nrOfPins"] = NUM_DIGITAL_PINS;
+    getResponseObject()["sysInfo"]["pinTypes"].to<JsonArray>();
+    JsonArray pinTypes = getResponseObject()["sysInfo"]["pinTypes"];
+    for (int i=0; i<NUM_DIGITAL_PINS; i++) {
+      pinTypes.add(pins->getPinType(i));
+    }
+
+    sendResponseObject(client);
 
     JsonArray model = mdl->model->as<JsonArray>();
 

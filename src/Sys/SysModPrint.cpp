@@ -60,12 +60,11 @@ void SysModPrint::setup() {
     case f_UIFun:
     {
       ui->setLabel(var, "Output");
-      ui->setComment(var, "🚧");
 
       JsonArray options = ui->setOptions(var);
-      options.add("No");
+      options.add("No 🚧");
       options.add("Serial");
-      options.add("UI");
+      options.add("UI 🚧");
 
       web->clientsToJson(options, true); //ip only
       return true;
@@ -75,7 +74,7 @@ void SysModPrint::setup() {
 
   ui->initTextArea(parentVar, "log", "🚧", true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
-      ui->setComment(var, "Show the printed log");
+      // ui->setComment(var, "Show the printed log");
       return true;
     default: return false;
   }});

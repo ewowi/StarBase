@@ -15,14 +15,6 @@
 #include "SysModWeb.h"
 
 SysModPins::SysModPins() :SysModule("Pins") {
-#if CONFIG_IDF_TARGET_ESP32
-  // softhack007: configuring these pins on S3/C3/S2 may cause major problems (crashes included)
-  // pinMode(2, OUTPUT);  // softhack007 default LED pin on some boards, so don't play around with gpio2
-  pinMode(4, OUTPUT);
-  pinMode(19, OUTPUT);
-  pinMode(33, OUTPUT);
-#endif
-
   //start with no pins allocated
   for (int i=0; i<NUM_DIGITAL_PINS; i++) {
     deallocatePin(i, pinObjects[i].owner);
@@ -65,9 +57,10 @@ void SysModPins::setup() {
 
   ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (forUnsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++) {
         USER_PRINTF("pinDetails[%d] d1:%s d2:%s\n", rowNr, getNthAllocatedPinObject(rowNr).details, pinObjects[0].details);
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
+      }
       return true;
     case f_UIFun:
       ui->setLabel(var, "Details");
@@ -75,15 +68,13 @@ void SysModPins::setup() {
     default: return false;
   }});
 
-  #ifdef STARMOD_DEVMODE
-
   ui->initCanvas(parentVar, "board", UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
-      ui->setLabel(var, "Board layout");
+      ui->setLabel(var, "Pin viewer");
       ui->setComment(var, "🚧");
       return true;
     case f_LoopFun:
-      var["interval"] = 10*10*10; //every 10 sec from cs to ms
+      var["interval"] = 100; //every 100 ms
 
       web->sendDataWs([](AsyncWebSocketMessageBuffer * wsBuf) {
         byte* buffer;
@@ -91,31 +82,45 @@ void SysModPins::setup() {
         buffer = wsBuf->get();
 
         // send pins to clients
-        for (size_t i = 0; i < 20; i++)
+        for (size_t pinNr = 0; pinNr < NUM_DIGITAL_PINS; pinNr++)
         {
-          buffer[i*3+5] = random(256);// (digitalRead(i)+1) * 50;
-          buffer[i*3+5+1] = random(256);
-          buffer[i*3+5+2] = random(256);
+          buffer[pinNr+5] = random(8);// digitalRead(pinNr) * 255; // is only 0 or 1
         }
+        // USER_PRINTF("\n");
         //new values
         buffer[0] = 0; //userFun id
 
-      }, 20 * 3 + 5, true);
+      }, NUM_DIGITAL_PINS + 5, true);
       return true;
 
     default: return false;
   }});
 
-  #endif //STARMOD_DEVMODE
-  // ui->initCheckBox(parentVar, "pin2", true, UINT8_MAX, false, nullptr, updateGPIO);
-  // ui->initCheckBox(parentVar, "pin4");
 #if CONFIG_IDF_TARGET_ESP32
-  ui->initCheckBox(parentVar, "pin19", true, false, updateGPIO);
+  // softhack007: configuring these pins on S3/C3/S2 may cause major problems (crashes included)
+  // pinMode(2, OUTPUT);  // softhack007 default LED pin on some boards, so don't play around with gpio2
+  allocatePin(19, "Pins", "Relais");
+  pinMode(19, OUTPUT); //tbd: part of allocatePin?
+
+  ui->initCheckBox(parentVar, "pin19", true, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    case f_UIFun:
+      ui->setComment(var, "🚧 used for relais on Serg shields");
+      return true;
+    case f_ChangeFun: {
+      bool pinValue = var["value"];
+
+      USER_PRINTF("updateGPIO %s:=%d\n", mdl->varID(var), pinValue);
+
+      // softhack007: writing these pins on S3/C3/S2 may cause major problems (crashes included)
+      digitalWrite(19, pinValue?HIGH:LOW);
+      return true; }
+    default: return false;
+  }});
 #endif
-  // ui->initCheckBox(parentVar, "pin33", true);
 }
 
-void SysModPins::loop1s() {
+void SysModPins::loop() {
+
   if (pinsChanged) {
     pinsChanged = false;
 
@@ -123,26 +128,6 @@ void SysModPins::loop1s() {
       ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
   }
 }
-
-bool SysModPins::updateGPIO(JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-    case f_ChangeFun:
-      if (var["value"].is<bool>()) {
-        bool pinValue = var["value"];
-        JsonString id = var["id"];
-
-        USER_PRINTF("updateGPIO %s:=%d\n", id.c_str(), pinValue);
-
-#if CONFIG_IDF_TARGET_ESP32
-  // softhack007: writing these pins on S3/C3/S2 may cause major problems (crashes included)
-        // if (id == "pin2") digitalWrite(2, pinValue?HIGH:LOW); // softhack007 default LED pin on some boards, so don't play around with gpio2
-        if (id == "pin4") digitalWrite(4, pinValue?HIGH:LOW);
-        if (id == "pin19") digitalWrite(19, pinValue?HIGH:LOW);
-        if (id == "pin33") digitalWrite(33, pinValue?HIGH:LOW);
-#endif
-      }
-      return true;
-    default: return false;
-  }};
 
 void SysModPins::allocatePin(unsigned8 pinNr, const char * owner, const char * details) {
   USER_PRINTF("allocatePin %d %s %s\n", pinNr, owner, details);

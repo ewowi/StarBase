@@ -12,6 +12,12 @@
 #pragma once
 #include "SysModule.h"
 
+#define pinTypeIO 0
+#define pinTypeReadOnly 1
+#define pinTypeReserved 2
+#define pinTypeSpi 3
+#define pinTypeInvalid UINT8_MAX
+
 //info stored per pin
 struct PinObject {
   char owner[32]; //if not "" then allocated (tbd: no use char)
@@ -26,7 +32,7 @@ public:
 
   SysModPins();
   void setup();
-  void loop1s();
+  void loop();
 
   void allocatePin(unsigned8 pinNr, const char * owner, const char * details);
   void deallocatePin(unsigned8 pinNr, const char * owner);
@@ -69,9 +75,42 @@ public:
     return UINT8_MAX;
   }
 
-  static bool updateGPIO(JsonObject var, unsigned8 rowNr, unsigned8 funType);
-
   bool pinsChanged = false; //update pins table if pins changed
+
+  uint8_t getPinType(uint8_t pinNr) {
+    uint8_t pinType;
+    if (digitalPinIsValid(pinNr)) {
+
+      #if defined(CONFIG_IDF_TARGET_ESP32S2)
+        if ((pinNr > 18 && pinNr < 21) || (pinNr > 21 && pinNr < 33)) pinType = pinTypeReserved; else 
+      #elif defined(CONFIG_IDF_TARGET_ESP32S3)
+        if ((pinNr > 18 && pinNr < 21) || (pinNr > 21 && pinNr < 33)) pinType = pinTypeReserved; else 
+      #elif defined(CONFIG_IDF_TARGET_ESP32C3)
+        if ((pinNr > 11 && pinNr < 18) || (pinNr > 17 && pinNr < 20)) pinType = pinTypeReserved; else 
+      #elif defined(ESP32)
+        if (pinNr > 5 && pinNr < 12) pinType = pinTypeReserved; else 
+      #else //???
+        pinType = pinTypeInvalid; return pinType; 
+      #endif
+
+      if (!digitalPinCanOutput(pinNr)) 
+        pinType = pinTypeReadOnly;
+      else
+        pinType = pinTypeIO;
+
+      //results in crashes
+      // if (digitalPinToRtcPin(pinNr)) pinType = pinTypeIO; else pinType = pinTypeInvalid; //error: 'RTC_GPIO_IS_VALID_GPIO' was not declared in this scope
+      // if (digitalPinToDacChannel(pinNr)) pinType = pinTypeIO; else pinType = pinTypeInvalid; //error: 'DAC_CHANNEL_1_GPIO_NUM' was not declared in this scope
+
+      //not so relevant
+      // if (digitalPinToAnalogChannel(pinNr)) pinType = pinTypeInvalid;
+      // if (digitalPinToTouchChannel(pinNr)) pinType = pinTypeInvalid;
+    }
+    else 
+      pinType = pinTypeInvalid;
+
+    return pinType;
+  }
 };
 
 extern SysModPins *pins;

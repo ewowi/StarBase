@@ -212,16 +212,18 @@ public:
 
     if (rowNr == UINT8_MAX) { //normal situation
       if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
-        JsonString oldValue = JsonString(var["value"], JsonString::Copied);
+        if (!var["value"].isNull() && !varRO(var)) var["oldValue"] = var["value"];
         var["value"] = value;
         //trick to remove null values
         if (var["value"].isNull() || var["value"].as<unsigned16>() == UINT16_MAX) {
           var.remove("value");
-          if (oldValue.size()>0)
-            USER_PRINTF("dev setValue value removed %s %s\n", varID(var), oldValue.c_str()); //old value
+          USER_PRINTF("dev setValue value removed %s %s\n", varID(var), var["oldValue"].as<String>().c_str());
         }
         else {
-          USER_PRINTF("setValue changed %s %s -> %s\n", varID(var), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
+          if (varRO(var))
+            USER_PRINTF("setValue changed %s %s\n", varID(var), var["value"].as<String>().c_str());
+          else
+            USER_PRINTF("setValue changed %s %s -> %s\n", varID(var), var["oldValue"].as<String>().c_str(), var["value"].as<String>().c_str());
           web->addResponse(var["id"], "value", var["value"]);
           changed = true;
         }

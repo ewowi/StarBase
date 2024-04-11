@@ -793,43 +793,6 @@ public:
     ui->initPin(parentVar, "fixPin", 2, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun: {
         ui->setLabel(var, "Pin");
-
-        //tbd: move logic to pinMgr and create initPin
-        JsonArray options = ui->setOptions(var);
-        
-        for (forUnsigned8 pinNr = 0; pinNr < NUM_DIGITAL_PINS; pinNr++) {
-          char text[32];
-          itoa(pinNr, text, 10);
-          if (digitalPinIsValid(pinNr)) {
-
-            #if defined(CONFIG_IDF_TARGET_ESP32S2)
-              if ((pinNr > 18 && pinNr < 21) || (pinNr > 21 && pinNr < 33)) strcat(text, " 🟣"); else 
-            #elif defined(CONFIG_IDF_TARGET_ESP32S3)
-              if ((pinNr > 18 && pinNr < 21) || (pinNr > 21 && pinNr < 33)) strcat(text, " 🟣"); else 
-            #elif defined(CONFIG_IDF_TARGET_ESP32C3)
-              if ((pinNr > 11 && pinNr < 18) || (pinNr > 17 && pinNr < 20)) strcat(text, " 🟣"); else 
-            #elif defined(ESP32)
-              if (pinNr > 5 && pinNr < 12) strcat(text, " 🟣"); else 
-            #else //???
-            #endif
-
-            if (!digitalPinCanOutput(pinNr)) 
-              strcat(text, " 🟠"); //read only
-            else
-              strcat(text, " 🟢"); //io
-
-            //results in crashes
-            // if (digitalPinToRtcPin(pinNr)) strcat(text, " 🟢"); else strcat(text, " 🔴"); //error: 'RTC_GPIO_IS_VALID_GPIO' was not declared in this scope
-            // if (digitalPinToDacChannel(pinNr)) strcat(text, " 🟢"); else strcat(text, " 🔴"); //error: 'DAC_CHANNEL_1_GPIO_NUM' was not declared in this scope
-
-            //not so relevant
-            // if (digitalPinToAnalogChannel(pinNr)) strcat(text, " 🟣");
-            // if (digitalPinToTouchChannel(pinNr)) strcat(text, " 🟤");
-          }
-          else 
-            strcat(text, " 🔴"); //not valid
-          options.add(JsonString(text, JsonString::Copied));
-        }
         return true; }
       case f_ChangeFun: {
         //set remaining rows to same pin

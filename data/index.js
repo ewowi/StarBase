@@ -1,7 +1,7 @@
 // @title     StarMod
 // @file      index.css
-// @date      20240228
-// @repo      https://github.com/ewowi/StarMod
+// @date      20240411
+// @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
 // @Authors   https://github.com/ewowi/StarMod/commits/main
 // @Copyright © 2024 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007

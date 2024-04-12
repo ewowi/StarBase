@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModWeb.cpp
-   @date      20240228
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -241,10 +241,7 @@ void SysModWeb::connectedChanged() {
 
 // https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/examples/ESP_AsyncFSBrowser/ESP_AsyncFSBrowser.ino
 void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, byte *data, size_t len){
-  // if (!ws.count()) {
-  //   USER_PRINT_Async("wsEvent no clients\n");
-  //   return;
-  // }
+
   if (type == WS_EVT_CONNECT) {
     printClient("WS client connected", client);
 

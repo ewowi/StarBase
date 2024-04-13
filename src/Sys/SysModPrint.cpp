@@ -62,9 +62,9 @@ void SysModPrint::setup() {
       ui->setLabel(var, "Output");
 
       JsonArray options = ui->setOptions(var);
-      options.add("No 🚧");
+      options.add("No");
       options.add("Serial");
-      options.add("UI 🚧");
+      options.add("UI");
 
       web->clientsToJson(options, true); //ip only
       return true;
@@ -72,12 +72,7 @@ void SysModPrint::setup() {
     default: return false;
   }});
 
-  ui->initTextArea(parentVar, "log", "🚧", true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-    case f_UIFun:
-      // ui->setComment(var, "Show the printed log");
-      return true;
-    default: return false;
-  }});
+  ui->initTextArea(parentVar, "log");
 }
 
 void SysModPrint::loop() {
@@ -85,69 +80,43 @@ void SysModPrint::loop() {
   if (!setupsDone) setupsDone = true;
 }
 
-size_t SysModPrint::print(const char * format, ...) {
+void SysModPrint::print(const char * format, ...) {
   va_list args;
 
   va_start(args, format);
 
+  // Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"":"α"); //looptask λ/ asyncTCP task α
 
-  //tbd: print to UI (crashes because of recursive calls to print in setUIValueV...
-  // unsigned8 pOut = mdl->getValue("pOut");
-  // if (pOut == 2) {
-    // Serial.println(format);
-    // char value[1024];
-    // vsnprintf(value, sizeof(value)-1, format, args);
-    // mdl->setUIValueV("log", "%s", format);
-    // va_end(args);
-    // return 1;
-  // }
+  unsigned8 pOut = 1; //default serial
+  char value[1024];
+  vsnprintf(value, sizeof(value)-1, format, args);
+  if (mdls->isConnected) {
+    if (mdl->model)
+      pOut = mdl->getValue("pOut");
 
-  Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"":"α"); //looptask λ/ asyncTCP task α
-
-  for (size_t i = 0; i < strlen(format); i++) 
-  {
-    if (format[i] == '%') 
-    {
-      switch (format[i+1]) 
-      {
-        case 's':
-          Serial.print(va_arg(args, const char *));
-          break;
-        case 'u':
-          Serial.print(va_arg(args, unsigned int));
-          break;
-        case 'c':
-          Serial.print(va_arg(args, int));
-          break;
-        case 'd':
-          Serial.print(va_arg(args, int));
-          break;
-        case 'f':
-          Serial.print(va_arg(args, double));
-          break;
-        case '%':
-          Serial.print("%"); // in case of %%
-          break;
-        default:
-          va_arg(args, int);
-        // logFile.print(x);
-          Serial.print(format[i]);
-          Serial.print(format[i+1]);
-      }
-      i++;
-    } 
-    else 
-    {
-      Serial.print(format[i]);
+    if (pOut == 1)
+      Serial.print(value);
+    else if (pOut == 2) {
+      JsonObject responseObject = web->getResponseObject();
+      if (responseObject["log"]["value"].isNull())
+        responseObject["log"]["value"] = value;
+      else
+        responseObject["log"]["value"] = responseObject["log"]["value"].as<String>() + String(value);
+      // web->addResponse("log", "value", JsonString(value, JsonString::Copied)); //setValue not necessary
+      // mdl->setUIValueV("log", "%s", value);
+    }
+    else if (pOut == 3) {
+      //tbd
     }
   }
+  else
+    Serial.print(value);
 
   va_end(args);
-  return 1;
 }
 
-size_t SysModPrint::println(const __FlashStringHelper * x) {
-  return Serial.println(x);
+void SysModPrint::println(const __FlashStringHelper * x) {
+  print("%s\n", x);
 }
 
 void SysModPrint::printVar(JsonObject var) {
@@ -158,11 +127,11 @@ void SysModPrint::printVar(JsonObject var) {
   }
 }
 
-size_t SysModPrint::printJson(const char * text, JsonVariantConst source) {
-  print("%s ", text);
-  size_t size = serializeJson(source, Serial); //for the time being
-  Serial.println();
-  return size;
+void SysModPrint::printJson(const char * text, JsonVariantConst source) {
+  char resStr[1024];
+  serializeJson(source, resStr, sizeof(resStr));
+
+  print("%s %s\n", text, resStr);
 }
 
 size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {

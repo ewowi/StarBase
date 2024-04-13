@@ -22,26 +22,19 @@ public:
   };
 
   void onStateCommand(bool state, HALight* sender) {
-      Serial.print("State: ");
-      Serial.println(state);
+      USER_PRINTF("State: %s\n", state?"true":"false");
 
       sender->setState(state); // report state back to the Home Assistant
   }
 
   void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
-      Serial.print("Brightness: ");
-      Serial.println(brightness);
+      USER_PRINTF("Brightness: %s\n", brightness);
 
       sender->setBrightness(brightness); // report brightness back to the Home Assistant
   }
 
   void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
-      Serial.print("Red: ");
-      Serial.println(color.red);
-      Serial.print("Green: ");
-      Serial.println(color.green);
-      Serial.print("Blue: ");
-      Serial.println(color.blue);
+      USER_PRINTF("Red: %d Green: %d blue: %d\n", color.red, color.green, color.blue);
 
       sender->setRGBColor(color); // report color back to the Home Assistant
   }

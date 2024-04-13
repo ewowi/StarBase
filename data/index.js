@@ -339,6 +339,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       divNode.appendChild(cE("br"));
 
       varNode = cE("textarea");
+      varNode.rows = 10;
       varNode.readOnly = variable.ro;
       varNode.addEventListener('dblclick', (event) => {toggleModal(event.target);});
     }
@@ -1014,6 +1015,9 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
         }
         //You cannot set it to a client side disk file system path, due to security reasons.
       }
+    } else if (node.className == "textarea") {
+      node.value += commandJson.value;
+      node.scrollTop = node.scrollHeight;
     } else {//inputs and progress type
       if (variable.ro && nodeType == "span") { //text and numbers read only
         // console.log("changeHTML value span not select", variable, node, commandJson, rowNr);

@@ -57,8 +57,6 @@ public:
   //remove files meeting filter condition, if no filter, all, if reverse then all but filter
   void removeFiles(const char * filter = nullptr, bool reverse = false);
 
-  bool readFile(const char * path);
-
 };
 
 extern SysModFiles *files;

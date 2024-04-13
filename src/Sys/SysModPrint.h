@@ -26,13 +26,13 @@ public:
   void loop();
 
   //generic print function (based on printf)
-  size_t print(const char * format, ...);
+  void print(const char * format, ...);
 
-  size_t println(const __FlashStringHelper * x);
+  void println(const __FlashStringHelper * x);
 
   void printVar(JsonObject var);
 
-  size_t printJson(const char * text, JsonVariantConst source);
+  void printJson(const char * text, JsonVariantConst source);
 
   size_t fFormat(char * buf, size_t size, const char * format, ...);
 

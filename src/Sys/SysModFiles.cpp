@@ -270,19 +270,3 @@ void SysModFiles::removeFiles(const char * filter, bool reverse) {
 
   root.close();
 }
-
-bool SysModFiles::readFile(const char * path) {
-  File f = open(path, "r");
-  if (f) {
-
-    while(f.available()) {
-      Serial.print((char)f.read());
-    }
-    Serial.println();
-
-    f.close();
-    return true;
-  }
-  else 
-    return false;
-}

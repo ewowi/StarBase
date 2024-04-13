@@ -348,14 +348,11 @@ public:
               int httpResponseCode = http.POST(postMessage);
 
               if (httpResponseCode>0) {
-                Serial.print("HTTP Response code: ");
-                Serial.println(httpResponseCode);
                 String payload = http.getString();
-                Serial.println(payload);
+                USER_PRINTF("HTTP Response code: %d %s\n", httpResponseCode, payload);
               }
               else {
-                Serial.print("Error code: ");
-                Serial.println(httpResponseCode);
+                USER_PRINTF("Error code: %d\n", httpResponseCode);
               }
               // Free resources
               http.end();

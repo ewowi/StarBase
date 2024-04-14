@@ -41,7 +41,7 @@ void SysModSystem::setup() {
   parentVar = ui->initSysMod(parentVar, name, 2000);
   parentVar["s"] = true; //setup
 
-  ui->initText(parentVar, "instanceName", "StarMod", 32, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "instanceName", _INIT(TOSTRING(APP)), 32, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Name");
       ui->setComment(var, "Instance name");
@@ -172,7 +172,13 @@ void SysModSystem::setup() {
 
   // USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
-  ui->initNumber(parentVar, "version", VERSION, UINT16_MAX, UINT16_MAX, true);
+  strcat(build, _INIT(TOSTRING(APP)));
+  strcat(build, "_");
+  strcat(build, _INIT(TOSTRING(VERSION)));
+  strcat(build, "_");
+  strcat(build, _INIT(TOSTRING(PIOENV)));
+
+  ui->initText(parentVar, "build", build, 32, true);
   // ui->initText(parentVar, "date", __DATE__, 16, true);
   // ui->initText(parentVar, "time", __TIME__, 16, true);
 

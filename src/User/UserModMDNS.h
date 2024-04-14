@@ -50,7 +50,7 @@ public:
     
     //reset cmDNS
     const char * instanceName = mdl->getValue("instanceName");
-    if (strcmp(instanceName, "StarMod") == 0 )
+    if (strcmp(instanceName, _INIT(TOSTRING(APP))) == 0 )
       sprintf(cmDNS, "star-%*s", 6, escapedMac.c_str() + 6);
     else
       strcpy(cmDNS, instanceName);

@@ -3,6 +3,11 @@ search range-based for loop
 ===========================
     ^(?=.*\bfor\b)(?=.*\b:\b).*$
 
+remove latest commit
+====================
+git reset --hard HEAD^
+git push origin -f
+
 
 Make video from png and mov
 ===========================

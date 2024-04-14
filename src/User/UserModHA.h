@@ -42,8 +42,8 @@ public:
   void connectedChanged() {
     if (mdls->isConnected) {
       // set device's details (optional)
-      device.setName("StarMod");
-      device.setSoftwareVersion("0.0.1");
+      device.setName(_INIT(TOSTRING(APP)));
+      device.setSoftwareVersion(_INIT(TOSTRING(VERSION)));
     }
 
     // configure light (optional)
@@ -76,7 +76,7 @@ public:
     WiFiClient client;
     HADevice device;
     HAMqtt* mqtt = new HAMqtt(client, device);
-    HALight* light = new HALight("starmod", HALight::BrightnessFeature | HALight::RGBFeature);
+    HALight* light = new HALight(_INIT(TOSTRING(APP)), HALight::BrightnessFeature | HALight::RGBFeature);
 };
 
 extern UserModHA *hamod;

@@ -1,3 +1,12 @@
+# @title     StarMod
+# @file      post_build.py
+# @date      20240411
+# @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
+# @Authors   https://github.com/ewowi/StarMod/commits/main
+# @Copyright © 2024 Github StarMod Commit Authors
+# @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+# @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
+
 Import('env')
 import os
 import shutil
@@ -20,37 +29,39 @@ def _get_cpp_define_value(env, define):
     return None
 
 def bin_rename_copy(source, target, env):
-    app = _get_cpp_define_value(env, "APP")
-    version = _get_cpp_define_value(env, "VERSION")
-    pioenv = env["PIOENV"]
+    if "runner" not in OUTPUT_DIR: #do not copy in github PlatformIO CI (/home/runner/ is output dir in github)
+        app = _get_cpp_define_value(env, "APP")
+        version = _get_cpp_define_value(env, "VERSION")
+        pioenv = env["PIOENV"]
 
-    # create string with location and file names based on pioenv
-    map_file = "{}{}_{}_{}.map".format(OUTPUT_DIR, app, version, pioenv)
-    bin_file = "{}{}_{}_{}.bin".format(OUTPUT_DIR, app, version, pioenv)
-    gzip_file = "{}{}_{}_{}.bin.gz".format(OUTPUT_DIR, app, version, pioenv)
+        # create string with location and file names based on pioenv
+        map_file = "{}{}_{}_{}.map".format(OUTPUT_DIR, app, version, pioenv)
+        bin_file = "{}{}_{}_{}.bin".format(OUTPUT_DIR, app, version, pioenv)
+        gzip_file = "{}{}_{}_{}.bin.gz".format(OUTPUT_DIR, app, version, pioenv)
 
-    # check if new target files exist and remove if necessary
-    for f in [map_file, bin_file]:
-        if os.path.isfile(f):
-            os.remove(f)
 
-    # copy firmware.bin to bin_file
-    shutil.copy(str(target[0]), bin_file)
-    print("  created " + bin_file)
+        # check if new target files exist and remove if necessary
+        for f in [map_file, bin_file]:
+            if os.path.isfile(f):
+                os.remove(f)
 
-    # copy firmware.map to map_file
-    if os.path.isfile("firmware.map"):
-        shutil.move("firmware.map", map_file)
+        # copy firmware.bin to bin_file
+        shutil.copy(str(target[0]), bin_file)
+        print("  created " + bin_file)
 
-    # do not create zip version (yet)
+        # copy firmware.map to map_file
+        if os.path.isfile("firmware.map"):
+            shutil.move("firmware.map", map_file)
 
-    # # check if new target files exist and remove if necessary
-    # if os.path.isfile(gzip_file): os.remove(gzip_file)
+        # do not create zip version (yet)
 
-    # # write gzip firmware file
-    # with open(bin_file,"rb") as fp:
-    #     with gzip.open(gzip_file, "wb", compresslevel = 9) as f:
-    #         shutil.copyfileobj(fp, f)
-    #         print("  created " + gzip_file)
+        # # check if new target files exist and remove if necessary
+        # if os.path.isfile(gzip_file): os.remove(gzip_file)
+
+        # # write gzip firmware file
+        # with open(bin_file,"rb") as fp:
+        #     with gzip.open(gzip_file, "wb", compresslevel = 9) as f:
+        #         shutil.copyfileobj(fp, f)
+        #         print("  created " + gzip_file)
 
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", [bin_rename_copy])

@@ -9,14 +9,6 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-// remove latest commit
-// git reset --hard HEAD^
-// git push origin -f
-
-#warning ******************************************************************************************************************************
-#warning ********** STARMOD IS LICENSED UNDER GPL-V3. BY INSTALLING STARMOD YOU IMPLICITLY ACCEPT THE TERMS AND CONDITIONS  ********
-#warning ******************************************************************************************************************************
-
 #include "SysModule.h"
 #include "SysModules.h"
 #include "Sys/SysModPrint.h"

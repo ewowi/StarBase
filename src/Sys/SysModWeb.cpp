@@ -671,9 +671,9 @@ void SysModWeb::serveJson(WebRequest *request) {
     root["info"]["name"] = mdl->getValue("instanceName");
     root["info"]["arch"] = "esp32"; //platformName
 
-    root["info"]["rel"] = "StarMod";
+    root["info"]["rel"] = _INIT(TOSTRING(APP));
     root["info"]["ver"] = "0.0.1";
-    root["info"]["vid"] = mdl->getValue("version").as<unsigned32>(); //WLED-native needs int otherwise status offline!!!
+    root["info"]["vid"] = VERSION; //WLED-native needs int otherwise status offline!!!
     root["info"]["leds"]["count"] = 999;
     root["info"]["leds"]["countP"] = 998;
     root["info"]["leds"]["fps"] = mdl->getValue("fps"); //tbd: should be realFps but is ro var

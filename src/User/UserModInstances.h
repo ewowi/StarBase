@@ -552,7 +552,7 @@ public:
     starModMessage.header.ip2 = localIP[2];
     starModMessage.header.ip3 = localIP[3];
     const char * instanceName = mdl->getValue("instanceName");
-    strncpy(starModMessage.header.name, instanceName?instanceName:"StarMod", sizeof(starModMessage.header.name)-1);
+    strncpy(starModMessage.header.name, instanceName?instanceName:_INIT(TOSTRING(APP)), sizeof(starModMessage.header.name)-1);
     starModMessage.header.type = 32; //esp32 tbd: CONFIG_IDF_TARGET_ESP32S3 etc
     starModMessage.header.insId = localIP[3]; //WLED: used in map of instances as index!
     starModMessage.header.version = VERSION;

@@ -33,7 +33,7 @@ jobs:
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v3
         with:
-            name: StarMod-esp32-${{env.git_branch}}-${{env.git_hash}}.bin
+            name: StarMod-esp32dev-${{env.git_branch}}-${{env.git_hash}}.bin
             path: .pio/build/esp32dev/firmware.bin
             retention-days: 30
 

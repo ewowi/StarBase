@@ -11,7 +11,6 @@
 
 #pragma once
 
-// #define VERSION 2024041411 //update for each build. Time in GMT !!!
 //make a string from pio variables (_INIT and STRINGIFY needed to make TOSTRING work)
 #define _INIT(x) x
 #define STRINGIFY(X) #X

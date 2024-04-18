@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModWorkFlow.h
-   @date      20240228
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -86,7 +86,7 @@ public:
     Action action;
     strcpy(action.description, description);
     strcpy(action.module, module);
-    USER_PRINTF("addAction %s %s %d\n", description, module, actions.size());
+    ppf("addAction %s %s %d\n", description, module, actions.size());
     actions.push_back(action);
 
     rebuildTable = true;

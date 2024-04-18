@@ -2,7 +2,7 @@
    @title     StarMod
    @file      SysModUI.h
    @date      20240227
-   @repo      https://github.com/ewowi/StarMod
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -193,7 +193,7 @@ public:
         }
 
         if (changeFunExists)
-          USER_PRINTF("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->varID(var), var["value"].as<String>().c_str());
+          ppf("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->varID(var), var["value"].as<String>().c_str());
       }
     }
 
@@ -214,20 +214,20 @@ public:
       size_t funNr = var["fun"];
       if (funNr < varFunctions.size()) {
         result = varFunctions[funNr](var, rowNr, funType);
-        // if (result) { //send rowNr = 0 if no rowNr
-        //   //only print vars with a value
-        //   if (!var["value"].isNull() && funType != f_ValueFun) {
-          // if (var["id"] == "fixFirst") {
-        //     USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
-        //     if (rowNr != UINT8_MAX)
-        //       USER_PRINTF("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
-        //     else
-        //       USER_PRINTF(" = %s\n", var["value"].as<String>().c_str());
-        //   }
-        // }
+        if (result && !mdl->varRO(var)) { //send rowNr = 0 if no rowNr
+          //only print vars with a value and not valuefun as that changes a lot due to insTbl clTbl etc (tbd)
+          // if (!var["value"].isNull() && 
+          if (funType != f_ValueFun) {
+            ppf("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
+            if (rowNr != UINT8_MAX)
+              ppf("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
+            else
+              ppf(" = %s\n", var["value"].as<String>().c_str());
+          }
+        }
       }
       else    
-        USER_PRINTF("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());
+        ppf("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());
     }
 
     //for ro variables, call valueFun to add also the value in responseDoc (as it is not stored in the model)
@@ -238,13 +238,13 @@ public:
     return result;
   }
 
-  // assuming ui->callVarFun(varID, UINT8_MAX, f_UIFun); has been called before
+  // assuming callVarFun(varID, UINT8_MAX, f_UIFun); has been called before
   uint8_t selectOptionToValue(const char *varID, const char *label) {
     JsonArray options = web->getResponseObject()[varID]["options"];
-    // USER_PRINTF("selectOptionToValue fileName %s %s\n", label, options[0].as<String>().c_str());
+    // ppf("selectOptionToValue fileName %s %s\n", label, options[0].as<String>().c_str());
     uint8_t value = 0;
     for (JsonVariant option: options) {
-      // USER_PRINTF("selectOptionToValue fileName2 %s %s\n", label, option.as<String>().c_str());
+      // ppf("selectOptionToValue fileName2 %s %s\n", label, option.as<String>().c_str());
       if (strstr(option, label) != nullptr) //if label part of value
         return value;
       value++;

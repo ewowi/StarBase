@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModNetwork.cpp
-   @date      20240228
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -73,7 +73,7 @@ void SysModNetwork::loop1s() {
 
 void SysModNetwork::handleConnection() {
   if (lastReconnectAttempt == 0) { // do this only once
-    USER_PRINTF("lastReconnectAttempt == 0\n");
+    ppf("lastReconnectAttempt == 0\n");
     initConnection();
     return;
   }
@@ -85,18 +85,18 @@ void SysModNetwork::handleConnection() {
   //if not connected to Wifi
   if (!(WiFi.localIP()[0] != 0 && WiFi.status() == WL_CONNECTED)) { //!Network.isConfirmedConnection()
     if (isConfirmedConnection) { //should not be confirmed as not connected -> lost connection -> retry
-      USER_PRINTF("Disconnected!\n");
+      ppf("Disconnected!\n");
       initConnection();
     }
 
     //if no connection for more then 6 seconds (was 12)
     if (!apActive && millis() - lastReconnectAttempt > 6000 ) { //&& (!wasConnected || apBehavior == AP_BEHAVIOR_NO_CONN)
-      USER_PRINTF("Not connected AP.\n");
+      ppf("Not connected AP.\n");
       initAP();
     }
   } else if (!isConfirmedConnection) { //newly connected
     mdl->setUIValueV("nwstatus", "Connected %d.%d.%d.%d", WiFi.localIP()[0], WiFi.localIP()[1], WiFi.localIP()[2], WiFi.localIP()[3]);
-    USER_PRINTF("Connected %s\n", WiFi.localIP().toString().c_str());
+    ppf("Connected %s\n", WiFi.localIP().toString().c_str());
 
     isConfirmedConnection = true;
 
@@ -126,26 +126,23 @@ void SysModNetwork::initConnection() {
   if (ssid && strlen(ssid)>0) {
     char passXXX [32] = "";
     for (int i = 0; i < strlen(password); i++) strncat(passXXX, "*", sizeof(passXXX)-1);
-    USER_PRINTF("Connecting to WiFi %s / %s\n", ssid, passXXX);
+    ppf("Connecting to WiFi %s / %s\n", ssid, passXXX);
     WiFi.begin(ssid, password);
     #if defined(STARMOD_LOLIN_WIFI_FIX )
       WiFi.setTxPower(WIFI_POWER_8_5dBm );
     #endif
     WiFi.setSleep(false);
-    char hostname[25];
-    prepareHostname(hostname, mdl->getValue("instanceName"));
-    USER_PRINTF("hostname %s\n", hostname);
-    WiFi.setHostname(hostname);
+    WiFi.setHostname(mdns->cmDNS); //use the mdns name (instance name or star-mac)
   }
   else
-    USER_PRINTF("No SSID");
+    ppf("No SSID");
 
-  isConfirmedConnection = false; //neet to test if really connected in handleConnection
+  isConfirmedConnection = false; //need to test if really connected in handleConnection
 }
 
 void SysModNetwork::initAP() {
   const char * apSSID = mdl->getValue("instanceName");
-  USER_PRINTF("Opening access point %s\n", apSSID);
+  ppf("Opening access point %s\n", apSSID);
   WiFi.softAPConfig(IPAddress(4, 3, 2, 1), IPAddress(4, 3, 2, 1), IPAddress(255, 255, 255, 0));
   WiFi.softAP(apSSID, NULL, apChannel, false); //no password!!!
   #if defined(STARMOD_LOLIN_WIFI_FIX )
@@ -168,7 +165,7 @@ void SysModNetwork::stopAP() {
   dnsServer.stop();
   WiFi.softAPdisconnect(true);
   apActive = false;
-  USER_PRINTF("Access point disabled (handle).\n");
+  ppf("Access point disabled (handle).\n");
 }
 
 void SysModNetwork::handleAP() {
@@ -179,7 +176,7 @@ void SysModNetwork::handleAP() {
   if (stac != stacO) {
     stacO = stac;
     if (WiFi.status() != WL_CONNECTED) {
-      USER_PRINTF("Connected AP clients: %d %d\n", stac, WiFi.status());
+      ppf("Connected AP clients: %d %d\n", stac, WiFi.status());
       if (stac)
         WiFi.disconnect();        // disable search so that AP can work
       else

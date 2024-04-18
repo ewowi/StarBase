@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModules.cpp
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -21,6 +21,14 @@ SysModules::SysModules() {
 void SysModules::setup() {
   for (SysModule *module:modules) {
     module->setup();
+  }
+
+  //delete mdlTbl values if nr of modules has changed (new values created using module defaults)
+  for (JsonObject childVar: mdl->varChildren("mdlTbl")) {
+    if (!childVar["value"].isNull() && mdl->varValArray(childVar).size() != modules.size()) {
+      ppf("mdlTbl clear (%s %s) %d %d\n", childVar["id"].as<String>().c_str(), childVar["value"].as<String>().c_str(), modules.size(), mdl->varValArray(childVar).size());
+      childVar.remove("value");
+    }
   }
 
   //do its own setup: will be shown as last module
@@ -60,6 +68,7 @@ void SysModules::setup() {
   ui->initCheckBox(tableVar, "mdlEnabled", UINT16_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun not readonly! (tbd)
     case f_ValueFun:
       //never a rowNr as parameter, set all
+      //execute only if var has not been set
       for (forUnsigned8 rowNr = 0; rowNr < modules.size(); rowNr++)
         mdl->setValue(var, modules[rowNr]->isEnabled, rowNr);
       return true;
@@ -73,7 +82,7 @@ void SysModules::setup() {
         modules[rowNr]->enabledChanged();
       }
       else {
-        USER_PRINTF(" no rowNr or > modules.size!!", rowNr);
+        ppf(" no rowNr or %d > modules.size %d!!\n", rowNr, modules.size());
       }
       // print->printJson(" ", var);
       return true;

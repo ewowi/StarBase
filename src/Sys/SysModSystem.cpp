@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModSystem.cpp
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -14,6 +14,8 @@
 #include "SysModUI.h"
 #include "SysModWeb.h"
 #include "SysModModel.h"
+#include "SysModNetwork.h"
+#include "User/UserModMDNS.h"
 
 // #include <Esp.h>
 
@@ -39,10 +41,17 @@ void SysModSystem::setup() {
   parentVar = ui->initSysMod(parentVar, name, 2000);
   parentVar["s"] = true; //setup
 
-  ui->initText(parentVar, "instanceName", "StarMod", 32, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  ui->initText(parentVar, "instanceName", _INIT(TOSTRING(APP)), 32, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Name");
       ui->setComment(var, "Instance name");
+      return true;
+    case f_ChangeFun:
+      char instanceName[25];
+      removeInvalidCharacters(instanceName, var["value"]);
+      ppf("instanceName stripped %s\n", instanceName);
+      mdl->setValue(mdl->varID(var), JsonString(instanceName, JsonString::Copied));
+      mdns->resetMDNS(); // set the new name for mdns
       return true;
     default: return false;
   }});
@@ -154,16 +163,22 @@ void SysModSystem::setup() {
 
   //calculate version in format YYMMDDHH
   //https://forum.arduino.cc/t/can-you-format-__date__/200818/10
-  int month, day, year, hour, minute, second;
-  const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
-  sscanf(__DATE__, "%s %d %d", version, &day, &year); // Mon dd yyyy
-  month = (strstr(month_names, version)-month_names)/3+1;
-  sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //hh:mm:ss
-  print->fFormat(version, sizeof(version)-1, "%02d%02d%02d%02d", year-2000, month, day, hour);
+  // int month, day, year, hour, minute, second;
+  // const char month_names[] = "JanFebMarAprMayJunJulAugSepOctNovDec";
+  // sscanf(__DATE__, "%s %d %d", version, &day, &year); // Mon dd yyyy
+  // month = (strstr(month_names, version)-month_names)/3+1;
+  // sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //hh:mm:ss
+  // print->fFormat(version, sizeof(version)-1, "%02d%02d%02d%02d", year-2000, month, day, hour);
 
-  USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
+  // ppf("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
-  ui->initText(parentVar, "version", version, 16, true);
+  strcat(build, _INIT(TOSTRING(APP)));
+  strcat(build, "_");
+  strcat(build, _INIT(TOSTRING(VERSION)));
+  strcat(build, "_");
+  strcat(build, _INIT(TOSTRING(PIOENV)));
+
+  ui->initText(parentVar, "build", build, 32, true);
   // ui->initText(parentVar, "date", __DATE__, 16, true);
   // ui->initText(parentVar, "time", __TIME__, 16, true);
 
@@ -211,7 +226,7 @@ void SysModSystem::loop10s() {
   if (psramFound()) {
     ui->callVarFun(mdl->findVar("psram"));
   }
-  USER_PRINTF("❤️"); //heartbeat
+  ppf("❤️"); //heartbeat
 }
 
 //replace code by sentence as soon it occurs, so we know what will happen and what not

@@ -1,7 +1,7 @@
 // @title     StarMod
 // @file      index.css
-// @date      20240228
-// @repo      https://github.com/ewowi/StarMod
+// @date      20240411
+// @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
 // @Authors   https://github.com/ewowi/StarMod/commits/main
 // @Copyright © 2024 Github StarMod Commit Authors
 // @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -15,8 +15,23 @@ let jsonValues = {};
 let uiFunCommands = [];
 let model = []; //model.json (as send by the server), used by FindVar
 let savedView = null;
+
+//C++ equivalents
 const UINT8_MAX = 255;
 const UINT16_MAX = 256*256-1;
+
+const pinTypeIO = 0;
+const pinTypeReadOnly = 1;
+const pinTypeReserved = 2;
+const pinTypeSpi = 3;
+const pinTypeInvalid = UINT8_MAX;
+let sysInfo = {};
+function getPinType(pinNr) {
+  if (sysInfo.pinTypes[pinNr] == pinTypeIO) return "🟢";
+  else if (sysInfo.pinTypes[pinNr] == pinTypeReadOnly) return "🟠";
+  else if (sysInfo.pinTypes[pinNr] == pinTypeReserved) return "🟣";
+  else return "🔴";
+}
 
 function gId(c) {return d.getElementById(c);}
 function cE(e) { return d.createElement(e); }
@@ -215,6 +230,15 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       ndivNeeded = false;
 
       varNode = cE("div");
+      let mdlName = findVar("mdlName");
+      if (mdlName) {
+        let index = mdlName.value.indexOf(variable.id); //find this module
+        if (index != -1) {
+          let mdlEnabled = findVar("mdlEnabled");
+          if (mdlEnabled)
+            varNode.hidden = !mdlEnabled.value[index]; //hidden if not enabled
+        }
+      }
 
       let hgroupNode = cE("hgroup");
 
@@ -286,6 +310,13 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       else {
         varNode = cE("select");
         varNode.addEventListener('change', (event) => {console.log("select change", event);sendValue(event.target);});
+       }
+
+      if (variable.type == "pin") {
+        variable.options = [];
+        for (let index = 0; index < 40; index++) {
+          variable.options.push(index + " " + getPinType(index));
+        }
       }
 
     } else if (variable.type == "canvas") {
@@ -308,6 +339,7 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       divNode.appendChild(cE("br"));
 
       varNode = cE("textarea");
+      varNode.rows = 10;
       varNode.readOnly = variable.ro;
       varNode.addEventListener('dblclick', (event) => {toggleModal(event.target);});
     }
@@ -478,6 +510,9 @@ function createHTML(json, parentNode = null, rowNr = UINT8_MAX) {
       if (variable.value)
         changeHTML(variable, {"value":variable.value, "chk":"gen1"}, rowNr); //set only the value
 
+      if (variable.options) // eg for pin type
+        changeHTML(variable, {"options":variable.options, "chk":"gen1"}, rowNr); //set only the options
+
       //call ui Functionality, if defined (to set label, comment, select etc)
       if (variable.fun >= 0) { //>=0 as element in var
         uiFunCommands.push(variable.id);
@@ -554,9 +589,6 @@ function receiveData(json) {
       //special commands
       if (key == "uiFun") {
         console.log("receiveData no action", key, value); //should not happen anymore
-      }
-      else if (key == "aiButton") {
-        console.log("receiveData", key, value);
       }
       else if (key == "view") {
         console.log("receiveData", key, value);
@@ -644,6 +676,9 @@ function receiveData(json) {
           colNr++;
         }
 
+      } else if (key == "sysInfo") { //update the row of a table
+        console.log("receiveData", key, value);
+        sysInfo = value;
       } else { //{variable:{label:value:options:comment:}}
 
         let variable = findVar(key);
@@ -837,8 +872,9 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
           newValue = commandJson.value[newRowNr];
           //hide/show disabled/enabled modules
           if (variable.id == "mdlEnabled") {
-            let mdlNode = gId(findVar("mdlName").value[newRowNr]);
-            // console.log("mdlEnabled", variable, node, newValue, newRowNr, mdlNode);
+            let nameVar = findVar("mdlName");
+            let mdlNode = gId(nameVar.value[newRowNr]);
+            // console.log("mdlEnabled", variable, node, newValue, newRowNr, nameVar, mdlNode);
             if (mdlNode) {
               if  (mdlNode.hidden && newValue) mdlNode.hidden = false;
               if  (!mdlNode.hidden && !newValue) mdlNode.hidden = true;
@@ -979,6 +1015,9 @@ function changeHTML(variable, commandJson, rowNr = UINT8_MAX) {
         }
         //You cannot set it to a client side disk file system path, due to security reasons.
       }
+    } else if (node.className == "textarea") {
+      node.value += commandJson.value;
+      node.scrollTop = node.scrollHeight;
     } else {//inputs and progress type
       if (variable.ro && nodeType == "span") { //text and numbers read only
         // console.log("changeHTML value span not select", variable, node, commandJson, rowNr);
@@ -1482,13 +1521,13 @@ function saveModel(node) {
 
 function setView(node) {
   var command = {};
-  command["view"] = node.id;
+  command.view = node.id;
   requestJson(command);
 }
 
 function setTheme(node) {
   var command = {};
-  command["theme"] = node.value;
+  command.theme = node.value;
   requestJson(command);
 }
 
@@ -1498,21 +1537,100 @@ function getTheme() {
 }
 
 function previewBoard(canvasNode, buffer) {
+  let boardColor;
+  if (sysInfo.board == "esp32s2") boardColor = "purple";
+  else if (sysInfo.board == "esp32s3") boardColor = "blue";
+  else boardColor = "green";
+
   let ctx = canvasNode.getContext('2d');
   //assuming 20 pins
-  let mW = 10; // matrix width
-  let mH = 2; // matrix height
-  let pPL = Math.min(canvasNode.width / mW, canvasNode.height / mH); // pixels per LED (width of circle)
-  let lOf = Math.floor((canvasNode.width - pPL*mW)/2); //left offeset (to center matrix)
-  let i = 5;
+  let mW = sysInfo.nrOfPins<=40?2:4; // nr of pin columns
+  let mH = sysInfo.nrOfPins / mW; // pins per column
+  let pPL = Math.min(canvasNode.width / mW, canvasNode.height / (mH+2)); // pixels per LED (width of circle)
+  let bW = pPL*10;
+  let bH = mH * pPL;
+  let lOf = Math.floor((canvasNode.width - bW) / 2); //left offset (to center matrix)
+  // let i = 5;
+
+  let pos = {};
+
   ctx.clearRect(0, 0, canvasNode.width, canvasNode.height);
-  for (let y=0.5;y<mH;y++) for (let x=0.5; x<mW; x++) {
-    if (buffer[i] + buffer[i+1] + buffer[i+2] > 20) { //do not show nearly blacks
-      ctx.fillStyle = `rgb(${buffer[i]},${buffer[i+1]},${buffer[i+2]})`;
+
+  pos.x = lOf; pos.y = pPL;
+  //board
+  ctx.beginPath();
+  ctx.fillStyle = boardColor;
+  ctx.fillRect(pos.x, pos.y, bW, bH);
+
+  //wifi
+  ctx.fillStyle = "darkBlue";
+  if (mW == 2)
+    ctx.fillRect(pos.x + 1.5*pPL, 0, pPL * 7, pPL * 3);
+  else
+    ctx.fillRect(pos.x + 2.5*pPL, 0, pPL * 5, pPL * 3);
+
+  //cpu
+  ctx.fillStyle = "gray";
+  if (mW == 2)
+    ctx.fillRect(pos.x + 1.5*pPL, pos.y + 3*pPL, pPL * 7, pPL * 7);
+  else
+    ctx.fillRect(pos.x + 2.5*pPL, pos.y + 3*pPL, pPL * 5, pPL * 5);
+
+
+  //esp32 text
+  ctx.beginPath();
+  ctx.font = pPL *1.5 + "px serif";
+  ctx.fillStyle = "black";
+  ctx.textAlign = "center";
+  ctx.fillText(sysInfo.board, pos.x + 5*pPL, pos.y + 6 * pPL);
+
+  //chip
+  if (mW == 2) { //no space if 4 columns
+    ctx.fillStyle = "black";
+    ctx.fillRect(pos.x + 6 * pPL, pos.y + 12*pPL, pPL * 2, pPL * 5);
+  }
+  
+  //usb
+  ctx.fillStyle = "grey";
+  ctx.fillRect(pos.x + 3.5 * pPL, bH - pPL, pPL * 3, pPL * 3);
+  
+  let index = 0;
+  for (let x = 0; x < mW; x++) {
+    for (let y = 0; y < mH; y++) {
+      let pinType = sysInfo.pinTypes[index];
+      let pinColor = [];
+      switch (pinType) {
+        case pinTypeIO:
+          pinColor = [78,173,50]; // green
+          break;
+        case pinTypeReadOnly:
+          pinColor = [218,139,49];//"orange";
+          break;
+        case pinTypeReserved:
+          pinColor = [156,50,246];//"purple";
+          break;
+        default:
+          pinColor = [192,48,38];//"red";
+      }
+      ctx.fillStyle = `rgba(${pinColor[0]},${pinColor[1]},${pinColor[2]},${buffer[index + 5]})`;
+      pos.y = (y+0.5)*pPL + pPL;
       ctx.beginPath();
-      ctx.arc(x*pPL+lOf, y*pPL, pPL*0.4, 0, 2 * Math.PI);
+      if ((x == 0 && mW == 2) || (x <= 1 && mW == 4))
+        pos.x = (x+0.5)*pPL + lOf;
+      else if (mW == 2)
+        pos.x = (x+0.5)*pPL + lOf + 8 * pPL;
+      else
+        pos.x = (x+0.5)*pPL + lOf + 6 * pPL;
+      ctx.arc(pos.x, pos.y, pPL * 0.4, 0, 2 * Math.PI);
       ctx.fill();
+
+      ctx.beginPath();
+      ctx.font = pPL*0.5 + "px serif";
+      ctx.fillStyle = "black";
+      ctx.textAlign = "center";
+      ctx.fillText(index, pos.x, pos.y + pPL / 4);
+
+      index++;
     }
-    i+=3;
   }
 }

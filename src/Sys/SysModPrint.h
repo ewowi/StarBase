@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModPrint.h
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -12,10 +12,10 @@
 #pragma once
 #include "SysModule.h"
 
-#define USER_PRINTF(x...) print->print(x)
-#define USER_PRINT_FUNCTION(x...) //print->print(x)
-#define USER_PRINT_NOT(x...) //print->print(x)
-#define USER_PRINT_Async(x...) print->print(x)
+#define ppf(x...) print->printf(x)
+// #define ppf(x...) //to have no print code compiled, difference is only 6308 bytes 
+// Flash: [======    ]  62.8% (used 1194250 bytes from 1900544 bytes)
+// Flash: [======    ]  63.2% (used 1200558 bytes from 1900544 bytes)
 
 class SysModPrint:public SysModule {
 
@@ -25,14 +25,16 @@ public:
   void setup();
   void loop();
 
-  //generic print function (based on printf)
-  size_t print(const char * format, ...);
+  //generic print function
+  void printf(const char * format, ...);
 
-  size_t println(const __FlashStringHelper * x);
+  //not used yet
+  void println(const __FlashStringHelper * x);
 
+  //print var as id:value + [childVars recursively]
   void printVar(JsonObject var);
 
-  size_t printJson(const char * text, JsonVariantConst source);
+  void printJson(const char * text, JsonVariantConst source);
 
   size_t fFormat(char * buf, size_t size, const char * format, ...);
 

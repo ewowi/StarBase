@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysStarModJson.h
-   @date      20240228
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -17,14 +17,14 @@ class StarModJson {
   public:
 
   StarModJson(const char * path, const char * mode = "r") {
-    USER_PRINTF("StarModJson constructing %s %s\n", path, mode);
+    // ppf("StarModJson constructing %s %s\n", path, mode);
     f = files->open(path, mode);
     if (!f)
-      USER_PRINTF("StarModJson open %s for %s failed", path, mode);
+      ppf("StarModJson open %s for %s failed", path, mode);
   }
 
   ~StarModJson() {
-    USER_PRINTF("StarModJson destructing\n");
+    // ppf("StarModJson destructing\n");
     f.close();
   }
 
@@ -71,9 +71,9 @@ class StarModJson {
     while (f.available() && (!foundAll || !lazy))
       next();
     if (foundAll)
-      USER_PRINTF("StarModJson found all what it was looking for %d >= %d\n", foundCounter, varDetails.size());
+      ppf("StarModJson found all what it was looking for %d >= %d\n", foundCounter, varDetails.size());
     else
-      USER_PRINTF("StarModJson Not all vars looked for where found %d < %d\n", foundCounter, varDetails.size());
+      ppf("StarModJson Not all vars looked for where found %d < %d\n", foundCounter, varDetails.size());
     f.close();
     return foundAll;
   }
@@ -111,23 +111,23 @@ private:
 
   void next() {
     if (character=='{') { //object begin
-      // USER_PRINTF("Object %c\n", character);
+      // ppf("Object %c\n", character);
       varStack.push_back(lastVarId); //copy!!
-      // USER_PRINTF("Object push %s %d\n", lastVarId, varStack.size());
+      // ppf("Object push %s %d\n", lastVarId, varStack.size());
       strcpy(lastVarId, "");
       f.read(&character, sizeof(byte));
     }
     else if (character=='}') { //object end
       strncpy(lastVarId, varStack[varStack.size()-1].c_str(), sizeof(lastVarId)-1);
-      // USER_PRINTF("Object pop %s %d\n", lastVarId, varStack.size());
+      // ppf("Object pop %s %d\n", lastVarId, varStack.size());
       check(lastVarId);
       varStack.pop_back();
       f.read(&character, sizeof(byte));
     }
     else if (character=='[') { //array begin
-      // USER_PRINTF("Array %c\n", character);
+      // ppf("Array %c\n", character);
       varStack.push_back(lastVarId); //copy!!
-      // USER_PRINTF("Array push %s %d\n", lastVarId, varStack.size());
+      // ppf("Array push %s %d\n", lastVarId, varStack.size());
       strcpy(lastVarId, "");
       f.read(&character, sizeof(byte));
 
@@ -138,12 +138,12 @@ private:
     else if (character==']') { //array end
       //assign back the popped var id from [
       strncpy(lastVarId, varStack[varStack.size()-1].c_str(), sizeof(lastVarId)-1);
-      // USER_PRINTF("Array pop %s %d %d\n", lastVarId, varStack.size(), uint16CollectList.size());
+      // ppf("Array pop %s %d %d\n", lastVarId, varStack.size(), uint16CollectList.size());
       check(lastVarId);
 
       //check the parent array, if exists
       if (varStack.size()-2 >=0) {
-        // USER_PRINTF("  Parent check %s\n", varStack[varStack.size()-2].c_str());
+        // ppf("  Parent check %s\n", varStack[varStack.size()-2].c_str());
         strncpy(beforeLastVarId, varStack[varStack.size()-2].c_str(), sizeof(beforeLastVarId)-1);
         check(beforeLastVarId);
       }
@@ -158,11 +158,11 @@ private:
     
       //if no lastVar then var found
       if (strcmp(lastVarId, "") == 0) {
-        // USER_PRINTF("Element [%s]\n", value);
+        // ppf("Element [%s]\n", value);
         strncpy(lastVarId, value, sizeof(lastVarId)-1);
       }
       else { // if lastvar then string value found
-        // USER_PRINTF("String var %s: [%s]\n", lastVarId, value);
+        // ppf("String var %s: [%s]\n", lastVarId, value);
         check(lastVarId, value);
         strcpy(lastVarId, "");
       }
@@ -175,14 +175,14 @@ private:
       size_t len = 0;
       //readuntil not number
       while (isDigit(character)) {
-        // USER_PRINTF("%c", character);
+        // ppf("%c", character);
         value[len++] = character;
         f.read(&character, sizeof(byte));
       }
       value[len++] = '\0';
 
       //number value found
-      // USER_PRINTF("Number var %s: [%s]\n", lastVarId, value);
+      // ppf("Number var %s: [%s]\n", lastVarId, value);
       if (collectNumbers)
         uint16CollectList.push_back(atoi(value));
 
@@ -191,27 +191,27 @@ private:
       strcpy(lastVarId, "");
     }
     else if (character==':') {
-      // USER_PRINTF("semicolon %c\n", character);
+      // ppf("semicolon %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character==',') {
-      // USER_PRINTF("sep %c\n", character);
+      // ppf("sep %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character==']') {
-      // USER_PRINTF("close %c\n", character);
+      // ppf("close %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character=='}') {
-      // USER_PRINTF("close %c\n", character);
+      // ppf("close %c\n", character);
       f.read(&character, sizeof(byte));
     }
     else if (character=='\n') { //skip new lines
-      // USER_PRINTF("skip newline \n");
+      // ppf("skip newline \n");
       f.read(&character, sizeof(byte));
     }
     else {
-      // USER_PRINTF("%c", character);
+      // ppf("%c", character);
       f.read(&character, sizeof(byte));
     }
   } //next
@@ -219,9 +219,9 @@ private:
   void check(char * varId, char * value = nullptr) {
     //check if var is in lookFor list
     for (std::vector<VarDetails>::iterator vd=varDetails.begin(); vd!=varDetails.end(); ++vd) {
-      // USER_PRINTF("check %s %s %s\n", vd->id, varId, value);
+      // ppf("check %s %s %s\n", vd->id, varId, value);
       if (strcmp(vd->id, varId)==0) {
-        // USER_PRINTF("StarModJson found %s:%s %d %s %d %d\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size(), funList.size());
+        // ppf("StarModJson found %s:%s %d %s %d %d\n", varId, vd->type, vd->index, value?value:"", uint16CollectList.size(), funList.size());
         // if (strcmp(vd->type, "uint8") ==0 && value) *uint8List[vd->index] = atoi(value);
         if (strcmp(vd->type, "uint16") ==0 && value) *uint16List[vd->index] = atoi(value);
         if (strcmp(vd->type, "char") ==0 && value) strncpy(charList[vd->index], value, 31); //assuming size 32-1 here
@@ -278,7 +278,7 @@ private:
       f.print("null");      
     }
     else
-      USER_PRINTF("dev StarModJson write %s not supported\n", variant.as<String>().c_str());
+      ppf("dev StarModJson write %s not supported\n", variant.as<String>().c_str());
   }
 
 };

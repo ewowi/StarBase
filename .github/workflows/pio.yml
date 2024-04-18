@@ -73,6 +73,8 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     steps:
     - uses: actions/download-artifact@v2
+    - name: List Artifacts
+      run: ls -lh
     - name: Create draft release
       uses: softprops/action-gh-release@v1
       with:

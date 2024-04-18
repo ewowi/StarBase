@@ -214,17 +214,17 @@ public:
       size_t funNr = var["fun"];
       if (funNr < varFunctions.size()) {
         result = varFunctions[funNr](var, rowNr, funType);
-        // if (result) { //send rowNr = 0 if no rowNr
-        //   //only print vars with a value
-        //   if (!var["value"].isNull() && funType != f_ValueFun) {
-          // if (var["id"] == "fixFirst") {
-        //     USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
-        //     if (rowNr != UINT8_MAX)
-        //       USER_PRINTF("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
-        //     else
-        //       USER_PRINTF(" = %s\n", var["value"].as<String>().c_str());
-        //   }
-        // }
+        if (result && !mdl->varRO(var)) { //send rowNr = 0 if no rowNr
+          //only print vars with a value and not valuefun as that changes a lot due to insTbl clTbl etc (tbd)
+          // if (!var["value"].isNull() && 
+          if (funType != f_ValueFun) {
+            prf("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
+            if (rowNr != UINT8_MAX)
+              prf("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
+            else
+              prf(" = %s\n", var["value"].as<String>().c_str());
+          }
+        }
       }
       else    
         USER_PRINTF("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());

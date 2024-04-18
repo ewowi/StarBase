@@ -88,7 +88,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
   //create new var
   if (differentParents || var.isNull()) {
-    USER_PRINTF("initVar create new %s var: %s->%s\n", type, parentId?parentId:"", id); //parentId not null otherwise crash
+    USER_PRINTF("initVar new %s var: %s->%s\n", type, parentId?parentId:"", id); //parentId not null otherwise crash
     if (parent.isNull()) {
       JsonArray vars = mdl->model->as<JsonArray>();
       var = vars.add<JsonObject>();
@@ -106,7 +106,7 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
   if (!var.isNull()) {
     if (var["type"].isNull() || var["type"] != type) {
       var["type"] = JsonString(type, JsonString::Copied);
-      print->printJson("initVar set type", var);
+      // print->printJson("initVar set type", var);
     }
 
     if (var["ro"].isNull() || mdl->varRO(var) != readOnly) mdl->varRO(var, readOnly);

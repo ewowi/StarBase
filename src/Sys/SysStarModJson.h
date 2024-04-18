@@ -17,14 +17,14 @@ class StarModJson {
   public:
 
   StarModJson(const char * path, const char * mode = "r") {
-    USER_PRINTF("StarModJson constructing %s %s\n", path, mode);
+    // USER_PRINTF("StarModJson constructing %s %s\n", path, mode);
     f = files->open(path, mode);
     if (!f)
       USER_PRINTF("StarModJson open %s for %s failed", path, mode);
   }
 
   ~StarModJson() {
-    USER_PRINTF("StarModJson destructing\n");
+    // USER_PRINTF("StarModJson destructing\n");
     f.close();
   }
 

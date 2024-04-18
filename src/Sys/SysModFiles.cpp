@@ -37,7 +37,6 @@ void SysModFiles::setup() {
       return true;
     case f_AddRow:
       rowNr = fileList.size();
-      USER_PRINTF("chFun addRow %s[%d] = %s\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str());
       web->getResponseObject()["addRow"]["rowNr"] = rowNr;
       //add a row with all defaults
       return true;
@@ -197,7 +196,7 @@ bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
   size_t counter = 0;
   while (file) {
     if (counter == seqNr) {
-      USER_PRINTF("seqNrToName: %s %d\n", file.name(), file.size());
+      // USER_PRINTF("seqNrToName: %d %s %d\n", seqNr, file.name(), file.size());
       root.close();
       strncat(fileName, "/", 31); //add root prefix, fileName is 32 bytes but sizeof doesn't know so cheating
       strncat(fileName, file.name(), 31);

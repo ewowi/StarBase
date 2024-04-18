@@ -335,6 +335,8 @@ public:
               mdl->setValue(var, mdl->getValue(insVar, rowNr).as<unsigned8>()); //this will call sendDataWS (tbd...), do not set for rowNr
             } else {
               // https://randomnerdtutorials.com/esp32-http-get-post-arduino/
+
+              //this takes 10% of flash size!!! tbd: move to udp calls
               HTTPClient http;
               char serverPath[32];
               print->fFormat(serverPath, sizeof(serverPath)-1, "http://%s/json", instances[rowNr].ip.toString().c_str());
@@ -522,7 +524,7 @@ public:
     for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ) {
       if (millis() - instance->timeStamp > 32000) { //assuming a ping each 30 seconds
         instance = instances.erase(instance);
-        USER_PRINTF("insTbl remove inactive instances %d\n", instance->ip[3]);
+        // USER_PRINTF("insTbl remove inactive instances %d\n", instance->ip[3]);
 
         for (JsonObject childVar: mdl->varChildren("insTbl"))
           ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //no rowNr so all rows updated
@@ -703,7 +705,7 @@ public:
     } // for instances
 
     if (!instanceFound) {
-      USER_PRINTF("insTbl new instance %s\n", messageIP.toString().c_str());
+      // USER_PRINTF("insTbl new instance %s\n", messageIP.toString().c_str());
       
       ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun); //UiFun as select changes
       ui->callVarFun("artInst", UINT8_MAX, f_UIFun);

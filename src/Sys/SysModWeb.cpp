@@ -158,7 +158,7 @@ void SysModWeb::loop() {
   if (clientsChanged) {
     clientsChanged = false;
 
-    USER_PRINTF("SysModWeb clientsChanged\n");
+    // USER_PRINTF("SysModWeb clientsChanged\n");
     for (JsonObject childVar: mdl->varChildren("clTbl"))
       ui->callVarFun(childVar, UINT8_MAX, f_ValueFun);
   }
@@ -283,7 +283,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
   } else if (type == WS_EVT_DATA) {
     AwsFrameInfo * info = (AwsFrameInfo*)arg;
     String msg = "";
-    // USER_PRINT_Async("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
+    // prf("  info %d %d %d=%d? %d %d\n", info->final, info->index, info->len, len, info->opcode, data[0]);
     if (info->final && info->index == 0 && info->len == len) { //not multipart
       recvWsCounter++;
       recvWsBytes+=len;
@@ -295,7 +295,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
           // application layer ping/pong heartbeat.
           // client-side socket layer ping packets are unresponded (investigate)
           // printClient("WS client pong", client); //crash?
-          USER_PRINT_Async("pong\n");
+          prf("pong\n");
           client->text("pong");
         } else {
           JsonDocument *responseDoc = getResponseDoc(); //we need the doc for deserializeJson
@@ -304,7 +304,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
           DeserializationError error = deserializeJson(*responseDoc, data, len); //data to responseDoc
 
           if (error || responseObject.isNull()) {
-            USER_PRINT_Async("wsEvent deserializeJson failed with code %s\n", error.c_str());
+            prf("wsEvent deserializeJson failed with code %s\n", error.c_str());
             client->text("{\"success\":true}"); // we have to send something back otherwise WS connection closes
           } else {
             bool isUiFun = !responseObject["uiFun"].isNull();
@@ -314,7 +314,7 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
               sendResponseObject(isUiFun?client:nullptr); //uiFun only send to requesting client async response
             }
             else {
-              USER_PRINT_Async("WS_EVT_DATA no responseDoc\n");
+              prf("WS_EVT_DATA no responseDoc\n");
               client->text("{\"success\":true}"); // we have to send something back otherwise WS connection closes
             }
           }
@@ -324,12 +324,12 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
       //message is comprised of multiple frames or the frame is split into multiple packets
       if(info->index == 0){
         // if(info->num == 0)
-        //   USER_PRINT_Async("ws[%s][%u] %s-message start\n", ws.url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
-        // USER_PRINT_Async("ws[%s][%u] frame[%u] start[%llu]\n", ws.url(), client->id(), info->num, info->len);
+        //   prf("ws[%s][%u] %s-message start\n", ws.url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+        // prf("ws[%s][%u] frame[%u] start[%llu]\n", ws.url(), client->id(), info->num, info->len);
         USER_PRINTF("💀");
       }
 
-      // USER_PRINT_Async("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", ws.url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+      // prf("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", ws.url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
       USER_PRINTF("💀");
 
       if(info->opcode == WS_TEXT){
@@ -344,13 +344,13 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
       //     msg += buff ;
       //   }
       // }
-      USER_PRINT_Async("%s\n",msg.c_str());
+      prf("%s\n",msg.c_str());
 
       if ((info->index + len) == info->len) {
-        // USER_PRINT_Async("ws[%s][%u] frame[%u] end[%llu]\n", ws.url(), client->id(), info->num, info->len);
+        // prf("ws[%s][%u] frame[%u] end[%llu]\n", ws.url(), client->id(), info->num, info->len);
         USER_PRINTF("👻");
         if(info->final){
-          // USER_PRINT_Async("ws[%s][%u] %s-message end\n", ws.url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          // prf("ws[%s][%u] %s-message end\n", ws.url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
           USER_PRINTF("☠️");
           if(info->message_opcode == WS_TEXT)
             client->text("I got your text message");
@@ -373,23 +373,23 @@ void SysModWeb::wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, v
       //   if(info->final){
       //     if(info->message_opcode == WS_TEXT) {
       //       client->text("{\"error\":9}"); //we do not handle split packets right now
-      //       USER_PRINT_Async("WS multipart message: we do not handle split packets right now\n");
+      //       prf("WS multipart message: we do not handle split packets right now\n");
       //     }
       //   }
       // }
-      // USER_PRINT_Async("WS multipart message f:%d i:%d len:%d == %d\n", info->final, info->index, info->len, len);
+      // prf("WS multipart message f:%d i:%d len:%d == %d\n", info->final, info->index, info->len, len);
     }
   } else if (type == WS_EVT_ERROR){
     //error was received from the other end
     // printClient("WS error", client); //crashes
-    // USER_PRINT_Async("WS error\n");
-    USER_PRINT_Async("ws[%s][%u] error(): \n", ws->url(), client->id());//, *((unsigned16*)arg));//, (char*)data);
+    // prf("WS error\n");
+    prf("ws[%s][%u] error(): \n", ws->url(), client->id());//, *((unsigned16*)arg));//, (char*)data);
   } else if (type == WS_EVT_PONG){
     //pong message was received (in response to a ping request maybe)
     // printClient("WS pong", client); //crashes!
-    // USER_PRINT_Async("WS pong\n");
-    // USER_PRINT_Async("ws[%s][%u] pong[%u]: %s\n", ws.url(), client->id(), len, (len)?(char*)data:"");
-    USER_PRINT_Async("ws[%s][%u] pong[%u]: \n", ws->url(), client->id(), len);//, (len)?(char*)data:"");
+    // prf("WS pong\n");
+    // prf("ws[%s][%u] pong[%u]: %s\n", ws.url(), client->id(), len, (len)?(char*)data:"");
+    prf("ws[%s][%u] pong[%u]: \n", ws->url(), client->id(), len);//, (len)?(char*)data:"");
   }
 }
 
@@ -442,7 +442,7 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
       ws._cleanBuffers();
     }
     else {
-      USER_PRINT_Async("sendDataWs WS buffer allocation failed\n");
+      prf("sendDataWs WS buffer allocation failed\n");
       ws.closeAll(1013); //code 1013 = temporary overload, try again later
       ws.cleanupClients(0); //disconnect ALL clients to release memory
       ws._cleanBuffers();
@@ -455,7 +455,7 @@ void SysModWeb::sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fi
 //add an url to the webserver to listen to
 void SysModWeb::serveIndex(WebRequest *request) {
 
-  USER_PRINT_Async("Webserver: server.on serveIndex csdata %d-%d (%s)", PAGE_index, PAGE_index_L, request->url().c_str());
+  prf("Webserver: server.on serveIndex csdata %d-%d (%s)", PAGE_index, PAGE_index_L, request->url().c_str());
 
   if (captivePortal(request)) return;
 
@@ -467,13 +467,13 @@ void SysModWeb::serveIndex(WebRequest *request) {
   // setStaticContentCacheHeaders(response);
   request->send(response);
 
-  USER_PRINT_Async("!\n");
+  prf("!\n");
 }
 
 void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  USER_PRINT_Async("serveUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+  prf("serveUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
 
   mdl->setValue("upload", index/10000);
   sendResponseObject(); //otherwise not send in asyn_tcp thread
@@ -507,7 +507,7 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
 void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  // USER_PRINT_Async("serveUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+  // prf("serveUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
   
   mdl->setValue("update", index/10000);
   sendResponseObject(); //otherwise not send in asyn_tcp thread
@@ -549,7 +549,7 @@ void SysModWeb::serveFiles(WebRequest *request) {
 
   const char * urlString = request->url().c_str();
   const char * path = urlString + strlen("/file"); //remove the uri from the path (skip their positions)
-  USER_PRINT_Async("fileServer request %s\n", path);
+  prf("fileServer request %s\n", path);
   if(LittleFS.exists(path)) {
     request->send(LittleFS, path, "text/plain");//"application/json");
   }
@@ -573,7 +573,7 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
 
       char resStr[200];
       serializeJson(responseObject, resStr, 200);
-      USER_PRINT_Async("processJsonUrl response %s\n", resStr);
+      prf("processJsonUrl response %s\n", resStr);
       request->send(200, "application/json", resStr);
 
     }
@@ -634,8 +634,22 @@ void SysModWeb::sendResponseObject(WebClient * client) {
   JsonObject responseObject = getResponseObject();
   if (responseObject.size()) {
     if (strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) != 0) {
-      print->printJson("sendResponseObject", responseObject);
-      print->printJDocInfo("  info", responseObject);
+      USER_PRINTF("send ");
+      char sep[3] = "";
+      for (JsonPair pair: responseObject) {
+        USER_PRINTF("%s%s", sep, pair.key().c_str());
+        strcpy(sep, ", ");
+        if (pair.value().is<JsonObject>()) {
+          char sep[3] = "";
+          USER_PRINTF("{");
+          for (JsonPair pair: pair.value().as<JsonObject>()) {
+            USER_PRINTF("%s%s", sep, pair.key().c_str());
+            strcpy(sep, ", ");
+          }
+          USER_PRINTF("}");
+        }
+      }
+      USER_PRINTF("\n");
     }
     sendDataWs(responseObject, client);
     getResponseDoc()->to<JsonObject>(); //recreate!

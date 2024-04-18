@@ -220,10 +220,11 @@ public:
           USER_PRINTF("dev setValue value removed %s %s\n", varID(var), var["oldValue"].as<String>().c_str());
         }
         else {
-          if (varRO(var))
-            USER_PRINTF("setValue changed %s %s\n", varID(var), var["value"].as<String>().c_str());
-          else
+          //only print if ! read only
+          if (!varRO(var))
             USER_PRINTF("setValue changed %s %s -> %s\n", varID(var), var["oldValue"].as<String>().c_str(), var["value"].as<String>().c_str());
+          // else
+          //   USER_PRINTF("setValue changed %s %s\n", varID(var), var["value"].as<String>().c_str());
           web->addResponse(var["id"], "value", var["value"]);
           changed = true;
         }
@@ -233,8 +234,7 @@ public:
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", varID(var), rowNr, var["value"].as<String>().c_str());
-        // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
+        // USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", varID(var), rowNr, var["value"].as<String>().c_str());
         var["value"].to<JsonArray>();
       }
 
@@ -375,7 +375,9 @@ public:
       }
     }
     setValueRowNr = rowNr;
-    print->printJson("varPreDetails post", var);
+    USER_PRINTF("varPreDetails post ");
+    print->printVar(var);
+    USER_PRINTF("\n");
   }
 
   void varPostDetails(JsonObject var, unsigned8 rowNr) {
@@ -383,21 +385,23 @@ public:
     setValueRowNr = UINT8_MAX;
     if (rowNr != UINT8_MAX) {
 
-      print->printJson("varPostDetails pre", var);
+      USER_PRINTF("varPostDetails pre ");
+      print->printVar(var);
+      USER_PRINTF("\n");
 
       //check if post init added: parent is already >=0
       if (varOrder(var) >= 0) {
-        for (JsonArray::iterator childVar=varChildren(var).begin(); childVar!=varChildren(var).end(); ++childVar) { //use iterator to make .remove work!!!
-          JsonArray valArray = varValArray(*childVar);
+        // for (JsonArray::iterator childVar=varChildren(var).begin(); childVar!=varChildren(var).end(); ++childVar) { //use iterator to make .remove work!!!
+        for (JsonObject childVar: varChildren(var)) { //use iterator to make .remove work!!!
+          JsonArray valArray = varValArray(childVar);
           if (!valArray.isNull())
           {
-
-            if (varOrder(*childVar) < 0) { //if not updated
+            if (varOrder(childVar) < 0) { //if not updated
               valArray[rowNr] = (char*)0; // set element in valArray to 0
 
-              USER_PRINTF("varPostDetails %s[%d] to null\n", varID(var), rowNr);
+              USER_PRINTF("varPostDetails %s.%s[%d] <- null\n", varID(var), varID(childVar), rowNr);
               // setValue(var, -99, rowNr); //set value -99
-              varOrder(*childVar, -varOrder(*childVar)); //make positive again
+              varOrder(childVar, -varOrder(childVar)); //make positive again
               //if some values in array are not -99
             }
 
@@ -408,18 +412,20 @@ public:
                 allNull = false;
             }
             if (allNull) {
-              print->printJson("remove allnulls", *childVar);
+              print->printJson("remove allnulls", childVar);
               varChildren(var).remove(childVar);
             }
           }
           else {
-            print->printJson("remove non valArray", *childVar);
+            print->printJson("remove non valArray", childVar);
             varChildren(var).remove(childVar);
           }
 
         }
       } //if new added
-      print->printJson("varPostDetails post", var);
+      USER_PRINTF("varPostDetails post ");
+      print->printVar(var);
+      USER_PRINTF("\n");
 
       web->addResponse("details", "rowNr", rowNr);
     }

@@ -20,7 +20,7 @@ SysModModel::SysModModel() :SysModule("Model") {
 
   JsonArray root = model->to<JsonArray>(); //create
 
-  USER_PRINTF("Reading model from /model.json... (deserializeConfigFromFS)\n");
+  ppf("Reading model from /model.json... (deserializeConfigFromFS)\n");
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     // print->printJson("Read model", *model);
     // web->sendDataWs(*model);
@@ -82,7 +82,7 @@ void SysModModel::setup() {
   }
 
   if (doWriteModel) {
-    USER_PRINTF("Writing model to /model.json... (serializeConfig)\n");
+    ppf("Writing model to /model.json... (serializeConfig)\n");
 
     // files->writeObjectToFile("/model.json", model);
 
@@ -118,7 +118,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
         if (oPos) {
           if (var["o"].isNull() || varOrder(var) >= 0) { //not set negative in initVar
             if (!doShowObsolete) {
-              USER_PRINTF("cleanUpModel remove var %s (""o"">=0)\n", varID(var));          
+              ppf("cleanUpModel remove var %s (""o"">=0)\n", varID(var));          
               vars.remove(varV); //remove the obsolete var (no o or )
             }
           }
@@ -127,7 +127,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
           }
         } else { //!oPos
           if (var["o"].isNull() || varOrder(var) < 0) { 
-            USER_PRINTF("cleanUpModel remove var %s (""o""<0)\n", varID(var));          
+            ppf("cleanUpModel remove var %s (""o""<0)\n", varID(var));          
             vars.remove(varV); //remove the obsolete var (no o or o is negative - not cleanedUp)
           }
         }
@@ -136,7 +136,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
       //remove ro values (ro vars cannot be deleted as SM uses these vars)
       // remove if var is ro or table is instance table (exception here, values don't need to be saved)
       if (ro && (parent["id"] == "insTbl" || varRO(var))) {// && !var["value"].isNull())
-        USER_PRINTF("remove ro value %s\n", varID(var));          
+        ppf("remove ro value %s\n", varID(var));          
         var.remove("value");
       }
 
@@ -165,7 +165,7 @@ JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
         JsonObject foundVar = findVar(id, var["n"]);
         if (!foundVar.isNull()) {
           if (modelParentVar.isNull()) modelParentVar = var;  //only recursive lowest assigns parentVar
-          // USER_PRINTF("findvar parent of %s is %s\n", id, varID(modelParentVar));
+          // ppf("findvar parent of %s is %s\n", id, varID(modelParentVar));
           return foundVar;
         }
       }

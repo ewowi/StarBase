@@ -26,7 +26,7 @@ void SysModules::setup() {
   //delete mdlTbl values if nr of modules has changed (new values created using module defaults)
   for (JsonObject childVar: mdl->varChildren("mdlTbl")) {
     if (!childVar["value"].isNull() && mdl->varValArray(childVar).size() != modules.size()) {
-      USER_PRINTF("mdlTbl clear (%s %s) %d %d\n", childVar["id"].as<String>().c_str(), childVar["value"].as<String>().c_str(), modules.size(), mdl->varValArray(childVar).size());
+      ppf("mdlTbl clear (%s %s) %d %d\n", childVar["id"].as<String>().c_str(), childVar["value"].as<String>().c_str(), modules.size(), mdl->varValArray(childVar).size());
       childVar.remove("value");
     }
   }
@@ -82,7 +82,7 @@ void SysModules::setup() {
         modules[rowNr]->enabledChanged();
       }
       else {
-        USER_PRINTF(" no rowNr or %d > modules.size %d!!\n", rowNr, modules.size());
+        ppf(" no rowNr or %d > modules.size %d!!\n", rowNr, modules.size());
       }
       // print->printJson(" ", var);
       return true;

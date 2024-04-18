@@ -12,11 +12,10 @@
 #pragma once
 #include "SysModule.h"
 
-#define USER_PRINTF(x...) print->printf(x)
-#define prf(x...) print->printf(x)
-// #define USER_PRINT_FUNCTION(x...) //print->printf(x)
-// #define USER_PRINT_NOT(x...) //print->printf(x)
-// #define USER_PRINT_Async(x...) print->printf(x)
+#define ppf(x...) print->printf(x)
+// #define ppf(x...) //to have no print code compiled, difference is only 6308 bytes 
+// Flash: [======    ]  62.8% (used 1194250 bytes from 1900544 bytes)
+// Flash: [======    ]  63.2% (used 1200558 bytes from 1900544 bytes)
 
 class SysModPrint:public SysModule {
 

@@ -36,7 +36,7 @@ struct Coord3D {
 
   //comparisons
   bool operator!=(Coord3D rhs) {
-    // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
+    // ppf("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
     // return x != rhs.x || y != rhs.y || z != rhs.z;
     return !(*this==rhs);
   }
@@ -58,7 +58,7 @@ struct Coord3D {
 
   //assignments
   Coord3D operator=(Coord3D rhs) {
-    // USER_PRINTF("Coord3D assign %d,%d,%d\n", rhs.x, rhs.y, rhs.z);
+    // ppf("Coord3D assign %d,%d,%d\n", rhs.x, rhs.y, rhs.z);
     x = rhs.x;
     y = rhs.y;
     z = rhs.z;
@@ -136,12 +136,12 @@ namespace ArduinoJson {
       dst["x"] = src.x;
       dst["y"] = src.y;
       dst["z"] = src.z;
-      // USER_PRINTF("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
+      // ppf("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
       return true;
     }
 
     static Coord3D fromJson(JsonVariantConst src) {
-      // USER_PRINTF("Coord3D fromJson %s\n", src.as<String>().c_str());
+      // ppf("Coord3D fromJson %s\n", src.as<String>().c_str());
       return Coord3D{src["x"], src["y"], src["z"]};
     }
 
@@ -200,7 +200,7 @@ public:
       return setValue(var, value, rowNr);
     }
     else {
-      USER_PRINTF("setValue Var %s not found\n", id);
+      ppf("setValue Var %s not found\n", id);
       return JsonObject();
     }
   }
@@ -217,14 +217,14 @@ public:
         //trick to remove null values
         if (var["value"].isNull() || var["value"].as<unsigned16>() == UINT16_MAX) {
           var.remove("value");
-          USER_PRINTF("dev setValue value removed %s %s\n", varID(var), var["oldValue"].as<String>().c_str());
+          ppf("dev setValue value removed %s %s\n", varID(var), var["oldValue"].as<String>().c_str());
         }
         else {
           //only print if ! read only
           if (!varRO(var))
-            USER_PRINTF("setValue changed %s %s -> %s\n", varID(var), var["oldValue"].as<String>().c_str(), var["value"].as<String>().c_str());
+            ppf("setValue changed %s %s -> %s\n", varID(var), var["oldValue"].as<String>().c_str(), var["value"].as<String>().c_str());
           // else
-          //   USER_PRINTF("setValue changed %s %s\n", varID(var), var["value"].as<String>().c_str());
+          //   ppf("setValue changed %s %s\n", varID(var), var["value"].as<String>().c_str());
           web->addResponse(var["id"], "value", var["value"]);
           changed = true;
         }
@@ -234,7 +234,7 @@ public:
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        // USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", varID(var), rowNr, var["value"].as<String>().c_str());
+        // ppf("setValue var %s[%d] value %s not array, creating\n", varID(var), rowNr, var["value"].as<String>().c_str());
         var["value"].to<JsonArray>();
       }
 
@@ -248,15 +248,15 @@ public:
 
         if (notSame) {
           // if (rowNr >= valueArray.size())
-          //   USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
+          //   ppf("notSame %d %d\n", rowNr, valueArray.size());
           valueArray[rowNr] = value; //if valueArray[<rowNr] not exists it will be created
-          // USER_PRINTF("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
+          // ppf("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
           web->addResponse(var["id"], "value", var["value"]); //send the whole array to UI as response is in format value:<value> !!
           changed = true;
         }
       }
       else {
-        USER_PRINTF("setValue %s could not create value array\n", varID(var));
+        ppf("setValue %s could not create value array\n", varID(var));
       }
     }
 
@@ -275,7 +275,7 @@ public:
 
     va_end(args);
 
-    USER_PRINTF("setValueV %s[%d] = %s\n", id, rowNr, value);
+    ppf("setValueV %s[%d] = %s\n", id, rowNr, value);
     return setValue(id, JsonString(value, JsonString::Copied), rowNr);
   }
 
@@ -298,7 +298,7 @@ public:
       return getValue(var, rowNr);
     }
     else {
-      // USER_PRINTF("getValue: Var %s does not exist!!\n", id);
+      // ppf("getValue: Var %s does not exist!!\n", id);
       return JsonVariant();
     }
   }
@@ -311,7 +311,7 @@ public:
       else if (valueArray.size())
         return valueArray[0]; //return the first element
       else {
-        USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", varID(var), var["value"].as<String>().c_str(), rowNr);
+        ppf("dev getValue no array or rownr wrong %s %s %d\n", varID(var), var["value"].as<String>().c_str(), rowNr);
         return JsonVariant(); // return null
       }
     }
@@ -375,9 +375,9 @@ public:
       }
     }
     setValueRowNr = rowNr;
-    USER_PRINTF("varPreDetails post ");
+    ppf("varPreDetails post ");
     print->printVar(var);
-    USER_PRINTF("\n");
+    ppf("\n");
   }
 
   void varPostDetails(JsonObject var, unsigned8 rowNr) {
@@ -385,9 +385,9 @@ public:
     setValueRowNr = UINT8_MAX;
     if (rowNr != UINT8_MAX) {
 
-      USER_PRINTF("varPostDetails pre ");
+      ppf("varPostDetails pre ");
       print->printVar(var);
-      USER_PRINTF("\n");
+      ppf("\n");
 
       //check if post init added: parent is already >=0
       if (varOrder(var) >= 0) {
@@ -399,7 +399,7 @@ public:
             if (varOrder(childVar) < 0) { //if not updated
               valArray[rowNr] = (char*)0; // set element in valArray to 0
 
-              USER_PRINTF("varPostDetails %s.%s[%d] <- null\n", varID(var), varID(childVar), rowNr);
+              ppf("varPostDetails %s.%s[%d] <- null\n", varID(var), varID(childVar), rowNr);
               // setValue(var, -99, rowNr); //set value -99
               varOrder(childVar, -varOrder(childVar)); //make positive again
               //if some values in array are not -99
@@ -423,9 +423,9 @@ public:
 
         }
       } //if new added
-      USER_PRINTF("varPostDetails post ");
+      ppf("varPostDetails post ");
       print->printVar(var);
-      USER_PRINTF("\n");
+      ppf("\n");
 
       web->addResponse("details", "rowNr", rowNr);
     }

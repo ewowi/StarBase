@@ -64,12 +64,12 @@ struct AppData {
 
   int getVar(const char * varID) { //int to support -1
     for (int i=0; i < nrOfAppVars; i++) {
-      // USER_PRINTF("getVar %d %s %s %d\n", i, varID, vars[i].id, vars[i].value);
+      // ppf("getVar %d %s %s %d\n", i, varID, vars[i].id, vars[i].value);
       if (varID && !str3cmp(vars[i].id, "-") && str3cmp(vars[i].id, varID)) {
         return vars[i].value;
       }
     }
-    // USER_PRINTF("getVar %s not found\n", varID);
+    // ppf("getVar %s not found\n", varID);
     return -1;
   }
   
@@ -88,7 +88,7 @@ struct AppData {
     size_t i = foundAppVar;
     if (str3cmp(vars[i].id, "-")) str3cpy(vars[i].id, varID); //assign empty slot to var
     vars[i].value = value;
-    // USER_PRINTF("setVar %d %s %d\n", i, varID, vars[i].value);
+    // ppf("setVar %d %s %d\n", i, varID, vars[i].value);
   }
 
   void initVars() {
@@ -186,7 +186,7 @@ public:
   //   mdl->findVars("dash", true, [instance, row](JsonObject var) { //findFun
   //     //look for value in instance
   //     int value = instance->app.getVar(var["id"]);
-  //     // USER_PRINTF("insTbl %s %s: %d\n", instance->name, varID, value);
+  //     // ppf("insTbl %s %s: %d\n", instance->name, varID, value);
   //     row.add(value);
   //   });
   // }
@@ -303,7 +303,7 @@ public:
     //find dash variables and add them to the table
     mdl->findVars("dash", true, [tableVar, this](JsonObject var) { //findFun
 
-      USER_PRINTF("dash %s %s found\n", mdl->varID(var), var["value"].as<String>().c_str());
+      ppf("dash %s %s found\n", mdl->varID(var), var["value"].as<String>().c_str());
 
       char columnVarID[32] = "ins";
       strcat(columnVarID, var["id"]);
@@ -314,7 +314,7 @@ public:
         case f_ValueFun:
           //should not trigger chFun
           for (forUnsigned8 rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++) {
-            // USER_PRINTF("initVar dash %s[%d]\n", mdl->varID(insVar), rowNrL);
+            // ppf("initVar dash %s[%d]\n", mdl->varID(insVar), rowNrL);
             //do what setValue is doing except calling changeFun
             // insVar["value"][rowNrL] = instances[rowNrL].app.getVar(mdl->varID(var)); //only int values...
             web->addResponse(insVar["id"], "value", instances[rowNrL].app.getVar(mdl->varID(var)), rowNrL); //only int values...);
@@ -345,16 +345,16 @@ public:
               char postMessage[32];
               print->fFormat(postMessage, sizeof(postMessage)-1, "{\"%s\":%d}", mdl->varID(var), mdl->getValue(insVar, rowNr).as<unsigned8>());
 
-              USER_PRINTF("json post %s %s\n", serverPath, postMessage);
+              ppf("json post %s %s\n", serverPath, postMessage);
 
               int httpResponseCode = http.POST(postMessage);
 
               if (httpResponseCode>0) {
                 String payload = http.getString();
-                USER_PRINTF("HTTP Response code: %d %s\n", httpResponseCode, payload);
+                ppf("HTTP Response code: %d %s\n", httpResponseCode, payload);
               }
               else {
-                USER_PRINTF("Error code: %d\n", httpResponseCode);
+                ppf("Error code: %d\n", httpResponseCode);
               }
               // Free resources
               http.end();
@@ -376,18 +376,18 @@ public:
     });
 
     if (sizeof(UDPWLEDMessage) != 44) {
-      USER_PRINTF("Program error: Size of UDP message is not 44: %d\n", sizeof(UDPWLEDMessage));
-      // USER_PRINTF("udpMessage size %d = %d + %d + %d + ...\n", sizeof(UDPWLEDMessage), sizeof(udpMessage.ip0), sizeof(udpMessage.version), sizeof(udpMessage.name));
+      ppf("Program error: Size of UDP message is not 44: %d\n", sizeof(UDPWLEDMessage));
+      // ppf("udpMessage size %d = %d + %d + %d + ...\n", sizeof(UDPWLEDMessage), sizeof(udpMessage.ip0), sizeof(udpMessage.version), sizeof(udpMessage.name));
       success = false;
     }
     if (sizeof(UDPStarModMessage) != 1460) { //size of UDP Packet
       // one udp frame should be 1460, not 1472 (then split by network in 1460 and 12)
-      USER_PRINTF("Program error: Size of UDP message is not 44: %d\n", sizeof(UDPStarModMessage));
-      // USER_PRINTF("udpMessage size %d = %d + %d + %d + ...\n", sizeof(UDPWLEDMessage), sizeof(udpMessage.ip0), sizeof(udpMessage.version), sizeof(udpMessage.name));
+      ppf("Program error: Size of UDP message is not 44: %d\n", sizeof(UDPStarModMessage));
+      // ppf("udpMessage size %d = %d + %d + %d + ...\n", sizeof(UDPWLEDMessage), sizeof(udpMessage.ip0), sizeof(udpMessage.version), sizeof(udpMessage.name));
       success = false;
     }
 
-    USER_PRINTF("UDPWLEDSyncMessage %d %d %d\n", sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage), sizeof(UDPWLEDSyncMessage));
+    ppf("UDPWLEDSyncMessage %d %d %d\n", sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage), sizeof(UDPWLEDSyncMessage));
   }
 
   void onOffChanged() {
@@ -436,7 +436,7 @@ public:
       if (packetSize > 0) {
         IPAddress remoteIp = notifierUdp.remoteIP();
 
-        // USER_PRINTF("handleNotifications sync ...%d %d\n", remoteIp[3], packetSize);
+        // ppf("handleNotifications sync ...%d %d\n", remoteIp[3], packetSize);
 
         UDPWLEDSyncMessage wledSyncMessage;
         byte *udpIn = (byte *)&wledSyncMessage;
@@ -446,7 +446,7 @@ public:
         //   Serial.printf("%d: %d\n", i, udpIn[i]);
         // }
 
-        USER_PRINTF("   %d %d p:%d\n", wledSyncMessage.bri, wledSyncMessage.mainsegMode, packetSize);
+        ppf("   %d %d p:%d\n", wledSyncMessage.bri, wledSyncMessage.mainsegMode, packetSize);
 
         InstanceInfo *instance = findInstance(remoteIp); //if not exist, created
 
@@ -469,7 +469,7 @@ public:
         // }
         // Serial.println();
 
-        USER_PRINTF("insTbl handleNotifications %d\n", remoteIp[3]);
+        ppf("insTbl handleNotifications %d\n", remoteIp[3]);
         for (JsonObject childVar: mdl->varChildren("insTbl"))
           ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //rowNr //instance - instances.begin()
 
@@ -486,7 +486,7 @@ public:
 
       if (packetSize > 0) {
         IPAddress remoteIp = instanceUDP.remoteIP();
-        // USER_PRINTF("handleNotifications instances ...%d %d check %d or %d\n", remoteIp[3], packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
+        // ppf("handleNotifications instances ...%d %d check %d or %d\n", remoteIp[3], packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
 
         if (packetSize == sizeof(UDPWLEDMessage)) { //WLED instance
           UDPStarModMessage starModMessage;
@@ -510,7 +510,7 @@ public:
           byte udpIn[1472+1];
           notifierUdp.read(udpIn, packetSize);
 
-          USER_PRINTF("packetSize %d not equal to %d or %d\n", packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
+          ppf("packetSize %d not equal to %d or %d\n", packetSize, sizeof(UDPWLEDMessage), sizeof(UDPStarModMessage));
         }
         web->recvUDPCounter++;
         web->recvUDPBytes+=packetSize;
@@ -524,7 +524,7 @@ public:
     for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ) {
       if (millis() - instance->timeStamp > 32000) { //assuming a ping each 30 seconds
         instance = instances.erase(instance);
-        // USER_PRINTF("insTbl remove inactive instances %d\n", instance->ip[3]);
+        // ppf("insTbl remove inactive instances %d\n", instance->ip[3]);
 
         for (JsonObject childVar: mdl->varChildren("insTbl"))
           ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //no rowNr so all rows updated
@@ -589,7 +589,7 @@ public:
 
     IPAddress broadcastIP(255, 255, 255, 255);
     if (0 != instanceUDP.beginPacket(broadcastIP, instanceUDPPort)) {  // WLEDMM beginPacket == 0 --> error
-      // USER_PRINTF("sendSysInfoUDP %s s:%d p:%d i:...%d\n", starModMessage.header.name, sizeof(UDPStarModMessage), instanceUDPPort, localIP[3]);
+      // ppf("sendSysInfoUDP %s s:%d p:%d i:...%d\n", starModMessage.header.name, sizeof(UDPStarModMessage), instanceUDPPort, localIP[3]);
       // for (size_t x = 0; x < sizeof(UDPWLEDMessage) + sizeof(SysData) + sizeof(AppData); x++) {
       //   char * xx = (char *)&starModMessage;
       //   Serial.printf("%d: %d - %c\n", x, xx[x], xx[x]);
@@ -601,7 +601,7 @@ public:
       instanceUDP.endPacket();
     }
     else {
-      USER_PRINTF("sendSysInfoUDP error\n");
+      ppf("sendSysInfoUDP error\n");
     }
   }
 
@@ -614,7 +614,7 @@ public:
         instanceFound = true;
     }
 
-    // USER_PRINTF("updateInstance Instance: ...%d n:%s found:%d\n", messageIP[3], udpStarMessage.header.name, instanceFound);
+    // ppf("updateInstance Instance: ...%d n:%s found:%d\n", messageIP[3], udpStarMessage.header.name, instanceFound);
 
     if (!instanceFound) { //new instance
       InstanceInfo instance;
@@ -665,7 +665,7 @@ public:
                   instance.app.str3cpy(varID, newVar.id);
                   varID[3]='\0';
 
-                  USER_PRINTF("AppData3 %s %s %d\n", instance.name, varID, newVar.value);
+                  ppf("AppData3 %s %s %d\n", instance.name, varID, newVar.value);
                   mdl->setValue(varID, newVar.value);
                 }
               }
@@ -692,7 +692,7 @@ public:
 
           // web->sendResponseObject();
 
-          // USER_PRINTF("updateInstance updRow[%d] %s\n", instance - instances.begin(), instances[instance - instances.begin()].name);
+          // ppf("updateInstance updRow[%d] %s\n", instance - instances.begin(), instances[instance - instances.begin()].name);
 
           for (JsonObject childVar: mdl->varChildren("insTbl"))
             ui->callVarFun(childVar, UINT8_MAX, f_ValueFun); //rowNr instance - instances.begin()
@@ -705,7 +705,7 @@ public:
     } // for instances
 
     if (!instanceFound) {
-      // USER_PRINTF("insTbl new instance %s\n", messageIP.toString().c_str());
+      // ppf("insTbl new instance %s\n", messageIP.toString().c_str());
       
       ui->callVarFun("ddpInst", UINT8_MAX, f_UIFun); //UiFun as select changes
       ui->callVarFun("artInst", UINT8_MAX, f_UIFun);

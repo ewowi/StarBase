@@ -86,7 +86,7 @@ public:
     Action action;
     strcpy(action.description, description);
     strcpy(action.module, module);
-    USER_PRINTF("addAction %s %s %d\n", description, module, actions.size());
+    ppf("addAction %s %s %d\n", description, module, actions.size());
     actions.push_back(action);
 
     rebuildTable = true;

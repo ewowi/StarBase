@@ -49,7 +49,7 @@ void SysModSystem::setup() {
     case f_ChangeFun:
       char instanceName[25];
       removeInvalidCharacters(instanceName, var["value"]);
-      USER_PRINTF("instanceName stripped %s\n", instanceName);
+      ppf("instanceName stripped %s\n", instanceName);
       mdl->setValue(mdl->varID(var), JsonString(instanceName, JsonString::Copied));
       mdns->resetMDNS(); // set the new name for mdns
       return true;
@@ -170,7 +170,7 @@ void SysModSystem::setup() {
   // sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second); //hh:mm:ss
   // print->fFormat(version, sizeof(version)-1, "%02d%02d%02d%02d", year-2000, month, day, hour);
 
-  // USER_PRINTF("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
+  // ppf("version %s %s %s %d:%d:%d\n", version, __DATE__, __TIME__, hour, minute, second);
 
   strcat(build, _INIT(TOSTRING(APP)));
   strcat(build, "_");
@@ -226,7 +226,7 @@ void SysModSystem::loop10s() {
   if (psramFound()) {
     ui->callVarFun(mdl->findVar("psram"));
   }
-  USER_PRINTF("❤️"); //heartbeat
+  ppf("❤️"); //heartbeat
 }
 
 //replace code by sentence as soon it occurs, so we know what will happen and what not

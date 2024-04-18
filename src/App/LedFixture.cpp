@@ -29,7 +29,7 @@ void Fixture::projectAndMap() {
       if (leds->doMap) {
         leds->fill_solid(CRGB::Black, true); //no blend
 
-        USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, projections.size());
+        USER_PRINTF("projectAndMap clear leds[%d] fx:%d pro:%d\n", rowNr, leds->fx, leds->projectionNr);
         leds->size = Coord3D{0,0,0};
         //vectors really gone now?
         for (PhysMap &map:leds->mappingTable) {
@@ -47,7 +47,7 @@ void Fixture::projectAndMap() {
     //deallocate all led pins
     if (doAllocPins) {
       stackUnsigned8 pinNr = 0;
-      for (PinObject pinObject: pins->pinObjects) {
+      for (PinObject &pinObject: pins->pinObjects) {
         if (strcmp(pinObject.owner, "Leds") == 0)
           pins->deallocatePin(pinNr, "Leds");
         pinNr++;
@@ -123,7 +123,7 @@ void Fixture::projectAndMap() {
               // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, projectionDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], size.x, size.y, size.z);
 
               if (leds->size == Coord3D{0,0,0}) { // first
-                USER_PRINTF("leds[%d] first s:%d,%d,%d s:%d,%d,%d e:%d,%d,%d\n", rowNr, sizeAdjusted.x, sizeAdjusted.y, sizeAdjusted.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z);
+                USER_PRINTF("projectAndMap first leds[%d] size:%d,%d,%d s:%d,%d,%d e:%d,%d,%d\n", rowNr, sizeAdjusted.x, sizeAdjusted.y, sizeAdjusted.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z);
               }
 
               //calculate the indexV to add to current physical led to
@@ -362,7 +362,7 @@ void Fixture::projectAndMap() {
           else {//allocate new pin
             //tbd: check if free
             print->fFormat(details, sizeof(details)-1, "%d-%d", prevIndexP, indexP - 1); //careful: LedModEffects:loop uses this to assign to FastLed
-            USER_PRINTF("pins %d: %s\n", currPin, details);
+            // USER_PRINTF("allocatePin %d: %s\n", currPin, details);
             pins->allocatePin(currPin, "Leds", details);
           }
 
@@ -378,7 +378,7 @@ void Fixture::projectAndMap() {
 
       for (Leds *leds: projections) {
         if (leds->doMap) {
-          USER_PRINTF("Leds pre [%d] f:%d p:%d s:%d\n", rowNr, leds->fx, leds->projectionNr, projections.size());
+          USER_PRINTF("projectAndMap post leds[%d] fx:%d pro:%d\n", rowNr, leds->fx, leds->projectionNr);
 
           stackUnsigned16 nrOfMappings = 0;
           stackUnsigned16 nrOfPixels = 0;
@@ -427,7 +427,7 @@ void Fixture::projectAndMap() {
             }
           }
 
-          USER_PRINTF("projectAndMap [%d] V:%d x %d x %d -> %d (v:%d - p:%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
+          USER_PRINTF("projectAndMap leds[%d] V:%d x %d x %d -> %d (v:%d - p:%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
 
           // mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
           char buf[32];
@@ -442,7 +442,7 @@ void Fixture::projectAndMap() {
         rowNr++;
       } // leds
 
-      USER_PRINTF("projectAndMap P:%dx%dx%d -> %d\n", size.x, size.y, size.z, nrOfLeds);
+      USER_PRINTF("projectAndMap fixture P:%dx%dx%d -> %d\n", size.x, size.y, size.z, nrOfLeds);
 
       mdl->setValue("fixSize", size);
       mdl->setValue("fixCount", nrOfLeds);

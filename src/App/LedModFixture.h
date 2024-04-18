@@ -116,8 +116,7 @@ public:
     }});
 
     currentVar = ui->initSelect(parentVar, "fixture", eff->fixture.fixtureNr, false ,[](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun:
-      {
+      case f_UIFun: {
         // ui->setComment(var, "Fixture to display effect on");
         JsonArray options = ui->setOptions(var);
         files->dirToJson(options, true, "F_"); //only files containing F(ixture), alphabetically
@@ -127,10 +126,8 @@ public:
         if (files->seqNrToName(fileName, var["value"])) {
           web->addResponse("pview", "file", JsonString(fileName, JsonString::Copied));
         }
-        return true;
-      }
-      case f_ChangeFun:
-      {
+        return true; }
+      case f_ChangeFun: {
         eff->fixture.fixtureNr = var["value"];
         eff->fixture.doMap = true;
         eff->fixture.doAllocPins = true;
@@ -146,8 +143,7 @@ public:
           //send to pview a message to get file filename
           web->addResponse("pview", "file", JsonString(fileName, JsonString::Copied));
         }
-        return true;
-      }
+        return true; }
       default: return false; 
     }}); //fixture
 

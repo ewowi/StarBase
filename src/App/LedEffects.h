@@ -1626,7 +1626,9 @@ public:
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 
-      print->printJson("control", var);
+      USER_PRINTF("control ");
+      print->printVar(var);
+      USER_PRINTF("\n");
 
       if (effects[leds.fx]->dim() != leds.effectDimension) {
         leds.effectDimension = effects[leds.fx]->dim();

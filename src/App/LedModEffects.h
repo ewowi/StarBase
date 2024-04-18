@@ -56,24 +56,22 @@ public:
         return true;
       case f_AddRow: {
         rowNr = fixture.projections.size();
-        USER_PRINTF("chFun addRow %s[%d]\n", mdl->varID(var), rowNr);
+        // USER_PRINTF("chFun addRow %s[%d]\n", mdl->varID(var), rowNr);
 
         web->getResponseObject()["addRow"]["rowNr"] = rowNr;
 
         if (rowNr >= fixture.projections.size())
           fixture.projections.push_back(new Leds(fixture));
-        return true;
-      }
+        return true; }
       case f_DelRow: {
-        USER_PRINTF("chFun delrow %s[%d]\n", mdl->varID(var), rowNr);
+        // USER_PRINTF("chFun delrow %s[%d]\n", mdl->varID(var), rowNr);
         //tbd: fade to black
         if (rowNr <fixture.projections.size()) {
           Leds *leds = fixture.projections[rowNr];
           fixture.projections.erase(fixture.projections.begin() + rowNr); //remove from vector
           delete leds; //remove leds itself
         }
-        return true;
-      }
+        return true; }
       default: return false;
     }});
 
@@ -213,7 +211,7 @@ public:
           }
           mdl->varPostDetails(var, rowNr);
 
-          USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, proValue, fixture.projections.size());
+          // USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, proValue, fixture.projections.size());
 
           fixture.doMap = true;
         }
@@ -282,10 +280,10 @@ public:
       case f_ValueFun: {
         // for (std::vector<Leds *>::iterator leds=fixture.projections.begin(); leds!=fixture.projections.end(); ++leds) {
         stackUnsigned8 rowNr = 0;
-        for (Leds *leds: fixture.projections) {
+        for (Leds *leds:fixture.projections) {
           char message[32];
           print->fFormat(message, sizeof(message)-1, "%d x %d x %d -> %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
-          USER_PRINTF("valueFun fxSize[%d](of %d) = %s\n", rowNr, fixture.projections.size(), message);
+          USER_PRINTF("valueFun fxSize[%d] = %s\n", rowNr, message);
           mdl->setValue(var, JsonString(message, JsonString::Copied), rowNr); //rowNr
           rowNr++;
         }
@@ -430,11 +428,13 @@ public:
       if (fixture.doAllocPins) {
         unsigned pinNr = 0;
 
-        for (PinObject &pinObject:pins->pinObjects) {
+        for (PinObject &pinObject: pins->pinObjects) {
 
           if (pins->isOwner(pinNr, "Leds")) { //if pin owned by leds, (assigned in projectAndMap)
             //dirty trick to decode nrOfLedsPerPin
-            char * after = strtok((char *)pinObject.details, "-");
+            char details[32];
+            strcpy(details, pinObject.details); //copy as strtok messes with the string
+            char * after = strtok((char *)details, "-");
             if (after != NULL ) {
               char * before;
               before = after;
@@ -442,7 +442,7 @@ public:
 
               stackUnsigned16 startLed = atoi(before);
               stackUnsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
-              USER_PRINTF("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds);
+              USER_PRINTF("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds-1);
 
               //commented pins: error: static assertion failed: Invalid pin specified
               switch (pinNr) {

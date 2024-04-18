@@ -80,7 +80,7 @@ void SysModPrint::loop() {
   if (!setupsDone) setupsDone = true;
 }
 
-void SysModPrint::print(const char * format, ...) {
+void SysModPrint::printf(const char * format, ...) {
   va_list args;
 
   va_start(args, format);
@@ -116,14 +116,26 @@ void SysModPrint::print(const char * format, ...) {
 }
 
 void SysModPrint::println(const __FlashStringHelper * x) {
-  print("%s\n", x);
+  printf("%s\n", x);
 }
 
 void SysModPrint::printVar(JsonObject var) {
-  char sep[3] = "";
+  char sep[3] = " ";
   for (JsonPair pair: var) {
-    print("%s%s: %s", sep, pair.key(), pair.value().as<String>().c_str());
-    strcpy(sep, ", ");
+    if (pair.key() == "id") {
+      printf("%s%s", sep, pair.value().as<String>().c_str());
+      strcpy(sep, ", ");
+    }
+    else if (pair.key() == "value") {
+      printf(":%s", pair.value().as<String>().c_str());
+    }
+    else if (pair.key() == "n") {
+      printf("[");
+      for (JsonObject childVar: mdl->varChildren(var)) {
+        printVar(childVar);
+      }
+      printf("]");
+    }
   }
 }
 
@@ -131,7 +143,7 @@ void SysModPrint::printJson(const char * text, JsonVariantConst source) {
   char resStr[1024];
   serializeJson(source, resStr, sizeof(resStr));
 
-  print("%s %s\n", text, resStr);
+  printf("%s %s\n", text, resStr);
 }
 
 size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {
@@ -148,5 +160,5 @@ size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {
 }
 
 void SysModPrint::printJDocInfo(const char * text, JsonDocument source) {
-  print("%s (s:%u o:%u n:%u)\n", text, source.size(), source.overflowed(), source.nesting());
+  printf("%s (s:%u o:%u n:%u)\n", text, source.size(), source.overflowed(), source.nesting());
 }

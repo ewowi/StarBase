@@ -12,10 +12,11 @@
 #pragma once
 #include "SysModule.h"
 
-#define USER_PRINTF(x...) print->print(x)
-#define USER_PRINT_FUNCTION(x...) //print->print(x)
-#define USER_PRINT_NOT(x...) //print->print(x)
-#define USER_PRINT_Async(x...) print->print(x)
+#define USER_PRINTF(x...) print->printf(x)
+#define prf(x...) print->printf(x)
+// #define USER_PRINT_FUNCTION(x...) //print->printf(x)
+// #define USER_PRINT_NOT(x...) //print->printf(x)
+// #define USER_PRINT_Async(x...) print->printf(x)
 
 class SysModPrint:public SysModule {
 
@@ -25,11 +26,13 @@ public:
   void setup();
   void loop();
 
-  //generic print function (based on printf)
-  void print(const char * format, ...);
+  //generic print function
+  void printf(const char * format, ...);
 
+  //not used yet
   void println(const __FlashStringHelper * x);
 
+  //print var as id:value + [childVars recursively]
   void printVar(JsonObject var);
 
   void printJson(const char * text, JsonVariantConst source);

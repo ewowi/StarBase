@@ -58,7 +58,7 @@ void SysModPins::setup() {
   ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
       for (forUnsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++) {
-        USER_PRINTF("pinDetails[%d] d1:%s d2:%s\n", rowNr, getNthAllocatedPinObject(rowNr).details, pinObjects[0].details);
+        // USER_PRINTF("pinDetails[%d] d:%s\n", rowNr, getNthAllocatedPinObject(rowNr).details);
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
       }
       return true;
@@ -109,7 +109,7 @@ void SysModPins::setup() {
     case f_ChangeFun: {
       bool pinValue = var["value"];
 
-      USER_PRINTF("updateGPIO %s:=%d\n", mdl->varID(var), pinValue);
+      USER_PRINTF("chFun pin19 %s:=%d\n", mdl->varID(var), pinValue);
 
       // softhack007: writing these pins on S3/C3/S2 may cause major problems (crashes included)
       digitalWrite(19, pinValue?HIGH:LOW);
@@ -143,7 +143,7 @@ void SysModPins::allocatePin(unsigned8 pinNr, const char * owner, const char * d
 }
 
 void SysModPins::deallocatePin(unsigned8 pinNr, const char * owner) {
-  // USER_PRINTF("deallocatePin %d %s\n", pinNr, owner);
+  USER_PRINTF("deallocatePin %d %s\n", pinNr, owner);
   if (pinNr < NUM_DIGITAL_PINS) {
     if (strcmp(pinObjects[pinNr].owner, owner) != 0)
       USER_PRINTF("deallocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);

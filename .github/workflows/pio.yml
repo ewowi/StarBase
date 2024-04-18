@@ -75,7 +75,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v2
     - name: List Artifacts
-      run: ls -lh
+      run: find ./
     - name: Create draft release
       uses: softprops/action-gh-release@v1
       with:

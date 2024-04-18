@@ -44,7 +44,7 @@ jobs:
         with:
           path: |
             ~/.cache/pip
-            ~/.platformio/.cache
+            ~/.platformio
           key: ${{ runner.os }}-${{ matrix.environment}}-${{ hashFiles('platformio.ini') }}
       - uses: actions/setup-python@v4
         with:

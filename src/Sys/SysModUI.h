@@ -193,7 +193,7 @@ public:
         }
 
         if (changeFunExists)
-          USER_PRINTF("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->varID(var), var["value"].as<String>().c_str());
+          ppf("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->varID(var), var["value"].as<String>().c_str());
       }
     }
 
@@ -218,16 +218,16 @@ public:
           //only print vars with a value and not valuefun as that changes a lot due to insTbl clTbl etc (tbd)
           // if (!var["value"].isNull() && 
           if (funType != f_ValueFun) {
-            prf("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
+            ppf("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
             if (rowNr != UINT8_MAX)
-              prf("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
+              ppf("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
             else
-              prf(" = %s\n", var["value"].as<String>().c_str());
+              ppf(" = %s\n", var["value"].as<String>().c_str());
           }
         }
       }
       else    
-        USER_PRINTF("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());
+        ppf("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());
     }
 
     //for ro variables, call valueFun to add also the value in responseDoc (as it is not stored in the model)
@@ -241,10 +241,10 @@ public:
   // assuming callVarFun(varID, UINT8_MAX, f_UIFun); has been called before
   uint8_t selectOptionToValue(const char *varID, const char *label) {
     JsonArray options = web->getResponseObject()[varID]["options"];
-    // USER_PRINTF("selectOptionToValue fileName %s %s\n", label, options[0].as<String>().c_str());
+    // ppf("selectOptionToValue fileName %s %s\n", label, options[0].as<String>().c_str());
     uint8_t value = 0;
     for (JsonVariant option: options) {
-      // USER_PRINTF("selectOptionToValue fileName2 %s %s\n", label, option.as<String>().c_str());
+      // ppf("selectOptionToValue fileName2 %s %s\n", label, option.as<String>().c_str());
       if (strstr(option, label) != nullptr) //if label part of value
         return value;
       value++;

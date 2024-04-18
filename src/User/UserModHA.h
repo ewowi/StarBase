@@ -22,19 +22,19 @@ public:
   };
 
   void onStateCommand(bool state, HALight* sender) {
-      USER_PRINTF("State: %s\n", state?"true":"false");
+      ppf("State: %s\n", state?"true":"false");
 
       sender->setState(state); // report state back to the Home Assistant
   }
 
   void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
-      USER_PRINTF("Brightness: %s\n", brightness);
+      ppf("Brightness: %s\n", brightness);
 
       sender->setBrightness(brightness); // report brightness back to the Home Assistant
   }
 
   void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
-      USER_PRINTF("Red: %d Green: %d blue: %d\n", color.red, color.green, color.blue);
+      ppf("Red: %d Green: %d blue: %d\n", color.red, color.green, color.blue);
 
       sender->setRGBColor(color); // report color back to the Home Assistant
   }

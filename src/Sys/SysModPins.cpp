@@ -58,7 +58,7 @@ void SysModPins::setup() {
   ui->initText(tableVar, "pinDetails", nullptr, 256, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
       for (forUnsigned8 rowNr = 0; rowNr < getNrOfAllocatedPins(); rowNr++) {
-        // USER_PRINTF("pinDetails[%d] d:%s\n", rowNr, getNthAllocatedPinObject(rowNr).details);
+        // ppf("pinDetails[%d] d:%s\n", rowNr, getNthAllocatedPinObject(rowNr).details);
         mdl->setValue(var, JsonString(getNthAllocatedPinObject(rowNr).details, JsonString::Copied), rowNr);
       }
       return true;
@@ -86,7 +86,7 @@ void SysModPins::setup() {
         {
           buffer[pinNr+5] = random(8);// digitalRead(pinNr) * 255; // is only 0 or 1
         }
-        // USER_PRINTF("\n");
+        // ppf("\n");
         //new values
         buffer[0] = 0; //userFun id
 
@@ -109,7 +109,7 @@ void SysModPins::setup() {
     case f_ChangeFun: {
       bool pinValue = var["value"];
 
-      USER_PRINTF("chFun pin19 %s:=%d\n", mdl->varID(var), pinValue);
+      ppf("chFun pin19 %s:=%d\n", mdl->varID(var), pinValue);
 
       // softhack007: writing these pins on S3/C3/S2 may cause major problems (crashes included)
       digitalWrite(19, pinValue?HIGH:LOW);
@@ -130,10 +130,10 @@ void SysModPins::loop() {
 }
 
 void SysModPins::allocatePin(unsigned8 pinNr, const char * owner, const char * details) {
-  USER_PRINTF("allocatePin %d %s %s\n", pinNr, owner, details);
+  ppf("allocatePin %d %s %s\n", pinNr, owner, details);
   if ((pinNr < NUM_DIGITAL_PINS) && (digitalPinIsValid(pinNr))) {
     if (strcmp(pinObjects[pinNr].owner, "") != 0 && strcmp(pinObjects[pinNr].owner, owner) != 0)
-      USER_PRINTF("allocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
+      ppf("allocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
     else {
       strncpy(pinObjects[pinNr].owner, owner, sizeof(PinObject::owner)-1);  
       strncpy(pinObjects[pinNr].details, details, sizeof(PinObject::details)-1);  
@@ -143,10 +143,10 @@ void SysModPins::allocatePin(unsigned8 pinNr, const char * owner, const char * d
 }
 
 void SysModPins::deallocatePin(unsigned8 pinNr, const char * owner) {
-  USER_PRINTF("deallocatePin %d %s\n", pinNr, owner);
+  ppf("deallocatePin %d %s\n", pinNr, owner);
   if (pinNr < NUM_DIGITAL_PINS) {
     if (strcmp(pinObjects[pinNr].owner, owner) != 0)
-      USER_PRINTF("deallocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
+      ppf("deallocatePin %d: not owner %s!=%s", pinNr, owner, pinObjects[pinNr].owner);
     else {
       strcpy(pinObjects[pinNr].owner, "");  
       strcpy(pinObjects[pinNr].details, "");  

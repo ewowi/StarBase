@@ -19,8 +19,8 @@
 
 SysModFiles::SysModFiles() :SysModule("Files") {
   if (!LittleFS.begin(true)) { //true: formatOnFail
-    USER_PRINTF(" An Error has occurred while mounting File system");
-    USER_PRINTF(" fail\n");
+    ppf(" An Error has occurred while mounting File system");
+    ppf(" fail\n");
     success = false;
   }
 };
@@ -43,7 +43,7 @@ void SysModFiles::setup() {
     case f_DelRow:
       if (rowNr != UINT8_MAX && rowNr < fileList.size()) {
         const char * fileName = fileList[rowNr].name;
-        USER_PRINTF("chFun delRow %s[%d] = %s %s\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str(), fileName);
+        ppf("chFun delRow %s[%d] = %s %s\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str(), fileName);
         this->removeFiles(fileName, false);
       }
       print->printJson(" ", var);
@@ -142,7 +142,7 @@ void SysModFiles::loop10s() {
 }
 
 bool SysModFiles::remove(const char * path) {
-  USER_PRINTF("File remove %s\n", path);
+  ppf("File remove %s\n", path);
   return LittleFS.remove(path);
   filesChanged = true;
 }
@@ -178,7 +178,7 @@ void SysModFiles::dirToJson(JsonArray array, bool nameOnly, const char * filter)
         strncat(urlString, file.name(), sizeof(urlString)-1);
         row.add(JsonString(urlString, JsonString::Copied));
       }
-      // USER_PRINTF("FILE: %s %d\n", file.name(), file.size());
+      // ppf("FILE: %s %d\n", file.name(), file.size());
     }
 
     file.close();
@@ -196,7 +196,7 @@ bool SysModFiles::seqNrToName(char * fileName, size_t seqNr) {
   size_t counter = 0;
   while (file) {
     if (counter == seqNr) {
-      // USER_PRINTF("seqNrToName: %d %s %d\n", seqNr, file.name(), file.size());
+      // ppf("seqNrToName: %d %s %d\n", seqNr, file.name(), file.size());
       root.close();
       strncat(fileName, "/", 31); //add root prefix, fileName is 32 bytes but sizeof doesn't know so cheating
       strncat(fileName, file.name(), 31);
@@ -217,15 +217,15 @@ bool SysModFiles::readObjectFromFile(const char* path, JsonDocument* dest) {
   // if (doCloseFile) closeFile();
   File f = open(path, "r");
   if (!f) {
-    USER_PRINTF("File %s open not successful\n", path);
+    ppf("File %s open not successful\n", path);
     return false;
   }
   else { 
-    USER_PRINTF("File %s open to read, size %d bytes\n", path, (int)f.size());
+    ppf("File %s open to read, size %d bytes\n", path, (int)f.size());
     DeserializationError error = deserializeJson(*dest, f, DeserializationOption::NestingLimit(20)); //StarMod requires more then 10
     if (error) {
       print->printJDocInfo("readObjectFromFile", *dest);
-      USER_PRINTF("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
+      ppf("readObjectFromFile deserializeJson failed with code %s\n", error.c_str());
       f.close();
       return false;
     } else {

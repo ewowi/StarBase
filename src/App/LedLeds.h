@@ -126,10 +126,10 @@ class SharedData {
   public:
 
   SharedData() {
-    // USER_PRINTF("SharedData constructor %d %d\n", index, bytesAllocated);
+    // ppf("SharedData constructor %d %d\n", index, bytesAllocated);
   }
   ~SharedData() {
-    // USER_PRINTF("SharedData destructor WIP %d %d\n", index, bytesAllocated);
+    // ppf("SharedData destructor WIP %d %d\n", index, bytesAllocated);
     // free(data);
   }
 
@@ -147,14 +147,14 @@ class SharedData {
     size_t newIndex = index + length * sizeof(Type);
     if (newIndex > bytesAllocated) {
       size_t newSize = bytesAllocated + (1 + ( newIndex - bytesAllocated)/1024) * 1024; // add a multitude of 1024 bytes
-      USER_PRINTF("bind add more %d->%d %d->%d\n", index, newIndex, bytesAllocated, newSize);
+      ppf("bind add more %d->%d %d->%d\n", index, newIndex, bytesAllocated, newSize);
       if (bytesAllocated == 0)
         data = (byte*) malloc(newSize);
       else
         data = (byte*)realloc(data, newSize);
       bytesAllocated = newSize;
     }
-    // USER_PRINTF("bind %d->%d %d\n", index, newIndex, bytesAllocated);
+    // ppf("bind %d->%d %d\n", index, newIndex, bytesAllocated);
     returnValue = reinterpret_cast<Type *>(data + index);
     index = newIndex; //add consumed amount of bytes, index is next byte which will be pointed to
     return returnValue;
@@ -212,12 +212,12 @@ public:
   unsigned16 XYZ(unsigned16 x, unsigned16 y, unsigned16 z);
 
   Leds(Fixture &fixture) {
-    USER_PRINTF("Leds constructor (PhysMap:%d)\n", sizeof(PhysMap));
+    ppf("Leds constructor (PhysMap:%d)\n", sizeof(PhysMap));
     this->fixture = &fixture;
   }
 
   ~Leds() {
-    USER_PRINTF("Leds destructor\n");
+    ppf("Leds destructor\n");
     fadeToBlackBy(100);
     doMap = true; // so loop is not running while deleting
     for (PhysMap &map:mappingTable) {

@@ -1030,7 +1030,7 @@ class Octopus: public Effect {
     const stackUnsigned8 mapp = 180 / max(leds.size.x,leds.size.y);
 
     // stackUnsigned8 *speed2 = leds.sharedData.bind(speed2);
-    // // USER_PRINTF(" %d:%d", speed2, *speed2);
+    // // ppf(" %d:%d", speed2, *speed2);
     
     stackUnsigned8 speed = mdl->getValue("speed");
     stackUnsigned8 offsetX = mdl->getValue("Offset X");
@@ -1083,8 +1083,8 @@ class Octopus: public Effect {
 
     //bind the variables to sharedData...
     // stackUnsigned8 *speed2 = leds.sharedData.bind(speed2);
-    // USER_PRINTF("(bind %d) %d %d\n", speed2, leds.sharedData.index, leds.sharedData.bytesAllocated);
-    // USER_PRINTF("bind %d->%d %d\n", index, newIndex, bytesAllocated);
+    // ppf("(bind %d) %d %d\n", speed2, leds.sharedData.index, leds.sharedData.bytesAllocated);
+    // ppf("bind %d->%d %d\n", index, newIndex, bytesAllocated);
 
     //if changeValue then update the linked variable...
 
@@ -1094,7 +1094,7 @@ class Octopus: public Effect {
     // , false, [leds](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     //   case f_ChangeFun: {
     //       unsigned8 *speed2 = leds.sharedData.data+0;
-    //       USER_PRINTF("%s[%d] chFun = %s (bind %d)\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str(), speed2);
+    //       ppf("%s[%d] chFun = %s (bind %d)\n", mdl->varID(var), rowNr, var["value"].as<String>().c_str(), speed2);
     //       *speed2 = var["value"][rowNr];
     //     return true; }
     //   default: return false;
@@ -1321,7 +1321,7 @@ class GEQEffect: public Effect {
       if (remaining < 1) {band++; remaining+= bandwidth;} //increase remaining but keep the current remaining
       remaining--; //consume remaining
 
-      // USER_PRINTF("x %d b %d n %d w %f %f\n", x, band, NUM_BANDS, bandwidth, remaining);
+      // ppf("x %d b %d n %d w %f %f\n", x, band, NUM_BANDS, bandwidth, remaining);
       stackUnsigned8 frBand = ((NUM_BANDS < 16) && (NUM_BANDS > 1)) ? map(band, 0, NUM_BANDS - 1, 0, 15):band; // always use full range. comment out this line to get the previous behaviour.
       // frBand = constrain(frBand, 0, 15); //WLEDMM can never be out of bounds (I think...)
       stackUnsigned16 colorIndex = frBand * 17; //WLEDMM 0.255
@@ -1571,27 +1571,27 @@ public:
   void setup() {
     //check of no local variables (should be only 4 bytes): tbd: can we loop over effects (sizeof(effect does not work))
     // for (Effect *effect:effects) {
-    //     USER_PRINTF("Size of %s is %d\n", effect->name(), sizeof(*effect));
+    //     ppf("Size of %s is %d\n", effect->name(), sizeof(*effect));
     // }
-    // USER_PRINTF("Size of %s is %d\n", "RainbowEffect", sizeof(RainbowEffect));
-    // USER_PRINTF("Size of %s is %d\n", "RainbowWithGlitterEffect", sizeof(RainbowWithGlitterEffect));
-    // USER_PRINTF("Size of %s is %d\n", "SinelonEffect", sizeof(SinelonEffect));
-    // USER_PRINTF("Size of %s is %d\n", "RunningEffect", sizeof(RunningEffect));
-    // USER_PRINTF("Size of %s is %d\n", "ConfettiEffect", sizeof(ConfettiEffect));
-    // USER_PRINTF("Size of %s is %d\n", "BPMEffect", sizeof(BPMEffect));
-    // USER_PRINTF("Size of %s is %d\n", "JuggleEffect", sizeof(JuggleEffect));
-    // USER_PRINTF("Size of %s is %d\n", "RipplesEffect", sizeof(RipplesEffect));
-    // USER_PRINTF("Size of %s is %d\n", "SphereMoveEffect", sizeof(SphereMoveEffect));
-    // USER_PRINTF("Size of %s is %d\n", "Frizzles", sizeof(Frizzles));
-    // USER_PRINTF("Size of %s is %d\n", "Lines", sizeof(Lines));
-    // USER_PRINTF("Size of %s is %d\n", "DistortionWaves", sizeof(DistortionWaves));
-    // USER_PRINTF("Size of %s is %d\n", "Octopus", sizeof(Octopus));
-    // USER_PRINTF("Size of %s is %d\n", "Lissajous", sizeof(Lissajous));
-    // USER_PRINTF("Size of %s is %d\n", "BouncingBalls", sizeof(BouncingBalls));
-    // USER_PRINTF("Size of %s is %d\n", "RingRandomFlow", sizeof(RingRandomFlow));
+    // ppf("Size of %s is %d\n", "RainbowEffect", sizeof(RainbowEffect));
+    // ppf("Size of %s is %d\n", "RainbowWithGlitterEffect", sizeof(RainbowWithGlitterEffect));
+    // ppf("Size of %s is %d\n", "SinelonEffect", sizeof(SinelonEffect));
+    // ppf("Size of %s is %d\n", "RunningEffect", sizeof(RunningEffect));
+    // ppf("Size of %s is %d\n", "ConfettiEffect", sizeof(ConfettiEffect));
+    // ppf("Size of %s is %d\n", "BPMEffect", sizeof(BPMEffect));
+    // ppf("Size of %s is %d\n", "JuggleEffect", sizeof(JuggleEffect));
+    // ppf("Size of %s is %d\n", "RipplesEffect", sizeof(RipplesEffect));
+    // ppf("Size of %s is %d\n", "SphereMoveEffect", sizeof(SphereMoveEffect));
+    // ppf("Size of %s is %d\n", "Frizzles", sizeof(Frizzles));
+    // ppf("Size of %s is %d\n", "Lines", sizeof(Lines));
+    // ppf("Size of %s is %d\n", "DistortionWaves", sizeof(DistortionWaves));
+    // ppf("Size of %s is %d\n", "Octopus", sizeof(Octopus));
+    // ppf("Size of %s is %d\n", "Lissajous", sizeof(Lissajous));
+    // ppf("Size of %s is %d\n", "BouncingBalls", sizeof(BouncingBalls));
+    // ppf("Size of %s is %d\n", "RingRandomFlow", sizeof(RingRandomFlow));
     // #ifdef STARMOD_USERMOD_WLEDAUDIO
-    //   USER_PRINTF("Size of %s is %d\n", "GEQEffect", sizeof(GEQEffect));
-    //   USER_PRINTF("Size of %s is %d\n", "AudioRings", sizeof(AudioRings));
+    //   ppf("Size of %s is %d\n", "GEQEffect", sizeof(GEQEffect));
+    //   ppf("Size of %s is %d\n", "AudioRings", sizeof(AudioRings));
     // #endif
   }
 
@@ -1610,7 +1610,7 @@ public:
 
     leds.fx = mdl->getValue(var, rowNr);
 
-    USER_PRINTF("setEffect fx[%d]: %d\n", rowNr, leds.fx);
+    ppf("setEffect fx[%d]: %d\n", rowNr, leds.fx);
 
     if (leds.fx < effects.size()) {
 
@@ -1626,9 +1626,9 @@ public:
 
       effect->setup(leds); //if changed then run setup once (like call==0 in WLED)
 
-      USER_PRINTF("control ");
+      ppf("control ");
       print->printVar(var);
-      USER_PRINTF("\n");
+      ppf("\n");
 
       if (effects[leds.fx]->dim() != leds.effectDimension) {
         leds.effectDimension = effects[leds.fx]->dim();

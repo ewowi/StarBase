@@ -53,7 +53,7 @@ void Leds::setPixelColor(unsigned16 indexV, CRGB color, unsigned8 blendAmount) {
   else if (indexV < NUM_LEDS_Max) //no projection
     fixture->ledsP[projectionNr==p_Random?random(fixture->nrOfLeds):indexV] = color;
   else if (indexV != UINT16_MAX) //assuming UINT16_MAX is set explicitly (e.g. in XYZ)
-    USER_PRINTF(" dev sPC V:%d >= %d", indexV, NUM_LEDS_Max);
+    ppf(" dev sPC V:%d >= %d", indexV, NUM_LEDS_Max);
 }
 
 CRGB Leds::getPixelColor(unsigned16 indexV) {
@@ -66,7 +66,7 @@ CRGB Leds::getPixelColor(unsigned16 indexV) {
   else if (indexV < NUM_LEDS_Max) //no mapping
     return fixture->ledsP[indexV];
   else {
-    USER_PRINTF(" dev gPC N: %d >= %d", indexV, NUM_LEDS_Max);
+    ppf(" dev gPC N: %d >= %d", indexV, NUM_LEDS_Max);
     return CRGB::Black;
   }
 }

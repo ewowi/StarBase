@@ -73,7 +73,7 @@ public:
         size_t ddpInst = var["value"];
         if (ddpInst >=0 && ddpInst < instances->instances.size()) {
           targetIp = instances->instances[ddpInst].ip;
-          USER_PRINTF("Start DDP to %s\n", targetIp.toString().c_str());
+          ppf("Start DDP to %s\n", targetIp.toString().c_str());
         }
         return true;
       }
@@ -110,7 +110,7 @@ public:
       if (sequenceNumber > 15) sequenceNumber = 0;
 
       if (!ddpUdp.beginPacket(targetIp, DDP_DEFAULT_PORT)) {  // port defined in ESPAsyncE131.h
-        USER_PRINTF("DDP WiFiUDP.beginPacket returned an error\n");
+        ppf("DDP WiFiUDP.beginPacket returned an error\n");
         return; // borked
       }
 
@@ -150,7 +150,7 @@ public:
       }
 
       if (!ddpUdp.endPacket()) {
-        USER_PRINTF("DDP WiFiUDP.endPacket returned an error\n");
+        ppf("DDP WiFiUDP.endPacket returned an error\n");
         return; // problem
       }
       channel += packetSize;

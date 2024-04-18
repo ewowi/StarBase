@@ -56,7 +56,7 @@ public:
         return true;
       case f_AddRow: {
         rowNr = fixture.projections.size();
-        // USER_PRINTF("chFun addRow %s[%d]\n", mdl->varID(var), rowNr);
+        // ppf("chFun addRow %s[%d]\n", mdl->varID(var), rowNr);
 
         web->getResponseObject()["addRow"]["rowNr"] = rowNr;
 
@@ -64,7 +64,7 @@ public:
           fixture.projections.push_back(new Leds(fixture));
         return true; }
       case f_DelRow: {
-        // USER_PRINTF("chFun delrow %s[%d]\n", mdl->varID(var), rowNr);
+        // ppf("chFun delrow %s[%d]\n", mdl->varID(var), rowNr);
         //tbd: fade to black
         if (rowNr <fixture.projections.size()) {
           Leds *leds = fixture.projections[rowNr];
@@ -99,7 +99,7 @@ public:
 
         //create a new leds instance if a new row is created
         if (rowNr >= fixture.projections.size()) {
-          USER_PRINTF("projections fx[%d] changeFun %d %s\n", rowNr, fixture.projections.size(), mdl->findVar("fx")["value"].as<String>().c_str());
+          ppf("projections fx[%d] changeFun %d %s\n", rowNr, fixture.projections.size(), mdl->findVar("fx")["value"].as<String>().c_str());
           fixture.projections.push_back(new Leds(fixture));
         }
         if (rowNr < fixture.projections.size())
@@ -148,7 +148,7 @@ public:
                 return true;
               case f_ChangeFun:
                 //initiate projectAndMap
-                USER_PRINTF("proCenter %d %d\n", rowNr, fixture.projections.size());
+                ppf("proCenter %d %d\n", rowNr, fixture.projections.size());
                 if (rowNr < fixture.projections.size()) {
                   fixture.projections[rowNr]->doMap = true; //Guru Meditation Error: Core  1 panic'ed (StoreProhibited). Exception was unhandled.
                   fixture.doMap = true;
@@ -211,7 +211,7 @@ public:
           }
           mdl->varPostDetails(var, rowNr);
 
-          // USER_PRINTF("chFun pro[%d] <- %d (%d)\n", rowNr, proValue, fixture.projections.size());
+          // ppf("chFun pro[%d] <- %d (%d)\n", rowNr, proValue, fixture.projections.size());
 
           fixture.doMap = true;
         }
@@ -223,7 +223,7 @@ public:
     ui->initCoord3D(tableVar, "fxStart", {0,0,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
         for (forUnsigned8 rowNr = 0; rowNr < fixture.projections.size(); rowNr++) {
-          USER_PRINTF("fxStart[%d] valueFun %d,%d,%d\n", rowNr, fixture.projections[rowNr]->startPos.x, fixture.projections[rowNr]->startPos.y, fixture.projections[rowNr]->startPos.z);
+          ppf("fxStart[%d] valueFun %d,%d,%d\n", rowNr, fixture.projections[rowNr]->startPos.x, fixture.projections[rowNr]->startPos.y, fixture.projections[rowNr]->startPos.z);
           mdl->setValue(var, fixture.projections[rowNr]->startPos, rowNr);
         }
         return true;
@@ -235,14 +235,14 @@ public:
         if (rowNr < fixture.projections.size()) {
           fixture.projections[rowNr]->startPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-          USER_PRINTF("fxStart[%d] chFun %d,%d,%d\n", rowNr, fixture.projections[rowNr]->startPos.x, fixture.projections[rowNr]->startPos.y, fixture.projections[rowNr]->startPos.z);
+          ppf("fxStart[%d] chFun %d,%d,%d\n", rowNr, fixture.projections[rowNr]->startPos.x, fixture.projections[rowNr]->startPos.y, fixture.projections[rowNr]->startPos.z);
 
           fixture.projections[rowNr]->fadeToBlackBy();
           fixture.projections[rowNr]->doMap = true;
           fixture.doMap = true;
         }
         else {
-          USER_PRINTF("fxStart[%d] chfun rownr not in range > %d\n", rowNr, fixture.projections.size());
+          ppf("fxStart[%d] chfun rownr not in range > %d\n", rowNr, fixture.projections.size());
         }
         return true;
       default: return false;
@@ -251,7 +251,7 @@ public:
     ui->initCoord3D(tableVar, "fxEnd", {8,8,0}, 0, NUM_LEDS_Max, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
         for (forUnsigned8 rowNr = 0; rowNr < fixture.projections.size(); rowNr++) {
-          USER_PRINTF("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.projections[rowNr]->endPos.x, fixture.projections[rowNr]->endPos.y, fixture.projections[rowNr]->endPos.z);
+          ppf("fxEnd[%d] valueFun %d,%d,%d\n", rowNr, fixture.projections[rowNr]->endPos.x, fixture.projections[rowNr]->endPos.y, fixture.projections[rowNr]->endPos.z);
           mdl->setValue(var, fixture.projections[rowNr]->endPos, rowNr);
         }
         return true;
@@ -263,14 +263,14 @@ public:
         if (rowNr < fixture.projections.size()) {
           fixture.projections[rowNr]->endPos = mdl->getValue(var, rowNr).as<Coord3D>();
 
-          USER_PRINTF("fxEnd[%d] chFun %d,%d,%d\n", rowNr, fixture.projections[rowNr]->endPos.x, fixture.projections[rowNr]->endPos.y, fixture.projections[rowNr]->endPos.z);
+          ppf("fxEnd[%d] chFun %d,%d,%d\n", rowNr, fixture.projections[rowNr]->endPos.x, fixture.projections[rowNr]->endPos.y, fixture.projections[rowNr]->endPos.z);
 
           fixture.projections[rowNr]->fadeToBlackBy();
           fixture.projections[rowNr]->doMap = true;
           fixture.doMap = true;
         }
         else {
-          USER_PRINTF("fxEnd[%d] chfun rownr not in range > %d\n", rowNr, fixture.projections.size());
+          ppf("fxEnd[%d] chfun rownr not in range > %d\n", rowNr, fixture.projections.size());
         }
         return true;
       default: return false;
@@ -283,7 +283,7 @@ public:
         for (Leds *leds:fixture.projections) {
           char message[32];
           print->fFormat(message, sizeof(message)-1, "%d x %d x %d -> %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
-          USER_PRINTF("valueFun fxSize[%d] = %s\n", rowNr, message);
+          ppf("valueFun fxSize[%d] = %s\n", rowNr, message);
           mdl->setValue(var, JsonString(message, JsonString::Copied), rowNr); //rowNr
           rowNr++;
         }
@@ -331,7 +331,7 @@ public:
 
       // }
       // else
-      //   USER_PRINTF("Leds e131 not enabled\n");
+      //   ppf("Leds e131 not enabled\n");
     #endif
 
     effects.setup();
@@ -353,7 +353,7 @@ public:
       stackUnsigned8 rowNr = 0;
       for (Leds *leds: fixture.projections) {
         if (!leds->doMap) { // don't run effect while remapping
-          // USER_PRINTF(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
+          // ppf(" %d %d,%d,%d - %d,%d,%d (%d,%d,%d)", leds->fx, leds->startPos.x, leds->startPos.y, leds->startPos.z, leds->endPos.x, leds->endPos.y, leds->endPos.z, leds->size.x, leds->size.y, leds->size.z );
           mdl->getValueRowNr = rowNr++;
           effects.loop(*leds);
           mdl->getValueRowNr = UINT8_MAX;
@@ -384,7 +384,7 @@ public:
     JsonObject var = mdl->findVar("System");
     if (!var["canvasData"].isNull()) {
       const char * canvasData = var["canvasData"]; //0 - 494 - 140,150,0
-      USER_PRINTF("LedModEffects loop canvasData %s\n", canvasData);
+      ppf("LedModEffects loop canvasData %s\n", canvasData);
 
       uint8_t rowNr = 0; //currently only leds[0] supported
       if (fixture.projections.size()) {
@@ -442,7 +442,7 @@ public:
 
               stackUnsigned16 startLed = atoi(before);
               stackUnsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
-              USER_PRINTF("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds-1);
+              ppf("FastLED.addLeds new %d: %d-%d\n", pinNr, startLed, nrOfLeds-1);
 
               //commented pins: error: static assertion failed: Invalid pin specified
               switch (pinNr) {
@@ -641,7 +641,7 @@ public:
                   case 48: FastLED.addLeds<NEOPIXEL, 48>(fixture.ledsP, startLed, nrOfLeds).setCorrection(TypicalLEDStrip); break;
                 #endif //CONFIG_IDF_TARGET_ESP32S3
 
-                default: USER_PRINTF("FastLedPin assignment: pin not supported %d\n", pinNr);
+                default: ppf("FastLedPin assignment: pin not supported %d\n", pinNr);
               } //switch pinNr
             } //if led range in details (- in details e.g. 0-1023)
           } //if pin owned by leds
@@ -658,7 +658,7 @@ public:
   }
 
   void loop10s() {
-    // USER_PRINTF("caching %u %u\n", trigoCached, trigoUnCached); //not working for some reason!!
+    // ppf("caching %u %u\n", trigoCached, trigoUnCached); //not working for some reason!!
     // trigoCached = 0;
     // trigoUnCached = 0;
   }

@@ -36,11 +36,11 @@ public:
   File f;
 
   GenFix() {
-    USER_PRINTF("GenFix constructor\n");
+    ppf("GenFix constructor\n");
   }
 
   ~GenFix() {
-    USER_PRINTF("GenFix destructor\n");
+    ppf("GenFix destructor\n");
   }
 
   void openHeader(const char * format, ...) {
@@ -53,7 +53,7 @@ public:
 
     f = files->open("/temp.json", "w");
     if (!f)
-      USER_PRINTF("GenFix could not open temp file for writing\n");
+      ppf("GenFix could not open temp file for writing\n");
 
     f.print(",\"outputs\":[");
     strcpy(pinSep, "");
@@ -62,7 +62,7 @@ public:
   void closeHeader() {
     f.print("]"); //outputs
 
-    USER_PRINTF("closeHeader %d-%d-%d %d\n", fixSize.x, fixSize.y, fixSize.z, nrOfLeds);
+    ppf("closeHeader %d-%d-%d %d\n", fixSize.x, fixSize.y, fixSize.z, nrOfLeds);
     f.close();
     f = files->open("/temp.json", "r");
 
@@ -114,7 +114,7 @@ public:
   void write3D(unsigned16 x, unsigned16 y, unsigned16 z) {
     // if (x>UINT16_MAX/2 || y>UINT16_MAX/2 || z>UINT16_MAX/2) 
     if (x>1000 || y>1000 || z>1000) 
-      USER_PRINTF("write3D coord too high %d,%d,%d\n", x, y, z);
+      ppf("write3D coord too high %d,%d,%d\n", x, y, z);
     else
     {
       f.printf("%s[%d,%d,%d]", pixelSep, x, y, z);
@@ -188,14 +188,14 @@ public:
 
       Coord3D rowPixel = cRowStart;
       while (true) {
-        USER_PRINTF(" %d,%d,%d", rowPixel.x, rowPixel.y, rowPixel.z);
+        ppf(" %d,%d,%d", rowPixel.x, rowPixel.y, rowPixel.z);
         write3D(rowPixel.x*10, rowPixel.y*10, rowPixel.z*10);
         
         if (rowPixel == cRowEnd) break; //end condition row
         rowPixel.advance(cRowEnd);
       }
 
-      USER_PRINTF("\n");
+      ppf("\n");
 
       if (colPixel == colEnd) break; //end condition columns
       colPixel.advance(colEnd);
@@ -316,7 +316,7 @@ public:
       // Use interpolation to get coordinates of that point on that edge
       float x = (float)middle.x + radius*10.0f * (hexaX[edgenum] + offset * (hexaX[edgenum + 1] - hexaX[edgenum]));
       float y = (float)middle.y + radius*10.0f * (hexaY[edgenum] + offset * (hexaY[edgenum + 1] - hexaY[edgenum]));
-      // USER_PRINTF(" %d %f: %f,%f", edgenum, offset, x, y);
+      // ppf(" %d %f: %f,%f", edgenum, offset, x, y);
 
       write3D(x, y, first.z*10);
 
@@ -337,7 +337,7 @@ public:
       stackUnsigned8 ringNrOfLeds = (j+1) * 3;
       middle.y = first.y*10 + j*10;
 
-      USER_PRINTF("Cone %d %d %d %d,%d,%d\n", j, nrOfRings, ringNrOfLeds, middle.x, middle.y, middle.z);
+      ppf("Cone %d %d %d %d,%d,%d\n", j, nrOfRings, ringNrOfLeds, middle.x, middle.y, middle.z);
       ring(middle, ringNrOfLeds, ip, pin, 0, 90, 0); //tilt 90
     }
 
@@ -397,7 +397,7 @@ public:
 
       // Coord3D start = first;
       // start.y = first.y + lat;
-      USER_PRINTF("Globe %d %f %d %d,%d,%d\n", lat, ringDiam, ledCount, middle.x, middle.y, middle.z);
+      ppf("Globe %d %f %d %d,%d,%d\n", lat, ringDiam, ledCount, middle.x, middle.y, middle.z);
       ring(middle, ledCount, ip, pin, 0, 90, 0); //tilt 90
     }
   }
@@ -1034,7 +1034,7 @@ public:
 
   //   File f = files->open(fileName, "w");
   //   if (!f)
-  //     USER_PRINTF("fixtureGen Could not open file %s for writing\n", fileName);
+  //     ppf("fixtureGen Could not open file %s for writing\n", fileName);
 
   //   return f;
   // }

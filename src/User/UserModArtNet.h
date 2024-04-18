@@ -56,7 +56,7 @@ public:
         size_t ddpInst = var["value"];
         if (ddpInst >=0 && ddpInst < instances->instances.size()) {
           targetIp = instances->instances[ddpInst].ip;
-          USER_PRINTF("Start ArtNet to %s\n", targetIp.toString().c_str());
+          ppf("Start ArtNet to %s\n", targetIp.toString().c_str());
         }
         return true;
       }
@@ -94,7 +94,7 @@ public:
       if (sequenceNumber > 255) sequenceNumber = 0;
 
       if (!ddpUdp.beginPacket(targetIp, ARTNET_DEFAULT_PORT)) {
-        USER_PRINTF("Art-Net WiFiUDP.beginPacket returned an error\n");
+        ppf("Art-Net WiFiUDP.beginPacket returned an error\n");
         return; // borked
       }
 
@@ -126,7 +126,7 @@ public:
       }
 
       if (!ddpUdp.endPacket()) {
-        USER_PRINTF("Art-Net WiFiUDP.endPacket returned an error\n");
+        ppf("Art-Net WiFiUDP.endPacket returned an error\n");
         return; // borked
       }
       channel += packetSize;

@@ -62,14 +62,14 @@ public:
     // SysModule::loop();
     if (mdls->isConnected && sync.read()) {
       lastData = millis();
-      if(debug) USER_PRINTF("WLED-Sync: ");
+      if(debug) ppf("WLED-Sync: ");
       for (int b = 0; b < NUM_GEQ_CHANNELS; b++) {
         byte val = sync.fftResult[b];
         fftResults[b] = val;
-        if(debug) USER_PRINTF("%u ", val);
+        if(debug) ppf("%u ", val);
       }
       volumeSmth = sync.volumeSmth;
-      if(debug) USER_PRINTF("\n");
+      if(debug) ppf("\n");
     }
     else if((lastData == 0) || isTimeout()) { // Could also check for non-silent
       simulateSound(UMS_BeatSin);
@@ -77,7 +77,7 @@ public:
   }
 
   void loop10s() {
-    // USER_PRINTF("%d, %s, %d\n", sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
+    // ppf("%d, %s, %d\n", sync.receivedFormat, sync.sourceIP.toString().c_str(), sync.lastPacketTime);
     String msg = "";
     if((lastData != 0) && isTimeout()) {
       msg = sync.sourceIP.toString() + " Timeout " + ((millis() - lastData) / 1000)  +"s";

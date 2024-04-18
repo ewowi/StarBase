@@ -29,7 +29,7 @@ void Fixture::projectAndMap() {
       if (leds->doMap) {
         leds->fill_solid(CRGB::Black, true); //no blend
 
-        USER_PRINTF("projectAndMap clear leds[%d] fx:%d pro:%d\n", rowNr, leds->fx, leds->projectionNr);
+        ppf("projectAndMap clear leds[%d] fx:%d pro:%d\n", rowNr, leds->fx, leds->projectionNr);
         leds->size = Coord3D{0,0,0};
         //vectors really gone now?
         for (PhysMap &map:leds->mappingTable) {
@@ -75,7 +75,7 @@ void Fixture::projectAndMap() {
         pixel.y = (uint16CollectList.size()>=2)?uint16CollectList[1]: 0;
         pixel.z = (uint16CollectList.size()>=3)?uint16CollectList[2]: 0;
 
-        // USER_PRINTF("led %d,%d,%d start %d,%d,%d end %d,%d,%d\n",x,y,z, startPos.x, startPos.y, startPos.z, endPos.x, endPos.y, endPos.z);
+        // ppf("led %d,%d,%d start %d,%d,%d end %d,%d,%d\n",x,y,z, startPos.x, startPos.y, startPos.z, endPos.x, endPos.y, endPos.z);
 
         stackUnsigned8 rowNr = 0;
         for (Leds *leds: projections) {
@@ -116,14 +116,14 @@ void Fixture::projectAndMap() {
                 proCenter /= proMulti;
                 mirrors = pixelAdjusted / sizeAdjusted; //place the pixel in the right quadrant
                 pixelAdjusted = pixelAdjusted%sizeAdjusted; // pixel % size
-                // USER_PRINTF("Multiply %d,%d,%d\n", leds->size.x, leds->size.y, leds->size.z);
+                // ppf("Multiply %d,%d,%d\n", leds->size.x, leds->size.y, leds->size.z);
               }
               bool mirror = mdl->getValue("mirror", rowNr);
 
-              // USER_PRINTF("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, projectionDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], size.x, size.y, size.z);
+              // ppf("projectionNr p:%d f:%d s:%d, %d-%d-%d %d-%d-%d %d-%d-%d\n", projectionNr, effectDimension, projectionDimension, x, y, z, uint16CollectList[0], uint16CollectList[1], uint16CollectList[2], size.x, size.y, size.z);
 
               if (leds->size == Coord3D{0,0,0}) { // first
-                USER_PRINTF("projectAndMap first leds[%d] size:%d,%d,%d s:%d,%d,%d e:%d,%d,%d\n", rowNr, sizeAdjusted.x, sizeAdjusted.y, sizeAdjusted.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z);
+                ppf("projectAndMap first leds[%d] size:%d,%d,%d s:%d,%d,%d e:%d,%d,%d\n", rowNr, sizeAdjusted.x, sizeAdjusted.y, sizeAdjusted.z, startPosAdjusted.x, startPosAdjusted.y, startPosAdjusted.z, endPosAdjusted.x, endPosAdjusted.y, endPosAdjusted.z);
               }
 
               //calculate the indexV to add to current physical led to
@@ -187,7 +187,7 @@ void Fixture::projectAndMap() {
                       }
                       mapped.z = 0;
 
-                      // USER_PRINTF("2Dto2D %d-%d p:%d,%d,%d m:%d,%d,%d\n", indexV, indexP, pixelAdjusted.x, pixelAdjusted.y, pixelAdjusted.z, mapped.x, mapped.y, mapped.z
+                      // ppf("2Dto2D %d-%d p:%d,%d,%d m:%d,%d,%d\n", indexV, indexP, pixelAdjusted.x, pixelAdjusted.y, pixelAdjusted.z, mapped.x, mapped.y, mapped.z
                       break;
                     case _3D: //2D3D
                       if (leds->size == Coord3D{0,0,0}) { // first
@@ -199,7 +199,7 @@ void Fixture::projectAndMap() {
                       mapped.y = pixelAdjusted.y / 2 + pixelAdjusted.z;
                       mapped.z = 0;
 
-                      // USER_PRINTF("2D to 3D indexV %d %d\n", indexV, size.x);
+                      // ppf("2D to 3D indexV %d %d\n", indexV, size.x);
                       break;
                   }
 
@@ -249,7 +249,7 @@ void Fixture::projectAndMap() {
 
               if (indexV != UINT16_MAX) {
                 if (indexV >= leds->nrOfLeds || indexV >= NUM_LEDS_Max) {
-                  USER_PRINTF("dev pre [%d] indexV too high %d>=%d or %d (m:%d p:%d) p:%d,%d,%d s:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z, leds->size.x, leds->size.y, leds->size.z);
+                  ppf("dev pre [%d] indexV too high %d>=%d or %d (m:%d p:%d) p:%d,%d,%d s:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z, leds->size.x, leds->size.y, leds->size.z);
                 }
                 else {
                   Trigo trigo(leds->size.x-1); // 8 bits trigo with period leds->size.x-1 (currentl Float trigo as same performance)
@@ -261,7 +261,7 @@ void Fixture::projectAndMap() {
                       switch (projectionDimension) {
                       case _2D: //2D2D: inverse mapping
                         float minDistance = 10;
-                        // USER_PRINTF("checking indexV %d\n", indexV);
+                        // ppf("checking indexV %d\n", indexV);
                         for (forUnsigned16 x=0; x<leds->size.x && minDistance > 0.5f; x++) {
                           // float xFactor = x * TWO_PI / (float)(leds->size.x-1); //between 0 .. 2PI
 
@@ -276,7 +276,7 @@ void Fixture::projectAndMap() {
                             float x2New = round((yFactor * xNew + leds->size.x) / 2.0f); // 0 .. size.x
                             float y2New = round((yFactor * yNew + leds->size.y) / 2.0f); //  0 .. size.y
 
-                            // USER_PRINTF(" %d,%d->%f,%f->%f,%f", x, y, sinf(x * TWO_PI / (float)(size.x-1)), cosf(x * TWO_PI / (float)(size.x-1)), xNew, yNew);
+                            // ppf(" %d,%d->%f,%f->%f,%f", x, y, sinf(x * TWO_PI / (float)(size.x-1)), cosf(x * TWO_PI / (float)(size.x-1)), xNew, yNew);
 
                             //this should work (better) but needs more testing
                             // float distance = abs(indexV - xNew - yNew * size.x);
@@ -287,10 +287,10 @@ void Fixture::projectAndMap() {
 
                             // if the new XY i
                             if (indexV == leds->XY(x2New, y2New)) { //(unsigned8)xNew + (unsigned8)yNew * size.x) {
-                              // USER_PRINTF("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", indexV, x+y*size.x, x,y, size.x, xNew, yNew, size.x, distance);
+                              // ppf("  found one %d => %d=%d+%d*%d (%f+%f*%d) [%f]\n", indexV, x+y*size.x, x,y, size.x, xNew, yNew, size.x, distance);
                               indexV = leds->XY(x, y);
 
-                              if (indexV%10 == 0) USER_PRINTF("."); //show some progress as this projection is slow (Need S007 to optimize ;-)
+                              if (indexV%10 == 0) ppf("."); //show some progress as this projection is slow (Need S007 to optimize ;-)
                                                           
                               minDistance = 0.0f; // stop looking further
                             }
@@ -307,13 +307,13 @@ void Fixture::projectAndMap() {
                   if (indexV != UINT16_MAX) { //can be nulled by inverse mapping 
                     //add physical tables if not present
                     if (indexV >= leds->nrOfLeds || indexV >= NUM_LEDS_Max) {
-                      USER_PRINTF("dev post [%d] indexV too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
+                      ppf("dev post [%d] indexV too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexV, leds->nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
                     }
                     else if (indexP < NUM_LEDS_Max) {
                       //create new physMaps if needed
                       if (indexV >= leds->mappingTable.size()) {
                         for (size_t i = leds->mappingTable.size(); i <= indexV; i++) {
-                          // USER_PRINTF("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
+                          // ppf("mapping %d,%d,%d add physMap before %d %d\n", pixel.y, pixel.y, pixel.z, indexV, leds->mappingTable.size());
                           leds->mappingTable.push_back(PhysMap()); //abort() was called at PC 0x40191473 on core 1 std::allocator<unsigned short> >&&)
                         }
                       }
@@ -324,9 +324,9 @@ void Fixture::projectAndMap() {
                       leds->mappingTable[indexV].indexes->push_back(indexP); //add the current led to indexes
                     }
                     else 
-                      USER_PRINTF("dev post [%d] indexP too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexP, nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
+                      ppf("dev post [%d] indexP too high %d>=%d or %d (p:%d m:%d) p:%d,%d,%d\n", rowNr, indexP, nrOfLeds, NUM_LEDS_Max, leds->mappingTable.size(), indexP, pixel.x, pixel.y, pixel.z);
                   }
-                  // USER_PRINTF("mapping b:%d t:%d V:%d\n", indexV, indexP, leds->mappingTable.size());
+                  // ppf("mapping b:%d t:%d V:%d\n", indexV, indexP, leds->mappingTable.size());
                 } //indexV not too high
               } //indexV
 
@@ -352,7 +352,7 @@ void Fixture::projectAndMap() {
               stackUnsigned16 startLed = atoi(before);
               stackUnsigned16 nrOfLeds = atoi(after) - atoi(before) + 1;
               print->fFormat(details, sizeof(details)-1, "%d-%d", min(prevIndexP, startLed), max((stackUnsigned16)(indexP - 1), nrOfLeds)); //careful: LedModEffects:loop uses this to assign to FastLed
-              USER_PRINTF("pins extend leds %d: %s\n", currPin, details);
+              ppf("pins extend leds %d: %s\n", currPin, details);
               //tbd: more check
 
               strncpy(pins->pinObjects[currPin].details, details, sizeof(PinObject::details)-1);  
@@ -362,7 +362,7 @@ void Fixture::projectAndMap() {
           else {//allocate new pin
             //tbd: check if free
             print->fFormat(details, sizeof(details)-1, "%d-%d", prevIndexP, indexP - 1); //careful: LedModEffects:loop uses this to assign to FastLed
-            // USER_PRINTF("allocatePin %d: %s\n", currPin, details);
+            // ppf("allocatePin %d: %s\n", currPin, details);
             pins->allocatePin(currPin, "Leds", details);
           }
 
@@ -378,7 +378,7 @@ void Fixture::projectAndMap() {
 
       for (Leds *leds: projections) {
         if (leds->doMap) {
-          USER_PRINTF("projectAndMap post leds[%d] fx:%d pro:%d\n", rowNr, leds->fx, leds->projectionNr);
+          ppf("projectAndMap post leds[%d] fx:%d pro:%d\n", rowNr, leds->fx, leds->projectionNr);
 
           stackUnsigned16 nrOfMappings = 0;
           stackUnsigned16 nrOfPixels = 0;
@@ -392,7 +392,7 @@ void Fixture::projectAndMap() {
           } else {
 
             // if (leds->mappingTable.size() < leds->size.x * leds->size.y * leds->size.z)
-            //   USER_PRINTF("mapping add extra physMap %d to %d size: %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
+            //   ppf("mapping add extra physMap %d to %d size: %d,%d,%d\n", leds->mappingTable.size(), leds->size.x * leds->size.y * leds->size.z, leds->size.x, leds->size.y, leds->size.z);
             // for (size_t i = leds->mappingTable.size(); i < leds->size.x * leds->size.y * leds->size.z; i++) {
             //   std::vector<unsigned16> physMap;
             //   // physMap.push_back(0);
@@ -407,27 +407,27 @@ void Fixture::projectAndMap() {
               if (map.indexes && map.indexes->size()) {
                 // if (nrOfMappings < 10 || map.indexes->size() - indexV < 10) //first 10 and last 10
                 // if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
-                  // USER_PRINTF("ledV %d mapping: #ledsP (%d):", indexV, nrOfMappings, map.indexes->size());
+                  // ppf("ledV %d mapping: #ledsP (%d):", indexV, nrOfMappings, map.indexes->size());
 
                 for (forUnsigned16 indexP:*map.indexes) {
                   // if (nrOfPixels < 10 || map.indexes->size() - indexV < 10)
                   // if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
-                    // USER_PRINTF(" %d", indexP);
+                    // ppf(" %d", indexP);
                   nrOfPixels++;
                 }
 
                 // if (nrOfPixels < 10 || map.indexes->size() - indexV < 10)
                 // if (nrOfMappings%(leds->nrOfLeds/10+1) == 0)
-                  // USER_PRINTF("\n");
+                  // ppf("\n");
               }
               nrOfMappings++;
               // else
-              //   USER_PRINTF("ledV %d no mapping\n", x);
+              //   ppf("ledV %d no mapping\n", x);
               indexV++;
             }
           }
 
-          USER_PRINTF("projectAndMap leds[%d] V:%d x %d x %d -> %d (v:%d - p:%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
+          ppf("projectAndMap leds[%d] V:%d x %d x %d -> %d (v:%d - p:%d)\n", rowNr, leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds, nrOfMappings, nrOfPixels);
 
           // mdl->setValueV("fxSize", rowNr, "%d x %d x %d = %d", leds->size.x, leds->size.y, leds->size.z, leds->nrOfLeds);
           char buf[32];
@@ -435,14 +435,14 @@ void Fixture::projectAndMap() {
           mdl->setValue("fxSize", JsonString(buf, JsonString::Copied), rowNr);
           // web->sendResponseObject();
 
-          USER_PRINTF("leds[%d].size = %d + %d\n", rowNr, sizeof(Leds), leds->mappingTable.size()); //44
+          ppf("leds[%d].size = %d + %d\n", rowNr, sizeof(Leds), leds->mappingTable.size()); //44
 
           leds->doMap = false;
         } //leds->doMap
         rowNr++;
       } // leds
 
-      USER_PRINTF("projectAndMap fixture P:%dx%dx%d -> %d\n", size.x, size.y, size.z, nrOfLeds);
+      ppf("projectAndMap fixture P:%dx%dx%d -> %d\n", size.x, size.y, size.z, nrOfLeds);
 
       mdl->setValue("fixSize", size);
       mdl->setValue("fixCount", nrOfLeds);
@@ -450,7 +450,7 @@ void Fixture::projectAndMap() {
     } // if deserialize
   } //if fileName
   else
-    USER_PRINTF("projectAndMap: Filename for fixture %d not found\n", fixtureNr);
+    ppf("projectAndMap: Filename for fixture %d not found\n", fixtureNr);
 
   doMap = false;
 }

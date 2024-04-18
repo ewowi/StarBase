@@ -45,7 +45,7 @@ public:
 
         FastLED.setBrightness(result);
 
-        USER_PRINTF("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
+        ppf("Set Brightness to %d -> b:%d r:%d\n", var["value"].as<int>(), bri, result);
         return true; }
       default: return false; 
     }});

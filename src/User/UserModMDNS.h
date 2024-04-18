@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      UserModMDNS.h
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -15,7 +15,7 @@ class UserModMDNS:public SysModule {
 
 public:
   String escapedMac;
-  char cmDNS[64] = "";
+  char cmDNS[64] = ""; //not 33?
 
   UserModMDNS() :SysModule("MDNS") {
   };
@@ -28,8 +28,6 @@ public:
     escapedMac.replace(":", "");
     escapedMac.toLowerCase();
 
-    sprintf(cmDNS, PSTR("wled-%*s"), 6, escapedMac.c_str() + 6);
-    // strncpy(cmDNS, "wled-98765", sizeof(cmDNS) -1);
   }
 
   void loop() {
@@ -37,22 +35,35 @@ public:
   }
 
   void onOffChanged() {
-    if (SysModules::isConnected && isEnabled) {
+    if (mdls->isConnected && isEnabled) {
 
-      // print->fFormat(cmDNS, sizeof(cmDNS)-1, "wled-%*s", WiFi.macAddress().c_str() + 6);
+      resetMDNS();
 
-      MDNS.end();
-      MDNS.begin(cmDNS);
-
-      USER_PRINTF("mDNS started %s -> %s -> %s\n", WiFi.macAddress().c_str(), escapedMac.c_str(), cmDNS);
-      MDNS.addService("http", "tcp", 80);
-      MDNS.addService("wled", "tcp", 80);
-      MDNS.addServiceTxt("wled", "tcp", "mac", escapedMac.c_str());
     } else {
       MDNS.end();
     }
   }
 
+  void resetMDNS() {
+
+    if (!mdls->isConnected) return;
+    
+    //reset cmDNS
+    const char * instanceName = mdl->getValue("instanceName");
+    if (strcmp(instanceName, _INIT(TOSTRING(APP))) == 0 )
+      sprintf(cmDNS, "star-%*s", 6, escapedMac.c_str() + 6);
+    else
+      strcpy(cmDNS, instanceName);
+
+    MDNS.end();
+    MDNS.begin(cmDNS);
+
+    ppf("mDNS started %s -> %s\n", WiFi.macAddress().c_str(), cmDNS);
+    MDNS.addService("http", "tcp", 80);
+    MDNS.addService("star", "tcp", 80);
+    MDNS.addServiceTxt("star", "tcp", "mac", escapedMac.c_str());
+  }
+
 };
 
-static UserModMDNS *mdns;
+extern UserModMDNS *mdns;

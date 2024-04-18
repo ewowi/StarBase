@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModModel.cpp
-   @date      20240228
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -15,17 +15,12 @@
 #include "SysStarModJson.h"
 #include "SysModUI.h"
 
-JsonDocument * SysModModel::model = nullptr;
-JsonObject SysModModel::modelParentVar;
-unsigned8 SysModModel::contextRowNr = UINT8_MAX;
-int SysModModel::varCounter = 1; //start with 1 so it can be negative, see var["o"]
-
 SysModModel::SysModModel() :SysModule("Model") {
   model = new JsonDocument(&allocator);
 
   JsonArray root = model->to<JsonArray>(); //create
 
-  USER_PRINTF("Reading model from /model.json... (deserializeConfigFromFS)\n");
+  ppf("Reading model from /model.json... (deserializeConfigFromFS)\n");
   if (files->readObjectFromFile("/model.json", model)) {//not part of success...
     // print->printJson("Read model", *model);
     // web->sendDataWs(*model);
@@ -37,7 +32,8 @@ SysModModel::SysModModel() :SysModule("Model") {
 void SysModModel::setup() {
   SysModule::setup();
 
-  parentVar = ui->initSysMod(parentVar, name, 4000);
+  parentVar = ui->initSysMod(parentVar, name, 4303);
+  parentVar["s"] = true; //setup
 
   ui->initButton(parentVar, "saveModel", false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -48,6 +44,8 @@ void SysModModel::setup() {
       return true;
     default: return false;
   }});
+
+  #ifdef STARMOD_DEVMODE
 
   ui->initCheckBox(parentVar, "showObsolete", doShowObsolete, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -62,7 +60,7 @@ void SysModModel::setup() {
   ui->initButton(parentVar, "deleteObsolete", false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
       ui->setLabel(var, "Delete obsolete variables");
-      ui->setComment(var, "WIP");
+      ui->setComment(var, "🚧");
       return true;
     // case f_ChangeFun:
     //   model->to<JsonArray>(); //create
@@ -71,6 +69,8 @@ void SysModModel::setup() {
     //   return true;
     default: return false;
   }});
+
+  #endif //STARMOD_DEVMODE
 }
 
   void SysModModel::loop() {
@@ -82,7 +82,7 @@ void SysModModel::setup() {
   }
 
   if (doWriteModel) {
-    USER_PRINTF("Writing model to /model.json... (serializeConfig)\n");
+    ppf("Writing model to /model.json... (serializeConfig)\n");
 
     // files->writeObjectToFile("/model.json", model);
 
@@ -91,6 +91,7 @@ void SysModModel::setup() {
     StarModJson starModJson("/model.json", "w"); //open fileName for deserialize
     starModJson.addExclusion("fun");
     starModJson.addExclusion("dash");
+    starModJson.addExclusion("o");
     starModJson.writeJsonDocToFile(model);
 
     // print->printJson("Write model", *model); //this shows the model before exclusion
@@ -117,7 +118,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
         if (oPos) {
           if (var["o"].isNull() || varOrder(var) >= 0) { //not set negative in initVar
             if (!doShowObsolete) {
-              USER_PRINTF("cleanUpModel remove var %s (""o"">=0)\n", varID(var));          
+              ppf("cleanUpModel remove var %s (""o"">=0)\n", varID(var));          
               vars.remove(varV); //remove the obsolete var (no o or )
             }
           }
@@ -126,7 +127,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
           }
         } else { //!oPos
           if (var["o"].isNull() || varOrder(var) < 0) { 
-            USER_PRINTF("cleanUpModel remove var %s (""o""<0)\n", varID(var));          
+            ppf("cleanUpModel remove var %s (""o""<0)\n", varID(var));          
             vars.remove(varV); //remove the obsolete var (no o or o is negative - not cleanedUp)
           }
         }
@@ -135,7 +136,7 @@ void SysModModel::cleanUpModel(JsonObject parent, bool oPos, bool ro) {
       //remove ro values (ro vars cannot be deleted as SM uses these vars)
       // remove if var is ro or table is instance table (exception here, values don't need to be saved)
       if (ro && (parent["id"] == "insTbl" || varRO(var))) {// && !var["value"].isNull())
-        USER_PRINTF("remove ro value %s\n", varID(var));          
+        ppf("remove ro value %s\n", varID(var));          
         var.remove("value");
       }
 
@@ -164,7 +165,7 @@ JsonObject SysModModel::findVar(const char * id, JsonArray parent) {
         JsonObject foundVar = findVar(id, var["n"]);
         if (!foundVar.isNull()) {
           if (modelParentVar.isNull()) modelParentVar = var;  //only recursive lowest assigns parentVar
-          // USER_PRINTF("findvar parent of %s is %s\n", id, varID(modelParentVar));
+          // ppf("findvar parent of %s is %s\n", id, varID(modelParentVar));
           return foundVar;
         }
       }

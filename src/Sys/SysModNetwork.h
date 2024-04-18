@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModNetwork.h
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -22,28 +22,22 @@ public:
   //setup wifi an async webserver
   void setup();
 
-  void loop();
   void loop1s();
 
   void handleConnection();
-
   void initConnection();
 
+  void handleAP();
   void initAP();
+  void stopAP();
   
 private:
   bool apActive = false;
   unsigned32 lastReconnectAttempt = 0;
-  char apSSID[33] = "StarMod AP";
-  char apPass[65] = "star1234";
   byte apChannel = 1; // 2.4GHz WiFi AP channel (1-13)
-  byte apHide    = 0; // hidden AP SSID
-  bool interfacesInited = false;
+  bool isConfirmedConnection = false;
   DNSServer dnsServer;
-  bool noWifiSleep = true;
-
-  //init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-  bool forceReconnect = false;
+  byte stacO = 0; //stationCount
 };
   
-static SysModNetwork *net;
+extern SysModNetwork *net;

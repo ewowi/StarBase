@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModPrint.h
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -14,7 +14,7 @@
 #include "SysModUI.h"
 #include "SysModModel.h"
 #include "SysModWeb.h"
-#include "esp32Tools.h"
+#include "SysModSystem.h"
 
 SysModPrint::SysModPrint() :SysModule("Print") {
 
@@ -42,9 +42,9 @@ SysModPrint::SysModPrint() :SysModule("Print") {
   delay(3000); // this extra delay avoids repeating disconnects on -s2 "Disconnected (ClearCommError failed"
   Serial.println("   **** COMMODORE BASIC V2 ****   ");
 #endif
-  if (!sysTools_normal_startup() && Serial) { // only print if Serial is connected, and startup was not normal
+  if (!sys->sysTools_normal_startup() && Serial) { // only print if Serial is connected, and startup was not normal
     Serial.print("\nWARNING - possible crash: ");
-    Serial.println(sysTools_getRestartReason());
+    Serial.println(sys->sysTools_getRestartReason());
     Serial.println("");
   }
   Serial.println("Ready.\n");
@@ -54,13 +54,12 @@ SysModPrint::SysModPrint() :SysModule("Print") {
 void SysModPrint::setup() {
   SysModule::setup();
 
-  parentVar = ui->initSysMod(parentVar, name, 2300);
+  parentVar = ui->initSysMod(parentVar, name, 2302);
 
   ui->initSelect(parentVar, "pOut", 1, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
     {
       ui->setLabel(var, "Output");
-      ui->setComment(var, "System log to Serial or Net print (WIP)");
 
       JsonArray options = ui->setOptions(var);
       options.add("No");
@@ -73,12 +72,7 @@ void SysModPrint::setup() {
     default: return false;
   }});
 
-  ui->initTextArea(parentVar, "log", "WIP", true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-    case f_UIFun:
-      ui->setComment(var, "Show the printed log");
-      return true;
-    default: return false;
-  }});
+  ui->initTextArea(parentVar, "log");
 }
 
 void SysModPrint::loop() {
@@ -86,84 +80,70 @@ void SysModPrint::loop() {
   if (!setupsDone) setupsDone = true;
 }
 
-size_t SysModPrint::print(const char * format, ...) {
+void SysModPrint::printf(const char * format, ...) {
   va_list args;
 
   va_start(args, format);
 
+  // Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"":"α"); //looptask λ/ asyncTCP task α
 
-  //tbd: print to UI (crashes because of recursive calls to print in setUIValueV...
-  // unsigned8 pOut = mdl->getValue("pOut");
-  // if (pOut == 2) {
-    // Serial.println(format);
-    // char value[1024];
-    // vsnprintf(value, sizeof(value)-1, format, args);
-    // mdl->setUIValueV("log", "%s", format);
-    // va_end(args);
-    // return 1;
-  // }
+  unsigned8 pOut = 1; //default serial
+  char value[1024];
+  vsnprintf(value, sizeof(value)-1, format, args);
+  if (mdls->isConnected) {
+    if (mdl->model)
+      pOut = mdl->getValue("pOut");
 
-  Serial.print(strncmp(pcTaskGetTaskName(NULL), "loopTask", 8) == 0?"":"α"); //looptask λ/ asyncTCP task α
-
-  for (size_t i = 0; i < strlen(format); i++) 
-  {
-    if (format[i] == '%') 
-    {
-      switch (format[i+1]) 
-      {
-        case 's':
-          Serial.print(va_arg(args, const char *));
-          break;
-        case 'u':
-          Serial.print(va_arg(args, unsigned int));
-          break;
-        case 'c':
-          Serial.print(va_arg(args, int));
-          break;
-        case 'd':
-          Serial.print(va_arg(args, int));
-          break;
-        case 'f':
-          Serial.print(va_arg(args, double));
-          break;
-        case '%':
-          Serial.print("%"); // in case of %%
-          break;
-        default:
-          va_arg(args, int);
-        // logFile.print(x);
-          Serial.print(format[i]);
-          Serial.print(format[i+1]);
-      }
-      i++;
-    } 
-    else 
-    {
-      Serial.print(format[i]);
+    if (pOut == 1)
+      Serial.print(value);
+    else if (pOut == 2) {
+      JsonObject responseObject = web->getResponseObject();
+      if (responseObject["log"]["value"].isNull())
+        responseObject["log"]["value"] = value;
+      else
+        responseObject["log"]["value"] = responseObject["log"]["value"].as<String>() + String(value);
+      // web->addResponse("log", "value", JsonString(value, JsonString::Copied)); //setValue not necessary
+      // mdl->setUIValueV("log", "%s", value);
+    }
+    else if (pOut == 3) {
+      //tbd
     }
   }
+  else
+    Serial.print(value);
 
   va_end(args);
-  return 1;
 }
 
-size_t SysModPrint::println(const __FlashStringHelper * x) {
-  return Serial.println(x);
+void SysModPrint::println(const __FlashStringHelper * x) {
+  printf("%s\n", x);
 }
 
 void SysModPrint::printVar(JsonObject var) {
-  char sep[3] = "";
+  char sep[3] = " ";
   for (JsonPair pair: var) {
-    print("%s%s: %s", sep, pair.key(), pair.value().as<String>().c_str());
-    strcpy(sep, ", ");
+    if (pair.key() == "id") {
+      printf("%s%s", sep, pair.value().as<String>().c_str());
+      strcpy(sep, ", ");
+    }
+    else if (pair.key() == "value") {
+      printf(":%s", pair.value().as<String>().c_str());
+    }
+    else if (pair.key() == "n") {
+      printf("[");
+      for (JsonObject childVar: mdl->varChildren(var)) {
+        printVar(childVar);
+      }
+      printf("]");
+    }
   }
 }
 
-size_t SysModPrint::printJson(const char * text, JsonVariantConst source) {
-  print("%s ", text);
-  size_t size = serializeJson(source, Serial); //for the time being
-  Serial.println();
-  return size;
+void SysModPrint::printJson(const char * text, JsonVariantConst source) {
+  char resStr[1024];
+  serializeJson(source, resStr, sizeof(resStr));
+
+  printf("%s %s\n", text, resStr);
 }
 
 size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {
@@ -180,5 +160,5 @@ size_t SysModPrint::fFormat(char * buf, size_t size, const char * format, ...) {
 }
 
 void SysModPrint::printJDocInfo(const char * text, JsonDocument source) {
-  print("%s (s:%u o:%u n:%u)\n", text, source.size(), source.overflowed(), source.nesting());
+  printf("%s (s:%u o:%u n:%u)\n", text, source.size(), source.overflowed(), source.nesting());
 }

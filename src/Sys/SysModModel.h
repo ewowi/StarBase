@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModModel.h
-   @date      20240228
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -19,9 +19,9 @@ typedef std::function<void(JsonObject)> FindFun;
 typedef std::function<void(JsonObject, size_t)> ChangeFun;
 
 struct Coord3D {
-  unsigned16 x;
-  unsigned16 y;
-  unsigned16 z;
+  int x;
+  int y;
+  int z;
 
   // Coord3D() {
   //   x = 0;
@@ -36,7 +36,7 @@ struct Coord3D {
 
   //comparisons
   bool operator!=(Coord3D rhs) {
-    // USER_PRINTF("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
+    // ppf("Coord3D compare%d %d %d %d %d %d\n", x, y, z, rhs.x, rhs.y, rhs.z);
     // return x != rhs.x || y != rhs.y || z != rhs.z;
     return !(*this==rhs);
   }
@@ -49,10 +49,16 @@ struct Coord3D {
   bool operator<=(Coord3D rhs) {
     return x <= rhs.x && y <= rhs.y && z <= rhs.z;
   }
+  bool operator<(Coord3D rhs) {
+    return x < rhs.x && y < rhs.y && z < rhs.z;
+  }
+  bool operator>=(uint16_t rhs) {
+    return x >= rhs && y >= rhs && z >= rhs;
+  }
 
   //assignments
   Coord3D operator=(Coord3D rhs) {
-    // USER_PRINTF("Coord3D assign %d,%d,%d\n", rhs.x, rhs.y, rhs.z);
+    // ppf("Coord3D assign %d,%d,%d\n", rhs.x, rhs.y, rhs.z);
     x = rhs.x;
     y = rhs.y;
     z = rhs.z;
@@ -65,37 +71,42 @@ struct Coord3D {
     return *this;
   }
   Coord3D operator/=(Coord3D rhs) {
-    x /= rhs.x;
-    y /= rhs.y;
-    z /= rhs.z;
+    if (rhs.x) x /= rhs.x;
+    if (rhs.y) y /= rhs.y;
+    if (rhs.z) z /= rhs.z;
     return *this;
   }
   //Minus / delta (abs)
   Coord3D operator-(Coord3D rhs) {
     Coord3D result;
-    result.x = x > rhs.x? x - rhs.x : rhs.x - x;
-    result.y = y > rhs.y? y - rhs.y : rhs.y - y;
-    result.z = z > rhs.z? z - rhs.z : rhs.z - z;
+    // result.x = x > rhs.x? x - rhs.x : rhs.x - x;
+    // result.y = y > rhs.y? y - rhs.y : rhs.y - y;
+    // result.z = z > rhs.z? z - rhs.z : rhs.z - z;
+    result.x = x - rhs.x;
+    result.y = y - rhs.y;
+    result.z = z - rhs.z;
     return result;
   }
   Coord3D operator+(Coord3D rhs) {
     return Coord3D{unsigned16(x + rhs.x), unsigned16(y + rhs.y), unsigned16(z + rhs.z)};
-    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   Coord3D operator/(Coord3D rhs) {
     return Coord3D{unsigned16(x / rhs.x), unsigned16(y / rhs.y), unsigned16(z / rhs.z)};
-    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
+  }
+  Coord3D operator%(Coord3D rhs) {
+    return Coord3D{unsigned16(x % rhs.x), unsigned16(y % rhs.y), unsigned16(z % rhs.z)};
   }
   Coord3D minimum(Coord3D rhs) {
     return Coord3D{min(x, rhs.x), min(y, rhs.y), min(z, rhs.z)};
   }
+  Coord3D maximum(Coord3D rhs) {
+    return Coord3D{max(x, rhs.x), max(y, rhs.y), max(z, rhs.z)};
+  }
   Coord3D operator*(unsigned8 rhs) {
     return Coord3D{unsigned16(x * rhs), unsigned16(y * rhs), unsigned16(z * rhs)};
-    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   Coord3D operator/(unsigned8 rhs) {
     return Coord3D{unsigned16(x / rhs), unsigned16(y / rhs), unsigned16(z / rhs)};
-    // return Coord3D{x + rhs.x, y + rhs.y, z + rhs.z};
   }
   //move the coordinate one step closer to the goal, if difference in coordinates (used in GenFix)
   Coord3D advance(Coord3D goal) {
@@ -103,6 +114,10 @@ struct Coord3D {
     if (y != goal.y) y += (y<goal.y)?1:-1;
     if (z != goal.z) z += (z<goal.z)?1:-1;
     return *this;
+  }
+  unsigned distance(Coord3D rhs) {
+    Coord3D delta = (*this-rhs);
+    return sqrt((delta.x)*(delta.x) + (delta.y)*(delta.y) + (delta.z)*(delta.z));
   }
 };
 
@@ -121,12 +136,12 @@ namespace ArduinoJson {
       dst["x"] = src.x;
       dst["y"] = src.y;
       dst["z"] = src.z;
-      // USER_PRINTF("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
+      // ppf("Coord3D toJson %d,%d,%d -> %s\n", src.x, src.y, src.z, dst.as<String>().c_str());
       return true;
     }
 
     static Coord3D fromJson(JsonVariantConst src) {
-      // USER_PRINTF("Coord3D fromJson %s\n", src.as<String>().c_str());
+      // ppf("Coord3D fromJson %s\n", src.as<String>().c_str());
       return Coord3D{src["x"], src["y"], src["z"]};
     }
 
@@ -160,16 +175,15 @@ class SysModModel:public SysModule {
 
 public:
 
-  // StaticJsonDocument<24576> model; //not static as that blows up the stack. Use extern??
-  // static JsonDocument<DefaultAllocator> *model; //needs to be static as loopTask and asyncTask is using it...
   RAM_Allocator allocator;
-  static JsonDocument *model; //needs to be static as loopTask and asyncTask is using it...
+  JsonDocument *model = nullptr;
 
-  static JsonObject modelParentVar;
+  JsonObject modelParentVar;
 
   bool doWriteModel = false;
 
-  static unsigned8 contextRowNr;
+  unsigned8 setValueRowNr = UINT8_MAX;
+  unsigned8 getValueRowNr = UINT8_MAX;
 
   SysModModel();
   void setup();
@@ -186,7 +200,7 @@ public:
       return setValue(var, value, rowNr);
     }
     else {
-      USER_PRINTF("setValue Var %s not found\n", id);
+      ppf("setValue Var %s not found\n", id);
       return JsonObject();
     }
   }
@@ -198,16 +212,19 @@ public:
 
     if (rowNr == UINT8_MAX) { //normal situation
       if (var["value"].isNull() || var["value"].as<Type>() != value) { //const char * will be JsonString so comparison works
-        JsonString oldValue = JsonString(var["value"], JsonString::Copied);
+        if (!var["value"].isNull() && !varRO(var)) var["oldValue"] = var["value"];
         var["value"] = value;
         //trick to remove null values
         if (var["value"].isNull() || var["value"].as<unsigned16>() == UINT16_MAX) {
           var.remove("value");
-          if (oldValue.size()>0)
-            USER_PRINTF("dev setValue value removed %s %s\n", varID(var), oldValue.c_str()); //old value
+          ppf("dev setValue value removed %s %s\n", varID(var), var["oldValue"].as<String>().c_str());
         }
         else {
-          USER_PRINTF("setValue changed %s %s -> %s\n", varID(var), oldValue.c_str(), var["value"].as<String>().c_str()); //old value
+          //only print if ! read only
+          if (!varRO(var))
+            ppf("setValue changed %s %s -> %s\n", varID(var), var["oldValue"].as<String>().c_str(), var["value"].as<String>().c_str());
+          // else
+          //   ppf("setValue changed %s %s\n", varID(var), var["value"].as<String>().c_str());
           web->addResponse(var["id"], "value", var["value"]);
           changed = true;
         }
@@ -217,8 +234,7 @@ public:
       //if we deal with multiple rows, value should be an array, if not we create one
 
       if (var["value"].isNull() || !var["value"].is<JsonArray>()) {
-        USER_PRINTF("setValue var %s[%d] value %s not array, creating\n", varID(var), rowNr, var["value"].as<String>().c_str());
-        // print->printJson("setValueB var %s value %s not array, creating", id, var["value"].as<String>().c_str());
+        // ppf("setValue var %s[%d] value %s not array, creating\n", varID(var), rowNr, var["value"].as<String>().c_str());
         var["value"].to<JsonArray>();
       }
 
@@ -232,15 +248,15 @@ public:
 
         if (notSame) {
           // if (rowNr >= valueArray.size())
-          //   USER_PRINTF("notSame %d %d\n", rowNr, valueArray.size());
+          //   ppf("notSame %d %d\n", rowNr, valueArray.size());
           valueArray[rowNr] = value; //if valueArray[<rowNr] not exists it will be created
-          // USER_PRINTF("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
+          // ppf("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
           web->addResponse(var["id"], "value", var["value"]); //send the whole array to UI as response is in format value:<value> !!
           changed = true;
         }
       }
       else {
-        USER_PRINTF("setValue %s could not create value array\n", varID(var));
+        ppf("setValue %s could not create value array\n", varID(var));
       }
     }
 
@@ -259,7 +275,7 @@ public:
 
     va_end(args);
 
-    USER_PRINTF("setValueV %s[%d] = %s\n", id, rowNr, value);
+    ppf("setValueV %s[%d] = %s\n", id, rowNr, value);
     return setValue(id, JsonString(value, JsonString::Copied), rowNr);
   }
 
@@ -282,21 +298,21 @@ public:
       return getValue(var, rowNr);
     }
     else {
-      // USER_PRINTF("getValue: Var %s does not exist!!\n", id);
+      // ppf("getValue: Var %s does not exist!!\n", id);
       return JsonVariant();
     }
   }
   JsonVariant getValue(JsonObject var, unsigned8 rowNr = UINT8_MAX) {
     if (var["value"].is<JsonArray>()) {
       JsonArray valueArray = var["value"].as<JsonArray>();
-      if (rowNr == UINT8_MAX) rowNr = contextRowNr;
+      if (rowNr == UINT8_MAX) rowNr = getValueRowNr;
       if (rowNr != UINT8_MAX && rowNr < valueArray.size())
         return valueArray[rowNr];
       else if (valueArray.size())
-        return valueArray[0];
+        return valueArray[0]; //return the first element
       else {
-        USER_PRINTF("dev getValue no array or rownr wrong %s %s %d\n", varID(var), var["value"].as<String>().c_str(), rowNr);
-        return JsonVariant();
+        ppf("dev getValue no array or rownr wrong %s %s %d\n", varID(var), var["value"].as<String>().c_str(), rowNr);
+        return JsonVariant(); // return null
       }
     }
     else
@@ -304,14 +320,14 @@ public:
   }
 
   //returns the var defined by id (parent to recursively call findVar)
-  static JsonObject findVar(const char * id, JsonArray parent = JsonArray()); //static for processJson
+  JsonObject findVar(const char * id, JsonArray parent = JsonArray());
   void findVars(const char * id, bool value, FindFun fun, JsonArray parent = JsonArray());
 
   //recursively add values in  a variant
   void varToValues(JsonObject var, JsonArray values);
 
   //run the change function and send response to all? websocket clients
-  static void callChangeFun(JsonObject var, unsigned8 rowNr = UINT8_MAX);
+  void callChangeFun(JsonObject var, unsigned8 rowNr = UINT8_MAX);
 
   //pseudo VarObject: public JsonObject functions
   const char * varID(JsonObject var) {return var["id"];}
@@ -358,30 +374,34 @@ public:
         varOrder(var, -varOrder(var)); // set all negative
       }
     }
-    contextRowNr = rowNr;
-    print->printJson("varPreDetails post", var);
+    setValueRowNr = rowNr;
+    ppf("varPreDetails post ");
+    print->printVar(var);
+    ppf("\n");
   }
 
   void varPostDetails(JsonObject var, unsigned8 rowNr) {
 
-    contextRowNr = UINT8_MAX;
+    setValueRowNr = UINT8_MAX;
     if (rowNr != UINT8_MAX) {
 
-      print->printJson("varPostDetails pre", var);
+      ppf("varPostDetails pre ");
+      print->printVar(var);
+      ppf("\n");
 
       //check if post init added: parent is already >=0
       if (varOrder(var) >= 0) {
-        for (JsonArray::iterator childVar=varChildren(var).begin(); childVar!=varChildren(var).end(); ++childVar) { //use iterator to make .remove work!!!
-          JsonArray valArray = varValArray(*childVar);
+        // for (JsonArray::iterator childVar=varChildren(var).begin(); childVar!=varChildren(var).end(); ++childVar) { //use iterator to make .remove work!!!
+        for (JsonObject childVar: varChildren(var)) { //use iterator to make .remove work!!!
+          JsonArray valArray = varValArray(childVar);
           if (!valArray.isNull())
           {
-
-            if (varOrder(*childVar) < 0) { //if not updated
+            if (varOrder(childVar) < 0) { //if not updated
               valArray[rowNr] = (char*)0; // set element in valArray to 0
 
-              USER_PRINTF("varPostDetails %s[%d] to null\n", varID(var), rowNr);
+              ppf("varPostDetails %s.%s[%d] <- null\n", varID(var), varID(childVar), rowNr);
               // setValue(var, -99, rowNr); //set value -99
-              varOrder(*childVar, -varOrder(*childVar)); //make positive again
+              varOrder(childVar, -varOrder(childVar)); //make positive again
               //if some values in array are not -99
             }
 
@@ -392,18 +412,20 @@ public:
                 allNull = false;
             }
             if (allNull) {
-              print->printJson("remove allnulls", *childVar);
+              print->printJson("remove allnulls", childVar);
               varChildren(var).remove(childVar);
             }
           }
           else {
-            print->printJson("remove non valArray", *childVar);
+            print->printJson("remove non valArray", childVar);
             varChildren(var).remove(childVar);
           }
 
         }
       } //if new added
-      print->printJson("varPostDetails post", var);
+      ppf("varPostDetails post ");
+      print->printVar(var);
+      ppf("\n");
 
       web->addResponse("details", "rowNr", rowNr);
     }
@@ -412,11 +434,28 @@ public:
     web->addResponse("details", "var", var);
   }
 
+  unsigned8 varLinearToLogarithm(JsonObject var, unsigned8 value) {
+    if (value == 0) return 0;
+
+    float minp = var["min"].isNull()?var["min"]:0;
+    float maxp = var["max"].isNull()?var["max"]:255;
+
+    // The result should be between 100 an 10000000
+    float minv = minp?log(minp):0;
+    float maxv = log(maxp);
+
+    // calculate adjustment factor
+    float scale = (maxv-minv) / (maxp-minp);
+
+    return round(exp(minv + scale*((float)value-minp)));
+  }
+
+
 private:
   bool doShowObsolete = false;
   bool cleanUpModelDone = false;
-  static int varCounter; //not static crashes ??? (not called async...?)
+  int varCounter = 1; //start with 1 so it can be negative, see var["o"]
 
 };
 
-static SysModModel *mdl;
+extern SysModModel *mdl;

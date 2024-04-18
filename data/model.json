@@ -1,828 +1,1014 @@
 [
-    {
-      "id": "Leds",
-      "type": "module",
-      "ro": false,
-      "o": 1,
-      "n": [
-        {
-          "id": "on",
-          "type": "checkbox",
-          "ro": false,
-          "o": 2,
-          "value": false
-        },
-        {
-          "id": "bri",
-          "type": "range",
-          "ro": false,
-          "o": 3,
-          "value": "36",
-          "max": 255,
-          "log": true
-        },
-        {
-          "id": "pview",
-          "type": "canvas",
-          "ro": false,
-          "o": 4,
-          "loopFun": 0,
-          "value": -1
-        },
-        {
-          "id": "fx",
-          "type": "select",
-          "ro": false,
-          "o": 5,
-          "value": "13",
-          "n": [
-            {
-              "id": "X frequency",
-              "type": "range",
-              "ro": false,
-              "o": 6,
-              "value": 64,
-              "max": 255
-            },
-            {
-              "id": "Fade rate",
-              "type": "range",
-              "ro": false,
-              "o": 7,
-              "value": 128,
-              "max": 255
-            },
-            {
-              "id": "Speed",
-              "type": "range",
-              "ro": false,
-              "o": 8,
-              "value": 128,
-              "max": 255
-            },
-            {
-              "id": "Smooth",
-              "type": "checkbox",
-              "ro": false,
-              "o": 9,
-              "value": false
+  {
+    "id": "WorkFlow",
+    "type": "appmod",
+    "ro": true,
+    "o": 6100,
+    "max": 255,
+    "n": [
+      {
+        "id": "aiTbl",
+        "type": "table",
+        "ro": true,
+        "o": 1,
+        "n": [
+          {
+            "id": "wfAction",
+            "type": "text",
+            "ro": true,
+            "o": 2,
+            "max": 32
+          },
+          {
+            "id": "wfButton",
+            "type": "button",
+            "ro": false,
+            "o": 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "Fixture",
+    "type": "appmod",
+    "ro": true,
+    "o": 2100,
+    "max": 255,
+    "n": [
+      {
+        "id": "on",
+        "type": "checkbox",
+        "ro": false,
+        "o": 4,
+        "value": 1
+      },
+      {
+        "id": "bri",
+        "type": "range",
+        "ro": false,
+        "o": 5,
+        "max": 255,
+        "value": 10,
+        "log": true
+      },
+      {
+        "id": "pview",
+        "type": "canvas",
+        "ro": false,
+        "o": 6,
+        "interval": 160,
+        "loopFun": 0
+      },
+      {
+        "id": "fixture",
+        "type": "select",
+        "ro": false,
+        "o": 7,
+        "value": 5
+      },
+      {
+        "id": "fixSize",
+        "type": "coord3D",
+        "ro": true,
+        "o": 8,
+        "max": 4096
+      },
+      {
+        "id": "fixCount",
+        "type": "number",
+        "ro": true,
+        "o": 9
+      },
+      {
+        "id": "fps",
+        "type": "number",
+        "ro": false,
+        "o": 10,
+        "min": 1,
+        "max": 999,
+        "value": 60
+      },
+      {
+        "id": "fShow",
+        "type": "checkbox",
+        "ro": false,
+        "o": 11,
+        "value": 1
+      },
+      {
+        "id": "realFps",
+        "type": "text",
+        "ro": true,
+        "o": 12,
+        "max": 10
+      },
+      {
+        "id": "mHead",
+        "type": "checkbox",
+        "ro": false,
+        "o": 13,
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "Effects",
+    "type": "appmod",
+    "ro": true,
+    "o": 2200,
+    "max": 255,
+    "n": [
+      {
+        "id": "fxTbl",
+        "type": "table",
+        "ro": false,
+        "o": 14,
+        "n": [
+          {
+            "id": "fx",
+            "type": "select",
+            "ro": false,
+            "o": 15,
+            "value": [
+              18
+            ],
+            "n": [
+              {
+                "id": "fade",
+                "type": "range",
+                "ro": false,
+                "o": 16,
+                "max": 32,
+                "value": [
+                  16
+                ]
+              },
+              {
+                "id": "outX",
+                "type": "range",
+                "ro": false,
+                "o": 17,
+                "max": 32,
+                "value": [
+                  16
+                ]
+              },
+              {
+                "id": "outY",
+                "type": "range",
+                "ro": false,
+                "o": 18,
+                "max": 32,
+                "value": [
+                  16
+                ]
+              },
+              {
+                "id": "inX",
+                "type": "range",
+                "ro": false,
+                "o": 19,
+                "max": 32,
+                "value": [
+                  16
+                ]
+              },
+              {
+                "id": "inY",
+                "type": "range",
+                "ro": false,
+                "o": 20,
+                "max": 32,
+                "value": [
+                  16
+                ]
+              }
+            ]
+          },
+          {
+            "id": "pro",
+            "type": "select",
+            "ro": false,
+            "o": 21,
+            "value": [
+              1
+            ],
+            "n": [
+              {
+                "id": "proMulti",
+                "type": "coord3D",
+                "ro": false,
+                "o": 112,
+                "max": 10,
+                "value": [
+                  {
+                    "x": 2,
+                    "y": 2,
+                    "z": 1
+                  }
+                ],
+                "n": [
+                  {
+                    "id": "mirror",
+                    "type": "checkbox",
+                    "ro": false,
+                    "o": 113,
+                    "value": [
+                      0
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "fxStart",
+            "type": "coord3D",
+            "ro": false,
+            "o": 22,
+            "max": 4096,
+            "value": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "id": "fxEnd",
+            "type": "coord3D",
+            "ro": false,
+            "o": 23,
+            "max": 4096,
+            "value": [
+              {
+                "x": 65535,
+                "y": 65535,
+                "z": 65535
+              }
+            ]
+          },
+          {
+            "id": "fxSize",
+            "type": "text",
+            "ro": true,
+            "o": 24,
+            "max": 32
+          }
+        ]
+      },
+      {
+        "id": "Blending",
+        "type": "range",
+        "ro": false,
+        "o": 25,
+        "max": 255,
+        "value": 128
+      }
+    ]
+  },
+  {
+    "id": "Fixture Generator",
+    "type": "usermod",
+    "ro": true,
+    "o": 2300,
+    "max": 255,
+    "n": [
+      {
+        "id": "fixtureGen",
+        "type": "select",
+        "ro": false,
+        "o": 26,
+        "value": 0,
+        "n": [
+          {
+            "id": "mrxRowEnd",
+            "type": "coord3D",
+            "ro": false,
+            "o": 32,
+            "max": 4096,
+            "value": {
+              "x": 7,
+              "y": 0,
+              "z": 0
             }
-          ]
-        },
-        {
-          "id": "pal",
-          "type": "select",
-          "ro": false,
-          "o": 10,
-          "value": "2"
-        },
-        {
-          "id": "pro",
-          "type": "select",
-          "ro": false,
-          "o": 11,
-          "value": 2
-        },
-        {
-          "id": "fixture",
-          "type": "select",
-          "ro": false,
-          "o": 12,
-          "value": "1"
-        },
-        {
-          "id": "dimensions",
-          "type": "text",
-          "ro": true,
-          "o": 13,
-          "max": 32
-        },
-        {
-          "id": "nrOfLeds",
-          "type": "text",
-          "ro": true,
-          "o": 14,
-          "max": 32
-        },
-        {
-          "id": "fps",
-          "type": "number",
-          "ro": false,
-          "o": 15,
-          "value": 61595,
-          "min": 1,
-          "max": 999
-        },
-        {
-          "id": "realFps",
-          "type": "text",
-          "ro": true,
-          "o": 16,
-          "max": 10
-        },
-        {
-          "id": "dch",
-          "type": "number",
-          "ro": false,
-          "o": 87,
-          "value": 1,
-          "min": 1,
-          "max": 511
-        }
-      ]
-    },
-    {
-      "id": "FixtureGen",
-      "type": "module",
-      "ro": false,
-      "o": 17,
-      "n": [
-        {
-          "id": "fixtureGen",
-          "type": "select",
-          "ro": false,
-          "o": 18,
-          "value": "1",
-          "n": [
-            {
-              "id": "width",
-              "type": "number",
-              "ro": false,
-              "o": 19,
-              "value": 8,
-              "min": 1,
-              "max": 255
-            },
-            {
-              "id": "height",
-              "type": "number",
-              "ro": false,
-              "o": 20,
-              "value": 8,
-              "min": 1,
-              "max": 255
-            },
-            {
-              "id": "firstLedX",
-              "type": "select",
-              "ro": false,
-              "o": 21,
-              "value": 0
-            },
-            {
-              "id": "firstLedY",
-              "type": "select",
-              "ro": false,
-              "o": 22,
-              "value": 0
-            },
-            {
-              "id": "serpentine",
-              "type": "checkbox",
-              "ro": false,
-              "o": 23,
-              "value": false
+          },
+          {
+            "id": "mrxColEnd",
+            "type": "coord3D",
+            "ro": false,
+            "o": 33,
+            "max": 4096,
+            "value": {
+              "x": 7,
+              "y": 7,
+              "z": 0
             }
-          ]
-        },
-        {
-          "id": "pinList",
-          "type": "text",
-          "ro": false,
-          "o": 24,
-          "value": "16",
-          "max": 32
-        },
-        {
-          "id": "generate",
-          "type": "button",
-          "ro": false,
-          "o": 25,
-          "value": "Generate"
-        }
-      ]
-    },
-    {
-      "id": "Files",
-      "type": "module",
-      "ro": false,
-      "o": 26,
-      "n": [
-        {
-          "id": "fileTbl",
-          "type": "table",
-          "ro": false,
-          "o": 27,
-          "n": [
-            {
-              "id": "flName",
-              "type": "text",
-              "ro": true,
-              "o": 28,
-              "max": 32
-            },
-            {
-              "id": "flSize",
-              "type": "number",
-              "ro": true,
-              "o": 29,
-              "value": -1,
-              "max": 65535
-            },
-            {
-              "id": "flLink",
-              "type": "url",
-              "ro": true,
-              "o": 30
-            },
-            {
-              "id": "flDel",
-              "type": "button",
-              "ro": false,
-              "o": 31,
-              "value": "âŒ«"
-            }
-          ]
-        },
-        {
-          "id": "drsize",
-          "type": "text",
-          "ro": true,
-          "o": 32,
-          "max": 32
-        },
-        {
-          "id": "deleteFiles",
-          "type": "button",
-          "ro": false,
-          "o": 33
-        }
-      ]
-    },
-    {
-      "id": "Instances",
-      "type": "module",
-      "ro": false,
-      "o": 34,
-      "n": [
-        {
-          "id": "insTbl",
-          "type": "table",
-          "ro": false,
-          "o": 35,
-          "n": [
-            {
-              "id": "insName",
-              "type": "text",
-              "ro": true,
-              "o": 36,
-              "max": 32
-            },
-            {
-              "id": "insIp",
-              "type": "text",
-              "ro": true,
-              "o": 37,
-              "max": 16
-            },
-            {
-              "id": "insType",
-              "type": "text",
-              "ro": true,
-              "o": 38,
-              "max": 16
-            },
-            {
-              "id": "insDetail",
-              "type": "text",
-              "ro": true,
-              "o": 42,
-              "max": 1024
-            },
-            {
-              "id": "insLink",
-              "type": "url",
-              "ro": true,
-              "o": 43
-            },
-            {
-              "id": "insfx",
-              "type": "select",
-              "ro": false,
-              "o": 39,
-              "value": 0
-            },
-            {
-              "id": "inson",
-              "type": "checkbox",
-              "ro": false,
-              "o": 40,
-              "value": false
-            },
-            {
-              "id": "insbri",
-              "type": "range",
-              "ro": false,
-              "o": 41,
-              "value": 0,
-              "max": 255
-            }
-          ]
-        },
-        {
-          "id": "sma",
-          "type": "number",
-          "ro": false,
-          "o": 44,
-          "value": 0,
-          "max": 255
-        }
-      ]
-    },
-    {
-      "id": "System",
-      "type": "module",
-      "ro": false,
-      "o": 45,
-      "n": [
-        {
-          "id": "serverName",
-          "type": "text",
-          "ro": false,
-          "o": 46,
-          "value": "StarMod88",
-          "max": 32
-        },
-        {
-          "id": "upTime",
-          "type": "text",
-          "ro": true,
-          "o": 47,
-          "max": 16
-        },
-        {
-          "id": "loops",
-          "type": "text",
-          "ro": true,
-          "o": 48,
-          "max": 16
-        },
-        {
-          "id": "heap",
-          "type": "text",
-          "ro": true,
-          "o": 49,
-          "max": 32
-        },
-        {
-          "id": "stack",
-          "type": "text",
-          "ro": true,
-          "o": 50,
-          "max": 16
-        },
-        {
-          "id": "restart",
-          "type": "button",
-          "ro": false,
-          "o": 51
-        },
-        {
-          "id": "reset0",
-          "type": "select",
-          "ro": true,
-          "o": 52,
-          "value": 1
-        },
-        {
-          "id": "reset1",
-          "type": "select",
-          "ro": true,
-          "o": 53,
-          "value": 14
-        },
-        {
-          "id": "restartReason",
-          "type": "select",
-          "ro": true,
-          "o": 54,
-          "value": 1
-        },
-        {
-          "id": "version",
-          "type": "text",
-          "ro": true,
-          "o": 55,
-          "max": 16
-        }
-      ]
-    },
-    {
-      "id": "Pins",
-      "type": "module",
-      "ro": false,
-      "o": 56,
-      "n": [
-        {
-          "id": "pinTbl",
-          "type": "table",
-          "ro": false,
-          "o": 57,
-          "n": [
-            {
-              "id": "pinNr",
-              "type": "number",
-              "ro": true,
-              "o": 58,
-              "value": 0,
-              "max": 50
-            },
-            {
-              "id": "pinOwner",
-              "type": "text",
-              "ro": true,
-              "o": 59,
-              "max": 32
-            },
-            {
-              "id": "pinDetails",
-              "type": "text",
-              "ro": true,
-              "o": 60,
-              "max": 256
-            }
-          ]
-        },
-        {
-          "id": "board",
-          "type": "canvas",
-          "ro": true,
-          "o": 61,
-          "loopFun": 1,
-          "value": -1
-        }
-      ]
-    },
-    {
-      "id": "Print",
-      "type": "module",
-      "ro": false,
-      "o": 62,
-      "n": [
-        {
-          "id": "pOut",
-          "type": "select",
-          "ro": false,
-          "o": 63,
-          "value": 1
-        },
-        {
-          "id": "log",
-          "type": "textarea",
-          "ro": true,
-          "o": 64,
-          "value": "WIP"
-        }
-      ]
-    },
-    {
-      "id": "Web",
-      "type": "module",
-      "ro": false,
-      "o": 65,
-      "n": [
-        {
-          "id": "clTbl",
-          "type": "table",
-          "ro": false,
-          "o": 66,
-          "n": [
-            {
-              "id": "clNr",
-              "type": "number",
-              "ro": true,
-              "o": 67,
-              "value": 0,
-              "max": 999
-            },
-            {
-              "id": "clIp",
-              "type": "text",
-              "ro": true,
-              "o": 68,
-              "max": 16
-            },
-            {
-              "id": "clIsFull",
-              "type": "checkbox",
-              "ro": true,
-              "o": 69,
-              "value": [
-                false,
-                false
-              ]
-            },
-            {
-              "id": "clStatus",
-              "type": "select",
-              "ro": true,
-              "o": 70,
-              "value": [
-                1,
-                1
-              ]
-            },
-            {
-              "id": "clLength",
-              "type": "number",
-              "ro": true,
-              "o": 71,
-              "value": [
-                0,
-                0
-              ],
-              "max": 64
-            }
-          ]
-        },
-        {
-          "id": "wsSendBytes",
-          "type": "text",
-          "ro": true,
-          "o": 72,
-          "max": 16
-        },
-        {
-          "id": "wsSendJson",
-          "type": "text",
-          "ro": true,
-          "o": 73,
-          "max": 16
-        },
-        {
-          "id": "queueLength",
-          "type": "number",
-          "ro": true,
-          "o": 74,
-          "value": 32,
-          "max": 64
-        }
-      ]
-    },
-    {
-      "id": "Network",
-      "type": "module",
-      "ro": false,
-      "o": 75,
-      "n": [
-        {
-          "id": "ssid",
-          "type": "text",
-          "ro": false,
-          "o": 76,
-          "value": "ewtr",
-          "max": 32
-        },
-        {
-          "id": "pw",
-          "type": "password",
-          "ro": false,
-          "o": 77,
-          "value": "zonledmod"
-        },
-        {
-          "id": "connect",
-          "type": "button",
-          "ro": false,
-          "o": 78,
-          "value": "Connect"
-        },
-        {
-          "id": "nwstatus",
-          "type": "text",
-          "ro": true,
-          "o": 79,
-          "max": 32
-        },
-        {
-          "id": "rssi",
-          "type": "text",
-          "ro": true,
-          "o": 80,
-          "max": 32
-        }
-      ]
-    },
-    {
-      "id": "DDP",
-      "type": "module",
-      "ro": false,
-      "o": 81,
-      "n": [
-        {
-          "id": "ddpInst",
-          "type": "select",
-          "ro": false,
-          "o": 82,
-          "value": 255
-        }
-      ]
-    },
-    {
-      "id": "ArtNet",
-      "type": "module",
-      "ro": false,
-      "o": 83,
-      "n": [
-        {
-          "id": "artInst",
-          "type": "select",
-          "ro": false,
-          "o": 84,
-          "value": 255
-        }
-      ]
-    },
-    {
-      "id": "Model",
-      "type": "module",
-      "ro": false,
-      "o": 93,
-      "n": [
-        {
-          "id": "mSize",
-          "type": "text",
-          "ro": true,
-          "o": 94,
-          "max": 32
-        },
-        {
-          "id": "saveModel",
-          "type": "button",
-          "ro": false,
-          "o": 95,
-          "value": "SaveModel"
-        },
-        {
-          "id": "showObsolete",
-          "type": "checkbox",
-          "ro": false,
-          "o": 96,
-          "value": false
-        },
-        {
-          "id": "deleteObsolete",
-          "type": "button",
-          "ro": false,
-          "o": 97
-        },
-        {
-          "id": "deleteModel",
-          "type": "button",
-          "ro": false,
-          "o": 98
-        }
-      ]
-    },
-    {
-      "id": "UI",
-      "type": "module",
-      "ro": false,
-      "o": 99,
-      "n": [
-        {
-          "id": "vlTbl",
-          "type": "table",
-          "ro": false,
-          "o": 100,
-          "n": [
-            {
-              "id": "vlVar",
-              "type": "text",
-              "ro": true,
-              "o": 101,
-              "max": 32
-            },
-            {
-              "id": "vlLoopps",
-              "type": "number",
-              "ro": true,
-              "o": 102,
-              "value": 0,
-              "max": 999
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "Modules",
-      "type": "module",
-      "ro": false,
-      "o": 103,
-      "n": [
-        {
-          "id": "mdlTbl",
-          "type": "table",
-          "ro": false,
-          "o": 104,
-          "n": [
-            {
-              "id": "mdlName",
-              "type": "text",
-              "ro": true,
-              "o": 105,
-              "max": 32
-            },
-            {
-              "id": "mdlSuccess",
-              "type": "checkbox",
-              "ro": true,
-              "o": 106,
-              "value": false
-            },
-            {
-              "id": "mdlEnabled",
-              "type": "checkbox",
-              "ro": false,
-              "o": 107,
-              "value": [
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                true,
-                false,
-                false,
-                false,
-                true,
-                true,
-                false,
-                true
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "e131-sACN",
-      "type": "module",
-      "ro": false,
-      "o": 85,
-      "n": [
-        {
-          "id": "dun",
-          "type": "number",
-          "ro": false,
-          "o": 86,
-          "value": 1,
-          "max": 7
-        },
-        {
-          "id": "e131Tbl",
-          "type": "table",
-          "ro": false,
-          "o": 88,
-          "n": [
-            {
-              "id": "e131Channel",
-              "type": "number",
-              "ro": true,
-              "o": 89,
-              "value": -1,
-              "min": 1,
-              "max": 512
-            },
-            {
-              "id": "e131Name",
-              "type": "text",
-              "ro": true,
-              "o": 90,
-              "max": 32
-            },
-            {
-              "id": "e131Max",
-              "type": "number",
-              "ro": true,
-              "o": 91,
-              "value": -1,
-              "max": 65535
-            },
-            {
-              "id": "e131Value",
-              "type": "number",
-              "ro": true,
-              "o": 92,
-              "value": -1,
-              "max": 255
-            }
-          ]
-        }
-      ]
-    }
-  ]
+          },
+          {
+            "id": "fixIP",
+            "type": "number",
+            "ro": false,
+            "o": 34,
+            "min": 1,
+            "max": 256,
+            "value": 0
+          },
+          {
+            "id": "fixPin",
+            "type": "pin",
+            "ro": false,
+            "o": 35,
+            "max": 40,
+            "value": 2
+          }
+        ]
+      },
+      {
+        "id": "panels",
+        "type": "checkbox",
+        "ro": false,
+        "o": 31,
+        "value": 0
+      },
+      {
+        "id": "generate",
+        "type": "button",
+        "ro": false,
+        "o": 36
+      }
+    ]
+  },
+  {
+    "id": "Files",
+    "type": "sysmod",
+    "ro": true,
+    "o": 3000,
+    "max": 255,
+    "n": [
+      {
+        "id": "fileTbl",
+        "type": "table",
+        "ro": false,
+        "o": 37,
+        "n": [
+          {
+            "id": "flName",
+            "type": "text",
+            "ro": true,
+            "o": 38,
+            "max": 32
+          },
+          {
+            "id": "flSize",
+            "type": "number",
+            "ro": true,
+            "o": 39
+          },
+          {
+            "id": "flLink",
+            "type": "url",
+            "ro": true,
+            "o": 40
+          }
+        ]
+      },
+      {
+        "id": "drsize",
+        "type": "progress",
+        "ro": true,
+        "o": 41,
+        "max": 262144
+      }
+    ]
+  },
+  {
+    "id": "System",
+    "type": "sysmod",
+    "ro": true,
+    "o": 3100,
+    "max": 255,
+    "n": [
+      {
+        "id": "instanceName",
+        "type": "text",
+        "ro": false,
+        "o": 42,
+        "max": 32,
+        "value": "StarMod16MB"
+      },
+      {
+        "id": "upTime",
+        "type": "text",
+        "ro": true,
+        "o": 43,
+        "max": 16
+      },
+      {
+        "id": "reboot",
+        "type": "button",
+        "ro": false,
+        "o": 44
+      },
+      {
+        "id": "loops",
+        "type": "text",
+        "ro": true,
+        "o": 45,
+        "max": 16
+      },
+      {
+        "id": "chip",
+        "type": "text",
+        "ro": true,
+        "o": 46,
+        "max": 16
+      },
+      {
+        "id": "heap",
+        "type": "progress",
+        "ro": true,
+        "o": 47,
+        "max": 292
+      },
+      {
+        "id": "mainStack",
+        "type": "progress",
+        "ro": true,
+        "o": 48,
+        "max": 8192
+      },
+      {
+        "id": "tcpStack",
+        "type": "progress",
+        "ro": true,
+        "o": 49,
+        "max": 8192
+      },
+      {
+        "id": "reset0",
+        "type": "select",
+        "ro": true,
+        "o": 50
+      },
+      {
+        "id": "reset1",
+        "type": "select",
+        "ro": true,
+        "o": 51
+      },
+      {
+        "id": "restartReason",
+        "type": "select",
+        "ro": true,
+        "o": 52
+      },
+      {
+        "id": "version",
+        "type": "text",
+        "ro": true,
+        "o": 53,
+        "max": 16
+      }
+    ],
+    "view": "vAll"
+  },
+  {
+    "id": "Pins",
+    "type": "sysmod",
+    "ro": true,
+    "o": 3200,
+    "max": 255,
+    "n": [
+      {
+        "id": "pinTbl",
+        "type": "table",
+        "ro": true,
+        "o": 54,
+        "n": [
+          {
+            "id": "pinNr",
+            "type": "pin",
+            "ro": true,
+            "o": 55,
+            "max": 40
+          },
+          {
+            "id": "pinOwner",
+            "type": "text",
+            "ro": true,
+            "o": 56,
+            "max": 32
+          },
+          {
+            "id": "pinDetails",
+            "type": "text",
+            "ro": true,
+            "o": 57,
+            "max": 256
+          }
+        ]
+      },
+      {
+        "id": "board",
+        "type": "canvas",
+        "ro": true,
+        "o": 58,
+        "interval": 1000,
+        "loopFun": 1
+      },
+      {
+        "id": "pin19",
+        "type": "checkbox",
+        "ro": false,
+        "o": 59,
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "Print",
+    "type": "sysmod",
+    "ro": true,
+    "o": 3300,
+    "max": 255,
+    "n": [
+      {
+        "id": "pOut",
+        "type": "select",
+        "ro": false,
+        "o": 60,
+        "value": 1
+      },
+      {
+        "id": "log",
+        "type": "textarea",
+        "ro": true,
+        "o": 61
+      }
+    ]
+  },
+  {
+    "id": "Web",
+    "type": "sysmod",
+    "ro": true,
+    "o": 3400,
+    "max": 255,
+    "n": [
+      {
+        "id": "clTbl",
+        "type": "table",
+        "ro": true,
+        "o": 62,
+        "n": [
+          {
+            "id": "clNr",
+            "type": "number",
+            "ro": true,
+            "o": 63,
+            "max": 999
+          },
+          {
+            "id": "clIp",
+            "type": "text",
+            "ro": true,
+            "o": 64,
+            "max": 16
+          },
+          {
+            "id": "clIsFull",
+            "type": "checkbox",
+            "ro": true,
+            "o": 65
+          },
+          {
+            "id": "clStatus",
+            "type": "select",
+            "ro": true,
+            "o": 66
+          },
+          {
+            "id": "clLength",
+            "type": "number",
+            "ro": true,
+            "o": 67,
+            "max": 64
+          }
+        ]
+      },
+      {
+        "id": "maxQueue",
+        "type": "number",
+        "ro": true,
+        "o": 68,
+        "max": 64
+      },
+      {
+        "id": "wsSend",
+        "type": "text",
+        "ro": true,
+        "o": 69,
+        "max": 16
+      },
+      {
+        "id": "wsRecv",
+        "type": "text",
+        "ro": true,
+        "o": 70,
+        "max": 16
+      },
+      {
+        "id": "udpSend",
+        "type": "text",
+        "ro": true,
+        "o": 71,
+        "max": 16
+      },
+      {
+        "id": "udpRecv",
+        "type": "text",
+        "ro": true,
+        "o": 72,
+        "max": 16
+      }
+    ]
+  },
+  {
+    "id": "Network",
+    "type": "sysmod",
+    "ro": true,
+    "o": 3500,
+    "max": 255,
+    "n": [
+      {
+        "id": "ssid",
+        "type": "text",
+        "ro": false,
+        "o": 73,
+        "max": 32,
+        "value": "ewtr"
+      },
+      {
+        "id": "pw",
+        "type": "password",
+        "ro": false,
+        "o": 74,
+        "value": "zonledmod"
+      },
+      {
+        "id": "connect",
+        "type": "button",
+        "ro": false,
+        "o": 75
+      },
+      {
+        "id": "nwstatus",
+        "type": "text",
+        "ro": true,
+        "o": 76,
+        "max": 32
+      },
+      {
+        "id": "rssi",
+        "type": "text",
+        "ro": true,
+        "o": 77,
+        "max": 32
+      }
+    ]
+  },
+  {
+    "id": "DDP",
+    "type": "usermod",
+    "ro": true,
+    "o": 4000,
+    "max": 255,
+    "n": [
+      {
+        "id": "ddpInst",
+        "type": "ip",
+        "ro": false,
+        "o": 78,
+        "max": 255
+      }
+    ]
+  },
+  {
+    "id": "ArtNet",
+    "type": "usermod",
+    "ro": true,
+    "o": 4100,
+    "max": 255,
+    "n": [
+      {
+        "id": "artInst",
+        "type": "ip",
+        "ro": false,
+        "o": 79,
+        "max": 255
+      }
+    ]
+  },
+  {
+    "id": "E131",
+    "type": "usermod",
+    "ro": true,
+    "o": 4200,
+    "max": 255,
+    "n": [
+      {
+        "id": "dun",
+        "type": "number",
+        "ro": false,
+        "o": 80,
+        "max": 7,
+        "value": 1
+      },
+      {
+        "id": "dch",
+        "type": "number",
+        "ro": false,
+        "o": 81,
+        "min": 1,
+        "max": 512,
+        "value": 1
+      },
+      {
+        "id": "e131Tbl",
+        "type": "table",
+        "ro": true,
+        "o": 82,
+        "n": [
+          {
+            "id": "e131Channel",
+            "type": "number",
+            "ro": true,
+            "o": 83,
+            "min": 1,
+            "max": 512
+          },
+          {
+            "id": "e131Name",
+            "type": "text",
+            "ro": true,
+            "o": 84,
+            "max": 32
+          },
+          {
+            "id": "e131Max",
+            "type": "number",
+            "ro": true,
+            "o": 85
+          },
+          {
+            "id": "e131Value",
+            "type": "number",
+            "ro": true,
+            "o": 86,
+            "max": 255
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "Model",
+    "type": "sysmod",
+    "ro": true,
+    "o": 5000,
+    "max": 255,
+    "n": [
+      {
+        "id": "saveModel",
+        "type": "button",
+        "ro": false,
+        "o": 87
+      },
+      {
+        "id": "showObsolete",
+        "type": "checkbox",
+        "ro": false,
+        "o": 88,
+        "value": 0
+      },
+      {
+        "id": "deleteObsolete",
+        "type": "button",
+        "ro": false,
+        "o": 89
+      }
+    ]
+  },
+  {
+    "id": "UI",
+    "type": "sysmod",
+    "ro": true,
+    "o": 5100,
+    "max": 255,
+    "n": [
+      {
+        "id": "vlTbl",
+        "type": "table",
+        "ro": true,
+        "o": 90,
+        "n": [
+          {
+            "id": "vlVar",
+            "type": "text",
+            "ro": true,
+            "o": 91,
+            "max": 32
+          },
+          {
+            "id": "vlLoopps",
+            "type": "number",
+            "ro": true,
+            "o": 92,
+            "max": 999
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "WLED Audio Sync Receiver",
+    "type": "usermod",
+    "ro": true,
+    "o": 6300,
+    "max": 255,
+    "n": [
+      {
+        "id": "wledAudioStatus",
+        "type": "text",
+        "ro": true,
+        "o": 93,
+        "max": 16
+      }
+    ]
+  },
+  {
+    "id": "Instances",
+    "type": "sysmod",
+    "ro": true,
+    "o": 5200,
+    "max": 255,
+    "n": [
+      {
+        "id": "insTbl",
+        "type": "table",
+        "ro": true,
+        "o": 94,
+        "n": [
+          {
+            "id": "insName",
+            "type": "text",
+            "ro": true,
+            "o": 95,
+            "max": 32
+          },
+          {
+            "id": "insLink",
+            "type": "url",
+            "ro": true,
+            "o": 96
+          },
+          {
+            "id": "insIp",
+            "type": "text",
+            "ro": true,
+            "o": 97,
+            "max": 16
+          },
+          {
+            "id": "insType",
+            "type": "text",
+            "ro": true,
+            "o": 98,
+            "max": 16
+          },
+          {
+            "id": "insVersion",
+            "type": "number",
+            "ro": true,
+            "o": 99,
+            "max": -1
+          },
+          {
+            "id": "insUp",
+            "type": "number",
+            "ro": true,
+            "o": 100,
+            "max": -1
+          },
+          {
+            "id": "inson",
+            "type": "checkbox",
+            "ro": false,
+            "o": 102
+          },
+          {
+            "id": "insbri",
+            "type": "range",
+            "ro": false,
+            "o": 103,
+            "max": 255,
+            "log": true
+          },
+          {
+            "id": "insfx",
+            "type": "select",
+            "ro": false,
+            "o": 104
+          },
+          {
+            "id": "inspro",
+            "type": "select",
+            "ro": false,
+            "o": 105
+          },
+          {
+            "id": "insdch",
+            "type": "number",
+            "ro": false,
+            "o": 106,
+            "min": 1,
+            "max": 512
+          },
+          {
+            "id": "inssma",
+            "type": "ip",
+            "ro": false,
+            "o": 107,
+            "max": 255
+          }
+        ]
+      },
+      {
+        "id": "sma",
+        "type": "ip",
+        "ro": false,
+        "o": 101,
+        "max": 255,
+        "value": 0
+      }
+    ]
+  },
+  {
+    "id": "Modules",
+    "type": "sysmod",
+    "ro": true,
+    "o": 6000,
+    "max": 255,
+    "n": [
+      {
+        "id": "mdlTbl",
+        "type": "table",
+        "ro": true,
+        "o": 108,
+        "n": [
+          {
+            "id": "mdlName",
+            "type": "text",
+            "ro": true,
+            "o": 109,
+            "max": 32
+          },
+          {
+            "id": "mdlSuccess",
+            "type": "checkbox",
+            "ro": true,
+            "o": 110
+          },
+          {
+            "id": "mdlEnabled",
+            "type": "checkbox",
+            "ro": false,
+            "o": 111,
+            "value": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true,
+              false,
+              false,
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

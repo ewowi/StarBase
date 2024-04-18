@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      UserModHA.h
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -21,36 +21,29 @@ public:
     isEnabled = false;
   };
 
-  static void onStateCommand(bool state, HALight* sender) {
-      Serial.print("State: ");
-      Serial.println(state);
+  void onStateCommand(bool state, HALight* sender) {
+      ppf("State: %s\n", state?"true":"false");
 
       sender->setState(state); // report state back to the Home Assistant
   }
 
-  static void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
-      Serial.print("Brightness: ");
-      Serial.println(brightness);
+  void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
+      ppf("Brightness: %s\n", brightness);
 
       sender->setBrightness(brightness); // report brightness back to the Home Assistant
   }
 
-  static void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
-      Serial.print("Red: ");
-      Serial.println(color.red);
-      Serial.print("Green: ");
-      Serial.println(color.green);
-      Serial.print("Blue: ");
-      Serial.println(color.blue);
+  void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
+      ppf("Red: %d Green: %d blue: %d\n", color.red, color.green, color.blue);
 
       sender->setRGBColor(color); // report color back to the Home Assistant
   }
 
   void connectedChanged() {
-    if (SysModules::isConnected) {
+    if (mdls->isConnected) {
       // set device's details (optional)
-      device.setName("StarMod");
-      device.setSoftwareVersion("0.0.1");
+      device.setName(_INIT(TOSTRING(APP)));
+      device.setSoftwareVersion(_INIT(TOSTRING(VERSION)));
     }
 
     // configure light (optional)
@@ -83,7 +76,7 @@ public:
     WiFiClient client;
     HADevice device;
     HAMqtt* mqtt = new HAMqtt(client, device);
-    HALight* light = new HALight("starmod", HALight::BrightnessFeature | HALight::RGBFeature);
+    HALight* light = new HALight(_INIT(TOSTRING(APP)), HALight::BrightnessFeature | HALight::RGBFeature);
 };
 
-static UserModHA *hamod;
+extern UserModHA *hamod;

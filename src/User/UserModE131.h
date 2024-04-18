@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      UserModE131.h
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -18,14 +18,15 @@ class UserModE131:public SysModule {
 
 public:
 
-  UserModE131() :SysModule("e131-sACN") {
+  UserModE131() :SysModule("E131") {
+    isEnabled = false; //default not enabled
   };
 
   //setup filesystem
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initUserMod(parentVar, name, 3200);
+    parentVar = ui->initUserMod(parentVar, name, 6201);
 
     ui->initNumber(parentVar, "dun", universe, 0, 7, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
@@ -59,7 +60,7 @@ public:
 
     ui->initNumber(tableVar, "e131Channel", UINT16_MAX, 1, 512, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
           mdl->setValue(var, varsToWatch[rowNr].channel + mdl->getValue("dch").as<unsigned8>(), rowNr);
         return true;
       case f_UIFun:
@@ -70,7 +71,7 @@ public:
 
     ui->initText(tableVar, "e131Name", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
           mdl->setValue(var, varsToWatch[rowNr].id, rowNr);
         return true;
       case f_UIFun:
@@ -81,7 +82,7 @@ public:
 
     ui->initNumber(tableVar, "e131Max", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
           mdl->setValue(var, varsToWatch[rowNr].max, rowNr);
         return true;
       case f_UIFun:
@@ -92,7 +93,7 @@ public:
 
     ui->initNumber(tableVar, "e131Value", UINT16_MAX, 0, 255, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ValueFun:
-        for (unsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
+        for (forUnsigned8 rowNr = 0; rowNr < varsToWatch.size(); rowNr++)
           mdl->setValue(var, varsToWatch[rowNr].savedValue, rowNr);
         return true;
       case f_UIFun:
@@ -113,22 +114,22 @@ public:
 
   void onOffChanged() {
 
-    if (SysModules::isConnected && isEnabled) {
-      USER_PRINTF("UserModE131::connected && enabled\n");
+    if (mdls->isConnected && isEnabled) {
+      ppf("UserModE131::connected && enabled\n");
 
       if (e131Created) { // TODO: crashes here - no idea why!
-        USER_PRINTF("UserModE131 - ESPAsyncE131 created already\n");
+        ppf("UserModE131 - ESPAsyncE131 created already\n");
         return;
       }
-      USER_PRINTF("UserModE131 - Create ESPAsyncE131\n");
+      ppf("UserModE131 - Create ESPAsyncE131\n");
 
       e131 = ESPAsyncE131(universeCount);
       if (this->e131.begin(E131_MULTICAST, universe, universeCount)) { // TODO: multicast igmp failing, so only works with unicast currently
-        USER_PRINTF("Network exists, begin e131.begin ok\n");
+        ppf("Network exists, begin e131.begin ok\n");
         success = true;
       }
       else {
-        USER_PRINTF("Network exists, begin e131.begin FAILED\n");
+        ppf("Network exists, begin e131.begin FAILED\n");
       }
       e131Created = true;
     }
@@ -147,28 +148,28 @@ public:
       e131_packet_t packet;
       e131.pull(&packet);     // Pull packet from ring buffer
 
-      for (auto varToWatch=varsToWatch.begin(); varToWatch!=varsToWatch.end(); ++varToWatch) {
+      for (VarToWatch &varToWatch : varsToWatch) {
         for (int i=0; i < maxChannels; i++) {
-          if (i == varToWatch->channel) {
-            if (packet.property_values[i] != varToWatch->savedValue) {
+          if (i == varToWatch.channel) {
+            if (packet.property_values[i] != varToWatch.savedValue) {
 
-              USER_PRINTF("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u",
+              ppf("Universe %u / %u Channels | Packet#: %u / Errors: %u / CH%d: %u -> %u",
                       htons(packet.universe),                 // The Universe for this packet
                       htons(packet.property_value_count) - 1, // Start code is ignored, we're interested in dimmer data
                       e131.stats.num_packets,                 // Packet counter
                       e131.stats.packet_errors,               // Packet error counter
                       i,
-                      varToWatch->savedValue,
+                      varToWatch.savedValue,
                       packet.property_values[i]);             // Dimmer data for Channel i
 
-              varToWatch->savedValue = packet.property_values[i];
+              varToWatch.savedValue = packet.property_values[i];
 
-              if (varToWatch->id != nullptr && varToWatch->max != 0) {
-                USER_PRINTF(" varsToWatch: %s\n", varToWatch->id);
-                mdl->setValue(varToWatch->id, varToWatch->savedValue%(varToWatch->max+1)); // TODO: ugly to have magic string 
+              if (varToWatch.id != nullptr && varToWatch.max != 0) {
+                ppf(" varsToWatch: %s\n", varToWatch.id);
+                mdl->setValue(varToWatch.id, varToWatch.savedValue%(varToWatch.max+1)); // TODO: ugly to have magic string 
               }
               else
-                USER_PRINTF("\n");
+                ppf("\n");
             }//!= savedValue
           }//if channel
         }//maxChannels
@@ -191,7 +192,7 @@ public:
   //         return varsToWatch[i].savedValue;
   //       }
   //   }
-  //   USER_PRINTF("ERROR: failed to find param %s\n", id);
+  //   ppf("ERROR: failed to find param %s\n", id);
   //   return 0;
   // }
 
@@ -212,4 +213,4 @@ public:
 
 };
 
-static UserModE131 *e131mod;
+extern UserModE131 *e131mod;

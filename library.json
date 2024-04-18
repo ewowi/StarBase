@@ -1,0 +1,26 @@
+{
+  "name": "StarMod",
+  "version": "1.0.0",
+  "description": "StarMod is a computer program that outputs StarMod or some variant on a display device",
+  "keywords": "planet, happiness, people",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/ewowi/starmod.git"
+  },
+  "authors":
+  [
+    {
+      "name": "Ewoud Wijma",
+      "email": "moonmodules@icloud.com",
+      "url": "https://www.starmod.org/",
+      "maintainer": true
+    }
+  ],
+  "license": "GPL-3.0",
+  "homepage": "https://www.starmod.org/",
+  "frameworks": "arduino",
+  "platforms": [
+    "espressif32"
+  ]
+}

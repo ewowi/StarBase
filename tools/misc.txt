@@ -1,4 +1,17 @@
 
+search range-based for loop
+===========================
+    ^(?=.*\bfor\b)(?=.*\b:\b).*$
+
+remove latest commit
+====================
+git reset --hard HEAD^
+git push origin -f
+
+
+Make video from png and mov
+===========================
+
 1) Download ffmpeg and exiftool 
 copy to /usr/local/bin (macos)
 

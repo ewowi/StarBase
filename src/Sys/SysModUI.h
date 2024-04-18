@@ -2,7 +2,7 @@
    @title     StarMod
    @file      SysModUI.h
    @date      20240227
-   @repo      https://github.com/ewowi/StarMod
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -27,8 +27,6 @@ enum FunIDs
 
 // https://stackoverflow.com/questions/59111610/how-do-you-declare-a-lambda-function-using-typedef-and-then-use-it-by-passing-to
 typedef std::function<unsigned8(JsonObject, unsigned8, unsigned8)> VarFun;
-// typedef void(*LoopFun)(JsonObject, unsigned8*); //std::function is crashing...
-// typedef std::function<void(JsonObject, unsigned8)> LoopFun;
 
 struct VarLoop {
   JsonObject var;
@@ -37,27 +35,11 @@ struct VarLoop {
   unsigned long counter = 0;
 };
 
-static unsigned8 linearToLogarithm(JsonObject var, unsigned8 value) {
-  if (value == 0) return 0;
-
-  float minp = var["min"].isNull()?var["min"]:0;
-  float maxp = var["max"].isNull()?var["max"]:255;
-
-  // The result should be between 100 an 10000000
-  float minv = minp?log(minp):0;
-  float maxv = log(maxp);
-
-  // calculate adjustment factor
-  float scale = (maxv-minv) / (maxp-minp);
-
-  return round(exp(minv + scale*((float)value-minp)));
-}
-
-class SysModUI:public SysModule {
+class SysModUI: public SysModule {
 
 public:
-  static bool dashVarChanged;// = false; //tbd: move mechanism to UserModInstances as there it will be used
-  static std::vector<VarFun> varFunctions; //static because of static functions callChangeFun, processJson...
+  bool dashVarChanged = false; //tbd: move mechanism to UserModInstances as there it will be used
+  std::vector<VarFun> varFunctions;
 
   SysModUI();
 
@@ -67,6 +49,7 @@ public:
   void loop();
   void loop1s();
 
+  //order: order%4 determines the column (WIP)
   JsonObject initAppMod(JsonObject parent, const char * id, int order = 0) {
     JsonObject var = initVarAndUpdate<const char *>(parent, id, "appmod", (const char *)nullptr);
     if (order) mdl->varSetDefaultOrder(var, order + 1000);
@@ -91,6 +74,9 @@ public:
     return initVarAndUpdate<const char *>(parent, id, "text", value, 0, max, readOnly, varFun);
   }
 
+  JsonObject initFile(JsonObject parent, const char * id, const char * value = nullptr, unsigned16 max = 32, bool readOnly = false, VarFun varFun = nullptr) {
+    return initVarAndUpdate<const char *>(parent, id, "file", value, 0, max, readOnly, varFun);
+  }
   JsonObject initPassword(JsonObject parent, const char * id, const char * value = nullptr, unsigned8 max = 32, bool readOnly = false, VarFun varFun = nullptr) {
     return initVarAndUpdate<const char *>(parent, id, "password", value, 0, 0, readOnly, varFun);
   }
@@ -174,10 +160,10 @@ public:
         // print->printJson("initVarAndUpdate varFun value is null", var);
       } else if (var["value"].is<JsonArray>()) {
         JsonArray valueArray = var["value"].as<JsonArray>();
-        if (mdl->contextRowNr != UINT8_MAX) { // if var in table
-          if (mdl->contextRowNr >= valueArray.size())
+        if (mdl->setValueRowNr != UINT8_MAX) { // if var in table
+          if (mdl->setValueRowNr >= valueArray.size())
             valueNeedsUpdate = true;
-          else if (valueArray[mdl->contextRowNr].isNull())
+          else if (valueArray[mdl->setValueRowNr].isNull())
             valueNeedsUpdate = true;
         }
       }
@@ -186,10 +172,10 @@ public:
     if (valueNeedsUpdate) {
       bool valueFunExists = false;
       if (varFun) {
-        valueFunExists = varFun(var, mdl->contextRowNr, f_ValueFun);
+        valueFunExists = varFun(var, mdl->setValueRowNr, f_ValueFun);
       }
       if (!valueFunExists) { //setValue provided (if not null)
-        mdl->setValue(var, value, mdl->contextRowNr); //does changefun if needed, if var in table, update the table row
+        mdl->setValue(var, value, mdl->setValueRowNr); //does changefun if needed, if var in table, update the table row
       }
     }
     else { //do changeFun on existing value
@@ -207,7 +193,7 @@ public:
         }
 
         if (changeFunExists)
-          USER_PRINTF("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->varID(var), var["value"].as<String>().c_str());
+          ppf("initVarAndUpdate chFun init %s[x] <- %s\n", mdl->varID(var), var["value"].as<String>().c_str());
       }
     }
 
@@ -216,32 +202,32 @@ public:
 
   JsonObject initVar(JsonObject parent, const char * id, const char * type, bool readOnly = true, VarFun varFun = nullptr);
 
-  unsigned8 callVarFun(const char * varID, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ChangeFun) {
+  bool callVarFun(const char * varID, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ChangeFun) {
     JsonObject var = mdl->findVar(varID);
     return callVarFun(var, rowNr, funType);
   }
 
-  unsigned8 callVarFun(JsonObject var, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ValueFun) {
-    unsigned8 result = false;
+  bool callVarFun(JsonObject var, unsigned8 rowNr = UINT8_MAX, unsigned8 funType = f_ValueFun) {
+    bool result = false;
 
     if (!var["fun"].isNull()) {//isNull needed here!
       size_t funNr = var["fun"];
       if (funNr < varFunctions.size()) {
         result = varFunctions[funNr](var, rowNr, funType);
-        // if (result) { //send rowNr = 0 if no rowNr
-        //   //only print vars with a value
-        //   if (!var["value"].isNull() && funType != f_ValueFun) {
-          // if (var["id"] == "fixFirst") {
-        //     USER_PRINTF("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
-        //     if (rowNr != UINT8_MAX)
-        //       USER_PRINTF("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
-        //     else
-        //       USER_PRINTF(" = %s\n", var["value"].as<String>().c_str());
-        //   }
-        // }
+        if (result && !mdl->varRO(var)) { //send rowNr = 0 if no rowNr
+          //only print vars with a value and not valuefun as that changes a lot due to insTbl clTbl etc (tbd)
+          // if (!var["value"].isNull() && 
+          if (funType != f_ValueFun) {
+            ppf("%sFun %s", funType==f_ValueFun?"val":funType==f_UIFun?"ui":funType==f_ChangeFun?"ch":funType==f_AddRow?"add":funType==f_DelRow?"del":"other", mdl->varID(var));
+            if (rowNr != UINT8_MAX)
+              ppf("[%d] = %s\n", rowNr, var["value"][rowNr].as<String>().c_str());
+            else
+              ppf(" = %s\n", var["value"].as<String>().c_str());
+          }
+        }
       }
       else    
-        USER_PRINTF("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());
+        ppf("dev callVarFun function nr %s outside bounds %d >= %d\n", mdl->varID(var), funNr, varFunctions.size());
     }
 
     //for ro variables, call valueFun to add also the value in responseDoc (as it is not stored in the model)
@@ -252,8 +238,22 @@ public:
     return result;
   }
 
+  // assuming callVarFun(varID, UINT8_MAX, f_UIFun); has been called before
+  uint8_t selectOptionToValue(const char *varID, const char *label) {
+    JsonArray options = web->getResponseObject()[varID]["options"];
+    // ppf("selectOptionToValue fileName %s %s\n", label, options[0].as<String>().c_str());
+    uint8_t value = 0;
+    for (JsonVariant option: options) {
+      // ppf("selectOptionToValue fileName2 %s %s\n", label, option.as<String>().c_str());
+      if (strstr(option, label) != nullptr) //if label part of value
+        return value;
+      value++;
+    }
+    return UINT8_MAX; //not found
+  }
+
   //interpret json and run commands or set values like deserializeJson / deserializeState / deserializeConfig
-  void processJson(JsonVariant json); //static for jsonHandler, must be Variant, not object for jsonhandler
+  void processJson(JsonVariant json); //must be Variant, not object for jsonhandler
 
   //called to rebuild selects and tables (tbd: also label and comments is done again, that is not needed)
   // void processUiFun(const char * id);
@@ -277,8 +277,8 @@ public:
   }
 
 private:
-  static std::vector<VarLoop> loopFunctions; //non static crashing ...
+  std::vector<VarLoop> loopFunctions;
 
 };
 
-static SysModUI *ui;
+extern SysModUI *ui;

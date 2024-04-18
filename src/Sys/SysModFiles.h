@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModFiles.h
-   @date      20240228
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -10,6 +10,7 @@
 */
 
 #pragma once
+
 #include "SysModule.h"
 #include "LittleFS.h"
 
@@ -23,7 +24,7 @@ class SysModFiles: public SysModule {
 public:
 
   std::vector<FileDetails> fileList;
-  static bool filesChanged;
+  bool filesChanged = true; //init fileTbl;
 
   SysModFiles();
   void setup();
@@ -56,8 +57,6 @@ public:
   //remove files meeting filter condition, if no filter, all, if reverse then all but filter
   void removeFiles(const char * filter = nullptr, bool reverse = false);
 
-  bool readFile(const char * path);
-
 };
 
-static SysModFiles *files;
+extern SysModFiles *files;

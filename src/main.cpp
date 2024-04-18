@@ -1,21 +1,13 @@
 /*
    @title     StarMod
    @file      main.cpp
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
-
-// remove latest commit
-// git reset --hard HEAD^
-// git push origin -f
-
-#warning ******************************************************************************************************************************
-#warning ********** STARMOD IS LICENSED UNDER GPL-V3. BY INSTALLING STARMOD YOU IMPLICITLY ACCEPT THE TERMS AND CONDITIONS  ********
-#warning ******************************************************************************************************************************
 
 #include "SysModule.h"
 #include "SysModules.h"
@@ -29,36 +21,34 @@
 #include "Sys/SysModPins.h"
 #include "User/UserModInstances.h"
 #include "User/UserModMDNS.h"
-#ifdef STARMOD_APPMOD_LEDS
-  #include "App/LedModEffects.h"
-  #include "App/LedModFixture.h"
-  #include "App/LedModFixtureGen.h"
-  #ifdef STARMOD_USERMOD_ARTNET
-    #include "User/UserModArtNet.h"
-  #endif
-  #ifdef STARMOD_USERMOD_DDP
-    #include "User/UserModDDP.h"
-  #endif
-#endif
+SysModules *mdls;
+SysModPrint *print;
+SysModWeb *web;
+SysModUI *ui;
+SysModSystem *sys;
+SysModFiles *files;
+SysModModel *mdl;
+SysModNetwork *net;
+SysModPins *pins;
+UserModInstances *instances;
+UserModMDNS *mdns;
+
+#include "App/AppModDemo.h"
+AppModDemo *appModDemo;
+
 #ifdef STARMOD_USERMOD_E131
   #include "User/UserModE131.h"
+  UserModE131 *e131mod;
 #endif
 #ifdef STARMOD_USERMOD_HA
   #include "User/UserModHA.h"
+  UserModHA *hamod;
 #endif
-#ifdef STARMOD_USERMOD_WLEDAUDIO
-  #include "User/UserModWLEDAudio.h"
-#endif
-#include "Sys/SysModAI.h"
 
 //setup all modules
 void setup() {
-  // pinMode(LED_BUILTIN, OUTPUT);
-  // digitalWrite(LED_BUILTIN, HIGH);
-
   mdls = new SysModules();
   
-  ai = new SysModAI();
   print = new SysModPrint();
   files = new SysModFiles();
   mdl = new SysModModel();
@@ -69,49 +59,26 @@ void setup() {
   pins = new SysModPins();
   instances = new UserModInstances();
   mdns = new UserModMDNS();
-  #ifdef STARMOD_APPMOD_LEDS
-    eff= new LedModEffects();
-    fix = new LedModFixture();
-    lfg = new LedModFixtureGen();
-    #ifdef STARMOD_USERMOD_ARTNET
-      artnetmod = new UserModArtNet();
-    #endif
-    #ifdef STARMOD_USERMOD_DDP
-      ddpmod = new UserModDDP();
-    #endif
-  #endif
+  appModDemo = new AppModDemo();
   #ifdef STARMOD_USERMOD_E131
     e131mod = new UserModE131();
   #endif
   #ifdef STARMOD_USERMOD_HA
     hamod = new UserModHA();
   #endif
-  #ifdef STARMOD_USERMOD_WLEDAUDIO
-    wledAudioMod = new UserModWLEDAudio();
-  #endif
 
-  //Reorder with care! If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
+  //Reorder with care! this is the order in which setup and loop is executed
+  //If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
   //Default: add below, not in between
-  mdls->add(ai);
-  #ifdef STARMOD_APPMOD_LEDS
-    mdls->add(fix);
-    mdls->add(eff);
-    mdls->add(lfg);
-  #endif
+
+  mdls->add(appModDemo);
+
   mdls->add(files);
   mdls->add(sys);
   mdls->add(pins);
   mdls->add(print);
   mdls->add(web);
   mdls->add(net);
-  #ifdef STARMOD_APPMOD_LEDS
-    #ifdef STARMOD_USERMOD_DDP
-      mdls->add(ddpmod);
-    #endif
-    #ifdef STARMOD_USERMOD_ARTNET
-      mdls->add(artnetmod);
-    #endif
-  #endif
   #ifdef STARMOD_USERMOD_E131
     mdls->add(e131mod);
   #endif
@@ -120,23 +87,14 @@ void setup() {
   #endif
   mdls->add(mdl);
   mdls->add(ui);
-  #ifdef STARMOD_USERMOD_WLEDAUDIO
-    mdls->add(wledAudioMod); //no ui
-  #endif
   mdls->add(mdns); //no ui
   mdls->add(instances);
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();
-
-  // digitalWrite(LED_BUILTIN, LOW);
 }
 
 //loop all modules
 void loop() {
   mdls->loop();
-
-  // static bool onoff = false;
-  // onoff = !onoff;
-  // digitalWrite(LED_BUILTIN, onoff? HIGH:LOW);
 }

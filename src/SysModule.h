@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModule.h
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -10,6 +10,11 @@
 */
 
 #pragma once
+
+//make a string from pio variables (_INIT and STRINGIFY needed to make TOSTRING work)
+#define _INIT(x) x
+#define STRINGIFY(X) #X
+#define TOSTRING(X) STRINGIFY(X)
 
 //conventional (works)
 // #define unsigned8 uint8_t
@@ -20,6 +25,11 @@
 #define unsigned8 uint8_t
 #define unsigned16 uint16_t
 #define unsigned32 unsigned
+#define forUnsigned8 unsigned
+#define forUnsigned16 unsigned
+#define stackUnsigned8 uint8_t //unsigned causes some effects to run faulty. tbd to find out
+#define stackUnsigned16 unsigned
+#define stackUnsigned32 unsigned
 
 //tuning 2 - current goal as lowest flash size and no speed difference (runs but some effects messed up: tbd find out why)
 // #define unsigned8 unsigned

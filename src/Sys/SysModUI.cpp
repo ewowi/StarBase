@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModUI.cpp
-   @date      20240228
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -13,11 +13,6 @@
 #include "SysModWeb.h"
 #include "SysModModel.h"
 
-//init static variables (https://www.tutorialspoint.com/cplusplus/cpp_static_members.htm)
-std::vector<VarFun> SysModUI::varFunctions;
-std::vector<VarLoop> SysModUI::loopFunctions;
-bool SysModUI::dashVarChanged = false;
-
 SysModUI::SysModUI() :SysModule("UI") {
 };
 
@@ -25,7 +20,7 @@ SysModUI::SysModUI() :SysModule("UI") {
 void SysModUI::setup() {
   SysModule::setup();
 
-  parentVar = initSysMod(parentVar, name, 4100);
+  parentVar = initSysMod(parentVar, name, 4101);
 
   JsonObject tableVar = initTable(parentVar, "vlTbl", nullptr, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_UIFun:
@@ -35,9 +30,9 @@ void SysModUI::setup() {
     default: return false;
   }});
 
-  initText(tableVar, "vlVar", nullptr, 32, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  initText(tableVar, "vlVar", nullptr, 32, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
         mdl->setValue(var, JsonString(loopFunctions[rowNr].var["id"], JsonString::Copied), rowNr);
       return true;
     case f_UIFun:
@@ -46,9 +41,9 @@ void SysModUI::setup() {
     default: return false;
   }});
 
-  initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+  initNumber(tableVar, "vlLoopps", UINT16_MAX, 0, 999, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
     case f_ValueFun:
-      for (unsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
+      for (forUnsigned8 rowNr = 0; rowNr < loopFunctions.size(); rowNr++)
         mdl->setValue(var, loopFunctions[rowNr].counter, rowNr);
       return true;
     case f_UIFun:
@@ -61,23 +56,23 @@ void SysModUI::setup() {
 void SysModUI::loop() {
   // SysModule::loop();
 
-  for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop) {
-    if (millis() - varLoop->lastMillis >= varLoop->var["interval"].as<int>()) {
-      varLoop->lastMillis = millis();
+  for (VarLoop &varLoop : loopFunctions) {
+    if (millis() - varLoop.lastMillis >= varLoop.var["interval"].as<int>()) {
+      varLoop.lastMillis = millis();
 
-      varLoop->loopFun(varLoop->var, 1, f_LoopFun); //rowNr..
+      varLoop.loopFun(varLoop.var, 1, f_LoopFun); //rowNr..
 
-      varLoop->counter++;
-      // USER_PRINTF("%s %u %u %d %d\n", varLoop->mdl->varID(var), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
+      varLoop.counter++;
+      // ppf("%s %u %u %d %d\n", varLoop->mdl->varID(var), varLoop->lastMillis, millis(), varLoop->interval, varLoop->counter);
     }
   }
 }
 
 void SysModUI::loop1s() {
   //if something changed in vloops
-  ui->callVarFun("vlLoopps", UINT8_MAX, f_ValueFun);
-  for (auto varLoop = begin (loopFunctions); varLoop != end (loopFunctions); ++varLoop)
-    varLoop->counter = 0;
+  callVarFun("vlLoopps", UINT8_MAX, f_ValueFun);
+  for (VarLoop &varLoop : loopFunctions)
+    varLoop.counter = 0;
 }
 
 JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * type, bool readOnly, VarFun varFun) {
@@ -88,12 +83,12 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
   bool differentParents = modelParentId != nullptr && parentId != nullptr && strcmp(modelParentId, parentId) != 0;
   //!mdl->modelParentVar.isNull() && !parent.isNull() && mdl->modelParentVar["id"] != parent["id"];
   if (differentParents) {
-    USER_PRINTF("initVar parents not equal %s: %s != %s\n", id, modelParentId, parentId);
+    ppf("initVar parents not equal %s: %s != %s\n", id, modelParentId, parentId);
   }
 
   //create new var
   if (differentParents || var.isNull()) {
-    USER_PRINTF("initVar create new %s var: %s->%s\n", type, parentId, id);
+    ppf("initVar new %s var: %s->%s\n", type, parentId?parentId:"", id); //parentId not null otherwise crash
     if (parent.isNull()) {
       JsonArray vars = mdl->model->as<JsonArray>();
       var = vars.add<JsonObject>();
@@ -105,13 +100,13 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
     var["id"] = JsonString(id, JsonString::Copied);
   }
   // else {
-  //   USER_PRINTF("initVar Var %s->%s already defined\n", modelParentId, id);
+  //   ppf("initVar Var %s->%s already defined\n", modelParentId, id);
   // }
 
   if (!var.isNull()) {
     if (var["type"].isNull() || var["type"] != type) {
       var["type"] = JsonString(type, JsonString::Copied);
-      print->printJson("initVar set type", var);
+      // print->printJson("initVar set type", var);
     }
 
     if (var["ro"].isNull() || mdl->varRO(var) != readOnly) mdl->varRO(var, readOnly);
@@ -140,12 +135,12 @@ JsonObject SysModUI::initVar(JsonObject parent, const char * id, const char * ty
 
         loopFunctions.push_back(loop);
         var["loopFun"] = loopFunctions.size()-1;
-        // USER_PRINTF("iObject loopFun %s %u %u %d %d\n", mdl->varID(var));
+        // ppf("iObject loopFun %s %u %u %d %d\n", mdl->varID(var));
       }
     }
   }
   else
-    USER_PRINTF("initVar could not find or create var %s with %s\n", id, type);
+    ppf("initVar could not find or create var %s with %s\n", id, type);
 
   return var;
 }
@@ -166,11 +161,11 @@ void SysModUI::processJson(JsonVariant json) {
       // commands
       if (pair.key() == "v") { //when called from jsonHandler
         // do nothing as it is no real var but the verbose command of WLED
-        USER_PRINTF("processJson v type %s\n", pair.value().as<String>().c_str());
+        ppf("processJson v type %s\n", pair.value().as<String>().c_str());
       }
       else if (pair.key() == "view" || pair.key() == "canvasData" || pair.key() == "theme") { //save the chosen view in System (see index.js)
         JsonObject var = mdl->findVar("System");
-        USER_PRINTF("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>().c_str(), var.isNull(), mdl->varID(var));
+        ppf("processJson %s v:%s n: %d s:%s\n", pair.key().c_str(), pair.value().as<String>().c_str(), var.isNull(), mdl->varID(var));
         var[JsonString(key, JsonString::Copied)] = JsonString(value, JsonString::Copied); //this is needed as key can become a dangling pointer
         // json.remove(key); //key should stay as all clients use this to perform the changeHTML action
       }
@@ -178,8 +173,8 @@ void SysModUI::processJson(JsonVariant json) {
         if (value.is<JsonObject>()) {
           JsonObject command = value;
           JsonObject var = mdl->findVar(command["id"]);
-          unsigned8 rowNr = command["rowNr"];
-          USER_PRINTF("processJson %s - %s [%d]\n", key, value.as<String>().c_str(), rowNr);
+          stackUnsigned8 rowNr = command["rowNr"];
+          ppf("processJson %s - %s [%d]\n", key, value.as<String>().c_str(), rowNr);
 
           //first remove the deleted row both on server and on client(s)
           if (pair.key() == "delRow") {
@@ -204,10 +199,10 @@ void SysModUI::processJson(JsonVariant json) {
               //sendDataWs done in caller of processJson
             }
             else
-              USER_PRINTF("dev processJson Command %s var %s not found\n", key, varInArray.as<String>().c_str());
+              ppf("dev processJson Command %s var %s not found\n", key, varInArray.as<String>().c_str());
           }
         } else
-          USER_PRINTF("dev processJson value not array? %s %s\n", key, value.as<String>().c_str());
+          ppf("dev processJson value not array? %s %s\n", key, value.as<String>().c_str());
         json.remove(key); //key processed we don't need the key in the response
       } 
       else if (!value.isNull()) { // {"varid": {"value":value}} or {"varid": value}
@@ -224,17 +219,17 @@ void SysModUI::processJson(JsonVariant json) {
           key = rowNrC;
           rowNrC = strtok(NULL, " ");
         }
-        unsigned8 rowNr = rowNrC?atoi(rowNrC):UINT8_MAX;
+        stackUnsigned8 rowNr = rowNrC?atoi(rowNrC):UINT8_MAX;
 
         JsonObject var = mdl->findVar(key);
 
-        USER_PRINTF("processJson var %s[%d] %s -> %s\n", key, rowNr, var["value"].as<String>().c_str(), newValue.as<String>().c_str());
+        ppf("processJson var %s[%d] %s -> %s\n", key, rowNr, var["value"].as<String>().c_str(), newValue.as<String>().c_str());
 
         if (!var.isNull())
         {
           //a button never sets the value
           if (var["type"] == "button") { //button always
-            ui->callVarFun(var, rowNr, f_ChangeFun);
+            callVarFun(var, rowNr, f_ChangeFun);
             if (rowNr != UINT8_MAX) web->getResponseObject()[mdl->varID(var)]["rowNr"] = rowNr;
           }
           else {
@@ -248,10 +243,10 @@ void SysModUI::processJson(JsonVariant json) {
           // json.remove(key); //key / var["id"] processed we don't need the key in the response
         }
         else
-          USER_PRINTF("dev Object %s[%d] not found\n", key, rowNr);
+          ppf("dev Object %s[%d] not found\n", key, rowNr);
       } 
       else {
-        USER_PRINTF("dev processJson command not recognized k:%s v:%s\n", key, value.as<String>().c_str());
+        ppf("dev processJson command not recognized k:%s v:%s\n", key, value.as<String>().c_str());
       }
     } //for json pairs
   }

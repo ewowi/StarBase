@@ -1,8 +1,8 @@
 /*
    @title     StarMod
    @file      SysModWeb.h
-   @date      20240114
-   @repo      https://github.com/ewowi/StarMod
+   @date      20240411
+   @repo      https://github.com/ewowi/StarMod, submit changes to this file as PRs to ewowi/StarMod
    @Authors   https://github.com/ewowi/StarMod/commits/main
    @Copyright © 2024 Github StarMod Commit Authors
    @license   GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
@@ -37,18 +37,25 @@
 class SysModWeb:public SysModule {
 
 public:
-  static WebSocket *ws;
-  static SemaphoreHandle_t wsMutex;
+  #ifdef STARMOD_USE_Psychic
+    WebSocket ws = WebSocket();
+    WebServer server = WebServer();
+  #else
+    WebSocket ws = WebSocket("/ws");
+    WebServer server = WebServer(80);
+  #endif
 
-  static unsigned8 sendWsCounter;
-  static unsigned16 sendWsTBytes;
-  static unsigned16 sendWsBBytes;
-  static unsigned8 recvWsCounter;
-  static unsigned16 recvWsBytes;
-  static unsigned8 sendUDPCounter;
-  static unsigned16 sendUDPBytes;
-  static unsigned8 recvUDPCounter;
-  static unsigned16 recvUDPBytes;
+  SemaphoreHandle_t wsMutex = xSemaphoreCreateMutex();
+
+  unsigned8 sendWsCounter = 0;
+  unsigned16 sendWsTBytes = 0;
+  unsigned16 sendWsBBytes = 0;
+  unsigned8 recvWsCounter = 0;
+  unsigned16 recvWsBytes = 0;
+  unsigned8 sendUDPCounter = 0;
+  unsigned16 sendUDPBytes = 0;
+  unsigned8 recvUDPCounter = 0;
+  unsigned16 recvUDPBytes = 0;
 
   SysModWeb();
 
@@ -60,23 +67,23 @@ public:
 
   void connectedChanged();
 
-  static void wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, byte *data, size_t len);
+  void wsEvent(WebSocket * ws, WebClient * client, AwsEventType type, void * arg, byte *data, size_t len);
   
   //send json to client or all clients
-  static void sendDataWs(JsonVariant json = JsonVariant(), WebClient * client = nullptr);
-  static void sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fill, size_t len, bool isBinary, WebClient * client = nullptr);
+  void sendDataWs(JsonVariant json = JsonVariant(), WebClient * client = nullptr);
+  void sendDataWs(std::function<void(AsyncWebSocketMessageBuffer *)> fill, size_t len, bool isBinary, WebClient * client = nullptr);
 
   //add an url to the webserver to listen to
-  static void serveIndex(WebRequest *request);
+  void serveIndex(WebRequest *request);
   //mdl and WLED style state and info
-  static void serveJson(WebRequest *request);
+  void serveJson(WebRequest *request);
 
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  static void serveUpload(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final);
+  void serveUpload(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final);
   // curl -s -F "update=@/Users/ewoudwijma/Developer/GitHub/ewowi/StarMod/.pio/build/esp32dev/firmware.bin" 192.168.8.102/update /dev/null &
-  static void serveUpdate(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final);
-  static void serveFiles(WebRequest *request);
+  void serveUpdate(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final);
+  void serveFiles(WebRequest *request);
 
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"pin2":false}' -H "Content-Type: application/json"
@@ -86,7 +93,7 @@ public:
   //curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
 
   //handle "v" and processJson (on /json)
-  static void jsonHandler(WebRequest *request, JsonVariant json);
+  void jsonHandler(WebRequest *request, JsonVariant json);
 
   //Is this an IP?
   bool isIp(String str) {
@@ -99,22 +106,7 @@ public:
     return true;
   }
 
-  bool captivePortal(WebRequest *request)
-  {
-    if (ON_STA_FILTER(request)) return false; //only serve captive in AP mode
-    String hostH;
-    if (!request->hasHeader("Host")) return false;
-    hostH = request->getHeader("Host")->value();
-
-    if (!isIp(hostH)) {// && hostH.indexOf("wled.me") < 0 && hostH.indexOf(cmDNS) < 0) {
-      USER_PRINTF("Captive portal\n");
-      WebResponse *response = request->beginResponse(302);
-      response->addHeader(F("Location"), F("http://4.3.2.1"));
-      request->send(response);
-      return true;
-    }
-    return false;
-  }
+  bool captivePortal(WebRequest *request);
 
   template <typename Type>
   void addResponse(const char * id, const char * key, Type value, unsigned8 rowNr = UINT8_MAX) {
@@ -158,21 +150,19 @@ public:
   JsonObject getResponseObject();
   void sendResponseObject(WebClient * client = nullptr);
 
-  static void printClient(const char * text, WebClient * client) {
-    USER_PRINTF("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
+  void printClient(const char * text, WebClient * client) {
+    ppf("%s client: %d ...%d q:%d l:%d s:%d (#:%d)\n", text, client?client->id():-1, client?client->remoteIP()[3]:-1, client->queueIsFull(), client->queueLength(), client->status(), client->server()->count());
     //status: { WS_DISCONNECTED, WS_CONNECTED, WS_DISCONNECTING }
   }
 
 private:
   bool modelUpdated = false;
 
-  static bool clientsChanged;
+  bool clientsChanged = false;
 
-  static WebServer *server;
-
-  static JsonDocument *responseDocLoopTask;
-  static JsonDocument *responseDocAsyncTCP;
+  JsonDocument *responseDocLoopTask = nullptr;
+  JsonDocument *responseDocAsyncTCP = nullptr;
 
 };
 
-static SysModWeb *web;
+extern SysModWeb *web;

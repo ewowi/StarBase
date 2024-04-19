@@ -45,7 +45,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.platformio
-          key: ${{ runner.os }}-${{ matrix.environment}}-${{ hashFiles('platformio.ini') }}
+          key: ${{ runner.os }}-${{ matrix.environment}}
       - uses: actions/setup-python@v4
         with:
           python-version: '3.9'
@@ -60,11 +60,12 @@ jobs:
           echo "PLATFORMIO_BUILD_CACHE_DIR=$HOME/.platformio/.cache" >> $GITHUB_ENV
       - name: Build PlatformIO Project
         run: pio run -e ${{ matrix.environment }}
+      - name: Rename Bin
+        run: mv .pio/build/${{ matrix.environment }}/firmware.bin StarMod-${{ matrix.environment }}-${{env.git_ref}}-${{env.git_hash}}.bin
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v3
         with:
-            name: StarMod-${{ matrix.environment }}-${{env.git_ref}}-${{env.git_hash}}.bin
-            path: .pio/build/${{ matrix.environment }}/firmware.bin
+            path: StarMod-${{ matrix.environment }}-${{env.git_ref}}-${{env.git_hash}}.bin
             retention-days: 30
 
   release:

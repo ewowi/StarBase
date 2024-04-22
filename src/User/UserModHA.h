@@ -30,11 +30,18 @@ public:
   static void onStateCommand(bool state, HALight* sender) {
       ppf("State: %s\n", state?"true":"false");
 
+      if(state) {
+        mdl->setValue("bri", 255);
+      }
+      else {
+        mdl->setValue("bri", 0);
+      }
+
       sender->setState(state); // report state back to the Home Assistant
   }
 
   static void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
-      ppf("Brightness: %s\n", brightness);
+      ppf("Brightness: %d\n", brightness);
 
       mdl->setValue("bri", brightness);
 
@@ -47,6 +54,8 @@ public:
       mdl->setValue("Red", color.red);
       mdl->setValue("Green", color.green);
       mdl->setValue("Blue", color.blue);
+
+      mdl->setValue("fx", 0); // Solid
 
       sender->setRGBColor(color); // report color back to the Home Assistant
   }
@@ -88,7 +97,7 @@ public:
       mqtt->begin(ip, "", "");
     }
     else {
-      spf("Failed to parse %s to IP\n", mqtt.c_str());
+      ppf("Failed to parse %s to IP\n", mqttAddr.c_str());
     }
 
   }

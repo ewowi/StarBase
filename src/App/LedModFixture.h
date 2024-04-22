@@ -80,11 +80,19 @@ public:
             buffer[1] = 0;
             buffer[2] = 0;
             buffer[3] = 0;
-          } else  if (viewRotation == 1) {
+          } else if (viewRotation == 1) { //pan
             buffer[1] = 0;//beatsin8(4, 250, 5); //tilt
             buffer[2] = beat8(1);//, 0, 255); //pan
             buffer[3] = 0;//beatsin8(6, 255, 5); //roll
-          } else if (viewRotation == 2) {
+          } else if (viewRotation == 2) { //tilt
+            buffer[1] = beat8(1);//, 0, 255); //pan
+            buffer[2] = 0;//beatsin8(4, 250, 5); //tilt
+            buffer[3] = 0;//beatsin8(6, 255, 5); //roll
+          } else if (viewRotation == 3) { //roll
+            buffer[1] = 0;//beatsin8(4, 250, 5); //tilt
+            buffer[2] = 0;//beatsin8(6, 255, 5); //roll
+            buffer[3] = beat8(1);//, 0, 255); //pan
+          } else if (viewRotation == 4) {
             buffer[1] = eff->fixture.head.x;
             buffer[2] = eff->fixture.head.y;
             buffer[3] = eff->fixture.head.y;
@@ -103,6 +111,8 @@ public:
         JsonArray options = ui->setOptions(var);
         options.add("None");
         options.add("Pan");
+        options.add("Tilt");
+        options.add("Roll");
         #ifdef STARMOD_USERMOD_WLEDAUDIO
           options.add("Moving heads GEQ");
         #endif

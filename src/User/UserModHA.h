@@ -36,11 +36,17 @@ public:
   static void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
       ppf("Brightness: %s\n", brightness);
 
+      mdl->setValue("bri", brightness);
+
       sender->setBrightness(brightness); // report brightness back to the Home Assistant
   }
 
   static void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
       ppf("Red: %d Green: %d blue: %d\n", color.red, color.green, color.blue);
+
+      mdl->setValue("Red", color.red);
+      mdl->setValue("Green", color.green);
+      mdl->setValue("Blue", color.blue);
 
       sender->setRGBColor(color); // report color back to the Home Assistant
   }
@@ -52,6 +58,9 @@ public:
       device.setName(_INIT(TOSTRING(APP)));
       device.setSoftwareVersion(_INIT(TOSTRING(VERSION)));
     }
+
+    byte mac[] = {0xF1, 0x10, 0xFA, 0x6E, 0x38, 0x4A}; // TODO
+    device.setUniqueId(mac, sizeof(mac));
 
     // configure light (optional)
     light->setName("LEDs");
@@ -68,18 +77,26 @@ public:
 
     // handle light states
     light->onStateCommand(onStateCommand);
-    light->onBrightnessCommand(onBrightnessCommand); // optional
-    light->onRGBColorCommand(onRGBColorCommand); // optional
+    light->onBrightnessCommand(onBrightnessCommand);
+    light->onRGBColorCommand(onRGBColorCommand);
 
     String mqttAddr = mdl->getValue("mqttAddr");
 
-    ppf("mqtt->begin(%s)", mqttAddr.c_str());
-    mqtt->begin(mqttAddr.c_str(), "", "");
+    ppf("mqtt->begin(%s)\n", mqttAddr.c_str());
+    IPAddress ip;
+    if(ip.fromString(mqttAddr)) {
+      mqtt->begin(ip, "", "");
+    }
+    else {
+      spf("Failed to parse %s to IP\n", mqtt.c_str());
+    }
+
   }
 
   void loop() {
     // SysModule::loop();
     mqtt->loop();
+    light->setCurrentBrightness(mdl->getValue("bri"));
   }
 
   private:

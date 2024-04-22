@@ -11,8 +11,6 @@
 
 #include <ArduinoHA.h>
 
-#define BROKER_ADDR     IPAddress(192,168,178,42) //ewowi: could we scan that instead of hard coded?
-
 class UserModHA:public SysModule {
 
 public:
@@ -21,25 +19,34 @@ public:
     isEnabled = false;
   };
 
-  void onStateCommand(bool state, HALight* sender) {
+  void setup() {
+    SysModule::setup();
+
+    parentVar = ui->initUserMod(parentVar, name, 6300);
+
+    ui->initText(parentVar, "mqttAddr");
+  }
+
+  static void onStateCommand(bool state, HALight* sender) {
       ppf("State: %s\n", state?"true":"false");
 
       sender->setState(state); // report state back to the Home Assistant
   }
 
-  void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
+  static void onBrightnessCommand(unsigned8 brightness, HALight* sender) {
       ppf("Brightness: %s\n", brightness);
 
       sender->setBrightness(brightness); // report brightness back to the Home Assistant
   }
 
-  void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
+  static void onRGBColorCommand(HALight::RGBColor color, HALight* sender) {
       ppf("Red: %d Green: %d blue: %d\n", color.red, color.green, color.blue);
 
       sender->setRGBColor(color); // report color back to the Home Assistant
   }
 
   void connectedChanged() {
+    ppf("connectedChanged");
     if (mdls->isConnected) {
       // set device's details (optional)
       device.setName(_INIT(TOSTRING(APP)));
@@ -64,7 +71,10 @@ public:
     light->onBrightnessCommand(onBrightnessCommand); // optional
     light->onRGBColorCommand(onRGBColorCommand); // optional
 
-    mqtt->begin(BROKER_ADDR);
+    String mqttAddr = mdl->getValue("mqttAddr");
+
+    ppf("mqtt->begin(%s)", mqttAddr.c_str());
+    mqtt->begin(mqttAddr.c_str(), "", "");
   }
 
   void loop() {

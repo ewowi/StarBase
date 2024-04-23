@@ -20,11 +20,21 @@ public:
   AppModDemo() :SysModule("AppMod Demo") {
   };
 
-  //setup filesystem
   void setup() {
     SysModule::setup();
 
     parentVar = ui->initAppMod(parentVar, name, 1100);
+
+    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+      case f_UIFun:
+        ui->setLabel(var, "On");
+        return true;
+      case f_ChangeFun:
+        ui->callVarFun("bri", UINT8_MAX, f_ChangeFun); //set FastLed brightness
+        return true;
+      default: return false;
+    }});
+    currentVar["dash"] = true;
 
     ui->initText(parentVar, "textField", "text");
 
@@ -44,8 +54,6 @@ public:
         return true; }
       default: return false; 
     }});
-
-    ui->initCheckBox(parentVar, "on");
 
     ui->initSlider(parentVar, "frequency", frequency, 0, UINT8_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_ChangeFun:

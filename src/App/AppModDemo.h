@@ -30,7 +30,7 @@ public:
         ui->setLabel(var, "On");
         return true;
       case f_ChangeFun:
-        ui->callVarFun("bri", UINT8_MAX, f_ChangeFun); //set FastLed brightness
+        //implement on/off behaviour
         return true;
       default: return false;
     }});

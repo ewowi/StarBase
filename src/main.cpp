@@ -19,7 +19,7 @@
 #include "Sys/SysModModel.h"
 #include "Sys/SysModNetwork.h"
 #include "Sys/SysModPins.h"
-#include "User/UserModInstances.h"
+#include "Sys/SysModInstances.h"
 #include "User/UserModMDNS.h"
 SysModules *mdls;
 SysModPrint *print;
@@ -30,7 +30,7 @@ SysModFiles *files;
 SysModModel *mdl;
 SysModNetwork *net;
 SysModPins *pins;
-UserModInstances *instances;
+SysModInstances *instances;
 UserModMDNS *mdns;
 
 #include "App/AppModDemo.h"
@@ -57,7 +57,7 @@ void setup() {
   ui = new SysModUI();
   sys = new SysModSystem();
   pins = new SysModPins();
-  instances = new UserModInstances();
+  instances = new SysModInstances();
   mdns = new UserModMDNS();
   appModDemo = new AppModDemo();
   #ifdef STARBASE_USERMOD_E131

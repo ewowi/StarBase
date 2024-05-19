@@ -36,6 +36,18 @@ public:
     }});
     currentVar["dash"] = true;
 
+    //logarithmic slider (10)
+    currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+      case f_UIFun:
+        ui->setLabel(var, "Brightness");
+        return true;
+      case f_ChangeFun: {
+        return true; }
+      default: return false; 
+    }});
+    currentVar["log"] = true; //logarithmic
+    currentVar["dash"] = true; //these values override model.json???
+
     ui->initText(parentVar, "textField", "text");
 
     ui->initPin(parentVar, "blinkPin", blinkPin, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun

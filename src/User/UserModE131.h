@@ -34,13 +34,12 @@ public:
       default: return false;
     }});
 
-    JsonObject currentVar = ui->initNumber(parentVar, "dch", channel, 1, 512, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    JsonObject currentVar = ui->initNumber(parentVar, "dch", &channel, 1, 512, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case f_UIFun:
         ui->setLabel(var, "DMX Channel");
         ui->setComment(var, "First channel");
         return true;
       case f_ChangeFun:
-        channel = var["value"];
         for (JsonObject childVar: mdl->varChildren("e131Tbl"))
           ui->callVarFun(childVar);
         return true;

@@ -44,6 +44,10 @@ AppModDemo *appModDemo;
   #include "User/UserModHA.h"
   UserModHA *hamod;
 #endif
+#ifdef STARBASE_USERMOD_MPU6050
+  #include "User/UserModMPU6050.h"
+  UserModMPU6050 *mpu6050;
+#endif
 
 //setup all modules
 void setup() {
@@ -66,6 +70,9 @@ void setup() {
   #ifdef STARBASE_USERMOD_HA
     hamod = new UserModHA();
   #endif
+  #ifdef STARBASE_USERMOD_MPU6050
+    mpu6050 = new UserModMPU6050();
+  #endif
 
   //Reorder with care! this is the order in which setup and loop is executed
   //If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
@@ -84,6 +91,9 @@ void setup() {
   #endif
   #ifdef STARBASE_USERMOD_HA
     mdls->add(hamod); //no ui
+  #endif
+  #ifdef STARBASE_USERMOD_MPU6050
+    mdls->add(mpu6050);
   #endif
   mdls->add(mdl);
   mdls->add(ui);

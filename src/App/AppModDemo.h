@@ -26,10 +26,10 @@ public:
     parentVar = ui->initAppMod(parentVar, name, 1100);
 
     JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun:
+      case onUI:
         ui->setLabel(var, "On");
         return true;
-      case f_ChangeFun:
+      case onChange:
         //implement on/off behaviour
         return true;
       default: return false;
@@ -38,10 +38,10 @@ public:
 
     //logarithmic slider (10)
     currentVar = ui->initSlider(parentVar, "bri", 10, 0, 255, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun:
+      case onUI:
         ui->setLabel(var, "Brightness");
         return true;
-      case f_ChangeFun: {
+      case onChange: {
         return true; }
       default: return false; 
     }});
@@ -51,11 +51,11 @@ public:
     ui->initText(parentVar, "textField", "text");
 
     ui->initPin(parentVar, "blinkPin", blinkPin, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun: {
+      case onUI: {
         ui->setLabel(var, "Blink Pin");
         ui->setComment(var, "🚧 tbd: reserved and allocated pins");
         return true; }
-      case f_ChangeFun: {
+      case onChange: {
         //deallocate old value...
         pins->deallocatePin(var["oldValue"], "Blink");
         if (!var["value"].isNull()) {
@@ -68,7 +68,7 @@ public:
     }});
 
     ui->initSlider(parentVar, "frequency", frequency, 0, UINT8_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_ChangeFun:
+      case onChange:
         frequency = var["value"];
         return true;
       default: return false; 

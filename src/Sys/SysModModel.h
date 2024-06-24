@@ -119,6 +119,10 @@ struct Coord3D {
     Coord3D delta = (*this-rhs);
     return sqrt((delta.x)*(delta.x) + (delta.y)*(delta.y) + (delta.z)*(delta.z));
   }
+  unsigned distanceSquared(Coord3D rhs) {
+    Coord3D delta = (*this-rhs);
+    return (delta.x)*(delta.x) + (delta.y)*(delta.y) + (delta.z)*(delta.z);
+  }
   bool isOutofBounds(Coord3D rhs) {
     return x < 0 || y < 0 || z < 0 || x >= rhs.x || y >= rhs.y || z >= rhs.z;
   }
@@ -349,7 +353,7 @@ public:
   //recursively add values in  a variant
   void varToValues(JsonObject var, JsonArray values);
 
-  //sends dash var change to udp (if init),  sets pointer if pointer var and run changeFun
+  //sends dash var change to udp (if init),  sets pointer if pointer var and run onChange
   bool callVarChangeFun(JsonObject var, unsigned8 rowNr = UINT8_MAX, bool init = false);
 
   //pseudo VarObject: public JsonObject functions

@@ -26,6 +26,7 @@ public:
 
   Coord3D gyro; // in degrees (not radians)
   Coord3D accell;
+  VectorFloat gravityVector;
 
   UserModMPU6050() :SysModule("Motion Tracking") {
     // isEnabled = false;
@@ -36,21 +37,21 @@ public:
     parentVar = ui->initUserMod(parentVar, name, 6305);
 
     ui->initCheckBox(parentVar, "mtReady", &motionTrackingReady, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun:
+      case onUI:
         ui->setLabel(var, "tracking ready");
         return true;
       default: return false;
     }}); 
 
     ui->initCoord3D(parentVar, "gyro", &gyro, 0, UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun:
+      case onUI:
         ui->setComment(var, "in degrees");
         return true;
       default: return false;
     }});
 
     ui->initCoord3D(parentVar, "accell", &accell, 0, UINT16_MAX, true, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
-      case f_UIFun:
+      case onUI:
         ui->setComment(var, "in m/s²");
         return true;
       default: return false;
@@ -106,7 +107,7 @@ public:
       gyro.y = ypr[0] * 180/M_PI; //pan = yaw !
       gyro.x = ypr[1] * 180/M_PI; //tilt = pitch !
       gyro.z = ypr[2] * 180/M_PI; //roll = roll
-
+      gravityVector = gravity;
       // display real acceleration, adjusted to remove gravity
 
       //needed to repeat the following 3 lines (yes if you look at the output: otherwise not 0)

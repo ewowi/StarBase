@@ -6,5 +6,5 @@ See [StarDocs](https://ewowi.github.io/StarDocs/)
 
 Forks:
 
-* [MoonModules/StarLeds](https://github.com/MoonModules/StarLight)
+* [MoonModules/StarLight](https://github.com/MoonModules/StarLight)
 

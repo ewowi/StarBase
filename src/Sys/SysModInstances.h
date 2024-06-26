@@ -29,7 +29,7 @@ struct SysData {
   uint8_t timeSource; //29
   uint32_t tokiTime; //30 in sec
   uint16_t tokiMs; //34
-  byte type; //0=WLED, 1=StarBase, 2=StarLeds, 3=StarFork
+  byte type; //0=WLED, 1=StarBase, 2=StarLight, 3=StarFork
   DMX dmx;
   uint8_t macAddress[6]; // 48 bits WIP
 };
@@ -176,7 +176,7 @@ public:
     ui->initText(tableVar, "insType", nullptr, 16, true, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
       case onSetValue:
         for (forUnsigned8 rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++)
-          mdl->setValue(var, (instances[rowNrL].sysData.type==0)?"WLED":(instances[rowNrL].sysData.type==1)?"StarBase":(instances[rowNrL].sysData.type==2)?"StarLeds":"StarFork", rowNrL);
+          mdl->setValue(var, (instances[rowNrL].sysData.type==0)?"WLED":(instances[rowNrL].sysData.type==1)?"StarBase":(instances[rowNrL].sysData.type==2)?"StarLight":"StarFork", rowNrL);
         return true;
       case onUI:
         ui->setLabel(var, "Type");
@@ -260,10 +260,10 @@ public:
       strcat(columnVarID, var["id"]);
       JsonObject insVar; // = ui->cloneVar(var, columnVarID, [this, var](JsonObject insVar){});
 
-      //create a var of the same type. InitVar is not calling chFun which is good in this situation!
+      //create a var of the same type. InitVar is not calling onChange which is good in this situation!
       insVar = ui->initVar(tableVar, columnVarID, var["type"], false, [this, var](JsonObject insVar, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
         case onSetValue:
-          //should not trigger chFun
+          //should not trigger onChange
           for (forUnsigned8 rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++) {
             // ppf("initVar dash %s[%d]\n", mdl->varID(insVar), rowNrL);
             //do what setValue is doing except calling onChange
@@ -328,7 +328,7 @@ public:
       instances.clear();
 
       //not needed here as there is no connection
-      // ui->processUiFun("insTbl");
+      // ui->processOnUI("insTbl");
 
       //udp off ??
     }
@@ -464,7 +464,7 @@ public:
 
           ppf("insTbl handleNotifications %d\n", notifierUdp.remoteIP()[3]);
           for (JsonObject childVar: mdl->varChildren("insTbl"))
-            ui->callVarFun(childVar); //rowNr //instance - instances.begin()
+            ui->callVarFun(childVar, UINT8_MAX, onSetValue); //set the value (WIP) ); //rowNr //instance - instances.begin()
 
           web->recvUDPCounter++;
           web->recvUDPBytes+=packetSize;
@@ -558,7 +558,7 @@ public:
     if (erased) {
       ppf("insTbl remove inactive instances\n");
       for (JsonObject childVar: mdl->varChildren("insTbl"))
-        ui->callVarFun(childVar); //no rowNr so all rows updated
+        ui->callVarFun(childVar, UINT8_MAX, onSetValue); //set the value (WIP)); //no rowNr so all rows updated
 
       ui->callVarFun("ddpInst", UINT8_MAX, onUI); //rebuild options
       ui->callVarFun("artInst", UINT8_MAX, onUI); //rebuild options
@@ -596,7 +596,7 @@ public:
     #endif
     starMessage.header.insId = localIP[3]; //WLED: used in map of instances as index!
     starMessage.header.version = VERSION;
-    starMessage.sysData.type = (strcmp(_INIT(TOSTRING(APP)), "StarBase")==0)?1:(strcmp(_INIT(TOSTRING(APP)), "StarLeds")==0)?2:3; //1=StarBase,2=StarLeds, 3=StarFork
+    starMessage.sysData.type = (strcmp(_INIT(TOSTRING(APP)), "StarBase")==0)?1:(strcmp(_INIT(TOSTRING(APP)), "StarLight")==0)?2:3; //1=StarBase,2=StarLight, 3=StarFork
     starMessage.sysData.upTime = millis()/1000;
     starMessage.sysData.now = millis() + sys->timebase; //similar to now
     starMessage.sysData.timeSource = sys->toki.getTimeSource();
@@ -721,7 +721,7 @@ public:
           // ppf("macaddress %02X:%02X:%02X:%02X:%02X:%02X\n", instance.macAddress[0], instance.macAddress[1], instance.macAddress[2], instance.macAddress[3], instance.macAddress[4], instance.macAddress[5]);
         }
 
-        if (udpStarMessage.sysData.type >= 1) {//StarBase, StarLeds and forks only
+        if (udpStarMessage.sysData.type >= 1) {//StarBase, StarLight and forks only
           instance.sysData = udpStarMessage.sysData;
 
           if (instance.ip != WiFi.localIP()) { //send from localIP will be done after updateInstance
@@ -796,7 +796,7 @@ public:
           // ppf("updateInstance updRow\n");
 
           for (JsonObject childVar: mdl->varChildren("insTbl"))
-            ui->callVarFun(childVar); //rowNr instance - instances.begin()
+            ui->callVarFun(childVar, UINT8_MAX, onSetValue); //set the value (WIP)); //rowNr instance - instances.begin()
 
           //tbd: now done for all rows, should be done only for updated rows!
         }
@@ -811,12 +811,12 @@ public:
       ui->callVarFun("ddpInst", UINT8_MAX, onUI); //rebuild options
       ui->callVarFun("artInst", UINT8_MAX, onUI); //rebuild options
 
-      // ui->processUiFun("insTbl");
+      // ui->processOnUI("insTbl");
       //run though it sorted to find the right rowNr
       // for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
       //   if (instance->ip == messageIP) {
           for (JsonObject childVar: mdl->varChildren("insTbl")) {
-            ui->callVarFun(childVar); //no rowNr, update all
+            ui->callVarFun(childVar, UINT8_MAX, onSetValue); //set the value (WIP)); //no rowNr, update all
           }
       //   }
       // }

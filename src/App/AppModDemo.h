@@ -77,7 +77,6 @@ public:
   }
 
   void loop1s() {
-    // SysModule::loop();
     if (blinkPin != UINT16_MAX && millis() - lastMillis >= frequency) {
       lastMillis = millis();
       // ppf(" %d: %d", blinkPin,  digitalRead(blinkPin));

@@ -48,6 +48,10 @@ AppModDemo *appModDemo;
   #include "User/UserModMPU6050.h"
   UserModMPU6050 *mpu6050;
 #endif
+#ifdef STARBASE_USERMOD_LIVE
+  #include "User/UserModLive.h"
+  UserModLive *live;
+#endif
 
 //setup all modules
 void setup() {
@@ -72,6 +76,9 @@ void setup() {
   #endif
   #ifdef STARBASE_USERMOD_MPU6050
     mpu6050 = new UserModMPU6050();
+  #endif
+  #ifdef STARBASE_USERMOD_LIVE
+    live = new UserModLive();
   #endif
 
   //Reorder with care! this is the order in which setup and loop is executed
@@ -99,6 +106,9 @@ void setup() {
   mdls->add(ui);
   mdls->add(mdns); //no ui
   mdls->add(instances);
+  #ifdef STARBASE_USERMOD_LIVE
+    mdls->add(live);
+  #endif
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)
   mdls->setup();

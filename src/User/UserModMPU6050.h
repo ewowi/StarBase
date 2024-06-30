@@ -29,7 +29,7 @@ public:
   VectorFloat gravityVector;
 
   UserModMPU6050() :SysModule("Motion Tracking") {
-    // isEnabled = false;
+    isEnabled = false; //need to enable after fresh setup
   };
 
   void setup() {

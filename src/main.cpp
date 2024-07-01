@@ -29,7 +29,7 @@ SysModSystem *sys;
 SysModFiles *files;
 SysModModel *mdl;
 SysModNetwork *net;
-SysModPins *pins;
+SysModPins *pinsM;
 SysModInstances *instances;
 UserModMDNS *mdns;
 
@@ -50,7 +50,7 @@ AppModDemo *appModDemo;
 #endif
 #ifdef STARBASE_USERMOD_LIVE
   #include "User/UserModLive.h"
-  UserModLive *live;
+  UserModLive *liveM;
 #endif
 
 //setup all modules
@@ -64,7 +64,7 @@ void setup() {
   web = new SysModWeb();
   ui = new SysModUI();
   sys = new SysModSystem();
-  pins = new SysModPins();
+  pinsM = new SysModPins();
   instances = new SysModInstances();
   mdns = new UserModMDNS();
   appModDemo = new AppModDemo();
@@ -78,7 +78,7 @@ void setup() {
     mpu6050 = new UserModMPU6050();
   #endif
   #ifdef STARBASE_USERMOD_LIVE
-    live = new UserModLive();
+    liveM = new UserModLive();
   #endif
 
   //Reorder with care! this is the order in which setup and loop is executed
@@ -89,7 +89,7 @@ void setup() {
 
   mdls->add(files);
   mdls->add(sys);
-  mdls->add(pins);
+  mdls->add(pinsM);
   mdls->add(print);
   mdls->add(web);
   mdls->add(net);
@@ -107,7 +107,7 @@ void setup() {
   mdls->add(mdns); //no ui
   mdls->add(instances);
   #ifdef STARBASE_USERMOD_LIVE
-    mdls->add(live);
+    mdls->add(liveM);
   #endif
 
   //do not add mdls itself as it does setup and loop for itself!!! (it is the orchestrator)

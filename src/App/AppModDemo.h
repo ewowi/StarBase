@@ -57,10 +57,10 @@ public:
         return true; }
       case onChange: {
         //deallocate old value...
-        pins->deallocatePin(var["oldValue"], "Blink");
+        pinsM->deallocatePin(var["oldValue"], "Blink");
         if (!var["value"].isNull()) {
           blinkPin = var["value"];
-          pins->allocatePin(blinkPin, "Blink", "On board led");
+          pinsM->allocatePin(blinkPin, "Blink", "On board led");
           pinMode(blinkPin, OUTPUT); //tbd: part of allocatePin?
         }
         return true; }

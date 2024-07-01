@@ -57,7 +57,7 @@ public:
       default: return false;
     }}); 
 
-    if (pins->initI2S()) {
+    if (pinsM->initI2S()) {
       mpu.initialize();
 
       // verify connection

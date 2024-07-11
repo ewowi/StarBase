@@ -160,6 +160,14 @@ public:
     time1 = ESP.getCycleCount();
   }
 
+  void loop20ms() {
+    //workaround
+    if (strstr(web->lastFileUpdated, ".sc") != nullptr) {
+      run(web->lastFileUpdated);
+      strcpy(web->lastFileUpdated, "");
+    }
+  }
+
   void loop1s() {
     mdl->setUIValueV("fps1", "%.0f /s", fps);
     mdl->setUIValueV("fps2", "%d /s", frameCounter);

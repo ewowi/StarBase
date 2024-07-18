@@ -30,9 +30,9 @@ function cE(e, id = null, classs = null, inner = null) {
 class NavBar {
 
   //create navbar, menu, nav-list
-  constructor() {
+  constructor(parentNode) {
     let navBarNode = cE("nav", "navbar", "navbar");
-    gId("body").appendChild(navBarNode);
+    parentNode.appendChild(navBarNode);
 
     let menuNode = cE("div", "mobile-menu", "menu-toggle", '<span class="bar"></span><span class="bar"></span><span class="bar"></span>');
     menuNode.addEventListener('click', function () {
@@ -87,31 +87,38 @@ class NavBar {
 // https://www.w3schools.com/howto/howto_js_topnav_responsive.asp
 function onLoad() {
 
-  navBar = new NavBar(); //adds the navBar to <body>
-
   let body = gId("body");
 
-  //additional html 
-  let node;
-  body.appendChild(cE("h1", null, null, "StarBase💫 by MoonModules 🌔"));
+  //body.style and divNode.style by aaroneous
+  body.style = "display: flex;  flex-direction: column;  height: 100vh;";
 
+  navBar = new NavBar(body); //adds the navBar to <body>
+
+  let divNode = cE("div");
+  divNode.style = "flex-grow: 1;   overflow-y: auto;";
+  body.appendChild(divNode);
+
+  //additional html 
+  divNode.appendChild(cE("h1", null, null, "StarBase💫 by MoonModules 🌔"));
+  
+  let node;
   node = cE("a", null, null, "ⓘ");
   node.href = "https://ewowi.github.io/StarDocs";
-  body.appendChild(node);
+  divNode.appendChild(node);
 
-  body.appendChild(cE("h2", "serverName"));
-  body.appendChild(cE("h3", "vApp"));
+  divNode.appendChild(cE("h2", "serverName"));
+  divNode.appendChild(cE("h3", "vApp"));
 
-  body.appendChild(cE("p", "screenSize"));
+  divNode.appendChild(cE("p", "screenSize"));
 
-  body.appendChild(cE("h3", "modName"));
-  body.appendChild(cE("pre", "modelJson"));
-  body.appendChild(cE("div", "connind", null, "&#9790;"));
+  divNode.appendChild(cE("h3", "modName"));
+  divNode.appendChild(cE("pre", "modelJson"));
+  divNode.appendChild(cE("div", "connind", null, "&#9790;"));
 
 
   node = cE("p", null, null, "© 2024 MoonModules ☾ - StarMod, StarBase and StarLight is licensed under GPL-v3");
   node.style = "color:grey;";
-  body.appendChild(node);
+  divNode.appendChild(node);
 
   
   window.onresize = function() {

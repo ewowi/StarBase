@@ -3,3 +3,4 @@ node_modules
 .vscode
 .DS_Store
 /src/html_ui.h
+/src/html_newui.h

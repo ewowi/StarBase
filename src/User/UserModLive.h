@@ -214,9 +214,22 @@ public:
 
         Serial.println(scPreScript.c_str());
 
+        unsigned preScriptNrOfLines = 0;
+        for(int i = 0; i < scPreScript.length(); i++)
+        {
+          if (scPreScript[i] == '\n') 
+            preScriptNrOfLines++;
+        }
+
+        ppf("preScript has %d lines\n", preScriptNrOfLines);
+        ppf("Before parsing\n");
+        ppf("%s:%d f:%d / t:%d (l:%d) B [%d %d]\n", __FUNCTION__, __LINE__, ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap(), esp_get_free_heap_size(), esp_get_free_internal_heap_size());
+
         if (p.parse_c(&scScript))
         {
           ppf("parsing done\n");
+          ppf("%s:%d f:%d / t:%d (l:%d) B [%d %d]\n", __FUNCTION__, __LINE__, ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap(), esp_get_free_heap_size(), esp_get_free_internal_heap_size());
+
           SCExecutable.executeAsTask("main");
           strcpy(this->fileName, fileName);
         }

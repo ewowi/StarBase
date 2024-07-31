@@ -1,5 +1,5 @@
 // @title     StarBase
-// @file      newui.css
+// @file      mainnav.js
 // @date      20240720
 // @repo      https://github.com/ewowi/StarBase, submit changes to this file as PRs to ewowi/StarBase
 // @Authors   https://github.com/ewowi/StarBase/commits/main
@@ -13,7 +13,7 @@
  */
 class MainNav {
 
-  addBody() {
+  addHTML() {
     let body = document.getElementById("body");//gId("body");
 
     body.classList += "d-flex flex-column";
@@ -78,14 +78,14 @@ class MainNav {
    * Set the active module
    * @param {object} module - A module
    */
-  set activeModule(module) {
-    if (!module) return
+  set activeModuleJson(moduleJson) {
+    if (!moduleJson) return
 
-    this.#activeModule = module
+    this.#activeModuleJson = moduleJson
 
     // Update the main navigation
     document.querySelectorAll('#main-nav .menu-item').forEach(menuItem => {
-      if (menuItem.dataset.type == this.#activeModule.type) {
+      if (menuItem.dataset.type == this.#activeModuleJson.type) {
         menuItem.classList.add('selected')
       } else {
         menuItem.classList.remove('selected')
@@ -93,12 +93,12 @@ class MainNav {
     })
 
     // Update the secondary navigation menu
-    const modules = model.filter(module => module.type == this.#activeModule.type)
+    const modules = controller.model.filter(moduleJson => moduleJson.type == this.#activeModuleJson.type)
     
     const html = modules
-      .map(module => {
-        const selected = module.id == this.#activeModule.id ? 'selected' : ''
-        return `<div onclick="mainNav.activeModuleId=this.dataset.id" class="menu-item selectable ${selected} text-truncate pa-3" data-id="${module.id}">${module.id}</div>`
+      .map(moduleJson => {
+        const selected = moduleJson.id == this.#activeModuleJson.id ? 'selected' : ''
+        return `<div onclick="controller.mainNav.activeModuleId=this.dataset.id" class="menu-item selectable ${selected} text-truncate pa-3" data-id="${moduleJson.id}">${moduleJson.id}</div>`
       })
       .join('')
     document.getElementById('second-nav').innerHTML = html
@@ -109,20 +109,20 @@ class MainNav {
         document.getElementById('page').innerHTML = 
       `<div class="d-flex flex-column h-100 overflow-hidden">
         <div class="flex-shrink-0">
-          <h1 class="title">${this.#activeModule.id}</h1>
+          <h1 class="title">${this.#activeModuleJson.id}</h1>
         </div>
-        <div class="overflow-y-auto">` + this.#moduleFun(this.#activeModule) +
+        <div class="overflow-y-auto">` + this.#moduleFun(this.#activeModuleJson) +
         `</div>
       </div>`
     }
-  }
+  } //set activeModuleJson(moduleJson)
 
   /**
    * Set the active module to the first one in the module list whose type matches
    * @param {string} moduleType - The module type
    */
   set activeModuleType(moduleType) {
-    this.activeModule = model.find(module => module.type == moduleType)
+    this.activeModuleJson = controller.model.find(moduleJson => moduleJson.type == moduleType)
   }
 
   /**
@@ -130,41 +130,42 @@ class MainNav {
    * @param {string} id - The module id
    */
   set activeModuleId(id) {
-    this.activeModule = model.find(module => module.id == id)
+    this.activeModuleJson = controller.model.find(moduleJson => moduleJson.id == id)
   }
 
   /**
    * Update the UI
    */
   //updateUI is made after all modules have been fetched, how to adapt to add one module?
-  updateUI(fun) {
+  updateUI(moduleJson, fun) {
+
     this.#moduleFun = fun
 
     // Get the unique list of module types
-    const uniqueTypes = model
-      .filter((module, index, modules) => {
-        return modules.findIndex(m => m.type === module.type) === index
+    const uniqueTypes = controller.model
+      .filter((moduleJson, index, modules) => {
+        return modules.findIndex(m => m.type === moduleJson.type) === index
       })
-      .map(module => module.type)
+      .map(moduleJson => moduleJson.type)
 
     // Each module type becomes a top level menu
     const html = uniqueTypes
       .map(type => {
-        return `<div onclick="mainNav.activeModuleType=this.dataset.type" class="menu-item selectable pa-4" data-type="${type}">${type}</div>`
+        return `<div onclick="controller.mainNav.activeModuleType=this.dataset.type" class="menu-item selectable pa-4" data-type="${type}">${type}</div>`
       })
       .join('')
     document.getElementById('main-nav').innerHTML = html
 
     // If there is no active module set it to the first one
-    if (this.#activeModule == '' && model.length) {
-      this.activeModule = model[0]
+    if (this.#activeModuleJson == '' && controller.model.length) {
+      this.activeModuleJson = controller.model[0]
     }
   }
 
   /**
    * Store the currently active module
    */
-  #activeModule = ''
+  #activeModuleJson = ''
 
   //stores the function to execute to display one module
   #moduleFun = null;

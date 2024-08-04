@@ -11,9 +11,9 @@ class Controller {
 
   //kept vars public as other classes uses them
   ws = null
-  model = [] //model.json (as send by the server), used by FindVa
-  themeClass = null //stores MainNav class instance at onLoad
-  mainNav = null //stores MainNav class instance at onLoad
+  modules = null
+  theme = null
+  mainNav = null
 
   onLoad() {
     if (window.location.href.includes("127.0.0.1"))
@@ -21,14 +21,17 @@ class Controller {
     else 
       this.makeWS();
 
-    this.themeClass = new ThemeClass();
-    this.themeClass.addHTML();
-    this.themeClass.getTheme();
+    this.modules = new Modules();
+
+    this.theme = new Theme();
+    this.theme.createHTML();
+    this.theme.getTheme();
   
-    this.mainNav = new MainNav(this.model);
-    this.mainNav.addHTML();
+    this.mainNav = new MainNav(this.modules.model);
+    this.mainNav.createHTML();
+
   
-    }
+  }
 
   async fetchModelForLiveServer() {
     // Mock fetch for testing while using Live Server. No error checking for brevity.
@@ -41,21 +44,27 @@ class Controller {
     });
   
     for (let moduleJson of localModel) {
-      this.addModule(moduleJson) //this will add moduleJson to this.model
+      this.modules.addModule(moduleJson)
     }
+
+    // this.generateData(); //every 1 second
+      var intervalId = window.setInterval(function(){
+        controller.modules.generateData()
+      }, 1000);
+
   }
-  
+
   makeWS() {
-    if (ws) return;
+    if (this.ws) return;
     let url = (window.location.protocol == "https:"?"wss":"ws")+'://'+window.location.hostname+'/ws';
     console.log("makeWS url", url);
-    ws = new WebSocket(url);
-    ws.binaryType = "arraybuffer";
-    ws.onmessage = (e)=>{
+    this.ws = new WebSocket(url);
+    this.ws.binaryType = "arraybuffer";
+    this.ws.onmessage = (e)=>{
       if (e.data instanceof ArrayBuffer) { // binary packet - e.g. for preview
         let buffer = new Uint8Array(e.data);
         if (buffer[0]==0) {
-          let pviewNode = gId("board");
+          let pviewNode = document.getElementById("board");
           // console.log(buffer, pviewNode);
           if (pviewNode)
             previewBoard(pviewNode, buffer);
@@ -76,12 +85,12 @@ class Controller {
           //receive model per module to stay under websocket size limit of 8192
           if (json.type && ["appmod","usermod", "sysmod"].includes(json.type)) { //generate array of variables
             let found = false;
-            for (let module of model) {
+            for (let module of this.modules.model) {
               if (module.id == json.id)
                 found = true;
             }
             if (!found) {
-              addModule(json);
+              this.addModule(json);
             }
             else
               console.log("html of module already generated", json);
@@ -89,7 +98,7 @@ class Controller {
           else { //update
             if (!Array.isArray(json)) {//only the model is an array
               // console.log("WS receive update", json);
-              // receiveData(json);
+              this.receiveData(json);
             }
             else
               console.log("dev array not expected", json);
@@ -97,32 +106,64 @@ class Controller {
         }
       }
     }
-    ws.onclose = (e)=>{
+    this.ws.onclose = (e)=>{
       console.log("WS close and retry", e);
-      gId('connind').style.backgroundColor = "var(--c-r)";
-      setTimeout(makeWS,1500); // retry WS connection
-      ws = null;
+      setTimeout(makeWS, 1500); // retry WS connection
+      this.ws = null;
     }
-    ws.onopen = (e)=>{
+    this.ws.onopen = (e)=>{
       console.log("WS open", e);
     }
-    ws.onerror = (e)=>{
+    this.ws.onerror = (e)=>{
       console.log("WS error", e);
     }
+  } // makeWS
+
+  requestJson(command) {
+    if (!this.ws) return;
+
+    let req = JSON.stringify(command);
+    
+    console.log("requestJson", command);
+      
+    this.ws.send(req);  
   }
 
-  //used by fetchModel and by makeWS
-  addModule(moduleJson) {
-    this.model.push(moduleJson);
+  receiveData(json) {
+    // console.log("re", json)
+    if (isObject(json)) {
+      for (let key of Object.keys(json)) {
+        let value = json[key]
+        
+        let variable = this.modules.findVar(key);       
+        if (variable) {
+          variable.fun = -2; // request processed
+          let variableClass = varJsonToClass(variable);
+          variableClass.receiveData(value)
+        } // if variable
 
-    //updateUI is made after all modules have been fetched, how to adapt to add one module?
-    this.mainNav.updateUI(moduleJson, moduleFun); //moduleFun returns the html to show in the module panel of the UI
-    //still doesn't maker sense  to call updateUI for every module ...
-
+      } //for key
+    }
   }
+  
 } //class Controller
 
 /**
  * Create an instance of the app on the global space
  */
 window.controller = new Controller()
+
+
+
+
+
+
+// Utility function
+//https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
+function isObject(val) {
+  if (Array.isArray(val)) return false;
+  if (val === null) { return false;}
+  return ( (typeof val === 'function') || (typeof val === 'object'));
+
+  //or   return obj === Object(obj); //true for arrays.???
+}

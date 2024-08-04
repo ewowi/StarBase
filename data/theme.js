@@ -8,14 +8,14 @@
 // @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 
 
-class ThemeClass {
+class Theme {
 
-  addHTML() {
+  createHTML() {
     let body = document.getElementById("body");//gId("body");
 
     body.innerHTML+= `
     <label>Theme</label> 
-    <select name="theme-select" id="theme-select" onchange="controller.themeClass.setTheme(this)">
+    <select name="theme-select" id="theme-select" onchange="controller.theme.setTheme(this.value)">
       <option value="starbase">StarBase</option>
       <option value="starlight">StarLight</option>
       <option value="wled">WLED</option>
@@ -29,15 +29,14 @@ class ThemeClass {
       <option value="nyan">Nyan</option>
     </select>
     `
-  
   }
 
-  setTheme(node) {
-    // console.log("setTheme", node.value)
-    localStorage.setItem('theme', node.value);
-    document.documentElement.className = node.value;
-    // if (document.getElementById("theme-select").value != node.value)
-    //   document.getElementById("theme-select").value = node.value;
+  setTheme(value) {
+    console.log("setTheme", value)
+    localStorage.setItem('theme', value);
+    document.documentElement.className = value;
+    // if (document.getElementById("theme-select").value != value)
+    //   document.getElementById("theme-select").value = value;
   }
 
   getTheme() {

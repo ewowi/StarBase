@@ -90,7 +90,7 @@ class Controller {
                 found = true;
             }
             if (!found) {
-              this.addModule(json);
+              this.modules.addModule(json);
             }
             else
               console.log("html of module already generated", json);
@@ -130,7 +130,7 @@ class Controller {
   }
 
   receiveData(json) {
-    // console.log("re", json)
+    // console.log("receiveData", json)
     if (isObject(json)) {
       for (let key of Object.keys(json)) {
         let value = json[key]
@@ -158,7 +158,14 @@ window.controller = new Controller()
 
 
 
-// Utility function
+// Utility functions
+
+function initCap(s) {
+  if (typeof s !== 'string') return '';
+  // https://www.freecodecamp.org/news/how-to-capitalize-words-in-javascript/
+  return s.replace(/[\W_]/g,' ').replace(/(^\w{1})|(\s+\w{1})/g, l=>l.toUpperCase()); // replace - and _ with space, capitalize every 1st letter
+}
+
 //https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript
 function isObject(val) {
   if (Array.isArray(val)) return false;

@@ -17,6 +17,12 @@ class Modules {
     let code = ""
     controller.modules.test("ew")
     // this.test("ew") //this.otherMethodInThisClass: [Error] Unhandled Promise Rejection: TypeError: this.test is not a function. (In 'this.test("ew")', 'this.test' is undefined)
+
+    // sort module variables
+    moduleJson.n.sort(function(a,b) {
+      return Math.abs(a.o) - Math.abs(b.o); //o is order nr (ignore negatives for the time being)
+    });
+
     for (let variable of moduleJson.n) {
 
       let variableClass = varJsonToClass(variable);
@@ -43,6 +49,7 @@ class Modules {
 
   //used by fetchModel and by makeWS
   addModule(moduleJson) {
+    moduleJson.type = moduleJson.type=="appmod"?appName():moduleJson.type=="usermod"?"User":"System"; 
     this.model.push(moduleJson);
 
     //updateUI is made after all modules have been fetched, how to adapt to add one module?
@@ -89,12 +96,16 @@ class Modules {
 //creates the right class based on variable.type
 function varJsonToClass(variable) {
   switch (variable.type) {
+    case "button":
+      return new ButtonVariable(variable);
     case "progress":
       return new ProgressVariable(variable);
     case "text":
       return new TextVariable(variable);
     case "select":
       return new SelectVariable(variable);
+    case "checkbox":
+      return new CheckboxVariable(variable);
     default:
       return new Variable(variable);
   }
@@ -107,43 +118,85 @@ class Variable {
     this.node = document.getElementById(variable.id);
   }
 
-  createHTML() { //base
+  createHTML(node = `<input id=${this.variable.id} type=${this.variable.type} class="${this.variable.type}" value="${this.variable.value}"></input>`) { //base
     return `<p>
-            <label>${this.variable.id}</label>
-            <input id=${this.variable.id} type=${this.variable.type} class="${this.variable.type}" value="${this.variable.value}"></input>
+            <label>${initCap(this.variable.id)}</label>
+            ${node}
             <p>`
-
   }
 
   //sets the value of the node to value of properties
   receiveData(properties) { //base
-    if (this.node && properties.value)
-      this.node.value = properties.value;
+    if (this.node) {
+      if (properties.label) {
+        let labelNode = this.node.parentNode.querySelector("label")
+        if (labelNode)
+          labelNode.innerText = properties.label;
+        else
+          this.node.parentNode.innerHTML = `<label>${properties.label}</label>` + this.node.parentNode.innerHTML
+      }
+      if (properties.value != null && this.node.value != null) {
+        this.node.value = properties.value;
+      }
+      if (properties.comment) {
+        let commentNode = this.node.parentNode.querySelector("comment")
+        if (commentNode)
+          commentNode.innerText = properties.comment
+        else
+          this.node.parentNode.innerHTML += `<comment>${properties.comment}</comment>`
+      }
+    } 
   }
 
-  generateData() {
-    controller.receiveData(JSON.parse(`{"${this.variable.id}":{"value":${Math.random() * 1000}}}`));
+  generateData(custom = `"value":${Math.random() * 1000}`) {
+    if (custom != "") custom += ", "
+    controller.receiveData(JSON.parse(`{"${this.variable.id}":{${custom}"comment":"${Math.random().toString(36).slice(2)}"}}`));
   }
 
 } //class Variable
 
-class ProgressVariable extends Variable {
+class TextVariable extends Variable {
+
+  createHTML() { //base
+    return super.createHTML(`<input id=${this.variable.id} type=${this.variable.type} class="${this.variable.type}" value="${this.variable.value}"></input>`);
+  }
+
+  generateData() {
+    super.generateData(`"value":"${Math.random().toString(36).slice(2)}"`)
+  }
+
+} //class TextVariable
+
+class CheckboxVariable extends Variable {
+
+  receiveData(properties) { //base
+    super.receiveData(properties)
+    if (this.node && properties.value != null)
+      this.node.checked = properties.value
+  }
+
+  generateData() {
+    super.generateData(`"value":${(Math.random()<0.5)?1:0}`)
+  }
+
+} //class CheckboxVariable
+
+class ButtonVariable extends Variable {
 
   createHTML() { //override
-    return `<p>
-          <label>${this.variable.id}</label>
-          <progress max="${this.variable.max}" id="${this.variable.id}" class="progress"></progress>
-          <p>`
+    return super.createHTML(`<input id=${this.variable.id} type=${this.variable.type} class="${this.variable.type}" value="${initCap(this.variable.id)}"></input>`)
   }
-} //class ProgressVariable
+
+  generateData() {
+    super.generateData("") //no value update
+  }
+
+} //class ButtonVariable
 
 class SelectVariable extends Variable {
 
   createHTML() { //override
-    return `<p>
-            <label>${this.variable.id}</label>
-            <select max="${this.variable.max}" id="${this.variable.id}" class="select"></select>
-            <p>`
+    return super.createHTML(`<select id="${this.variable.id}" class="select"></select>`)
   }
 
   generateData() {
@@ -151,15 +204,15 @@ class SelectVariable extends Variable {
     if (this.node && this.node.childNodes.length == 0)
       this.node.innerHTML+='<option value=0>One</option><option value=1>Two</option><option value=2>Three</option>'
 
-    controller.receiveData(JSON.parse(`{"${this.variable.id}":{"value":${Math.random() <.33?0:Math.random() <.66?1:2}}}`));
+    super.generateData(`"value":${Math.random() <.33?0:Math.random() <.66?1:2}`)
   }
 
 } //class SelectVariable
 
-class TextVariable extends Variable {
+class ProgressVariable extends Variable {
 
-  generateData() {
-    controller.receiveData(JSON.parse(`{"${this.variable.id}":{"value":"${Math.random().toString(36).slice(2)}"}}`));
+  createHTML() { //override
+    return super.createHTML(`<progress max="${this.variable.max}" id="${this.variable.id}" class="progress"></progress>`)
   }
 
-} //class TextVariable
+} //class ProgressVariable

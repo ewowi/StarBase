@@ -13,7 +13,7 @@ class Theme {
   createHTML() {
     let body = document.getElementById("body");//gId("body");
 
-    body.innerHTML+= `
+    body.innerHTML += `
     <label>Theme</label> 
     <select name="theme-select" id="theme-select" onchange="controller.theme.setTheme(this.value)">
       <option value="starbase">StarBase</option>

@@ -36,7 +36,7 @@ class Controller {
   async fetchModelForLiveServer() {
     // Mock fetch for testing while using Live Server. No error checking for brevity.
     // Replace with call to server websocket
-    let localModel = await (await fetch('../misc/model.json')).json()
+    let localModel = await (await fetch('/misc/model.json')).json()
   
     //sort modules by order (o)
     localModel.sort(function(a,b) {

@@ -11,6 +11,8 @@ class Controller {
 
   //kept vars public as other classes uses them
   ws = null
+  sysInfo = {}
+
   modules = null
   theme = null
   mainNav = null
@@ -29,8 +31,6 @@ class Controller {
   
     this.mainNav = new MainNav(this.modules.model);
     this.mainNav.createHTML();
-
-  
   }
 
   async fetchModelForLiveServer() {
@@ -47,10 +47,42 @@ class Controller {
       this.modules.addModule(moduleJson)
     }
 
-    // this.generateData(); //every 1 second
-      var intervalId = window.setInterval(function(){
-        controller.modules.generateData()
-      }, 1000);
+    //send sysInfo
+    let json = {}
+    json.sysInfo = {};
+    json.sysInfo.board = "esp32"
+    json.sysInfo.nrOfPins = 40
+    json.sysInfo.pinTypes = []
+    for (let pinNr = 0; pinNr < json.sysInfo.nrOfPins; pinNr++)
+      json.sysInfo.pinTypes[pinNr] = Math.round(Math.random() * 3)
+
+    this.receiveData(json);
+
+    // every 1 second
+    window.setInterval(function(){
+      controller.modules.generateData()
+    }, 1000);
+
+    // every 10th second send binarydata
+    window.setInterval(function(){
+      let buffer = [0,1,2,3,4]
+      buffer[0] = Math.round(Math.random())
+      
+      // console.log(buffer)
+      // let buffer = new Uint8Array([0,1,2,3,4,5,6,7,8]);
+      if (buffer[0] == 0) {
+        for (let pinNr = 0; pinNr < controller.sysInfo.nrOfPins; pinNr++)
+          buffer[pinNr+5] = Math.round(Math.random() * 256)
+        let pviewNode = document.getElementById("board");
+        // console.log(buffer, pviewNode);
+        if (pviewNode)
+          controller.modules.previewBoard(pviewNode, buffer);
+      }
+      else {
+        userFun(buffer);
+      }
+
+    }, 100);
 
   }
 
@@ -67,7 +99,7 @@ class Controller {
           let pviewNode = document.getElementById("board");
           // console.log(buffer, pviewNode);
           if (pviewNode)
-            previewBoard(pviewNode, buffer);
+            this.modules.previewBoard(pviewNode, buffer);
         }
         else 
           userFun(buffer);
@@ -141,7 +173,10 @@ class Controller {
           let variableClass = varJsonToClass(variable);
           variableClass.receiveData(value)
         } // if variable
-
+        else if (key == "sysInfo") { //update the row of a table
+          // ppf("receiveData", key, value.board);
+          this.sysInfo = value;
+        }
       } //for key
     }
   }
@@ -159,6 +194,9 @@ window.controller = new Controller()
 
 
 // Utility functions
+
+const UINT8_MAX = 255;
+const UINT16_MAX = 256*256-1;
 
 function initCap(s) {
   if (typeof s !== 'string') return '';

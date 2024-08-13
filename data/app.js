@@ -12,10 +12,11 @@ function appName() {
 }
 
 function userFun(buffer) {
-  if (buffer[0]==1 && jsonValues.pview) {
-    let pviewNode = gId("pview");
-
+  // console.log("userFun", buffer)
+  
+  if (buffer[0]==1) {
     return true;
   }
+  
   return false;
 }

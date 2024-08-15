@@ -11,6 +11,9 @@ function appName() {
   return "Demo";
 }
 
+function userFunSetup() {
+}
+
 function userFun(buffer) {
   // console.log("userFun", buffer)
   

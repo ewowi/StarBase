@@ -57,7 +57,7 @@ class Modules {
   }
 
   //used by fetchModel and by makeWS
-  addModule(moduleJson) {
+  addModule(moduleJson) { 
     moduleJson.type = moduleJson.type=="appmod"?appName():moduleJson.type=="usermod"?"User":"System"; 
     this.model.push(moduleJson);
 
@@ -407,12 +407,17 @@ class CanvasVariable extends Variable {
     // console.log(this.variable)
     if (this.variable.file) {
       this.variable.file.new = true;
-      console.log("canvas createHTML", this.variable.file, this.variable.file.new);
+      // console.log("canvas createHTML", this.variable.file, this.variable.file.new);
     }
     return super.createHTML(`<canvas id=${this.variable.id} class="${this.variable.type}"></canvas>`);
   }
 
+  receiveData(properties) {
+    super.receiveData(properties)
+  }
+
   generateData() {
+    //tbd: this is StarLight, remove here...
     if (this.node && this.variable.file == null)
       super.generateData(`"file":"F_panel2x2-16x16.json"`)
 

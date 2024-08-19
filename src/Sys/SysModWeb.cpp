@@ -222,9 +222,9 @@ void SysModWeb::connectedChanged() {
 
     server.addHandler(new AsyncCallbackJsonWebHandler("/json", [this](WebRequest *request, JsonVariant &json){jsonHandler(request, json);}));
 
-    server.on("/update", HTTP_POST, [](WebRequest *) {}, [this](WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {serveUpdate(request, filename, index, data, len, final);});
+    server.on("/update", HTTP_POST, [](WebRequest *) {}, [this](WebRequest *request, const String& fileName, size_t index, byte *data, size_t len, bool final) {serveUpdate(request, fileName, index, data, len, final);});
     server.on("/file", HTTP_GET, [this](WebRequest *request) {serveFiles(request);});
-    server.on("/upload", HTTP_POST, [](WebRequest *) {}, [this](WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {serveUpload(request, filename, index, data, len, final);});
+    server.on("/upload", HTTP_POST, [](WebRequest *) {}, [this](WebRequest *request, const String& fileName, size_t index, byte *data, size_t len, bool final) {serveUpload(request, fileName, index, data, len, final);});
 
     server.onNotFound([this](AsyncWebServerRequest *request) {
       ppf("Not-Found HTTP call: URI: %s\n", request->url().c_str()); ///hotspot-detect.html
@@ -491,16 +491,16 @@ void SysModWeb::serveNewUI(WebRequest *request) {
   ppf("!\n");
 }
 
-void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {
+void SysModWeb::serveUpload(WebRequest *request, const String& fileName, size_t index, byte *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  ppf("serveUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+  ppf("serveUpload r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), fileName.c_str(), index, len, final);
 
   mdl->setValue("upload", index/10000);
   sendResponseObject(); //otherwise not send in asyn_tcp thread
 
   if (!index) {
-    String finalname = filename;
+    String finalname = fileName;
     if (finalname.charAt(0) != '/') {
       finalname = '/' + finalname; // prepend slash if missing
     }
@@ -526,7 +526,10 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
     //if sc files send command to live
     #ifdef STARBASE_USERMOD_LIVE
 
-      strcpy(lastFileUpdated, filename.c_str()); //workaround 
+      if (fileName.indexOf(".sc") > 0) {
+        ppf("sc file added %s\n", fileName.c_str());
+        strcpy(lastFileUpdated, ("/"+fileName).c_str()); //workaround 
+      }
 
       // got multiple definition error here ???
       // if (filename.indexOf(".sc") > 0)
@@ -535,10 +538,10 @@ void SysModWeb::serveUpload(WebRequest *request, const String& filename, size_t 
   }
 }
 
-void SysModWeb::serveUpdate(WebRequest *request, const String& filename, size_t index, byte *data, size_t len, bool final) {
+void SysModWeb::serveUpdate(WebRequest *request, const String& fileName, size_t index, byte *data, size_t len, bool final) {
 
   // curl -F 'data=@fixture1.json' 192.168.8.213/upload
-  // ppf("serveUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), filename.c_str(), index, len, final);
+  // ppf("serveUpdate r:%s f:%s i:%d l:%d f:%d\n", request->url().c_str(), fileName.c_str(), index, len, final);
   
   mdl->setValue("update", index/10000);
   sendResponseObject(); //otherwise not send in asyn_tcp thread

@@ -166,7 +166,7 @@ class Controller {
       
       // console.log("requestJson", command);
         
-      this.ws.send(req);  
+      this.ws.send(req);
     }
   }
 

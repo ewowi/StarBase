@@ -22,6 +22,7 @@ static uint32_t _nb_stat = 0;
 static float _totfps;
 static float fps = 0; //integer?
 static unsigned long frameCounter = 0;
+static uint8_t loopState = 0; //waiting on live script
 
 //external function implementation (tbd: move into class)
 
@@ -33,6 +34,8 @@ static void show()
   long time2 = ESP.getCycleCount();
 
   // driver.showPixels(WAIT); // LEDS specific
+
+  //show is done in LedModEffects!
 
   long time3 = ESP.getCycleCount();
   float k = (float)(time2 - time1) / 240000000;
@@ -48,7 +51,7 @@ static void show()
     _max = fps;
   if (_nb_stat > 10)
     _totfps += fps;
-  if (_nb_stat%1000 == 0)
+  if (_nb_stat%10000 == 0) //every 10 sec. (temp)
     //Serial.printf("current show fps:%.2f\tglobal fps:%.2f\tfps animation:%.2f\taverage:%.2f\tmin:%.2f\tmax:%.2f\r\n", fps2, fps3, fps, _totfps / (_nb_stat - 10), _min, _max);
     ppf("current show fps:%.2f\tglobal fps:%.2f\tfps animation:%.2f  average:%.2f min:%.2f max:%.2f\r\n",fps2, fps3,  fps, _totfps / (_nb_stat - 10), _min, _max);
   time1 = ESP.getCycleCount();
@@ -56,7 +59,14 @@ static void show()
 
   // SKIPPED: check that both v1 and v2 are int numbers
   // RETURN_VALUE(VALUE_FROM_INT(0), rindex);
-  delay(1); //to feed the watchdog
+  delay(1); //to feed the watchdog (also if loopState == 0)
+  while (loopState != 0) { //not waiting on live script
+    delay(1); //to feed the watchdog
+    // set to 0 by main loop
+  }
+  //do live script cycle
+  loopState = 1; //live script produced a frame, main loop will deal with it
+  // ppf("loopState %d\n", loopState);
 }
 
 static void resetShowStats()
@@ -70,11 +80,23 @@ static void resetShowStats()
 static void dispshit(int g) { ppf("coming from assembly int %x %d", g, g);}
 static void __print(char *s) {ppf("from assembly :%s\r\n", s);}
 static void showError(int line, uint32_t size, uint32_t got) { ppf("Overflow error line %d max size: %d got %d", line, size, got);}
-static void displayfloat(float j) {ppf("display float %f", j);}
+static void displayfloat(float j) {ppf(" %f", j);}
 
 static float _hypot(float x,float y) {return hypot(x,y);}
 static float _atan2(float x,float y) { return atan2(x,y);}
 static float _sin(float j) {return sin(j);}
+static float _triangle(float j) {return 1.0 - fabs(fmod(2 * j, 2.0) - 1.0);}
+static float _time(float j) {
+      float myVal = sys->now;
+      myVal = myVal / 65535 / j;           // PixelBlaze uses 1000/65535 = .015259. 
+      myVal = fmod(myVal, 1.0);               // ewowi: with 0.015 as input, you get fmod(millis/1000,1.0), which has a period of 1 second, sounds right
+      return myVal;
+}
+// static millis()
+
+uint8_t slider1 = 128;
+uint8_t slider2 = 128;
+uint8_t slider3 = 128;
 
 class UserModLive:public SysModule {
 
@@ -83,8 +105,6 @@ public:
   Parser p = Parser();
   char fileName[32] = ""; //running sc file
   string scPreBaseScript = ""; //externals etc generated (would prefer String for esp32...)
-  string scPreCustomScript = ""; //externals etc generated (would prefer String for esp32...)
-  // bool setupDone = false;
 
   UserModLive() :SysModule("Live") {
     isEnabled = false; //need to enable after fresh setup
@@ -107,20 +127,16 @@ public:
         //set script
         uint8_t fileNr = var["value"];
 
-        ppf("%s script f:%d f:%d\n", name, funType, fileNr);
+        ppf("%s script.onChange f:%d\n", name, fileNr);
 
-        char fileName[32] = "";
-
-        if (fileNr > 0 && scPreBaseScript.length()) { //not None and setup done
+        if (fileNr > 0) { //not None and setup done
           fileNr--;  //-1 as none is no file
-          files->seqNrToName(fileName, fileNr, ".sc");
-          // ppf("%s script f:%d f:%d\n", name, funType, fileNr);
+          files->seqNrToName(web->lastFileUpdated, fileNr, ".sc");
+          ppf("script.onChange f:%d n:%s\n", fileNr, web->lastFileUpdated);
         }
-
-        if (strcmp(fileName, "") != 0)
-          run(fileName, true); //force a new file to run
         else {
           kill();
+          ppf("script.onChange set to None\n");
         }
 
         return true; }
@@ -143,6 +159,9 @@ public:
     addExternalFun("float", "atan2","(float a1, float a2)",(void*)_atan2);
     addExternalFun("float", "hypot","(float a1, float a2)",(void*)_hypot);
     addExternalFun("float", "sin", "(float a1)", (void *)_sin);
+    addExternalFun("float", "time", "(float a1)", (void *)_time);
+    addExternalFun("float", "triangle", "(float a1)", (void *)_triangle);
+    addExternalFun("uint32_t", "millis", "()", (void *)millis);
 
     // added by StarBase
     addExternalFun("void", "pinMode", "(int a1, int a2)", (void *)&pinMode);
@@ -151,6 +170,10 @@ public:
 
     // addExternalFun("delay", [](int ms) {delay(ms);});
     // addExternalFun("digitalWrite", [](int pin, int val) {digitalWrite(pin, val);});
+
+    addExternalVal("uint8_t", "slider1", &slider1); //used in map function
+    addExternalVal("uint8_t", "slider2", &slider2); //used in map function
+    addExternalVal("uint8_t", "slider3", &slider3); //used in map function
 
   } //setup
 
@@ -185,18 +208,34 @@ public:
   }
 
   void loop() {
-    // this will result in: Stopping the program...
-    // if (setupDone) {
-    //   SCExecutable.executeAsTask("loop");
-    //   ppf(".");
-    //   show();
-    // }
+    if (__run_handle) { //isRunning
+      if (loopState == 2) {// show has been called (in other loop)
+        loopState = 0; //waiting on live script
+        // ppf("loopState %d\n", loopState);
+      }
+      else if (loopState == 1) {
+        loopState = 2; //other loop can call show (or preview)
+        // ppf("loopState %d\n", loopState);
+      }
+    }
   }
 
   void loop20ms() {
     //workaround
     if (strstr(web->lastFileUpdated, ".sc") != nullptr) {
-      run(web->lastFileUpdated);
+      if (strstr(web->lastFileUpdated, "del:/") != nullptr) {
+        if (strcmp(this->fileName, web->lastFileUpdated+4) == 0) { //+4 remove del:
+          ppf("loop20ms kill %s\n", web->lastFileUpdated);
+          kill();
+          // ui->callVarFun("script2", UINT8_MAX, onUI); //rebuild options
+        }
+        //else nothing
+      }
+      else {
+        ppf("loop20ms run %s -> %s\n", this->fileName, web->lastFileUpdated);
+        run(web->lastFileUpdated);
+        // ui->callVarFun("script2", UINT8_MAX, onUI); //rebuild options
+      }
       strcpy(web->lastFileUpdated, "");
     }
   }
@@ -207,13 +246,10 @@ public:
     frameCounter = 0;
   }
 
-  void run(const char *fileName, bool force = false) {
-    ppf("live run n:%s o:%s (f:%d)\n", fileName, this->fileName, force);
+  void run(const char *fileName) {
+    ppf("live run n:%s o:%s (f:%d)\n", fileName, this->fileName);
 
-    if (!force && strcmp(fileName, this->fileName) != 0) // if another fileName then force should be true;
-      return;
-
-    kill();
+    kill(); //kill any old script
 
     if (strcmp(fileName, "") != 0) {
 
@@ -222,7 +258,7 @@ public:
         ppf("UserModLive setup script open %s for %s failed\n", fileName, "r");
       else {
 
-        string scScript = scPreBaseScript + scPreCustomScript;
+        string scScript = scPreBaseScript;
 
         Serial.println(scScript.c_str());
 
@@ -233,22 +269,23 @@ public:
             preScriptNrOfLines++;
         }
 
-        ppf("preScript has %d lines\n", preScriptNrOfLines);
+        ppf("preScript of %s has %d lines\n", fileName, preScriptNrOfLines+1); //+1 to subtract the line from parser error line reported
 
         scScript += string(f.readString().c_str()); // add sc file
 
-        ppf("Before parsing\n");
+        scScript += "void main(){resetStat();setup();while(2>1){loop();show();}}";
+
+        ppf("Before parsing of %s\n", fileName);
         ppf("%s:%d f:%d / t:%d (l:%d) B [%d %d]\n", __FUNCTION__, __LINE__, ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap(), esp_get_free_heap_size(), esp_get_free_internal_heap_size());
 
         if (p.parseScript(&scScript))
         {
-          ppf("parsing done\n");
+          ppf("parsing %s done\n", fileName);
           ppf("%s:%d f:%d / t:%d (l:%d) B [%d %d]\n", __FUNCTION__, __LINE__, ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap(), esp_get_free_heap_size(), esp_get_free_internal_heap_size());
 
           SCExecutable.executeAsTask("main"); //"setup" not working
           // ppf("setup done\n");
           strcpy(this->fileName, fileName);
-          // setupDone = true;
         }
         f.close();
       }
@@ -258,11 +295,12 @@ public:
   }
 
   void kill() {
-    ppf("kill %s\n", fileName);
-    // setupDone = false;
-    SCExecutable._kill(); //kill any old tasks
-    fps = 0;
-    strcpy(fileName, "");
+    if (__run_handle) { //isRunning
+      ppf("kill %s\n", fileName);
+      SCExecutable._kill(); //kill any old tasks
+      fps = 0;
+      strcpy(fileName, "");
+    }
   }
 
 };

@@ -302,9 +302,9 @@ typedef struct EthernetSettings {
   int            eth_mdc;
   int            eth_mdio;
   eth_phy_type_t eth_type;
-  #ifndef CONFIG_IDF_TARGET_ESP32S3
+  // #ifndef CONFIG_IDF_TARGET_ESP32S3
   eth_clock_mode_t eth_clk_mode;
-  #endif
+  // #endif
 } ethernet_settings;
 
 bool SysModNetwork::initEthernet() {

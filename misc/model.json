@@ -8,6 +8,7 @@
       {
         "id": "fileTbl",
         "type": "table",
+        "pid": "Files",
         "ro": false,
         "n": [
           {
@@ -15,52 +16,37 @@
             "type": "text",
             "ro": true,
             "max": 32,
+            "pid": "fileTbl",
             "o": 9,
-            "fun": 5
+            "fun": 5,
+            "p": 1073449632
           },
           {
             "id": "flSize",
             "type": "number",
             "ro": true,
+            "pid": "fileTbl",
             "o": 10,
-            "fun": 6
+            "fun": 6,
+            "p": 1073449644
           },
           {
             "id": "flTime",
             "type": "number",
             "ro": true,
+            "pid": "fileTbl",
             "o": 11,
-            "fun": 7
+            "fun": 7,
+            "p": 1073449656
           },
           {
             "id": "flEdit",
             "type": "fileEdit",
-            "ro": false,
-            "value": [
-              "F_CubeBox-16.json",
-              "F_Fiber.json",
-              "F_Panel-128x64.json",
-              "F_Panel-32x32.json",
-              "F_Panel-64x64.json",
-              "F_Panel-80x80.json",
-              "F_Panel-8x8.json",
-              "F_Panel-90x90.json",
-              "F_Rings241-9.json",
-              "F_Spiral64.json",
-              "balls.sc",
-              "blink.sc",
-              "helloworld1.sc",
-              "helloworld2.sc",
-              "helloworld3.sc",
-              "model.json",
-              "octo.sc",
-              "helloworld2.sc",
-              "helloworld3.sc",
-              "model.json",
-              "octo.sc"
-            ],
+            "ro": true,
+            "pid": "fileTbl",
             "o": 12,
-            "fun": 8
+            "fun": 8,
+            "p": 1073449632
           }
         ],
         "o": 8,
@@ -69,6 +55,7 @@
       {
         "id": "upload",
         "type": "fileUpload",
+        "pid": "Files",
         "ro": false,
         "o": 13,
         "fun": 9
@@ -76,12 +63,14 @@
       {
         "id": "drsize",
         "type": "progress",
+        "pid": "Files",
         "ro": true,
         "max": 262144,
         "o": 14,
         "fun": 10
       }
     ],
+    "pid": "m",
     "o": 3101
   },
   {
@@ -94,14 +83,34 @@
       {
         "id": "upTime",
         "type": "text",
+        "pid": "System",
         "ro": true,
         "max": 16,
         "o": 17,
         "fun": 12
       },
       {
+        "id": "now",
+        "type": "number",
+        "pid": "System",
+        "ro": true,
+        "max": -1,
+        "o": 18,
+        "fun": 13
+      },
+      {
+        "id": "timeBase",
+        "type": "number",
+        "pid": "System",
+        "ro": true,
+        "max": -1,
+        "o": 19,
+        "fun": 14
+      },
+      {
         "id": "reboot",
         "type": "button",
+        "pid": "System",
         "ro": false,
         "o": 20,
         "fun": 15
@@ -109,6 +118,7 @@
       {
         "id": "loops",
         "type": "text",
+        "pid": "System",
         "ro": true,
         "max": 16,
         "o": 21
@@ -116,6 +126,7 @@
       {
         "id": "chip",
         "type": "text",
+        "pid": "System",
         "ro": true,
         "max": 16,
         "o": 22
@@ -123,14 +134,16 @@
       {
         "id": "heap",
         "type": "progress",
+        "pid": "System",
         "ro": true,
-        "max": 321,
+        "max": 308,
         "o": 23,
         "fun": 16
       },
       {
         "id": "mainStack",
         "type": "progress",
+        "pid": "System",
         "ro": true,
         "max": 8192,
         "o": 24,
@@ -139,6 +152,7 @@
       {
         "id": "tcpStack",
         "type": "progress",
+        "pid": "System",
         "ro": true,
         "max": 16384,
         "o": 25,
@@ -147,6 +161,7 @@
       {
         "id": "reset0",
         "type": "select",
+        "pid": "System",
         "ro": true,
         "o": 26,
         "fun": 19
@@ -154,6 +169,7 @@
       {
         "id": "reset1",
         "type": "select",
+        "pid": "System",
         "ro": true,
         "o": 27,
         "fun": 20
@@ -161,6 +177,7 @@
       {
         "id": "restartReason",
         "type": "select",
+        "pid": "System",
         "ro": true,
         "o": 28,
         "fun": 21
@@ -168,6 +185,7 @@
       {
         "id": "build",
         "type": "text",
+        "pid": "System",
         "ro": true,
         "max": 32,
         "o": 29
@@ -175,6 +193,7 @@
       {
         "id": "update",
         "type": "fileUpload",
+        "pid": "System",
         "ro": false,
         "o": 30,
         "fun": 22
@@ -184,29 +203,14 @@
         "type": "text",
         "ro": false,
         "max": 24,
-        "value": "Lab-16",
-        "oldValue": "Star3232-16",
+        "value": "StarLight",
+        "pid": "System",
         "o": 16,
         "fun": 11
-      },
-      {
-        "id": "now",
-        "type": "number",
-        "ro": true,
-        "max": -1,
-        "o": 18,
-        "fun": 13
-      },
-      {
-        "id": "timeBase",
-        "type": "number",
-        "ro": true,
-        "max": -1,
-        "o": 19,
-        "fun": 14
       }
     ],
     "view": "vAll",
+    "pid": "m",
     "o": 3000
   },
   {
@@ -218,11 +222,13 @@
       {
         "id": "pinTbl",
         "type": "table",
+        "pid": "Pins",
         "ro": true,
         "n": [
           {
             "id": "pinNr",
             "type": "pin",
+            "pid": "pinTbl",
             "ro": true,
             "max": 40,
             "o": 33,
@@ -231,6 +237,7 @@
           {
             "id": "pinOwner",
             "type": "text",
+            "pid": "pinTbl",
             "ro": true,
             "max": 32,
             "o": 34,
@@ -239,6 +246,7 @@
           {
             "id": "pinDetails",
             "type": "text",
+            "pid": "pinTbl",
             "ro": true,
             "max": 256,
             "o": 35,
@@ -251,6 +259,7 @@
       {
         "id": "board",
         "type": "canvas",
+        "pid": "Pins",
         "ro": true,
         "interval": 100,
         "loopFun": 0,
@@ -260,12 +269,14 @@
       {
         "id": "pin19",
         "type": "checkbox",
+        "pid": "Pins",
         "ro": false,
         "value": 1,
         "o": 37,
         "fun": 28
       }
     ],
+    "pid": "m",
     "o": 3202
   },
   {
@@ -277,19 +288,21 @@
       {
         "id": "pOut",
         "type": "select",
+        "pid": "Print",
         "ro": false,
         "value": 1,
-        "oldValue": 2,
         "o": 39,
         "fun": 29
       },
       {
         "id": "log",
         "type": "textarea",
+        "pid": "Print",
         "ro": false,
         "o": 40
       }
     ],
+    "pid": "m",
     "o": 3302
   },
   {
@@ -301,11 +314,13 @@
       {
         "id": "clTbl",
         "type": "table",
+        "pid": "Web",
         "ro": true,
         "n": [
           {
             "id": "clNr",
             "type": "number",
+            "pid": "clTbl",
             "ro": true,
             "max": 999,
             "o": 43,
@@ -314,6 +329,7 @@
           {
             "id": "clIp",
             "type": "text",
+            "pid": "clTbl",
             "ro": true,
             "max": 16,
             "o": 44,
@@ -322,6 +338,7 @@
           {
             "id": "clIsFull",
             "type": "checkbox",
+            "pid": "clTbl",
             "ro": true,
             "o": 45,
             "fun": 33
@@ -329,6 +346,7 @@
           {
             "id": "clStatus",
             "type": "select",
+            "pid": "clTbl",
             "ro": true,
             "o": 46,
             "fun": 34
@@ -336,6 +354,7 @@
           {
             "id": "clLength",
             "type": "number",
+            "pid": "clTbl",
             "ro": true,
             "max": 64,
             "o": 47,
@@ -348,6 +367,7 @@
       {
         "id": "maxQueue",
         "type": "number",
+        "pid": "Web",
         "ro": true,
         "max": 64,
         "o": 48
@@ -355,6 +375,7 @@
       {
         "id": "wsSend",
         "type": "text",
+        "pid": "Web",
         "ro": true,
         "max": 16,
         "o": 49,
@@ -363,6 +384,7 @@
       {
         "id": "wsRecv",
         "type": "text",
+        "pid": "Web",
         "ro": true,
         "max": 16,
         "o": 50,
@@ -371,6 +393,7 @@
       {
         "id": "udpSend",
         "type": "text",
+        "pid": "Web",
         "ro": true,
         "max": 16,
         "o": 51,
@@ -379,12 +402,14 @@
       {
         "id": "udpRecv",
         "type": "text",
+        "pid": "Web",
         "ro": true,
         "max": 16,
         "o": 52,
         "fun": 39
       }
     ],
+    "pid": "m",
     "o": 4101
   },
   {
@@ -395,48 +420,168 @@
     "s": true,
     "n": [
       {
-        "id": "ssid",
-        "type": "text",
+        "id": "ethOn",
+        "type": "checkbox",
+        "pid": "Network",
         "ro": false,
-        "max": 31,
-        "value": "ewtr",
-        "oldValue": "",
-        "o": 54
-      },
-      {
-        "id": "pw",
-        "type": "password",
-        "ro": false,
-        "value": "ewtrpw",
-        "oldValue": "",
-        "max": 63,
-        "o": 55,
+        "value": 1,
+        "n": [
+          {
+            "id": "ethConfig",
+            "type": "select",
+            "pid": "ethOn",
+            "ro": false,
+            "value": 0,
+            "n": [
+              {
+                "id": "ethaddr",
+                "type": "number",
+                "pid": "ethConfig",
+                "ro": false,
+                "max": 255,
+                "value": 0,
+                "o": 56,
+                "fun": 42
+              },
+              {
+                "id": "ethpower",
+                "type": "pin",
+                "pid": "ethConfig",
+                "ro": false,
+                "max": 40,
+                "value": 14,
+                "o": 57,
+                "fun": 43
+              },
+              {
+                "id": "ethmdc",
+                "type": "pin",
+                "pid": "ethConfig",
+                "ro": false,
+                "max": 40,
+                "value": 23,
+                "o": 58,
+                "fun": 44
+              },
+              {
+                "id": "ethmdio",
+                "type": "pin",
+                "pid": "ethConfig",
+                "ro": false,
+                "max": 40,
+                "value": 18,
+                "o": 59,
+                "fun": 45
+              },
+              {
+                "id": "ethtype",
+                "type": "select",
+                "pid": "ethConfig",
+                "ro": false,
+                "value": 0,
+                "o": 60,
+                "fun": 46
+              },
+              {
+                "id": "ethclkmode",
+                "type": "select",
+                "pid": "ethConfig",
+                "ro": false,
+                "value": 3,
+                "o": 61,
+                "fun": 47
+              }
+            ],
+            "o": 55,
+            "fun": 41
+          },
+          {
+            "id": "etStatus",
+            "type": "text",
+            "pid": "ethOn",
+            "ro": true,
+            "max": 32,
+            "o": 62,
+            "fun": 48
+          }
+        ],
+        "o": 54,
         "fun": 40
       },
       {
-        "id": "connect",
-        "type": "button",
+        "id": "wifiOn",
+        "type": "checkbox",
+        "pid": "Network",
         "ro": false,
-        "o": 56,
-        "fun": 41
+        "value": true,
+        "n": [
+          {
+            "id": "ssid",
+            "type": "text",
+            "pid": "wifiOn",
+            "ro": false,
+            "max": 31,
+            "value": "ewtr",
+            "oldValue": "",
+            "o": 64,
+            "fun": 50
+          },
+          {
+            "id": "pw",
+            "type": "password",
+            "pid": "wifiOn",
+            "ro": false,
+            "max": 63,
+            "value": "xxx",
+            "oldValue": "",
+            "o": 65,
+            "fun": 51
+          },
+          {
+            "id": "rssi",
+            "type": "text",
+            "pid": "wifiOn",
+            "ro": true,
+            "max": 32,
+            "o": 66,
+            "fun": 52
+          },
+          {
+            "id": "wfStatus",
+            "type": "text",
+            "pid": "wifiOn",
+            "ro": true,
+            "max": 32,
+            "o": 67,
+            "fun": 53
+          }
+        ],
+        "oldValue": false,
+        "o": 63,
+        "fun": 49
       },
       {
-        "id": "nwstatus",
-        "type": "text",
-        "ro": true,
-        "max": 32,
-        "o": 57,
-        "fun": 42
-      },
-      {
-        "id": "rssi",
-        "type": "text",
-        "ro": true,
-        "max": 32,
-        "o": 58,
-        "fun": 43
+        "id": "apOn",
+        "type": "checkbox",
+        "pid": "Network",
+        "ro": false,
+        "value": 0,
+        "n": [
+          {
+            "id": "apStatus",
+            "type": "text",
+            "pid": "apOn",
+            "ro": true,
+            "max": 32,
+            "o": 69,
+            "fun": 55
+          }
+        ],
+        "o": 68,
+        "fun": 54
       }
     ],
+    "pid": "m",
     "o": 4502
   },
   {
@@ -448,68 +593,113 @@
       {
         "id": "dun",
         "type": "number",
+        "pid": "E131",
         "ro": false,
         "max": 7,
         "value": 1,
-        "o": 60,
-        "fun": 44,
-        "p": 1073413620
+        "o": 71,
+        "fun": 56,
+        "p": 1073464632
       },
       {
         "id": "dch",
         "type": "number",
+        "pid": "E131",
         "ro": false,
         "min": 1,
         "max": 512,
         "value": 1,
-        "o": 61,
-        "fun": 45,
-        "p": 1073413618,
+        "o": 72,
+        "fun": 57,
+        "p": 1073464630,
         "dash": true
       },
       {
         "id": "e131Tbl",
         "type": "table",
+        "pid": "E131",
         "ro": true,
         "n": [
           {
             "id": "e131Channel",
             "type": "number",
+            "pid": "e131Tbl",
             "ro": true,
             "min": 1,
             "max": 512,
-            "o": 63,
-            "fun": 47
+            "o": 74,
+            "fun": 59
           },
           {
             "id": "e131Name",
             "type": "text",
+            "pid": "e131Tbl",
             "ro": true,
             "max": 32,
-            "o": 64,
-            "fun": 48
+            "o": 75,
+            "fun": 60
           },
           {
             "id": "e131Max",
             "type": "number",
+            "pid": "e131Tbl",
             "ro": true,
-            "o": 65,
-            "fun": 49
+            "o": 76,
+            "fun": 61
           },
           {
             "id": "e131Value",
             "type": "number",
+            "pid": "e131Tbl",
             "ro": true,
             "max": 255,
-            "o": 66,
-            "fun": 50
+            "o": 77,
+            "fun": 62
           }
         ],
-        "o": 62,
-        "fun": 46
+        "o": 73,
+        "fun": 58
       }
     ],
+    "pid": "m",
     "o": 7201
+  },
+  {
+    "id": "Motion Tracking",
+    "type": "usermod",
+    "ro": true,
+    "max": 255,
+    "n": [
+      {
+        "id": "mtReady",
+        "type": "checkbox",
+        "pid": "Motion Tracking",
+        "ro": true,
+        "o": 79,
+        "fun": 63,
+        "p": 1073465340
+      },
+      {
+        "id": "gyro",
+        "type": "coord3D",
+        "pid": "Motion Tracking",
+        "ro": true,
+        "o": 80,
+        "fun": 64,
+        "p": 1073465344
+      },
+      {
+        "id": "accell",
+        "type": "coord3D",
+        "pid": "Motion Tracking",
+        "ro": true,
+        "o": 81,
+        "fun": 65,
+        "p": 1073465356
+      }
+    ],
+    "pid": "m",
+    "o": 7305
   },
   {
     "id": "Model",
@@ -521,27 +711,31 @@
       {
         "id": "saveModel",
         "type": "button",
+        "pid": "Model",
         "ro": false,
-        "o": 72,
-        "fun": 54
+        "o": 83,
+        "fun": 66
       },
       {
         "id": "showObsolete",
         "type": "checkbox",
+        "pid": "Model",
         "ro": false,
-        "value": 0,
-        "o": 73,
-        "fun": 55,
-        "p": 1073451651
+        "value": false,
+        "o": 84,
+        "fun": 67,
+        "p": 1073451680
       },
       {
         "id": "deleteObsolete",
         "type": "button",
+        "pid": "Model",
         "ro": false,
-        "o": 74,
-        "fun": 56
+        "o": 85,
+        "fun": 68
       }
     ],
+    "pid": "m",
     "o": 5303
   },
   {
@@ -553,29 +747,33 @@
       {
         "id": "vlTbl",
         "type": "table",
+        "pid": "UI",
         "ro": true,
         "n": [
           {
             "id": "vlVar",
             "type": "text",
+            "pid": "vlTbl",
             "ro": true,
             "max": 32,
-            "o": 77,
-            "fun": 58
+            "o": 88,
+            "fun": 70
           },
           {
             "id": "vlLoopps",
             "type": "number",
+            "pid": "vlTbl",
             "ro": true,
             "max": 999,
-            "o": 78,
-            "fun": 59
+            "o": 89,
+            "fun": 71
           }
         ],
-        "o": 76,
-        "fun": 57
+        "o": 87,
+        "fun": 69
       }
     ],
+    "pid": "m",
     "o": 5101
   },
   {
@@ -587,125 +785,175 @@
       {
         "id": "insTbl",
         "type": "table",
+        "pid": "Instances",
         "ro": true,
         "n": [
           {
             "id": "insName",
             "type": "text",
+            "pid": "insTbl",
             "ro": false,
             "max": 32,
-            "o": 81,
-            "fun": 61
-          },
-          {
-            "id": "insLink",
-            "type": "number",
-            "ro": true,
-            "o": 83,
-            "fun": 63
-          },
-          {
-            "id": "insIp",
-            "type": "text",
-            "ro": true,
-            "max": 16,
-            "o": 84,
-            "fun": 64
-          },
-          {
-            "id": "insType",
-            "type": "text",
-            "ro": true,
-            "max": 16,
-            "o": 85,
-            "fun": 65
-          },
-          {
-            "id": "insVersion",
-            "type": "number",
-            "ro": true,
-            "max": -1,
-            "o": 86,
-            "fun": 66
-          },
-          {
-            "id": "insUp",
-            "type": "number",
-            "ro": true,
-            "max": -1,
-            "o": 87,
-            "fun": 67
-          },
-          {
-            "id": "inson",
-            "type": "checkbox",
-            "ro": false,
-            "o": 93,
-            "fun": 73
-          },
-          {
-            "id": "insdch",
-            "type": "number",
-            "ro": false,
-            "min": 1,
-            "max": 512,
             "o": 92,
-            "fun": 72
-          },
-          {
-            "id": "insbri",
-            "type": "range",
-            "ro": false,
-            "max": 255,
-            "log": true,
-            "o": 94,
-            "fun": 74
+            "fun": 73
           },
           {
             "id": "insShow",
             "type": "url",
+            "pid": "insTbl",
             "ro": true,
-            "o": 82,
-            "fun": 62
+            "o": 93,
+            "fun": 74
           },
           {
-            "id": "insTS",
+            "id": "insLink",
             "type": "number",
+            "pid": "insTbl",
             "ro": true,
-            "max": -1,
-            "o": 89,
-            "fun": 69
+            "o": 94,
+            "fun": 75
           },
           {
-            "id": "insTT",
-            "type": "number",
+            "id": "insIp",
+            "type": "text",
+            "pid": "insTbl",
             "ro": true,
-            "max": -1,
-            "o": 90,
-            "fun": 70
+            "max": 16,
+            "o": 95,
+            "fun": 76
           },
           {
-            "id": "insTM",
+            "id": "insType",
+            "type": "text",
+            "pid": "insTbl",
+            "ro": true,
+            "max": 16,
+            "o": 96,
+            "fun": 77
+          },
+          {
+            "id": "insVersion",
             "type": "number",
+            "pid": "insTbl",
             "ro": true,
             "max": -1,
-            "o": 91,
-            "fun": 71
+            "o": 97,
+            "fun": 78
+          },
+          {
+            "id": "insUp",
+            "type": "number",
+            "pid": "insTbl",
+            "ro": true,
+            "max": -1,
+            "o": 98,
+            "fun": 79
           },
           {
             "id": "insNow",
             "type": "number",
+            "pid": "insTbl",
             "ro": true,
             "max": -1,
-            "o": 88,
-            "fun": 68
+            "o": 99,
+            "fun": 80
+          },
+          {
+            "id": "insTS",
+            "type": "number",
+            "pid": "insTbl",
+            "ro": true,
+            "max": -1,
+            "o": 100,
+            "fun": 81
+          },
+          {
+            "id": "insTT",
+            "type": "number",
+            "pid": "insTbl",
+            "ro": true,
+            "max": -1,
+            "o": 101,
+            "fun": 82
+          },
+          {
+            "id": "insTM",
+            "type": "number",
+            "pid": "insTbl",
+            "ro": true,
+            "max": -1,
+            "o": 102,
+            "fun": 83
+          },
+          {
+            "id": "inson",
+            "type": "checkbox",
+            "pid": "insTbl",
+            "ro": false,
+            "o": 104,
+            "fun": 85
+          },
+          {
+            "id": "insbri",
+            "type": "range",
+            "pid": "insTbl",
+            "ro": false,
+            "max": 255,
+            "log": true,
+            "o": 105,
+            "fun": 86
+          },
+          {
+            "id": "insdch",
+            "type": "number",
+            "pid": "insTbl",
+            "ro": false,
+            "min": 1,
+            "max": 512,
+            "o": 103,
+            "fun": 84
           }
         ],
-        "o": 80,
-        "fun": 60
+        "o": 91,
+        "fun": 72
       }
     ],
+    "pid": "m",
     "o": 4000
+  },
+  {
+    "id": "Live",
+    "type": "usermod",
+    "ro": true,
+    "max": 255,
+    "n": [
+      {
+        "id": "script",
+        "type": "select",
+        "pid": "Live",
+        "ro": false,
+        "o": 107,
+        "fun": 87
+      },
+      {
+        "id": "fps1",
+        "type": "text",
+        "pid": "Live",
+        "ro": true,
+        "max": 10,
+        "o": 108
+      },
+      {
+        "id": "fps2",
+        "type": "text",
+        "pid": "Live",
+        "ro": true,
+        "max": 10,
+        "o": 109
+      }
+    ],
+    "pid": "m",
+    "o": 7310
   },
   {
     "id": "Modules",
@@ -716,29 +964,33 @@
       {
         "id": "mdlTbl",
         "type": "table",
+        "pid": "Modules",
         "ro": true,
         "n": [
           {
             "id": "mdlName",
             "type": "text",
+            "pid": "mdlTbl",
             "ro": true,
             "max": 32,
-            "o": 97,
-            "fun": 76
+            "o": 112,
+            "fun": 89
           },
           {
             "id": "mdlSuccess",
             "type": "checkbox",
+            "pid": "mdlTbl",
             "ro": true,
-            "o": 98,
-            "fun": 77
+            "o": 113,
+            "fun": 90
           },
           {
             "id": "mdlEnabled",
             "type": "checkbox",
+            "pid": "mdlTbl",
             "ro": false,
-            "o": 99,
-            "fun": 78,
+            "o": 114,
+            "fun": 91,
             "value": [
               true,
               true,
@@ -752,52 +1004,22 @@
               true,
               true,
               true,
-              true
+              true,
+              false
             ]
           }
         ],
-        "o": 96,
-        "fun": 75
+        "o": 111,
+        "fun": 88
       }
     ],
+    "pid": "m",
     "o": 5203
-  },
-  {
-    "id": "Motion Tracking",
-    "type": "usermod",
-    "ro": true,
-    "max": 255,
-    "n": [
-      {
-        "id": "mtReady",
-        "type": "checkbox",
-        "ro": true,
-        "o": 68,
-        "fun": 51,
-        "p": 1073460280
-      },
-      {
-        "id": "gyro",
-        "type": "coord3D",
-        "ro": true,
-        "o": 69,
-        "fun": 52,
-        "p": 1073460284
-      },
-      {
-        "id": "accell",
-        "type": "coord3D",
-        "ro": true,
-        "o": 70,
-        "fun": 53,
-        "p": 1073460296
-      }
-    ],
-    "o": 7305
   },
   {
     "id": "AppMod Demo",
     "type": "appmod",
+    "pid": "m",
     "ro": true,
     "o": 2100,
     "max": 255,
@@ -805,6 +1027,7 @@
       {
         "id": "on",
         "type": "checkbox",
+        "pid": "AppMod Demo",
         "ro": false,
         "o": 2,
         "fun": 0,
@@ -814,17 +1037,20 @@
       {
         "id": "bri",
         "type": "range",
+        "pid": "AppMod Demo",
         "ro": false,
         "o": 3,
         "fun": 1,
         "max": 255,
-        "value": 10,
+        "value": 99,
         "log": true,
-        "dash": true
+        "dash": true,
+        "oldValue": 10
       },
       {
         "id": "textField",
         "type": "text",
+        "pid": "AppMod Demo",
         "ro": false,
         "o": 4,
         "max": 32,
@@ -833,6 +1059,7 @@
       {
         "id": "blinkPin",
         "type": "pin",
+        "pid": "AppMod Demo",
         "ro": false,
         "o": 5,
         "fun": 2,
@@ -841,11 +1068,12 @@
       {
         "id": "frequency",
         "type": "range",
+        "pid": "AppMod Demo",
         "ro": false,
         "o": 6,
         "fun": 3,
         "max": 255,
-        "value": 111
+        "value": 108
       }
     ]
   }

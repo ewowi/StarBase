@@ -171,10 +171,10 @@ class Controller {
   }
 
   receiveData(json) {
-    // console.log("receiveData", json)
+    console.log("receiveData", json)
     if (isObject(json)) {
       for (let key of Object.keys(json)) {
-        let value = json[key]
+        let value = json[key] //contains pid.id
         
         let variable = this.modules.findVar(key);       
         if (variable) {

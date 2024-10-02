@@ -82,7 +82,7 @@ void setup() {
   #endif
 
   //Reorder with care! this is the order in which setup and loop is executed
-  //If changed make sure mdlEnabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
+  //If changed make sure Modules.enabled.chFun executes var["value"].to<JsonArray>(); and saveModel! 
   //Default: add below, not in between
 
   mdls->add(appModDemo);

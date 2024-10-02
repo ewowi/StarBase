@@ -286,7 +286,7 @@
     "max": 255,
     "n": [
       {
-        "id": "pOut",
+        "id": "output",
         "type": "select",
         "pid": "Print",
         "ro": false,
@@ -962,32 +962,32 @@
     "max": 255,
     "n": [
       {
-        "id": "mdlTbl",
+        "id": "Modules",
         "type": "table",
         "pid": "Modules",
         "ro": true,
         "n": [
           {
-            "id": "mdlName",
+            "id": "name",
             "type": "text",
-            "pid": "mdlTbl",
+            "pid": "Modules",
             "ro": true,
             "max": 32,
             "o": 112,
             "fun": 89
           },
           {
-            "id": "mdlSuccess",
+            "id": "success",
             "type": "checkbox",
-            "pid": "mdlTbl",
+            "pid": "Modules",
             "ro": true,
             "o": 113,
             "fun": 90
           },
           {
-            "id": "mdlEnabled",
+            "id": "enabled",
             "type": "checkbox",
-            "pid": "mdlTbl",
+            "pid": "Modules",
             "ro": false,
             "o": 114,
             "fun": 91,

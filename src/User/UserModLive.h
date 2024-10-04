@@ -188,6 +188,9 @@ public:
     addExternalVal("uint8_t", "slider2", &slider2); //used in map function
     addExternalVal("uint8_t", "slider3", &slider3); //used in map function
 
+    // runningPrograms.setPrekill(pre, post); //for clockless driver...
+    runningPrograms.setFunctionToSync(show);
+
   } //setup
 
   void addExternalVal(string result, string name, void * ptr) {
@@ -221,7 +224,7 @@ public:
   }
 
   void loop() {
-    if (__run_handle) { //isRunning
+    if (myexec.isRunning()) {
       if (loopState == 2) {// show has been called (in other loop)
         loopState = 0; //waiting on live script
         // ppf("loopState %d\n", loopState);
@@ -240,14 +243,12 @@ public:
         if (strncmp(this->fileName, web->lastFileUpdated+4, sizeof(this->fileName)) == 0) { //+4 remove del:
           ppf("loop20ms kill %s\n", web->lastFileUpdated);
           kill();
-          // ui->callVarFun("script2", UINT8_MAX, onUI); //rebuild options
         }
         //else nothing
       }
       else {
         ppf("loop20ms run %s -> %s\n", this->fileName, web->lastFileUpdated);
         run(web->lastFileUpdated);
-        // ui->callVarFun("script2", UINT8_MAX, onUI); //rebuild options
       }
       strlcpy(web->lastFileUpdated, "", sizeof(web->lastFileUpdated));
     }
@@ -280,17 +281,19 @@ public:
 
         scScript += string(f.readString().c_str()); // add sc file
 
-        scScript += "void main(){resetStat();setup();while(2>1){loop();show();}}";
+        scScript += "void main(){resetStat();setup();while(2>1){loop();show();}}"; //add main which calls setup and loop
 
         ppf("Before parsing of %s\n", fileName);
         ppf("%s:%d f:%d / t:%d (l:%d) B [%d %d]\n", __FUNCTION__, __LINE__, ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap(), esp_get_free_heap_size(), esp_get_free_internal_heap_size());
 
-        if (p.parseScript(&scScript))
+        myexec = p.parseScript(&scScript);
+
+        if (myexec.exeExist)
         {
           ppf("parsing %s done\n", fileName);
           ppf("%s:%d f:%d / t:%d (l:%d) B [%d %d]\n", __FUNCTION__, __LINE__, ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap(), esp_get_free_heap_size(), esp_get_free_internal_heap_size());
 
-          SCExecutable.executeAsTask("main"); //"setup" not working
+          myexec.executeAsTask("main");
           // ppf("setup done\n");
           strlcpy(this->fileName, fileName, sizeof(this->fileName));
         }
@@ -302,9 +305,9 @@ public:
   }
 
   void kill() {
-    if (__run_handle) { //isRunning
+    if (myexec.isRunning()) {
       ppf("kill %s\n", fileName);
-      SCExecutable._kill(); //kill any old tasks
+      myexec._kill();
       fps = 0;
       strlcpy(fileName, "", sizeof(fileName));
     }
@@ -315,4 +318,4 @@ public:
 extern UserModLive *liveM;
 
 
-//asm_parser.h:325:1: warning: control reaches end of non-void function 
+//asm_parser.h:393:1: warning: control reaches end of non-void function 

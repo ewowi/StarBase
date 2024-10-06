@@ -25,7 +25,7 @@ public:
 
     parentVar = ui->initAppMod(parentVar, name, 1100);
 
-    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onUI:
         ui->setLabel(var, "On");
         return true;
@@ -37,7 +37,7 @@ public:
     currentVar["dash"] = true;
 
     //logarithmic slider (10)
-    currentVar = ui->initSlider(parentVar, "brightness", 10, 0, 255, false, [](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    currentVar = ui->initSlider(parentVar, "brightness", 10, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onUI:
         ui->setLabel(var, "Brightness");
         return true;
@@ -50,7 +50,7 @@ public:
 
     ui->initText(parentVar, "textField", "text");
 
-    ui->initPin(parentVar, "blinkPin", blinkPin, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initPin(parentVar, "blinkPin", blinkPin, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onUI: {
         ui->setLabel(var, "Blink Pin");
         ui->setComment(var, "🚧 tbd: reserved and allocated pins");
@@ -67,7 +67,7 @@ public:
       default: return false; 
     }});
 
-    ui->initSlider(parentVar, "frequency", frequency, 0, UINT8_MAX, false, [this](JsonObject var, unsigned8 rowNr, unsigned8 funType) { switch (funType) { //varFun
+    ui->initSlider(parentVar, "frequency", frequency, 0, UINT8_MAX, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onChange:
         frequency = var["value"];
         return true;

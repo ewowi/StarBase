@@ -95,7 +95,7 @@ public:
   //processJsonUrl handles requests send in javascript using fetch and from a browser or curl
   //try this !!!: curl -X POST "http://192.168.121.196/json" -d '{"pin2":false}' -H "Content-Type: application/json"
   //curl -X POST "http://4.3.2.1/json" -d '{"pin2":false}' -H "Content-Type: application/json"
-  //curl -X POST "http://4.3.2.1/json" -d '{"bri":20, "v":true}' -H "Content-Type: application/json"
+  //curl -X POST "http://4.3.2.1/json" -d '{"brightness":20, "v":true}' -H "Content-Type: application/json"
   //curl -X POST "http://192.168.8.125/json" -d '{"effect":2}' -H "Content-Type: application/json"
   //curl -X POST "http://192.168.8.152/json" -d '{"nrOfLeds":2000}' -H "Content-Type: application/json"
 
@@ -119,8 +119,8 @@ public:
   void addResponse(JsonObject var, const char * key, Type value, unsigned8 rowNr = UINT8_MAX) {
     JsonObject responseObject = getResponseObject();
     // if (responseObject[id].isNull()) responseObject[id].to<JsonObject>();;
-    char pidid[32];
-    print->fFormat(pidid, 32, "%s.%s", var["pid"].as<const char *>(), var["id"].as<const char *>());
+    char pidid[64];
+    print->fFormat(pidid, sizeof(pidid), "%s.%s", var["pid"].as<const char *>(), var["id"].as<const char *>());
     if (rowNr == UINT8_MAX)
       responseObject[pidid][key] = value;
     else {

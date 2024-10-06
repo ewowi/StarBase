@@ -1035,7 +1035,7 @@
         "dash": true
       },
       {
-        "id": "bri",
+        "id": "brightness",
         "type": "range",
         "pid": "AppMod Demo",
         "ro": false,

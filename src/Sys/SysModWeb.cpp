@@ -574,7 +574,7 @@ void SysModWeb::serveUpdate(WebRequest *request, const String& fileName, size_t 
     char message[64];
     const char * name = mdl->getValue("System", "name");
 
-    print->fFormat(message, sizeof(message)-1, "Update of %s (...%d) %s", name, net->localIP()[3], success?"Successful":"Failed");
+    print->fFormat(message, sizeof(message), "Update of %s (...%d) %s", name, net->localIP()[3], success?"Successful":"Failed");
 
     ppf("%s\n", message);
     request->send(200, "text/plain", message);
@@ -702,7 +702,7 @@ void SysModWeb::serializeState(JsonObject root) {
     deserializeJson(root, jsonState);
 
     //tbd:  //StarBase has no idea about leds so this should be led independent
-    root["bri"] = mdl->getValue("Fixture", "bri");
+    root["bri"] = mdl->getValue("Fixture", "brightness");
     root["on"] = mdl->getValue("Fixture", "on").as<bool>();
 
 }

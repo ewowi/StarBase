@@ -312,41 +312,41 @@
     "max": 255,
     "n": [
       {
-        "id": "clTbl",
+        "id": "clients",
         "type": "table",
         "pid": "Web",
         "ro": true,
         "n": [
           {
-            "id": "clNr",
+            "id": "nr",
             "type": "number",
-            "pid": "clTbl",
+            "pid": "clients",
             "ro": true,
             "max": 999,
             "o": 43,
             "fun": 31
           },
           {
-            "id": "clIp",
+            "id": "ip",
             "type": "text",
-            "pid": "clTbl",
+            "pid": "clients",
             "ro": true,
             "max": 16,
             "o": 44,
             "fun": 32
           },
           {
-            "id": "clIsFull",
+            "id": "full",
             "type": "checkbox",
-            "pid": "clTbl",
+            "pid": "clients",
             "ro": true,
             "o": 45,
             "fun": 33
           },
           {
-            "id": "clStatus",
+            "id": "status",
             "type": "select",
-            "pid": "clTbl",
+            "pid": "clients",
             "ro": true,
             "o": 46,
             "fun": 34
@@ -354,7 +354,7 @@
           {
             "id": "clLength",
             "type": "number",
-            "pid": "clTbl",
+            "pid": "clients",
             "ro": true,
             "max": 64,
             "o": 47,
@@ -420,23 +420,23 @@
     "s": true,
     "n": [
       {
-        "id": "ethOn",
+        "id": "ethernet",
         "type": "checkbox",
         "pid": "Network",
         "ro": false,
         "value": 1,
         "n": [
           {
-            "id": "ethConfig",
+            "id": "config",
             "type": "select",
-            "pid": "ethOn",
+            "pid": "ethernet",
             "ro": false,
             "value": 0,
             "n": [
               {
-                "id": "ethaddr",
+                "id": "address",
                 "type": "number",
-                "pid": "ethConfig",
+                "pid": "config",
                 "ro": false,
                 "max": 255,
                 "value": 0,
@@ -444,9 +444,9 @@
                 "fun": 42
               },
               {
-                "id": "ethpower",
+                "id": "power",
                 "type": "pin",
-                "pid": "ethConfig",
+                "pid": "config",
                 "ro": false,
                 "max": 40,
                 "value": 14,
@@ -454,9 +454,9 @@
                 "fun": 43
               },
               {
-                "id": "ethmdc",
+                "id": "mdc",
                 "type": "pin",
-                "pid": "ethConfig",
+                "pid": "config",
                 "ro": false,
                 "max": 40,
                 "value": 23,
@@ -464,9 +464,9 @@
                 "fun": 44
               },
               {
-                "id": "ethmdio",
+                "id": "mdio",
                 "type": "pin",
-                "pid": "ethConfig",
+                "pid": "config",
                 "ro": false,
                 "max": 40,
                 "value": 18,
@@ -474,18 +474,18 @@
                 "fun": 45
               },
               {
-                "id": "ethtype",
+                "id": "type",
                 "type": "select",
-                "pid": "ethConfig",
+                "pid": "config",
                 "ro": false,
                 "value": 0,
                 "o": 60,
                 "fun": 46
               },
               {
-                "id": "ethclkmode",
+                "id": "clockMode",
                 "type": "select",
-                "pid": "ethConfig",
+                "pid": "config",
                 "ro": false,
                 "value": 3,
                 "o": 61,
@@ -496,9 +496,9 @@
             "fun": 41
           },
           {
-            "id": "etStatus",
+            "id": "status",
             "type": "text",
-            "pid": "ethOn",
+            "pid": "ethernet",
             "ro": true,
             "max": 32,
             "o": 62,
@@ -509,7 +509,7 @@
         "fun": 40
       },
       {
-        "id": "wifiOn",
+        "id": "wiFi",
         "type": "checkbox",
         "pid": "Network",
         "ro": false,
@@ -518,7 +518,7 @@
           {
             "id": "ssid",
             "type": "text",
-            "pid": "wifiOn",
+            "pid": "wiFi",
             "ro": false,
             "max": 31,
             "value": "ewtr",
@@ -527,9 +527,9 @@
             "fun": 50
           },
           {
-            "id": "pw",
+            "id": "password",
             "type": "password",
-            "pid": "wifiOn",
+            "pid": "wiFi",
             "ro": false,
             "max": 63,
             "value": "xxx",
@@ -540,16 +540,16 @@
           {
             "id": "rssi",
             "type": "text",
-            "pid": "wifiOn",
+            "pid": "wiFi",
             "ro": true,
             "max": 32,
             "o": 66,
             "fun": 52
           },
           {
-            "id": "wfStatus",
+            "id": "status",
             "type": "text",
-            "pid": "wifiOn",
+            "pid": "wiFi",
             "ro": true,
             "max": 32,
             "o": 67,
@@ -561,16 +561,16 @@
         "fun": 49
       },
       {
-        "id": "apOn",
+        "id": "AP",
         "type": "checkbox",
         "pid": "Network",
         "ro": false,
         "value": 0,
         "n": [
           {
-            "id": "apStatus",
+            "id": "status",
             "type": "text",
-            "pid": "apOn",
+            "pid": "AP",
             "ro": true,
             "max": 32,
             "o": 69,
@@ -745,24 +745,24 @@
     "max": 255,
     "n": [
       {
-        "id": "vlTbl",
+        "id": "loops",
         "type": "table",
         "pid": "UI",
         "ro": true,
         "n": [
           {
-            "id": "vlVar",
+            "id": "variable",
             "type": "text",
-            "pid": "vlTbl",
+            "pid": "loops",
             "ro": true,
             "max": 32,
             "o": 88,
             "fun": 70
           },
           {
-            "id": "vlLoopps",
+            "id": "#loops",
             "type": "number",
-            "pid": "vlTbl",
+            "pid": "loops",
             "ro": true,
             "max": 999,
             "o": 89,

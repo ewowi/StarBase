@@ -25,7 +25,7 @@ public:
 
   void setup() override;
 
-  void addExternals();
+  void addDefaultExternals();
 
   void addExternalVal(std::string result, std::string name, void * ptr);
 
@@ -43,14 +43,16 @@ public:
 
   void loop1s();
 
-  bool compile(const char *fileName, const char * progName=nullptr,const char * post=nullptr);
+  //return the id of the executable
+  uint8_t compile(const char *fileName, const char *post = nullptr);
 
-  void killAndDelete(const char * fileName = nullptr);
+  uint8_t findExecutable(const char *fileName);
+  
+  void executeTask(uint8_t exeID, const char *function = "main", int val = UINT16_MAX);
+  void executeBackgroundTask(uint8_t exeID, const char *function = "main");
 
-  bool taskExists(const char *fileName);
-  void executeTask(const char * fileName, const char * function = nullptr);
-  void executeBackgroundTask(const char * fileName, const char * function = nullptr);
-
+  void killAndDelete(const char *fileName = nullptr);
+  void killAndDelete(uint8_t exeID);
 };
 
 extern UserModLive *liveM;

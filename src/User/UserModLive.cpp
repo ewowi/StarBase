@@ -9,8 +9,9 @@
    @license   For non GPL-v3 usage, commercial licenses must be purchased. Contact moonmodules@icloud.com
 */
 
-#include "UserModLive.h"
+#ifdef STARBASE_USERMOD_LIVE //don't know why to exclude the .cpp as the .h is not included in this case ...
 
+#include "UserModLive.h"
 #include "ESPLiveScript.h" //note: contains declarations AND definitions, therefore can only be included once!
 
 // #include <Arduino.h>
@@ -131,25 +132,28 @@ static float _time(float j) {
 
         char fileName[32] = "";
 
-        if (fileNr > 0) { //not None and setup done
+        if (fileNr > 0 && fileNr != UINT8_MAX) { //not None and setup done
           fileNr--;  //-1 as none is no file
           files->seqNrToName(fileName, fileNr, ".sc");
           ppf("script.onChange f:%d n:%s\n", fileNr, fileName);
 
-          if (!taskExists(fileName)) {
+          uint8_t exeID = liveM->findExecutable(fileName);
+          if (exeID == UINT8_MAX) {
 
-            scPreBaseScript = ""; //externals etc generated (would prefer String for esp32...)
-
-            addExternals();
+            addDefaultExternals();
 
             //to run blinkSL.sc
             addExternalFun("void", "pinMode", "(int a1, int a2)", (void *)&pinMode);
             addExternalFun("void", "digitalWrite", "(int a1, int a2)", (void *)&digitalWrite);
             addExternalFun("void", "delay", "(int a1)", (void *)&delay);
 
-            compile(fileName,NULL ,"void main(){resetStat();setup();while(2>1){loop();sync();}}");
+            exeID = compile(fileName, "void main(){resetStat();setup();while(2>1){loop();sync();}}");
           }
-          executeTask(fileName);
+
+          if (exeID != UINT8_MAX)
+            liveM->executeBackgroundTask(exeID);
+          else 
+            ppf("mapInitAlloc task not created (compilation error?) %s\n", fileName);
         }
         else {
           // kill();
@@ -179,9 +183,10 @@ static float _time(float j) {
     ui->initText(tableVar, "name", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onSetValue:
         var["value"].to<JsonArray>(); web->addResponse(var, "value", var["value"]); // empty the value
-        for (size_t rowNr = 0; rowNr < scriptRuntime._scExecutables.size(); rowNr++) {
-          const char *name = scriptRuntime._scExecutables[rowNr].name.c_str();
-          mdl->setValue(var, JsonString(name?name:"xx", JsonString::Copied), rowNr);
+        rowNr = 0;
+        for (Executable &exec: scriptRuntime._scExecutables) {
+          const char *name = exec.name.c_str();
+          mdl->setValue(var, JsonString(exec.name.c_str(), JsonString::Copied), rowNr++);
         }
         return true;
       default: return false;
@@ -190,8 +195,9 @@ static float _time(float j) {
     ui->initCheckBox(tableVar, "running", UINT8_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onSetValue:
         var["value"].to<JsonArray>(); web->addResponse(var, "value", var["value"]); // empty the value
-        for (size_t rowNr = 0; rowNr < scriptRuntime._scExecutables.size(); rowNr++) {
-           mdl->setValue(var, scriptRuntime._scExecutables[rowNr].isRunning(), rowNr);
+        rowNr = 0;
+        for (Executable &exec: scriptRuntime._scExecutables) {
+          mdl->setValue(var, exec.isRunning(), rowNr++);
         }
         return true;
       default: return false;
@@ -200,8 +206,9 @@ static float _time(float j) {
     ui->initCheckBox(tableVar, "halted", UINT8_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onSetValue:
         var["value"].to<JsonArray>(); web->addResponse(var, "value", var["value"]); // empty the value
-        for (size_t rowNr = 0; rowNr < scriptRuntime._scExecutables.size(); rowNr++) {
-           mdl->setValue(var, scriptRuntime._scExecutables[rowNr].isHalted, rowNr);
+        rowNr = 0;
+        for (Executable &exec: scriptRuntime._scExecutables) {
+          mdl->setValue(var, exec.isHalted, rowNr++);
         }
         return true;
       default: return false;
@@ -210,8 +217,9 @@ static float _time(float j) {
     ui->initCheckBox(tableVar, "exe", UINT8_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onSetValue:
         var["value"].to<JsonArray>(); web->addResponse(var, "value", var["value"]); // empty the value
-        for (size_t rowNr = 0; rowNr < scriptRuntime._scExecutables.size(); rowNr++) {
-          mdl->setValue(var, scriptRuntime._scExecutables[rowNr].exeExist, rowNr);
+        rowNr = 0;
+        for (Executable &exec: scriptRuntime._scExecutables) {
+          mdl->setValue(var, exec.exeExist, rowNr++);
         }
         return true;
       default: return false;
@@ -220,12 +228,28 @@ static float _time(float j) {
     ui->initNumber(tableVar, "handle", UINT16_MAX, 0, UINT16_MAX, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onSetValue:
         var["value"].to<JsonArray>(); web->addResponse(var, "value", var["value"]); // empty the value
-        for (size_t rowNr = 0; rowNr < scriptRuntime._scExecutables.size(); rowNr++) {
-           mdl->setValue(var, scriptRuntime._scExecutables[rowNr].__run_handle_index, rowNr);
+        rowNr = 0;
+        for (Executable &exec: scriptRuntime._scExecutables) {
+          mdl->setValue(var, exec.__run_handle_index, rowNr++);
         }
         return true;
       default: return false;
     }});
+
+    ui->initText(tableVar, "size", nullptr, 32, true, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+      case onSetValue:
+        var["value"].to<JsonArray>(); web->addResponse(var, "value", var["value"]); // empty the value
+        rowNr = 0;
+        for (Executable &exec: scriptRuntime._scExecutables) {
+          exe_info exeInfo = scriptRuntime.getExecutableInfo(exec.name);
+          char text[30];
+          print->fFormat(text, sizeof(text), "%d+%d=%d B", exeInfo.binary_size, exeInfo.data_size, exeInfo.total_size);
+          mdl->setValue(var, JsonString(text, JsonString::Copied), rowNr++);
+        }
+        return true;
+      default: return false;
+    }});
+
     ui->initButton(tableVar, "Kill", false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
       case onChange:
         if (rowNr < scriptRuntime._scExecutables.size())
@@ -236,14 +260,15 @@ static float _time(float j) {
       default: return false;
     }});
 
-    addExternals();
-
     runningPrograms.setPrekill(preKill, postKill); //for clockless driver...
     runningPrograms.setFunctionToSync(show);
 
   } //setup
 
-  void UserModLive::addExternals() {
+  void UserModLive::addDefaultExternals() {
+
+    scPreBaseScript = "";
+
     //Live Scripts defaults
     addExternalFun("void", "show", "()", (void *)&show); //comment if setup/loop model works
     // addExternalFun("void", "showM", "()", (void *)&UserModLive::showM); // warning: converting from 'void (UserModLive::*)()' to 'void*' [-Wpmf-conversions]
@@ -256,10 +281,6 @@ static float _time(float j) {
     addExternalFun("float", "time", "(float a1)", (void *)_time);
     addExternalFun("float", "triangle", "(float a1)", (void *)_triangle);
     addExternalFun("uint32_t", "millis", "()", (void *)millis);
-
-    // addExternalFun("delay", [](int ms) {delay(ms);});
-    // addExternalFun("digitalWrite", [](int pin, int val) {digitalWrite(pin, val);});
-
   }
 
   void UserModLive::addExternalVal(string result, string name, void * ptr) {
@@ -328,25 +349,24 @@ static float _time(float j) {
       ui->callVarFun(childVar, UINT8_MAX, onSetValue); //set the value (WIP)
   }
 
-  void UserModLive::executeTask(const char * fileName, const char * function)
+  void UserModLive::executeTask(uint8_t exeID, const char * function, int val)
   {
-    if (function)
-      scriptRuntime.execute(string(fileName), string(function));
-    else
-      scriptRuntime.execute(string(fileName));
-  }
-  void UserModLive::executeBackgroundTask(const char * fileName, const char * function)
-  {
-    if (function)
-      scriptRuntime.executeAsTask(string(fileName), string(function));
-    else
-      scriptRuntime.executeAsTask(string(fileName));
+    if (val == UINT16_MAX)
+      scriptRuntime._scExecutables[exeID].execute(string(function));
+    else {
+      Arguments arguments;
+      arguments.add(val);
+      scriptRuntime._scExecutables[exeID].execute(string(function), arguments);
+    }
   }
 
-  bool UserModLive::compile(const char *fileName, const char * progName, const char * post) {
+  void UserModLive::executeBackgroundTask(uint8_t exeID, const char * function)
+  {
+    scriptRuntime._scExecutables[exeID].executeAsTask(string(function));
+  }
+
+  uint8_t UserModLive::compile(const char * fileName, const char * post) {
     ppf("live compile n:%s o:%s \n", fileName, this->fileName);
-    if (progName == nullptr)
-      progName = fileName;
     //if(this->fileName!=NULL)
     killAndDelete(); //doesn't this kill running scripts, e.g. when changing a Live Fixture, a running Live Effect will be killed !
     killAndDelete(fileName); //kill any old script
@@ -356,7 +376,7 @@ static float _time(float j) {
     if (!f)
     {
       ppf("UserModLive setup script open %s for %s failed\n", fileName, "r");
-      return false;
+      return UINT8_MAX;
     }
     else {
 
@@ -390,46 +410,50 @@ static float _time(float j) {
       ppf("Before parsing of %s\n", fileName);
       ppf("%s:%d f:%d / t:%d (l:%d) B [%d %d]\n", __FUNCTION__, __LINE__, ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap(), esp_get_free_heap_size(), esp_get_free_internal_heap_size());
 
-      Executable *executable = new Executable();
-     
-      *executable = parser.parseScript(&scScript);
-      executable->name = string(progName);
+      Executable executable = parser.parseScript(&scScript);
+      executable.name = string(fileName);
 
-      if (executable->exeExist)
+      if (executable.exeExist)
       {
         ppf("parsing %s done\n", fileName);
         ppf("%s:%d f:%d / t:%d (l:%d) B [%d %d]\n", __FUNCTION__, __LINE__, ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getMaxAllocHeap(), esp_get_free_heap_size(), esp_get_free_internal_heap_size());
 
-        scriptRuntime.addExe(*executable);
+        scriptRuntime.addExe(executable);
         ppf("exe created %d\n", scriptRuntime._scExecutables.size());
 
-        return true;
+        return scriptRuntime._scExecutables.size() - 1;
         // ppf("setup done\n");
         // strlcpy(this->fileName, fileName, sizeof(this->fileName));
       }
       else{
-        return false;
+        return UINT8_MAX;
       }
       f.close();
     }
   }
 
-  void UserModLive::killAndDelete(const char * name) {
-    //tbd: kill specific task...
-    if (name != NULL)
-    { 
+  void UserModLive::killAndDelete(const char *name) {
+    if (name != nullptr) { 
       scriptRuntime.kill(string(name));
       scriptRuntime.deleteExe(string(name));
-    }
-    else
-    {
+    } else {
       scriptRuntime.killAndFreeRunningProgram();
     }
+    // fix->liveFixtureID = nullptr; //to be sure! todo: nullify exec pointers fix->liveFixtureID and leds.liveEffectID
   }
 
-  bool UserModLive::taskExists(const char *fileName) {
-    // for (auto &executable: scriptRuntime._scExecutables)
-    //   if (strncmp(executable.name.c_str(), fileName, 32) == 0)
-    //     return true;
-    return scriptRuntime.findExecutable(string(fileName)) != nullptr;
+  void UserModLive::killAndDelete(uint8_t exeID) {
+    if (exeID < scriptRuntime._scExecutables.size())
+      killAndDelete(scriptRuntime._scExecutables[exeID].name.c_str());
   }
+
+  uint8_t UserModLive::findExecutable(const char *fileName) {
+    uint8_t exeID = 0;
+    for (Executable &exec: scriptRuntime._scExecutables) {
+      if (exec.name.compare(string(fileName)) == 0)
+        return exeID++;
+    }
+    return UINT8_MAX;
+  }
+
+  #endif

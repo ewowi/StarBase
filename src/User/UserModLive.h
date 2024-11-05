@@ -1,7 +1,7 @@
 /*
    @title     StarBase
    @file      UserModLive.h
-   @date      20241014
+   @date      20241105
    @repo      https://github.com/ewowi/StarBase, submit changes to this file as PRs to ewowi/StarBase
    @Authors   https://github.com/ewowi/StarBase/commits/main
    @Copyright © 2024 Github StarBase Commit Authors, asmParser © https://github.com/hpwit/ASMParser
@@ -17,7 +17,7 @@ class UserModLive: public SysModule {
 public:
 
   char fileName[32] = ""; //running sc file
-  std::string scPreBaseScript = ""; //externals etc generated (would prefer String for esp32...)
+  std::string scScript = ""; //externals etc generated (would prefer String for esp32...)
 
   UserModLive() :SysModule("LiveScripts") {
     isEnabled = false; //need to enable after fresh setup

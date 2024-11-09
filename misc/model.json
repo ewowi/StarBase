@@ -8,7 +8,6 @@
       {
         "id": "files",
         "type": "table",
-        "pid": "Files",
         "ro": false,
         "n": [
           {
@@ -49,25 +48,26 @@
             "p": 1073449632
           }
         ],
-        "o": 8,
-        "fun": 4
+        "pid": "Files",
+        "o": 37,
+        "fun": 26
       },
       {
         "id": "upload",
         "type": "fileUpload",
-        "pid": "Files",
         "ro": false,
-        "o": 13,
-        "fun": 9
+        "pid": "Files",
+        "o": 42,
+        "fun": 31
       },
       {
         "id": "totalSize",
         "type": "progress",
-        "pid": "Files",
         "ro": true,
         "max": 262144,
-        "o": 14,
-        "fun": 10
+        "pid": "Files",
+        "o": 43,
+        "fun": 32
       }
     ],
     "pid": "m",
@@ -83,130 +83,130 @@
       {
         "id": "upTime",
         "type": "text",
-        "pid": "System",
         "ro": true,
         "max": 16,
-        "o": 17,
-        "fun": 12
+        "pid": "System",
+        "o": 46,
+        "fun": 34
       },
       {
         "id": "now",
         "type": "number",
-        "pid": "System",
         "ro": true,
         "max": -1,
-        "o": 18,
-        "fun": 13
+        "pid": "System",
+        "o": 47,
+        "fun": 35
       },
       {
         "id": "timeBase",
         "type": "number",
-        "pid": "System",
         "ro": true,
         "max": -1,
-        "o": 19,
-        "fun": 14
+        "pid": "System",
+        "o": 48,
+        "fun": 36
       },
       {
         "id": "reboot",
         "type": "button",
-        "pid": "System",
         "ro": false,
-        "o": 20,
-        "fun": 15
+        "pid": "System",
+        "o": 49,
+        "fun": 37
       },
       {
         "id": "loops",
         "type": "text",
-        "pid": "System",
         "ro": true,
         "max": 16,
-        "o": 21
+        "pid": "System",
+        "o": 50
       },
       {
         "id": "chip",
         "type": "text",
-        "pid": "System",
         "ro": true,
         "max": 16,
-        "o": 22
+        "pid": "System",
+        "o": 51
       },
       {
         "id": "heap",
         "type": "progress",
-        "pid": "System",
         "ro": true,
-        "max": 308,
-        "o": 23,
-        "fun": 16
+        "max": 302,
+        "pid": "System",
+        "o": 52,
+        "fun": 38
       },
       {
         "id": "mainStack",
         "type": "progress",
-        "pid": "System",
         "ro": true,
         "max": 8192,
-        "o": 24,
-        "fun": 17
+        "pid": "System",
+        "o": 53,
+        "fun": 39
       },
       {
         "id": "tcpStack",
         "type": "progress",
-        "pid": "System",
         "ro": true,
         "max": 16384,
-        "o": 25,
-        "fun": 18
+        "pid": "System",
+        "o": 54,
+        "fun": 40
       },
       {
         "id": "reset 0",
         "type": "select",
-        "pid": "System",
         "ro": true,
-        "o": 26,
-        "fun": 19
+        "pid": "System",
+        "o": 55,
+        "fun": 41
       },
       {
         "id": "reset 1",
         "type": "select",
-        "pid": "System",
         "ro": true,
-        "o": 27,
-        "fun": 20
+        "pid": "System",
+        "o": 56,
+        "fun": 42
       },
       {
         "id": "restartReason",
         "type": "select",
-        "pid": "System",
         "ro": true,
-        "o": 28,
-        "fun": 21
+        "pid": "System",
+        "o": 57,
+        "fun": 43
       },
       {
         "id": "build",
         "type": "text",
-        "pid": "System",
         "ro": true,
         "max": 32,
-        "o": 29
+        "pid": "System",
+        "o": 58
       },
       {
         "id": "update",
         "type": "fileUpload",
-        "pid": "System",
         "ro": false,
-        "o": 30,
-        "fun": 22
+        "pid": "System",
+        "o": 59,
+        "fun": 44
       },
       {
         "id": "name",
         "type": "text",
         "ro": false,
         "max": 24,
-        "value": "StarLight",
+        "value": "StarLightOli",
         "pid": "System",
-        "o": 16,
-        "fun": 11
+        "o": 45,
+        "fun": 33
       }
     ],
     "view": "vAll",
@@ -222,7 +222,6 @@
       {
         "id": "pins",
         "type": "table",
-        "pid": "Pins",
         "ro": true,
         "n": [
           {
@@ -231,8 +230,8 @@
             "pid": "pins",
             "ro": true,
             "max": 40,
-            "o": 33,
-            "fun": 24
+            "o": 62,
+            "fun": 46
           },
           {
             "id": "owner",
@@ -240,8 +239,8 @@
             "pid": "pins",
             "ro": true,
             "max": 32,
-            "o": 34,
-            "fun": 25
+            "o": 63,
+            "fun": 47
           },
           {
             "id": "details",
@@ -249,31 +248,32 @@
             "pid": "pins",
             "ro": true,
             "max": 256,
-            "o": 35,
-            "fun": 26
+            "o": 64,
+            "fun": 48
           }
         ],
-        "o": 32,
-        "fun": 23
+        "pid": "Pins",
+        "o": 61,
+        "fun": 45
       },
       {
         "id": "board",
         "type": "canvas",
-        "pid": "Pins",
         "ro": true,
         "interval": 100,
-        "loopFun": 0,
-        "o": 36,
-        "fun": 27
+        "loopFun": 1,
+        "pid": "Pins",
+        "o": 65,
+        "fun": 49
       },
       {
         "id": "pin19",
         "type": "checkbox",
-        "pid": "Pins",
         "ro": false,
         "value": 1,
-        "o": 37,
-        "fun": 28
+        "pid": "Pins",
+        "o": 66,
+        "fun": 50
       }
     ],
     "pid": "m",
@@ -288,18 +288,18 @@
       {
         "id": "output",
         "type": "select",
-        "pid": "Print",
         "ro": false,
         "value": 1,
-        "o": 39,
-        "fun": 29
+        "pid": "Print",
+        "o": 68,
+        "fun": 51
       },
       {
         "id": "log",
         "type": "textarea",
-        "pid": "Print",
         "ro": false,
-        "o": 40
+        "pid": "Print",
+        "o": 69
       }
     ],
     "pid": "m",
@@ -314,7 +314,6 @@
       {
         "id": "clients",
         "type": "table",
-        "pid": "Web",
         "ro": true,
         "n": [
           {
@@ -323,8 +322,8 @@
             "pid": "clients",
             "ro": true,
             "max": 999,
-            "o": 43,
-            "fun": 31
+            "o": 72,
+            "fun": 53
           },
           {
             "id": "ip",
@@ -332,8 +331,8 @@
             "pid": "clients",
             "ro": true,
             "max": 16,
-            "o": 44,
-            "fun": 32
+            "o": 73,
+            "fun": 54
           },
           {
             "id": "full",
@@ -357,56 +356,57 @@
             "pid": "clients",
             "ro": true,
             "max": 64,
-            "o": 47,
-            "fun": 35
+            "o": 76,
+            "fun": 57
           }
         ],
-        "o": 42,
-        "fun": 30
+        "pid": "Web",
+        "o": 71,
+        "fun": 52
       },
       {
         "id": "maxQueue",
         "type": "number",
-        "pid": "Web",
         "ro": true,
         "max": 64,
-        "o": 48
+        "pid": "Web",
+        "o": 77
       },
       {
         "id": "WSSend",
         "type": "text",
-        "pid": "Web",
         "ro": true,
         "max": 16,
-        "o": 49,
-        "fun": 36
+        "pid": "Web",
+        "o": 78,
+        "fun": 58
       },
       {
         "id": "WSRecv",
         "type": "text",
-        "pid": "Web",
         "ro": true,
         "max": 16,
-        "o": 50,
-        "fun": 37
+        "pid": "Web",
+        "o": 79,
+        "fun": 59
       },
       {
         "id": "UDPSend",
         "type": "text",
-        "pid": "Web",
         "ro": true,
         "max": 16,
-        "o": 51,
-        "fun": 38
+        "pid": "Web",
+        "o": 80,
+        "fun": 60
       },
       {
         "id": "UDPRecv",
         "type": "text",
-        "pid": "Web",
         "ro": true,
         "max": 16,
-        "o": 52,
-        "fun": 39
+        "pid": "Web",
+        "o": 81,
+        "fun": 61
       }
     ],
     "pid": "m",
@@ -422,7 +422,6 @@
       {
         "id": "ethernet",
         "type": "checkbox",
-        "pid": "Network",
         "ro": false,
         "value": 1,
         "n": [
@@ -440,8 +439,8 @@
                 "ro": false,
                 "max": 255,
                 "value": 0,
-                "o": 56,
-                "fun": 42
+                "o": 85,
+                "fun": 64
               },
               {
                 "id": "power",
@@ -450,8 +449,8 @@
                 "ro": false,
                 "max": 40,
                 "value": 14,
-                "o": 57,
-                "fun": 43
+                "o": 86,
+                "fun": 65
               },
               {
                 "id": "mdc",
@@ -460,8 +459,8 @@
                 "ro": false,
                 "max": 40,
                 "value": 23,
-                "o": 58,
-                "fun": 44
+                "o": 87,
+                "fun": 66
               },
               {
                 "id": "mdio",
@@ -470,8 +469,8 @@
                 "ro": false,
                 "max": 40,
                 "value": 18,
-                "o": 59,
-                "fun": 45
+                "o": 88,
+                "fun": 67
               },
               {
                 "id": "type",
@@ -479,8 +478,8 @@
                 "pid": "config",
                 "ro": false,
                 "value": 0,
-                "o": 60,
-                "fun": 46
+                "o": 89,
+                "fun": 68
               },
               {
                 "id": "clockMode",
@@ -488,12 +487,12 @@
                 "pid": "config",
                 "ro": false,
                 "value": 3,
-                "o": 61,
-                "fun": 47
+                "o": 90,
+                "fun": 69
               }
             ],
-            "o": 55,
-            "fun": 41
+            "o": 84,
+            "fun": 63
           },
           {
             "id": "status",
@@ -501,17 +500,17 @@
             "pid": "ethernet",
             "ro": true,
             "max": 32,
-            "o": 62,
-            "fun": 48
+            "o": 91,
+            "fun": 70
           }
         ],
-        "o": 54,
-        "fun": 40
+        "pid": "Network",
+        "o": 83,
+        "fun": 62
       },
       {
         "id": "wiFi",
         "type": "checkbox",
-        "pid": "Network",
         "ro": false,
         "value": true,
         "n": [
@@ -522,9 +521,8 @@
             "ro": false,
             "max": 31,
             "value": "ewtr",
-            "oldValue": "",
-            "o": 64,
-            "fun": 50
+            "o": 93,
+            "fun": 72
           },
           {
             "id": "password",
@@ -532,10 +530,9 @@
             "pid": "wiFi",
             "ro": false,
             "max": 63,
-            "value": "xxx",
-            "oldValue": "",
-            "o": 65,
-            "fun": 51
+            "value": "zonledmod",
+            "o": 94,
+            "fun": 73
           },
           {
             "id": "rssi",
@@ -543,8 +540,8 @@
             "pid": "wiFi",
             "ro": true,
             "max": 32,
-            "o": 66,
-            "fun": 52
+            "o": 95,
+            "fun": 74
           },
           {
             "id": "status",
@@ -552,18 +549,17 @@
             "pid": "wiFi",
             "ro": true,
             "max": 32,
-            "o": 67,
-            "fun": 53
+            "o": 96,
+            "fun": 75
           }
         ],
-        "oldValue": false,
-        "o": 63,
-        "fun": 49
+        "pid": "Network",
+        "o": 92,
+        "fun": 71
       },
       {
         "id": "AP",
         "type": "checkbox",
-        "pid": "Network",
         "ro": false,
         "value": 0,
         "n": [
@@ -573,12 +569,13 @@
             "pid": "AP",
             "ro": true,
             "max": 32,
-            "o": 69,
-            "fun": 55
+            "o": 98,
+            "fun": 77
           }
         ],
-        "o": 68,
-        "fun": 54
+        "pid": "Network",
+        "o": 97,
+        "fun": 76
       }
     ],
     "pid": "m",
@@ -593,31 +590,30 @@
       {
         "id": "universe",
         "type": "number",
-        "pid": "E131",
         "ro": false,
         "max": 7,
         "value": 1,
-        "o": 71,
-        "fun": 56,
-        "p": 1073464632
+        "pid": "E131",
+        "o": 107,
+        "fun": 83,
+        "p": 1073463688
       },
       {
         "id": "channel",
         "type": "number",
-        "pid": "E131",
         "ro": false,
         "min": 1,
         "max": 512,
         "value": 1,
-        "o": 72,
-        "fun": 57,
-        "p": 1073464630,
+        "pid": "E131",
+        "o": 108,
+        "fun": 84,
+        "p": 1073463686,
         "dash": true
       },
       {
         "id": "watches",
         "type": "table",
-        "pid": "E131",
         "ro": true,
         "n": [
           {
@@ -627,8 +623,8 @@
             "ro": true,
             "min": 1,
             "max": 512,
-            "o": 74,
-            "fun": 59
+            "o": 110,
+            "fun": 86
           },
           {
             "id": "variable",
@@ -636,8 +632,8 @@
             "pid": "watches",
             "ro": true,
             "max": 32,
-            "o": 75,
-            "fun": 60
+            "o": 111,
+            "fun": 87
           },
           {
             "id": "max",
@@ -653,12 +649,13 @@
             "pid": "watches",
             "ro": true,
             "max": 255,
-            "o": 77,
-            "fun": 62
+            "o": 113,
+            "fun": 89
           }
         ],
-        "o": 73,
-        "fun": 58
+        "pid": "E131",
+        "o": 109,
+        "fun": 85
       }
     ],
     "pid": "m",
@@ -673,29 +670,29 @@
       {
         "id": "ready",
         "type": "checkbox",
-        "pid": "Motion Tracking",
         "ro": true,
-        "o": 79,
-        "fun": 63,
-        "p": 1073465340
+        "pid": "Motion Tracking",
+        "o": 115,
+        "fun": 90,
+        "p": 1073464472
       },
       {
         "id": "gyro",
         "type": "coord3D",
-        "pid": "Motion Tracking",
         "ro": true,
-        "o": 80,
-        "fun": 64,
-        "p": 1073465344
+        "pid": "Motion Tracking",
+        "o": 116,
+        "fun": 91,
+        "p": 1073464476
       },
       {
         "id": "accell",
         "type": "coord3D",
-        "pid": "Motion Tracking",
         "ro": true,
-        "o": 81,
-        "fun": 65,
-        "p": 1073465356
+        "pid": "Motion Tracking",
+        "o": 117,
+        "fun": 92,
+        "p": 1073464488
       }
     ],
     "pid": "m",
@@ -711,28 +708,28 @@
       {
         "id": "saveModel",
         "type": "button",
-        "pid": "Model",
         "ro": false,
-        "o": 83,
-        "fun": 66
+        "pid": "Model",
+        "o": 119,
+        "fun": 93
       },
       {
         "id": "showObsolete",
         "type": "checkbox",
-        "pid": "Model",
         "ro": false,
         "value": false,
-        "o": 84,
-        "fun": 67,
+        "pid": "Model",
+        "o": 120,
+        "fun": 94,
         "p": 1073451680
       },
       {
         "id": "deleteObsolete",
         "type": "button",
-        "pid": "Model",
         "ro": false,
-        "o": 85,
-        "fun": 68
+        "pid": "Model",
+        "o": 121,
+        "fun": 95
       }
     ],
     "pid": "m",
@@ -747,7 +744,6 @@
       {
         "id": "loops",
         "type": "table",
-        "pid": "UI",
         "ro": true,
         "n": [
           {
@@ -756,8 +752,8 @@
             "pid": "loops",
             "ro": true,
             "max": 32,
-            "o": 88,
-            "fun": 70
+            "o": 124,
+            "fun": 97
           },
           {
             "id": "#loops",
@@ -765,12 +761,13 @@
             "pid": "loops",
             "ro": true,
             "max": 999,
-            "o": 89,
-            "fun": 71
+            "o": 125,
+            "fun": 98
           }
         ],
-        "o": 87,
-        "fun": 69
+        "pid": "UI",
+        "o": 123,
+        "fun": 96
       }
     ],
     "pid": "m",
@@ -785,7 +782,6 @@
       {
         "id": "instances",
         "type": "table",
-        "pid": "Instances",
         "ro": true,
         "n": [
           {
@@ -794,8 +790,8 @@
             "pid": "instances",
             "ro": false,
             "max": 32,
-            "o": 92,
-            "fun": 73
+            "o": 130,
+            "fun": 101
           },
           {
             "id": "show",
@@ -819,8 +815,8 @@
             "pid": "instances",
             "ro": true,
             "max": 16,
-            "o": 95,
-            "fun": 76
+            "o": 133,
+            "fun": 104
           },
           {
             "id": "type",
@@ -828,8 +824,8 @@
             "pid": "instances",
             "ro": true,
             "max": 16,
-            "o": 96,
-            "fun": 77
+            "o": 134,
+            "fun": 105
           },
           {
             "id": "version",
@@ -837,8 +833,8 @@
             "pid": "instances",
             "ro": true,
             "max": -1,
-            "o": 97,
-            "fun": 78
+            "o": 135,
+            "fun": 106
           },
           {
             "id": "uptime",
@@ -846,8 +842,8 @@
             "pid": "instances",
             "ro": true,
             "max": -1,
-            "o": 98,
-            "fun": 79
+            "o": 136,
+            "fun": 107
           },
           {
             "id": "now",
@@ -855,8 +851,8 @@
             "pid": "instances",
             "ro": true,
             "max": -1,
-            "o": 99,
-            "fun": 80
+            "o": 137,
+            "fun": 108
           },
           {
             "id": "timestamp",
@@ -864,8 +860,8 @@
             "pid": "instances",
             "ro": true,
             "max": -1,
-            "o": 100,
-            "fun": 81
+            "o": 138,
+            "fun": 109
           },
           {
             "id": "time",
@@ -873,8 +869,8 @@
             "pid": "instances",
             "ro": true,
             "max": -1,
-            "o": 101,
-            "fun": 82
+            "o": 139,
+            "fun": 110
           },
           {
             "id": "ms",
@@ -882,11 +878,11 @@
             "pid": "instances",
             "ro": true,
             "max": -1,
-            "o": 102,
-            "fun": 83
+            "o": 140,
+            "fun": 111
           },
           {
-            "id": "inson",
+            "id": "on",
             "type": "checkbox",
             "pid": "instances",
             "ro": false,
@@ -894,28 +890,45 @@
             "fun": 85
           },
           {
-            "id": "insbri",
+            "id": "brightness",
             "type": "range",
             "pid": "instances",
             "ro": false,
             "max": 255,
             "log": true,
-            "o": 105,
-            "fun": 86
+            "o": 143,
+            "fun": 114
           },
           {
-            "id": "insdch",
+            "id": "channel",
             "type": "number",
             "pid": "instances",
             "ro": false,
             "min": 1,
             "max": 512,
-            "o": 103,
-            "fun": 84
+            "o": 141,
+            "fun": 112
+          },
+          {
+            "id": "effect",
+            "type": "select",
+            "ro": false,
+            "pid": "instances",
+            "o": 144,
+            "fun": 115
+          },
+          {
+            "id": "projection",
+            "type": "select",
+            "ro": false,
+            "pid": "instances",
+            "o": 145,
+            "fun": 116
           }
         ],
-        "o": 91,
-        "fun": 72
+        "pid": "Instances",
+        "o": 129,
+        "fun": 100
       }
     ],
     "pid": "m",
@@ -941,7 +954,7 @@
         "pid": "LiveScripts",
         "ro": true,
         "max": 10,
-        "o": 108
+        "o": 148
       },
       {
         "id": "fps2",
@@ -949,7 +962,7 @@
         "pid": "LiveScripts",
         "ro": true,
         "max": 10,
-        "o": 109
+        "o": 149
       }
     ],
     "pid": "m",
@@ -964,7 +977,6 @@
       {
         "id": "Modules",
         "type": "table",
-        "pid": "Modules",
         "ro": true,
         "n": [
           {
@@ -973,8 +985,8 @@
             "pid": "Modules",
             "ro": true,
             "max": 32,
-            "o": 112,
-            "fun": 89
+            "o": 152,
+            "fun": 119
           },
           {
             "id": "success",
@@ -989,8 +1001,6 @@
             "type": "checkbox",
             "pid": "Modules",
             "ro": false,
-            "o": 114,
-            "fun": 91,
             "value": [
               true,
               true,
@@ -999,82 +1009,537 @@
               true,
               true,
               true,
+              true,
+              true,
               false,
               false,
+              false,
+              false,
+              true,
               true,
               true,
               true,
               true,
               false
-            ]
+            ],
+            "o": 154,
+            "fun": 121
           }
         ],
-        "o": 111,
-        "fun": 88
+        "pid": "Modules",
+        "o": 151,
+        "fun": 118
       }
     ],
     "pid": "m",
     "o": 5203
   },
   {
-    "id": "AppMod Demo",
+    "id": "Fixture",
     "type": "appmod",
-    "pid": "m",
     "ro": true,
-    "o": 2100,
     "max": 255,
     "n": [
       {
         "id": "on",
         "type": "checkbox",
-        "pid": "AppMod Demo",
         "ro": false,
+        "value": 1,
+        "pid": "Fixture",
         "o": 2,
         "fun": 0,
-        "value": 1,
         "dash": true
       },
       {
         "id": "brightness",
         "type": "range",
-        "pid": "AppMod Demo",
         "ro": false,
+        "max": 255,
+        "value": 10,
+        "log": true,
+        "pid": "Fixture",
         "o": 3,
         "fun": 1,
-        "max": 255,
-        "value": 99,
-        "log": true,
-        "dash": true,
-        "oldValue": 10
+        "p": 1073462993,
+        "dash": true
       },
       {
-        "id": "textField",
-        "type": "text",
-        "pid": "AppMod Demo",
+        "id": "preview",
+        "type": "canvas",
         "ro": false,
+        "interval": 160,
+        "loopFun": 0,
+        "n": [
+          {
+            "id": "rotation",
+            "type": "select",
+            "ro": false,
+            "value": 0,
+            "pid": "preview",
+            "o": 5,
+            "fun": 3,
+            "p": 1073462992
+          },
+          {
+            "id": "1-byte RGB",
+            "type": "checkbox",
+            "ro": false,
+            "value": true,
+            "pid": "preview",
+            "o": 6,
+            "fun": 4,
+            "p": 1073462994
+          }
+        ],
+        "pid": "Fixture",
         "o": 4,
-        "max": 32,
-        "value": "text"
+        "fun": 2
       },
       {
-        "id": "blinkPin",
-        "type": "pin",
-        "pid": "AppMod Demo",
+        "id": "fixture",
+        "type": "select",
         "ro": false,
-        "o": 5,
-        "fun": 2,
-        "max": 40
+        "value": 1,
+        "n": [
+          {
+            "id": "size",
+            "type": "coord3D",
+            "ro": true,
+            "max": 8192,
+            "pid": "fixture",
+            "o": 8,
+            "fun": 6,
+            "p": 1073555848
+          },
+          {
+            "id": "count",
+            "type": "number",
+            "ro": true,
+            "pid": "fixture",
+            "o": 9,
+            "fun": 7,
+            "p": 1073555844
+          }
+        ],
+        "pid": "Fixture",
+        "o": 7,
+        "fun": 5,
+        "p": 1073555846
       },
       {
-        "id": "frequency",
-        "type": "range",
-        "pid": "AppMod Demo",
+        "id": "fps",
+        "type": "number",
         "ro": false,
-        "o": 6,
-        "fun": 3,
-        "max": 255,
-        "value": 108
+        "min": 1,
+        "max": 999,
+        "value": 2000,
+        "pid": "Fixture",
+        "o": 10,
+        "fun": 8,
+        "p": 1073531218
+      },
+      {
+        "id": "realFps",
+        "type": "text",
+        "ro": true,
+        "max": 10,
+        "pid": "Fixture",
+        "o": 11,
+        "fun": 9
+      },
+      {
+        "id": "driverShow",
+        "type": "checkbox",
+        "ro": false,
+        "value": false,
+        "pid": "Fixture",
+        "o": 12,
+        "fun": 10,
+        "p": 1073555888
       }
-    ]
+    ],
+    "pid": "m",
+    "o": 2100
+  },
+  {
+    "id": "Effects",
+    "type": "appmod",
+    "ro": true,
+    "max": 255,
+    "n": [
+      {
+        "id": "layers",
+        "type": "table",
+        "ro": false,
+        "n": [
+          {
+            "id": "effect",
+            "type": "select",
+            "ro": false,
+            "value": [
+              27
+            ],
+            "n": [
+              {
+                "id": "palette",
+                "type": "select",
+                "ro": false,
+                "value": [
+                  4
+                ],
+                "o": 16,
+                "pid": "effect",
+                "fun": 13
+              },
+              {
+                "id": "x frequency",
+                "type": "range",
+                "ro": false,
+                "max": 255,
+                "value": [
+                  64
+                ],
+                "o": 17,
+                "pid": "effect",
+                "p": [
+                  1073466624
+                ]
+              },
+              {
+                "id": "fade rate",
+                "type": "range",
+                "ro": false,
+                "max": 255,
+                "value": [
+                  128
+                ],
+                "o": 18,
+                "pid": "effect",
+                "p": [
+                  1073466625
+                ]
+              },
+              {
+                "id": "speed",
+                "type": "range",
+                "ro": false,
+                "max": 255,
+                "value": [
+                  128
+                ],
+                "o": 19,
+                "pid": "effect",
+                "p": [
+                  1073466626
+                ]
+              },
+              {
+                "id": "smooth",
+                "type": "checkbox",
+                "ro": false,
+                "value": [
+                  false
+                ],
+                "o": 20,
+                "pid": "effect",
+                "p": [
+                  1073466627
+                ]
+              }
+            ],
+            "pid": "layers",
+            "o": 15,
+            "fun": 12,
+            "dash": true
+          },
+          {
+            "id": "projection",
+            "type": "select",
+            "ro": false,
+            "value": [
+              1
+            ],
+            "pid": "layers",
+            "o": 21,
+            "fun": 14,
+            "dash": true
+          },
+          {
+            "id": "start",
+            "type": "coord3D",
+            "ro": false,
+            "max": 8192,
+            "pid": "layers",
+            "o": 22,
+            "fun": 15,
+            "value": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "id": "middle",
+            "type": "coord3D",
+            "ro": false,
+            "max": 8192,
+            "pid": "layers",
+            "o": 23,
+            "fun": 16,
+            "value": [
+              {
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            ]
+          },
+          {
+            "id": "end",
+            "type": "coord3D",
+            "ro": false,
+            "max": 8192,
+            "pid": "layers",
+            "o": 24,
+            "fun": 17,
+            "value": [
+              {
+                "x": 65535,
+                "y": 65535,
+                "z": 65535
+              }
+            ]
+          },
+          {
+            "id": "size",
+            "type": "text",
+            "ro": true,
+            "max": 32,
+            "pid": "layers",
+            "o": 25,
+            "fun": 18
+          }
+        ],
+        "pid": "Effects",
+        "o": 14,
+        "fun": 11
+      },
+      {
+        "id": "Blending",
+        "type": "range",
+        "ro": false,
+        "max": 255,
+        "value": 128,
+        "pid": "Effects",
+        "o": 26,
+        "p": 1073555886
+      }
+    ],
+    "pid": "m",
+    "o": 2201
+  },
+  {
+    "id": "FixtureGenerator",
+    "type": "appmod",
+    "ro": true,
+    "max": 255,
+    "s": true,
+    "n": [
+      {
+        "id": "fixture",
+        "type": "select",
+        "ro": false,
+        "value": 0,
+        "pid": "FixtureGenerator",
+        "o": 28,
+        "fun": 19,
+        "n": [
+          {
+            "id": "generate",
+            "type": "button",
+            "pid": "fixture",
+            "ro": false,
+            "o": 29,
+            "fun": 20
+          },
+          {
+            "id": "elements",
+            "type": "table",
+            "pid": "fixture",
+            "ro": false,
+            "o": 30,
+            "fun": 21,
+            "n": [
+              {
+                "id": "firstLed",
+                "type": "coord3D",
+                "pid": "elements",
+                "ro": false,
+                "o": 31,
+                "fun": 22,
+                "max": 8192,
+                "value": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              },
+              {
+                "id": "#Leds",
+                "type": "number",
+                "pid": "elements",
+                "ro": false,
+                "o": 32,
+                "fun": 23,
+                "min": 1,
+                "max": 8192,
+                "value": 64
+              },
+              {
+                "id": "radius",
+                "type": "number",
+                "pid": "elements",
+                "ro": false,
+                "o": 33,
+                "min": 1,
+                "max": 1000,
+                "value": 100
+              },
+              {
+                "id": "IP",
+                "type": "number",
+                "pid": "elements",
+                "ro": false,
+                "o": 34,
+                "fun": 24,
+                "min": 1,
+                "max": 256,
+                "value": 0
+              },
+              {
+                "id": "pin",
+                "type": "pin",
+                "pid": "elements",
+                "ro": false,
+                "o": 35,
+                "fun": 25,
+                "max": 40,
+                "value": 2
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "pid": "m",
+    "o": 7302
+  },
+  {
+    "id": "DDP",
+    "type": "usermod",
+    "ro": true,
+    "max": 255,
+    "n": [
+      {
+        "id": "instance",
+        "type": "ip",
+        "ro": false,
+        "max": 255,
+        "pid": "DDP",
+        "o": 100,
+        "fun": 78
+      }
+    ],
+    "pid": "m",
+    "o": 7000
+  },
+  {
+    "id": "ArtNet",
+    "type": "usermod",
+    "ro": true,
+    "max": 255,
+    "n": [
+      {
+        "id": "targetIP",
+        "type": "number",
+        "ro": false,
+        "max": 255,
+        "value": 11,
+        "pid": "ArtNet",
+        "o": 102,
+        "fun": 79
+      },
+      {
+        "id": "outputs",
+        "type": "table",
+        "ro": false,
+        "n": [
+          {
+            "id": "start",
+            "type": "number",
+            "ro": false,
+            "value": [
+              0,
+              7,
+              14,
+              21,
+              28,
+              35,
+              42,
+              49
+            ],
+            "pid": "outputs",
+            "o": 104,
+            "fun": 81,
+            "p": 1073463404
+          },
+          {
+            "id": "size",
+            "type": "number",
+            "ro": false,
+            "value": [
+              1024,
+              1024,
+              1024,
+              1024,
+              1024,
+              1024,
+              1024,
+              1024
+            ],
+            "pid": "outputs",
+            "o": 105,
+            "fun": 82,
+            "p": 1073463392
+          }
+        ],
+        "pid": "ArtNet",
+        "o": 103,
+        "fun": 80
+      }
+    ],
+    "pid": "m",
+    "o": 7100
+  },
+  {
+    "id": "Audio Sync",
+    "type": "usermod",
+    "ro": true,
+    "max": 255,
+    "n": [
+      {
+        "id": "status",
+        "type": "text",
+        "ro": true,
+        "max": 16,
+        "pid": "Audio Sync",
+        "o": 127,
+        "fun": 99
+      }
+    ],
+    "pid": "m",
+    "o": 7300
   }
 ]

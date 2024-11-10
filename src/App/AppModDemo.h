@@ -23,34 +23,34 @@ public:
   void setup() {
     SysModule::setup();
 
-    parentVar = ui->initAppMod(parentVar, name, 1100);
+    Variable parentVar = ui->initAppMod(Variable(), name, 1100);
 
-    JsonObject currentVar = ui->initCheckBox(parentVar, "on", true, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    Variable currentVar = ui->initCheckBox(parentVar, "on", true, false, [](EventArguments) { switch (eventType) { //varFun
       case onChange:
         //implement on/off behaviour
         return true;
       default: return false;
     }});
-    currentVar["dash"] = true;
+    currentVar.var["dash"] = true;
 
     //logarithmic slider (10)
-    currentVar = ui->initSlider(parentVar, "brightness", 10, 0, 255, false, [](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    currentVar = ui->initSlider(parentVar, "brightness", 10, 0, 255, false, [](EventArguments) { switch (eventType) { //varFun
       case onChange: {
         return true; }
       default: return false; 
     }});
-    currentVar["log"] = true; //logarithmic
-    currentVar["dash"] = true; //these values override model.json???
+    currentVar.var["log"] = true; //logarithmic
+    currentVar.var["dash"] = true; //these values override model.json???
 
     ui->initText(parentVar, "textField", "text");
 
-    ui->initPin(parentVar, "blinkPin", &blinkPin, false, [this](JsonObject var, uint8_t rowNr, uint8_t funType) { switch (funType) { //varFun
+    ui->initPin(parentVar, "blinkPin", &blinkPin, false, [this](EventArguments) { switch (eventType) { //varFun
       case onUI:
-        ui->setComment(var, "🚧 tbd: reserved and allocated pins");
+        variable.setComment("🚧 tbd: reserved and allocated pins");
         return true;
       case onChange: {
         //deallocate old value...
-        uint8_t oldValue = var["oldValue"];
+        uint8_t oldValue = variable.var["oldValue"];
         ppf("blinkPin onChange %d %d\n", oldValue, blinkPin);
         if (oldValue != UINT8_MAX)
           pinsM->deallocatePin(oldValue, "Blink");

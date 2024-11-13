@@ -23,7 +23,7 @@ label {
   }
   
   input {
-	  background: transparent;
+	  background: #b81d1d;
 	  color: var(--text-color);
 	  font-size: 8px; /*var(--font-size-s) not working for some reason */
   }
@@ -34,3 +34,26 @@ label {
     /* border-radius: 12px; */
   }
   
+  /*table layout */
+.table {
+  font-family: Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  border-radius: 10px; /*does not seem to work */
+  border-style: hidden; /* hide standard table (collapsed) border */
+  box-shadow: 0 0 0 1px #666; /* this draws the table border  */ 
+}
+
+.table td, .table th {
+  border: 1px solid #000000;
+  padding: 6px;
+  vertical-align: top;
+}
+
+.table th {
+  /* padding-top: 12px;
+  padding-bottom: 12px; */
+  text-align: left;
+  background-color: var(--th-color);
+  color: var(--label-color);
+}

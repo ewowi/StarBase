@@ -22,7 +22,7 @@ class MainNav {
        or shrink if there is nothing to show in the alerts area -->
   <div id="alerts" class="text-center bg-error">
     <!-- Place the alert text in a padded div so that when it's not present the alert area will be hidden-->
-    <div class="pa-3 text-center">some alert text</div>
+    <!-- <div class="pa-3 text-center">some alert text</div>-->
   </div>
   
   <!-- Main navigation bar has a fixed height and so it is always visible -->

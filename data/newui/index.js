@@ -26,9 +26,16 @@ class Controller {
 
     this.modules = new Modules();
 
+    let body = gId("body");
+
+    body.innerHTML += `<h1>StarLight 💫</h1>`
+    // body.innerHTML += "<p>"
+
     this.theme = new Theme();
     this.theme.createHTML();
     this.theme.getTheme();
+
+    // body.innerHTML += "</p>"
   
     this.mainNav = new MainNav(this.modules.model);
     this.mainNav.createHTML();

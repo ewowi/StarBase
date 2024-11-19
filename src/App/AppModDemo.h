@@ -64,6 +64,8 @@ public:
 
     ui->initSlider(parentVar, "frequency", &frequency);
 
+    ui->initCoord3D(parentVar, "coordinate", Coord3D());
+
   }
 
   void loop1s() {

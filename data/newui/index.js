@@ -36,6 +36,10 @@ class Controller {
     this.theme.getTheme();
 
     // body.innerHTML += "</p>"
+    if (window.location.href.includes("127.0.0.1")) {
+      //add checkbox
+      body.innerHTML += `<input id="Live.on" type="checkbox" class="checkbox" checked>`
+    }
   
     this.mainNav = new MainNav(this.modules.model);
     this.mainNav.createHTML();
@@ -69,6 +73,7 @@ class Controller {
 
     // every 1 second
     window.setInterval(function() {
+      if (gId("Live.on").checked)
       controller.modules.generateData() //generates data for each variabe in model
     }, 1000);
 
@@ -215,6 +220,7 @@ const UINT16_MAX = 256*256-1;
 
 function gId(c) {return document.getElementById(c);}
 function cE(e) { return document.createElement(e); }
+function cCE(p, e) {let n = document.createElement(e); p.appendChild(n); return n; } //add node to parent
 
 function isLowerCase(s) {
   return s.toLowerCase() == s

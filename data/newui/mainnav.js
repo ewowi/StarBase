@@ -105,14 +105,14 @@ class MainNav {
 
     // Update the page content
     if (this.#createHTMLFun) {
-        gId('page').innerHTML = 
+      gId('page').innerHTML = 
       `<div class="d-flex flex-column h-100 overflow-hidden">
         <div class="flex-shrink-0">
           <h1 class="title">${this.#activeModuleJson.id}</h1>
         </div>
-        <div class="overflow-y-auto">` + this.#createHTMLFun(this.#activeModuleJson) +
-        `</div>
+        <div id="Module.main" class="overflow-y-auto"></div>
       </div>`
+      this.#createHTMLFun(this.#activeModuleJson, gId("Module.main"))
     }
     //done after innerHTML as it needs to find the nodes. tbd: createHTMLFun adds to dom directly
     if (this.#setDefaultValuesFun) {

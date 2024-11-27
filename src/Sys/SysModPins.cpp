@@ -124,7 +124,7 @@ void SysModPins::loop20ms() {
   if (pinsChanged) {
     pinsChanged = false;
 
-    for (JsonObject childVar: Variable(mdl->findVar("Pins", "pins")).children())
+    for (JsonObject childVar: Variable("Pins", "pins").children())
       Variable(childVar).triggerEvent(onSetValue); //set the value (WIP)
   }
 }

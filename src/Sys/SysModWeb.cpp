@@ -157,7 +157,7 @@ void SysModWeb::loop20ms() {
     clientsChanged = false;
 
     // ppf("SysModWeb clientsChanged\n");
-    for (JsonObject childVar: Variable(mdl->findVar("Web", "clients")).children())
+    for (JsonObject childVar: Variable("Web", "clients").children())
       Variable(childVar).triggerEvent(onSetValue); //set the value (WIP)
   }
 
@@ -490,7 +490,7 @@ void SysModWeb::serveUpload(WebRequest *request, const String& fileName, size_t 
       finalname = '/' + finalname; // prepend slash if missing
     }
 
-    request->_tempFile = files->open(finalname.c_str(), "w");
+    request->_tempFile = files->open(finalname.c_str(), FILE_WRITE);
     // DEBUG_PRINT("Uploading ");
     // DEBUG_PRINTLN(finalname);
     // if (finalname.equals("/presets.json")) presetsModifiedTime = toki.second();
@@ -608,7 +608,7 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
     if (responseObject.size()) { //responseObject set by processJson e.g. onUI
 
       char resStr[200];
-      serializeJson(responseObject, resStr, 200);
+      serializeJson(responseObject, resStr, sizeof(resStr));
       ppf("processJsonUrl response %s\n", resStr);
       request->send(200, "application/json", resStr);
 
@@ -659,6 +659,7 @@ bool SysModWeb::captivePortal(WebRequest *request)
 JsonDocument * SysModWeb::getResponseDoc() {
   // ppf("response wsevent core %d %s\n", xPortGetCoreID(), pcTaskGetTaskName(nullptr));
 
+  // return responseDocLoopTask;
   return strncmp(pcTaskGetTaskName(nullptr), "loopTask", 9) == 0?responseDocLoopTask:responseDocAsyncTCP;
 }
 

@@ -241,7 +241,7 @@ void SysModSystem::loop() {
 void SysModSystem::loop10s() {
   //heartbeat
   if (sys->now < 60000)
-    ppf("❤️ %s\n", net->localIP().toString().c_str());
+    ppf("❤️ http://%s\n", net->localIP().toString().c_str());
   else
     ppf("❤️");
 }

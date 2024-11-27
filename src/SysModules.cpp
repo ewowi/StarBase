@@ -23,7 +23,7 @@ void SysModules::setup() {
   }
 
   //delete Modules values if nr of modules has changed (new values created using module defaults)
-  for (JsonObject childVar: Variable(mdl->findVar("Modules", "Modules")).children()) {
+  for (JsonObject childVar: Variable("Modules", "Modules").children()) {
     Variable childVariable = Variable(childVar);
     if (!childVariable.value().isNull() && childVariable.valArray().size() != modules.size()) {
       ppf("Modules clear (%s.%s %s) %d %d\n", childVariable.pid(), childVariable.id(), childVariable.valueString().c_str(), modules.size(), childVariable.valArray().size());

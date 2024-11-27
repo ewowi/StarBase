@@ -233,7 +233,7 @@ public:
         //extract the variable from insVariable.id()
         char pid[32]; strlcpy(pid, insVariable.id() + 3, sizeof(pid)); //+3 : remove ins
         char * id = strtok(pid, "_"); if (id != nullptr ) {strlcpy(pid, id, sizeof(pid)); id = strtok(nullptr, "_");} //split pid and id
-        Variable variable = Variable(mdl->findVar(pid, id)); 
+        Variable variable = Variable(pid, id); 
         switch (eventType) { //varEvent
         case onSetValue:
           //should not trigger onChange
@@ -436,7 +436,7 @@ public:
           // Serial.println();
 
           ppf("instances handleNotifications %d\n", notifierUdp.remoteIP()[3]);
-          for (JsonObject childVar: Variable(mdl->findVar("Instances", "instances")).children())
+          for (JsonObject childVar: Variable("Instances", "instances").children())
             Variable(childVar).triggerEvent(onSetValue); //set the value (WIP) ); //rowNr //instance - instances.begin()
 
           web->recvUDPCounter++;
@@ -508,7 +508,7 @@ public:
                   if (!message["id"].isNull() && !message["value"].isNull()) {
                     ppf("handleNotifications i:%d json message %.*s l:%d\n", instanceUDP.remoteIP()[3], packetSize, buffer, packetSize);
 
-                    Variable(mdl->findVar(message["pid"].as<const char *>(), message["id"].as<const char *>())).setValueJV(message["value"]);
+                    Variable(message["pid"].as<const char *>(), message["id"].as<const char *>()).setValueJV(message["value"]);
                   }
                 }
               }
@@ -537,13 +537,13 @@ public:
     }
     if (erased) {
       ppf("instances remove inactive instances\n");
-      for (JsonObject childVar: Variable(mdl->findVar("Instances", "instances")).children())
+      for (JsonObject childVar: Variable("Instances", "instances").children())
         Variable(childVar).triggerEvent(onSetValue); //set the value (WIP)); //no rowNr so all rows updated
 
       //tbd: pubsub mechanism
       //LEDs specific
-      Variable(mdl->findVar("DDP", "instance")).triggerEvent(onUI); //rebuild options
-      // Variable(mdl->findVar("Artnet", "artInst")).triggerEvent(onUI); //rebuild options
+      Variable("DDP", "instance").triggerEvent(onUI); //rebuild options
+      // Variable("Artnet", "artInst").triggerEvent(onUI); //rebuild options
     }
   }
 
@@ -783,7 +783,7 @@ public:
                     id = strtok(nullptr, "."); //the rest after .
                   }
 
-                  Variable(mdl->findVar(pid, id)).setValueJV(pair.value());
+                  Variable(pid, id).setValueJV(pair.value());
                 }
                 instance.jsonData = newData; // deepcopy: https://github.com/bblanchon/ArduinoJson/issues/1023
                 // ppf("updateInstance json ip:%d", instance.ip[3]);
@@ -810,7 +810,7 @@ public:
 
           // ppf("updateInstance updRow\n");
 
-          for (JsonObject childVar: Variable(mdl->findVar("Instances", "instances")).children())
+          for (JsonObject childVar: Variable("Instances", "instances").children())
             Variable(childVar).triggerEvent(onSetValue); //set the value (WIP)); //rowNr instance - instances.begin()
 
           //tbd: now done for all rows, should be done only for updated rows!
@@ -825,14 +825,14 @@ public:
 
       //tbd: pubsub mechanism
       //LEDs specific
-      Variable(mdl->findVar("DDP", "instance")).triggerEvent(onUI); //rebuild options
-      // Variable(mdl->findVar(Artnet", "artInst")).triggerEvent(onUI); //rebuild options
+      Variable("DDP", "instance").triggerEvent(onUI); //rebuild options
+      // Variable(Artnet", "artInst").triggerEvent(onUI); //rebuild options
 
       // ui->processOnUI("instances");
       //run though it sorted to find the right rowNr
       // for (std::vector<InstanceInfo>::iterator instance=instances.begin(); instance!=instances.end(); ++instance) {
       //   if (instance->ip == messageIP) {
-          for (JsonObject childVar: Variable(mdl->findVar("Instances", "instances")).children()) {
+          for (JsonObject childVar: Variable("Instances", "instances").children()) {
             Variable(childVar).triggerEvent(onSetValue); //set the value (WIP)); //no rowNr, update all
           }
       //   }

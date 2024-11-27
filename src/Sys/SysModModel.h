@@ -208,8 +208,10 @@ class Variable {
 
   JsonObject var;
 
-  Variable() {this->var = JsonObject();} //undefined variable
-  explicit Variable(JsonObject var) {this->var = var;}
+  //constructors
+  Variable(); //undefined variable
+  Variable(JsonObject var);
+  Variable(const char *pid, const char *id);
 
   //core methods 
   const char *pid() const {return var["pid"];}
@@ -254,6 +256,7 @@ class Variable {
   //return the options from onUI (don't forget to clear responseObject)
   JsonArray getOptions();
   void clearOptions();
+  void getOption(char *option, uint8_t index);
 
   //find options text in a hierarchy of options
   void findOptionsText(uint8_t value, char * groupName, char * optionName);

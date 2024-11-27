@@ -346,7 +346,7 @@ static float _time(float j) {
   }
 
   void UserModLive::loop1s() {
-    for (JsonObject childVar: Variable(mdl->findVar("LiveScripts", "scripts")).children())
+    for (JsonObject childVar: Variable("LiveScripts", "scripts").children())
       Variable(childVar).triggerEvent(onSetValue); //set the value (WIP)
   }
 
@@ -369,10 +369,10 @@ static float _time(float j) {
   uint8_t UserModLive::compile(const char * fileName, const char * post) {
     ppf("live compile n:%s o:%s \n", fileName, this->fileName);
 
-    File f = files->open(fileName, "r");
+    File f = files->open(fileName, FILE_READ);
     if (!f)
     {
-      ppf("UserModLive setup script open %s for %s failed\n", fileName, "r");
+      ppf("UserModLive setup script open %s for %s failed\n", fileName, FILE_READ);
       return UINT8_MAX;
     }
     else {

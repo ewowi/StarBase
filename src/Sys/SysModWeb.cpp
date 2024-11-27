@@ -65,7 +65,7 @@ void SysModWeb::setup() {
   ui->initText(tableVar, "ip", nullptr, 16, true, [this](EventArguments) { switch (eventType) {
     case onSetValue: {
       uint8_t rowNr = 0; for (auto &client:ws.getClients())
-        variable.setValue(JsonString(client->remoteIP().toString().c_str(), JsonString::Copied), rowNr++);
+        variable.setValue(JsonString(client->remoteIP().toString().c_str()), rowNr++);
       return true; }
     default: return false;
   }});
@@ -624,12 +624,12 @@ void SysModWeb::jsonHandler(WebRequest *request, JsonVariant json) {
 void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filter) {
   for (auto &client:ws.getClients()) {
     if (nameOnly) {
-      array.add(JsonString(client->remoteIP().toString().c_str(), JsonString::Copied));
+      array.add(JsonString(client->remoteIP().toString().c_str()));
     } else {
       // ppf("Client %d %d ...%d\n", client->id(), client->queueIsFull(), client->remoteIP()[3]);
       JsonArray row = array.add<JsonArray>();
       row.add(client->id());
-      array.add(JsonString(client->remoteIP().toString().c_str(), JsonString::Copied));
+      array.add(JsonString(client->remoteIP().toString().c_str()));
       row.add(client->queueIsFull());
       row.add(client->status());
       row.add(client->queueLen());
@@ -740,8 +740,8 @@ void SysModWeb::serializeInfo(JsonVariant root) {
     // docInfo["leds"]["fps"] = mdl->getValue("fps"); //tbd: should be realFps but is ro var
     // docInfo["wifi"]["rssi"] = WiFi.RSSI();// mdl->getValue("rssi"); (ro)
 
-    root["mac"] = JsonString(mdns->escapedMac.c_str(), JsonString::Copied);
-    root["ip"] = JsonString(net->localIP().toString().c_str(), JsonString::Copied);
+    root["mac"] = JsonString(mdns->escapedMac.c_str());
+    root["ip"] = JsonString(net->localIP().toString().c_str());
     // print->printJson("serveJson", root);
 }
 

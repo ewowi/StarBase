@@ -416,7 +416,7 @@
       }
     }
     else if (value.is<const char *>())
-      setValue(JsonString(value, JsonString::Copied), rowNr);
+      setValue(value, rowNr);
     else if (value.is<Coord3D>()) //otherwise it will be treated as JsonObject and toJson / fromJson will not be triggered!!!
       setValue(value.as<Coord3D>(), rowNr);
     else
@@ -433,7 +433,7 @@
 
     va_end(args);
 
-    setValue(JsonString(value, JsonString::Copied));
+    setValue(JsonString(value));
   }
 
   JsonVariant Variable::getValue(uint8_t rowNr) {
@@ -669,7 +669,7 @@ Variable SysModModel::initVar(Variable parent, const char * id, const char * typ
       var = parent.var["n"].add<JsonObject>();
       // serializeJson(model, Serial);Serial.println();
     }
-    var["id"] = JsonString(id, JsonString::Copied);
+    var["id"] = JsonString(id);
   }
   // else {
   //   ppf("initVar Var %s->%s already defined\n", modelParentId, id);
@@ -677,7 +677,7 @@ Variable SysModModel::initVar(Variable parent, const char * id, const char * typ
 
   if (!var.isNull()) {
     if (var["type"].isNull() || var["type"] != type) {
-      var["type"] = JsonString(type, JsonString::Copied);
+      var["type"] = JsonString(type);
       // print->printJson("initVar set type", var);
     }
 

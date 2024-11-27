@@ -120,7 +120,7 @@ public:
     ui->initText(tableVar, "name", nullptr, 32, false, [this](EventArguments) { switch (eventType) {
       case onSetValue:
         for (size_t rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++)
-          variable.setValue(JsonString(instances[rowNrL].name, JsonString::Copied), rowNrL);
+          variable.setValue(JsonString(instances[rowNrL].name), rowNrL);
         return true;
       // comment this out for the time being as causes corrupted instance names
       // case onChange:
@@ -135,7 +135,7 @@ public:
         for (size_t rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++) {
           char urlString[32] = "http://";
           strlcat(urlString, instances[rowNrL].ip.toString().c_str(), sizeof(urlString));
-          variable.setValue(JsonString(urlString, JsonString::Copied), rowNrL);
+          variable.setValue(JsonString(urlString), rowNrL);
         }
         return true;
       default: return false;
@@ -152,7 +152,7 @@ public:
     ui->initText(tableVar, "IP", nullptr, 16, true, [this](EventArguments) { switch (eventType) {
       case onSetValue:
         for (size_t rowNrL = 0; rowNrL < instances.size() && (rowNr == UINT8_MAX || rowNrL == rowNr); rowNrL++)
-          variable.setValue(JsonString(instances[rowNrL].ip.toString().c_str(), JsonString::Copied), rowNrL);
+          variable.setValue(JsonString(instances[rowNrL].ip.toString().c_str()), rowNrL);
         return true;
       default: return false;
     }});
@@ -241,8 +241,8 @@ public:
             // ppf("initVar dash %s[%d]\n", variable.id(), rowNrL);
             //do what setValue is doing except calling onChange
             // insVar["value"][rowNrL] = instances[rowNrL].jsonData[variable.id()]; //only int values...
-
-            web->addResponse(insVariable.var, "value", instances[rowNrL].jsonData[variable.id()], rowNrL); // error: passing 'const Variable' as 'this' argument discards qualifiers
+            JsonVariant value = instances[rowNrL].jsonData[variable.id()];
+            web->addResponse(insVariable.var, "value", value, rowNrL); // error: passing 'const Variable' as 'this' argument discards qualifiers
 
             // mdl->setValue(insVariable.var, instances[rowNrL].jsonData[variable.id()], rowNr);
           //send to ws?

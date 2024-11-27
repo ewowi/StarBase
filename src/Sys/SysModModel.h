@@ -286,7 +286,8 @@ class Variable {
           //   ppf("setValue changed %s.%s %s -> %s\n", pid(), id(), var["oldValue"].as<String>().c_str(), valueString().c_str());
           // else
           //   ppf("setValue changed %s %s\n", id(), var["value"].as<String>().c_str());
-          web->addResponse(var, "value", var["value"]);
+          JsonVariant value = var["value"];
+          web->addResponse(var, "value", value);
           changed = true;
         }
       }
@@ -312,7 +313,8 @@ class Variable {
           //   ppf("notSame %d %d\n", rowNr, valueArray.size());
           valueArray[rowNr] = value; //if valueArray[<rowNr] not exists it will be created
           // ppf("  assigned %d %d %s\n", rowNr, valueArray.size(), valueArray[rowNr].as<String>().c_str());
-          web->addResponse(var, "value", var["value"]); //send the whole array to UI as response is in format value:<value> !!
+          JsonVariant value = var["value"];
+          web->addResponse(var, "value", value); //send the whole array to UI as response is in format value:<value> !!
           changed = true;
         }
       }

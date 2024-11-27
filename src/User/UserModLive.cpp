@@ -187,7 +187,7 @@ static float _time(float j) {
         rowNr = 0;
         for (Executable &exec: scriptRuntime._scExecutables) {
           const char *name = exec.name.c_str();
-          variable.setValue(JsonString(exec.name.c_str(), JsonString::Copied), rowNr++);
+          variable.setValue(JsonString(exec.name.c_str()), rowNr++);
         }
         return true;
       default: return false;
@@ -245,7 +245,7 @@ static float _time(float j) {
           exe_info exeInfo = scriptRuntime.getExecutableInfo(exec.name);
           char text[30];
           print->fFormat(text, sizeof(text), "%d+%d=%d B", exeInfo.binary_size, exeInfo.data_size, exeInfo.total_size);
-          variable.setValue(JsonString(text, JsonString::Copied), rowNr++);
+          variable.setValue(JsonString(text), rowNr++);
         }
         return true;
       default: return false;

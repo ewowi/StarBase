@@ -44,7 +44,7 @@ void SysModules::setup() {
   ui->initText(tableVar, "name", nullptr, 32, true, [this](EventArguments) { switch (eventType) {
     case onSetValue:
       for (size_t rowNr = 0; rowNr < modules.size(); rowNr++)
-        variable.setValue(JsonString(modules[rowNr]->name, JsonString::Copied), rowNr);
+        variable.setValue(JsonString(modules[rowNr]->name), rowNr);
       return true;
     default: return false;
   }});

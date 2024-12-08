@@ -78,6 +78,29 @@ void SysModules::setup() {
       return true;
     default: return false;
   }});
+
+  Variable currentVar = ui->initText(tableVar, "cpuTime", nullptr, 32, true);
+
+  currentVar.subscribe(onSetValue, [this](Variable variable, uint8_t rowNr, uint8_t eventType) {
+      for (size_t rowNr = 0; rowNr < modules.size(); rowNr++) {
+        StarString buf;
+        uint16_t lps = modules[rowNr]->cpuTime?ESP.getCpuFreqMHz() * 1000000 / modules[rowNr]->cpuTime:0; //lps
+        if (lps > 2000)
+          variable.setValue("~0", rowNr);
+        else if (lps) {
+          buf.format("%d ms %d lps", 1000 / lps, lps);
+          variable.setValue(JsonString(buf.getString()), rowNr);
+        }
+        else 
+          variable.setValue("0", rowNr);
+
+      }
+  });
+
+  currentVar.subscribe(onLoop1s, [this](Variable variable, uint8_t rowNr, uint8_t eventType) {
+    variable.triggerEvent(onSetValue);
+  });
+
 }
 
 void SysModules::loop() {
@@ -93,6 +116,7 @@ void SysModules::loop() {
   // }
   for (SysModule *module:modules) {
     if (module->isEnabled && module->success) {
+      uint32_t cycles = ESP.getCycleCount();
       module->loop();
       // (module->*module->loopCached)(); //use virtual cached function for speed??? tested, no difference ...
       if (millis() - module->twentyMsMillis >= 20) {
@@ -107,6 +131,7 @@ void SysModules::loop() {
         module->tenSecondMillis = millis();
         module->loop10s();
       }
+      module->cpuTime = (ESP.getCycleCount() - cycles);
     }
   }
   if (newConnection) {

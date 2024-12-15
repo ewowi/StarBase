@@ -440,9 +440,6 @@ public:
     return round(exp(minv + scale*((float)value-minp)));
   }
 
-private:
-  bool cleanUpModelDone = false;
-
 };
 
 extern SysModModel *mdl;

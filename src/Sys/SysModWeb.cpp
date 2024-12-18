@@ -639,7 +639,6 @@ void SysModWeb::clientsToJson(JsonArray array, bool nameOnly, const char * filte
 
 bool SysModWeb::captivePortal(WebRequest *request)
 {
-  ppf("captivePortal %d %d\n", net->localIP()[3], request->client()->localIP()[3]);
 
   if (ON_STA_FILTER(request)) return false; //only serve captive in AP mode
   String hostH;
@@ -647,7 +646,7 @@ bool SysModWeb::captivePortal(WebRequest *request)
   hostH = request->getHeader("Host")->value();
 
   if (!isIp(hostH) && hostH.indexOf(mdns->cmDNS) < 0) { //&& hostH.indexOf("wled.me") < 0
-    ppf("Captive portal\n");
+    ppf("captivePortal %d %d\n", net->localIP()[3], request->client()->localIP()[3]);
     WebResponse *response = request->beginResponse(302);
     response->addHeader(F("Location"), F("http://4.3.2.1"));
     request->send(response);

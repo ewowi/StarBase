@@ -74,9 +74,15 @@
   }
 
   void Variable::preDetails() {
-    for (JsonObject varChild: children()) { //for all controls
-      varChild.remove("o");
+    print->printJson("preDetails pre", var);
+    if (var["oldValue"].isNull()) //no previous effect: during boot
+      for (JsonObject varChild: children()) { //for all controls
+        varChild.remove("o");
+      }
+    else {
+      var["n"].to<JsonArray>(); //delete old values
     }
+
     ppf("preDetails %s.%s post ", pid(), id());
     print->printVar(var);
     ppf("\n");
@@ -113,7 +119,6 @@
               ppf("remove allnulls %s\n", childVariable.id());
               children().remove(childVarIt);
             }
-            web->getResponseObject()["details"]["rowNr"] = rowNr;
           }
           else
             print->printJson("dev array but not rowNr", var);
@@ -129,10 +134,12 @@
       }
     } //if new added
     ppf("postDetails %s.%s post ", pid(), id());
-    print->printVar(var);
+    print->printJson("  Var", var);
     ppf("\n");
 
     //post update details
+    if (rowNr != UINT8_MAX)
+      web->getResponseObject()["details"]["rowNr"] = rowNr;
     web->getResponseObject()["details"]["var"] = var;
   }
 

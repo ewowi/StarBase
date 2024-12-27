@@ -80,7 +80,7 @@ class Controller {
     // every 10th second send binarydata
     window.setInterval(function(){
       let buffer = [0,1,2,3,4]
-      buffer[0] = Math.round(Math.random())
+      buffer[0] = Math.round(Math.random() * 2) //0, 1 or 2
       
       // console.log(buffer)
       // let buffer = new Uint8Array([0,1,2,3,4,5,6,7,8]);

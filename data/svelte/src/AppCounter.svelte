@@ -3,7 +3,7 @@
   </script>
   
   <main>
-	<h1>StarBase + Vite + Svelte</h1>
+	<h1>Star + Vite + Svelte</h1>
   
 	<div class="card">
 	  <Counter />
@@ -14,7 +14,7 @@
 	</p>
   
 	<p class="read-the-docs">
-	  Click on the Vite and Svelte logos to learn more
+	  Click on the Vite and Svelte logos to learn more (ewowi)
 	</p>
   </main>
   
